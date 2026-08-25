@@ -1,0 +1,333 @@
+{
+  "layoutVersion": "graph-layout-v1",
+  "algorithmVersion": "dagre-layered-v1",
+  "structuralFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394",
+  "positions": [
+    {
+      "nodeId": "node:competency:algorithms-complexity-analysis",
+      "canonical": {
+        "x": 680,
+        "y": 168
+      },
+      "effective": {
+        "x": 680,
+        "y": 168
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:algorithms-graph-traversal",
+      "canonical": {
+        "x": 1008,
+        "y": 148
+      },
+      "effective": {
+        "x": 1008,
+        "y": 148
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:algorithms-hash-tables",
+      "canonical": {
+        "x": 680,
+        "y": 24
+      },
+      "effective": {
+        "x": 680,
+        "y": 24
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:algorithms-problem-decomposition",
+      "canonical": {
+        "x": 352,
+        "y": 96
+      },
+      "effective": {
+        "x": 352,
+        "y": 96
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:linux-cli-pipelines",
+      "canonical": {
+        "x": 352,
+        "y": 608
+      },
+      "effective": {
+        "x": 352,
+        "y": 608
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:linux-file-permissions",
+      "canonical": {
+        "x": 680,
+        "y": 547
+      },
+      "effective": {
+        "x": 680,
+        "y": 547
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:linux-log-triage",
+      "canonical": {
+        "x": 352,
+        "y": 413
+      },
+      "effective": {
+        "x": 392,
+        "y": 437
+      },
+      "source": "WORKSPACE_OVERRIDE",
+      "overrideRevision": "overlay:fixture-primary-v1",
+      "overrideWorkspaceId": "workspace:fixture-primary"
+    },
+    {
+      "nodeId": "node:competency:linux-process-debugging",
+      "canonical": {
+        "x": 680,
+        "y": 403
+      },
+      "effective": {
+        "x": 680,
+        "y": 403
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:networking-http-basics",
+      "canonical": {
+        "x": 680,
+        "y": 855
+      },
+      "effective": {
+        "x": 680,
+        "y": 855
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:networking-socket-debugging",
+      "canonical": {
+        "x": 680,
+        "y": 711
+      },
+      "effective": {
+        "x": 680,
+        "y": 711
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:networking-tcp-ip",
+      "canonical": {
+        "x": 352,
+        "y": 762
+      },
+      "effective": {
+        "x": 352,
+        "y": 762
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:python-data-model",
+      "canonical": {
+        "x": 680,
+        "y": 1225
+      },
+      "effective": {
+        "x": 680,
+        "y": 1225
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:python-error-handling",
+      "canonical": {
+        "x": 1008,
+        "y": 1378
+      },
+      "effective": {
+        "x": 1008,
+        "y": 1378
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:python-iterators-generators",
+      "canonical": {
+        "x": 680,
+        "y": 1081
+      },
+      "effective": {
+        "x": 680,
+        "y": 1081
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:python-standard-library",
+      "canonical": {
+        "x": 352,
+        "y": 1234
+      },
+      "effective": {
+        "x": 352,
+        "y": 1234
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:python-typing",
+      "canonical": {
+        "x": 352,
+        "y": 1090
+      },
+      "effective": {
+        "x": 352,
+        "y": 1090
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:testing-debugging-strategy",
+      "canonical": {
+        "x": 680,
+        "y": 1675
+      },
+      "effective": {
+        "x": 680,
+        "y": 1675
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:testing-integration-testing",
+      "canonical": {
+        "x": 1008,
+        "y": 1634
+      },
+      "effective": {
+        "x": 1008,
+        "y": 1634
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:testing-test-design",
+      "canonical": {
+        "x": 352,
+        "y": 1511
+      },
+      "effective": {
+        "x": 352,
+        "y": 1511
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:competency:testing-unit-testing",
+      "canonical": {
+        "x": 680,
+        "y": 1511
+      },
+      "effective": {
+        "x": 680,
+        "y": 1511
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:domain:algorithms",
+      "canonical": {
+        "x": 24,
+        "y": 198
+      },
+      "effective": {
+        "x": 24,
+        "y": 198
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:domain:linux",
+      "canonical": {
+        "x": 24,
+        "y": 412
+      },
+      "effective": {
+        "x": 24,
+        "y": 412
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:domain:networking",
+      "canonical": {
+        "x": 24,
+        "y": 844
+      },
+      "effective": {
+        "x": 24,
+        "y": 844
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:domain:python",
+      "canonical": {
+        "x": 24,
+        "y": 1245
+      },
+      "effective": {
+        "x": 24,
+        "y": 1245
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    },
+    {
+      "nodeId": "node:domain:testing",
+      "canonical": {
+        "x": 24,
+        "y": 1562
+      },
+      "effective": {
+        "x": 24,
+        "y": 1562
+      },
+      "source": "CANONICAL_LAYOUT",
+      "overrideRevision": null
+    }
+  ]
+}

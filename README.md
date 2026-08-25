@@ -4,9 +4,10 @@ PANDO is **source-available**, not OSI-approved open-source software. Noncommerc
 by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribution in
 [NOTICE](NOTICE). This public license does not grant commercial rights; see
 [COMMERCIAL.md](COMMERCIAL.md) for non-binding information about requesting a separate agreement.
-PANDO is currently at the Phase 0 foundation stage. This repository contains an executable
-Next.js modular-monolith shell and its quality harness; product features, persistence, and
-domain calculations are intentionally not implemented in this change.
+PANDO is currently at the Phase 0 foundation stage. The repository contains the executable
+Next.js modular-monolith shell, contract/runtime harnesses, and a representative `/explore`
+vertical slice. Persistence, authenticated production queries, and authoritative domain
+calculations are not implemented by that fixture-backed slice.
 
 ## Prerequisites
 
@@ -30,7 +31,8 @@ One command starts the development application:
 pnpm dev
 ```
 
-Open <http://localhost:3000>.
+Open <http://localhost:3000>. The representative 25-node accessible graph slice is available at
+<http://localhost:3000/explore>.
 
 ## Verify locally
 
@@ -40,9 +42,10 @@ One command runs the complete local gate:
 pnpm verify
 ```
 
-The gate checks formatting, lint rules and module-boundary guards, strict TypeScript, unit tests
-and coverage, the production build, and Chromium end-to-end/accessibility tests. CI runs the same
-command from a frozen lockfile and scans the committed Git history for secrets.
+The gate checks formatting, lint rules and module-boundary guards, strict TypeScript, contract and
+unit tests, coverage, representative graph payload/layout budgets, the production build, and
+Chromium end-to-end/accessibility and graph-interaction budgets. CI runs the same command from a
+frozen lockfile and scans the committed Git history for secrets.
 
 ## Repository shape
 
@@ -51,7 +54,7 @@ src/
   app/        Next.js App Router shell
   modules/    bounded-context ownership boundaries
   shared/     small, stable cross-cutting code
-  ui/         repository-owned design system and UI projections
+  ui/         repository-owned design system and UI projections, including Explore adapters
 tests/
   e2e/        Playwright journeys and automated accessibility checks
   unit/       shared Vitest setup
@@ -66,12 +69,13 @@ projection composition.
 
 ## Dependency policy
 
-Production dependencies are Next.js, React, and React DOM plus the contract-boundary libraries
-required by ADR-0005: Ajv Draft 2020-12, `ajv-formats`, and RFC 8785 JSON canonicalization. Tailwind
-CSS and the lint, format, type, unit, accessibility, and E2E tools remain development-only. There
-is no ORM, monorepo tooling, global state library, or runtime provider SDK. `pnpm-workspace.yaml`
-is pnpm 11's required project-settings file; because it declares no `packages`, the repository
-remains a single package.
+Production dependencies are Next.js, React, and React DOM; the contract-boundary libraries required
+by ADR-0005 (Ajv Draft 2020-12, `ajv-formats`, and RFC 8785 JSON canonicalization); and the exact
+ADR-0004 graph adapter pins `@xyflow/react@12.11.3` and `@dagrejs/dagre@3.1.1`. Tailwind CSS and the
+lint, format, type, unit, accessibility, and E2E tools remain development-only. There is no ORM,
+monorepo tooling, global state library, or runtime provider SDK. `pnpm-workspace.yaml` is pnpm 11's
+required project-settings file; because it declares no `packages`, the repository remains a single
+package.
 
 ## Licensing and contributions
 
