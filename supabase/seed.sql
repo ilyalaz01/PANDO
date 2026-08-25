@@ -1,0 +1,2 @@
+-- Phase 0 intentionally has no domain seed data. pgTAP tests create isolated
+-- auth/workspace fixtures inside transactions and roll them back.

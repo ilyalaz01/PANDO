@@ -1,0 +1,310 @@
+begin;
+
+create extension if not exists pgtap with schema extensions;
+set local search_path = public, extensions;
+
+select no_plan();
+
+select has_schema(schema_name, format('%s schema exists', schema_name))
+from unnest(array[
+  'api',
+  'identity',
+  'catalog',
+  'targets',
+  'overlay',
+  'sessions',
+  'evidence',
+  'mastery',
+  'review',
+  'planning',
+  'integrations',
+  'outbox'
+]) as schemas(schema_name);
+
+select has_table(
+  expected.schema_name,
+  expected.table_name,
+  format('%s.%s table exists', expected.schema_name, expected.table_name)
+)
+from (values
+  ('identity', 'users'),
+  ('identity', 'workspaces'),
+  ('identity', 'workspace_memberships'),
+  ('outbox', 'command_receipts'),
+  ('outbox', 'events'),
+  ('outbox', 'deliveries'),
+  ('outbox', 'consumer_receipts')
+) as expected(schema_name, table_name);
+
+select ok(
+  class.relrowsecurity and class.relforcerowsecurity,
+  format('%s.%s has enabled and forced RLS', namespace.nspname, class.relname)
+)
+from pg_catalog.pg_class as class
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = class.relnamespace
+where (namespace.nspname, class.relname) in (
+  ('identity', 'users'),
+  ('identity', 'workspaces'),
+  ('identity', 'workspace_memberships'),
+  ('outbox', 'command_receipts'),
+  ('outbox', 'events'),
+  ('outbox', 'deliveries'),
+  ('outbox', 'consumer_receipts')
+)
+order by namespace.nspname, class.relname;
+
+select ok(
+  not pg_catalog.has_table_privilege(
+    'authenticated',
+    pg_catalog.format('%I.%I', namespace.nspname, class.relname),
+    privilege.privilege_name
+  ),
+  format(
+    'authenticated has no direct %s on %s.%s',
+    privilege.privilege_name,
+    namespace.nspname,
+    class.relname
+  )
+)
+from pg_catalog.pg_class as class
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = class.relnamespace
+cross join (values
+  ('SELECT'),
+  ('INSERT'),
+  ('UPDATE'),
+  ('DELETE'),
+  ('TRUNCATE'),
+  ('REFERENCES'),
+  ('TRIGGER')
+)
+  as privilege(privilege_name)
+where (namespace.nspname, class.relname) in (
+  ('identity', 'users'),
+  ('identity', 'workspaces'),
+  ('identity', 'workspace_memberships'),
+  ('outbox', 'command_receipts'),
+  ('outbox', 'events'),
+  ('outbox', 'deliveries'),
+  ('outbox', 'consumer_receipts')
+)
+order by namespace.nspname, class.relname;
+
+select ok(
+  not pg_catalog.has_table_privilege(
+    'anon',
+    pg_catalog.format('%I.%I', namespace.nspname, class.relname),
+    privilege.privilege_name
+  ),
+  format(
+    'anon has no direct %s on %s.%s',
+    privilege.privilege_name,
+    namespace.nspname,
+    class.relname
+  )
+)
+from pg_catalog.pg_class as class
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = class.relnamespace
+cross join (values
+  ('SELECT'),
+  ('INSERT'),
+  ('UPDATE'),
+  ('DELETE'),
+  ('TRUNCATE'),
+  ('REFERENCES'),
+  ('TRIGGER')
+)
+  as privilege(privilege_name)
+where (namespace.nspname, class.relname) in (
+  ('identity', 'users'),
+  ('identity', 'workspaces'),
+  ('identity', 'workspace_memberships'),
+  ('outbox', 'command_receipts'),
+  ('outbox', 'events'),
+  ('outbox', 'deliveries'),
+  ('outbox', 'consumer_receipts')
+)
+order by namespace.nspname, class.relname;
+
+select ok(
+  not pg_catalog.has_table_privilege(
+    'service_role',
+    pg_catalog.format('%I.%I', namespace.nspname, class.relname),
+    privilege.privilege_name
+  ),
+  format(
+    'service_role has no direct %s on %s.%s',
+    privilege.privilege_name,
+    namespace.nspname,
+    class.relname
+  )
+)
+from pg_catalog.pg_class as class
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = class.relnamespace
+cross join (values
+  ('SELECT'),
+  ('INSERT'),
+  ('UPDATE'),
+  ('DELETE'),
+  ('TRUNCATE'),
+  ('REFERENCES'),
+  ('TRIGGER')
+)
+  as privilege(privilege_name)
+where (namespace.nspname, class.relname) in (
+  ('identity', 'users'),
+  ('identity', 'workspaces'),
+  ('identity', 'workspace_memberships'),
+  ('outbox', 'command_receipts'),
+  ('outbox', 'events'),
+  ('outbox', 'deliveries'),
+  ('outbox', 'consumer_receipts')
+)
+order by namespace.nspname, class.relname;
+
+select ok(
+  pg_catalog.has_schema_privilege('authenticated', 'api', 'USAGE'),
+  'authenticated can use the api schema'
+);
+
+select ok(
+  not pg_catalog.has_schema_privilege('authenticated', 'api', 'CREATE'),
+  'authenticated cannot create api objects'
+);
+
+select ok(
+  not pg_catalog.has_schema_privilege('anon', 'api', 'USAGE'),
+  'anon cannot use the api schema'
+);
+
+select ok(
+  not pg_catalog.has_schema_privilege('authenticated', 'outbox', 'USAGE'),
+  'authenticated cannot use the outbox schema'
+);
+
+select ok(
+  not pg_catalog.has_sequence_privilege(
+    runtime_role.role_name,
+    'outbox.events_event_position_seq',
+    sequence_privilege.privilege_name
+  ),
+  format(
+    '%s has no direct %s on the event-position sequence',
+    runtime_role.role_name,
+    sequence_privilege.privilege_name
+  )
+)
+from (values ('anon'), ('authenticated'), ('service_role'))
+  as runtime_role(role_name)
+cross join (values ('USAGE'), ('SELECT'), ('UPDATE'))
+  as sequence_privilege(privilege_name);
+
+select ok(
+  pg_catalog.has_function_privilege(
+    'authenticated',
+    'api.bootstrap_personal_workspace(text,text)',
+    'EXECUTE'
+  ),
+  'authenticated can execute only the user bootstrap RPC'
+);
+
+select ok(
+  pg_catalog.has_function_privilege(
+    'authenticated',
+    'api.get_workspace(uuid)',
+    'EXECUTE'
+  ),
+  'authenticated can execute the scoped workspace query RPC'
+);
+
+select ok(
+  not pg_catalog.has_function_privilege(
+    'authenticated',
+    'api.claim_phase0_probe_deliveries()',
+    'EXECUTE'
+  ),
+  'authenticated cannot claim worker deliveries'
+);
+
+select ok(
+  pg_catalog.has_function_privilege(
+    'service_role',
+    'api.claim_phase0_probe_deliveries()',
+    'EXECUTE'
+  ),
+  'service_role can execute the fixed claim RPC'
+);
+
+select ok(
+  not pg_catalog.has_function_privilege(
+    'anon',
+    'api.bootstrap_personal_workspace(text,text)',
+    'EXECUTE'
+  ),
+  'anon cannot execute bootstrap'
+);
+
+select ok(
+  not procedure.prosecdef,
+  format('exposed api function %s is SECURITY INVOKER', procedure.proname)
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+where namespace.nspname = 'api'
+order by procedure.proname;
+
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname in ('pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker')
+  and not owner.rolcanlogin,
+  format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner
+  on owner.oid = procedure.proowner
+where namespace.nspname in ('identity', 'outbox')
+  and procedure.prosecdef
+order by namespace.nspname, procedure.proname;
+
+select ok(
+  authorizer.rolbypassrls
+  and not authorizer.rolcanlogin
+  and not authorizer.rolinherit,
+  'RLS authorizer is the single NOLOGIN/NOINHERIT BYPASSRLS exception'
+)
+from pg_catalog.pg_roles as authorizer
+where authorizer.rolname = 'pando_rls_authorizer';
+
+select ok(
+  not role.rolbypassrls and not role.rolcanlogin and not role.rolinherit,
+  format('%s is NOLOGIN/NOINHERIT/NOBYPASSRLS', role.rolname)
+)
+from pg_catalog.pg_roles as role
+where role.rolname in ('pando_identity_api', 'pando_outbox_worker')
+order by role.rolname;
+
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.pg_proc as procedure
+    join pg_catalog.pg_namespace as namespace
+      on namespace.oid = procedure.pronamespace
+    cross join lateral pg_catalog.aclexplode(
+      coalesce(procedure.proacl, pg_catalog.acldefault('f', procedure.proowner))
+    ) as privilege
+    where namespace.nspname in ('api', 'identity', 'outbox')
+      and privilege.grantee = 0
+      and privilege.privilege_type = 'EXECUTE'
+  ),
+  'PUBLIC has EXECUTE on no Phase 0 function'
+);
+
+select * from finish();
+rollback;
