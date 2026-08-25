@@ -7,8 +7,19 @@
     "version": "1.0.0"
   },
   "purpose": "Uniquely materialize the structural 500-node stress oracle and its semantic distributions without committing renderer or layout runtime code.",
+  "status": {
+    "kind": "DESIGN_SCAFFOLD",
+    "executableMaterializerAvailable": false,
+    "note": "The recipe and expected oracles are declarative until a committed materializer and semantic validator execute them."
+  },
+  "recipeFingerprintAlgorithm": {
+    "canonicalization": "RFC_8785_JCS",
+    "input": "materialization object with its recipeFingerprint member omitted",
+    "encoding": "UTF-8",
+    "digest": "SHA-256"
+  },
   "materialization": {
-    "recipeFingerprint": "f097d00cdc03a9b147ae74f0c5f0a1fc9a7d8415e169eb3636191579cff22175",
+    "recipeFingerprint": "303ab4f90999a0f9492a97fee9717e8a575de058cb4917c727ca73df181d1a2f",
     "materializerVersion": "pando-stress-materializer-v1",
     "randomness": "NONE",
     "decimalOrdinalFormat": "FOUR_DIGITS_ZERO_PADDED",
@@ -336,5 +347,5 @@
     "serverExpansionTriggerTotalNodesGreaterThan": 500,
     "serverExpansionTriggerCompressedBytesGreaterThan": 256000
   },
-  "scopeNote": "The dependency-free structure and semantic distributions were materialized ephemerally and validated against GraphProjectionV1. Exact expanded-byte hashing plus runtime p95 and frame budgets remain for the later committed test materializer and renderer/layout implementation; this task adds no generator dependency, React Flow, or Dagre runtime."
+  "scopeNote": "This descriptor is a design scaffold. JSON parsing and the recipe fingerprint can be checked now, but expanded schema/semantic validation, exact expanded-byte hashing, runtime p95, and frame budgets remain for a later committed test materializer and renderer/layout implementation. This task adds no generator dependency, React Flow, or Dagre runtime."
 }

@@ -4,6 +4,12 @@
     "name": "GraphProjectionV1",
     "version": "1.0.0"
   },
+  "status": {
+    "kind": "DESIGN_SCAFFOLD",
+    "committedExecutableSchemaValidatorAvailable": false,
+    "committedExecutableSemanticValidatorAvailable": false,
+    "note": "Case outcomes and violation codes are declarative requirements until the repository contains and runs the contract validator."
+  },
   "schemaPath": "../../../../schemas/graph-projection/v1/graph-projection.schema.json",
   "cases": [
     {
@@ -42,6 +48,20 @@
       ]
     },
     {
+      "caseId": "invalid-canonical-edge-overlay-endpoint",
+      "path": "invalid/graph-projection-v1.canonical-edge-overlay-endpoint.json",
+      "categories": [
+        "EDGE_OWNERSHIP",
+        "INVALID",
+        "WORKSPACE_ISOLATION"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "CANONICAL_EDGE_OVERLAY_ENDPOINT"
+      ]
+    },
+    {
       "caseId": "invalid-dangling-reference",
       "path": "invalid/graph-projection-v1.dangling-reference.json",
       "categories": [
@@ -52,6 +72,60 @@
       "expectedSemanticValid": false,
       "expectedViolations": [
         "EDGE_TARGET_MISSING"
+      ]
+    },
+    {
+      "caseId": "invalid-duplicate-stable-id",
+      "path": "invalid/graph-projection-v1.duplicate-stable-id.json",
+      "categories": [
+        "DETERMINISM",
+        "INVALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "RULE_ID_DUPLICATE"
+      ]
+    },
+    {
+      "caseId": "invalid-layout-bijection",
+      "path": "invalid/graph-projection-v1.layout-bijection.json",
+      "categories": [
+        "INVALID",
+        "LAYOUT"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "LAYOUT_NODE_POSITION_BIJECTION"
+      ]
+    },
+    {
+      "caseId": "invalid-outline-bijection",
+      "path": "invalid/graph-projection-v1.outline-bijection.json",
+      "categories": [
+        "ACCESSIBILITY",
+        "INVALID",
+        "OUTLINE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "OUTLINE_NODE_BIJECTION"
+      ]
+    },
+    {
+      "caseId": "invalid-outline-cycle",
+      "path": "invalid/graph-projection-v1.outline-cycle.json",
+      "categories": [
+        "ACCESSIBILITY",
+        "INVALID",
+        "OUTLINE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "OUTLINE_CYCLE"
       ]
     },
     {
@@ -81,6 +155,73 @@
       ]
     },
     {
+      "caseId": "invalid-readiness-interval",
+      "path": "invalid/graph-projection-v1.readiness-interval.json",
+      "categories": [
+        "INVALID",
+        "READINESS"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "READINESS_INTERVAL_REVERSED"
+      ]
+    },
+    {
+      "caseId": "invalid-readiness-version-mismatch",
+      "path": "invalid/graph-projection-v1.readiness-version-mismatch.json",
+      "categories": [
+        "INVALID",
+        "READINESS",
+        "VERSION_COHERENCE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "READINESS_TARGET_PROFILE_VERSION_MISMATCH"
+      ]
+    },
+    {
+      "caseId": "invalid-readiness-watermark-mismatch",
+      "path": "invalid/graph-projection-v1.readiness-watermark-mismatch.json",
+      "categories": [
+        "INVALID",
+        "READINESS",
+        "VERSION_COHERENCE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "READINESS_INPUT_WATERMARK_MISMATCH"
+      ]
+    },
+    {
+      "caseId": "invalid-requirement-cycle",
+      "path": "invalid/graph-projection-v1.requirement-cycle.json",
+      "categories": [
+        "INVALID",
+        "REQUIREMENT_RULE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "REQUIREMENT_RULE_CYCLE"
+      ]
+    },
+    {
+      "caseId": "invalid-requirement-k-exceeds-n",
+      "path": "invalid/graph-projection-v1.requirement-k-exceeds-n.json",
+      "categories": [
+        "INVALID",
+        "REQUIREMENT_RULE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "K_OF_N_REQUIRED_COUNT_EXCEEDS_MEMBERS"
+      ]
+    },
+    {
       "caseId": "invalid-requirement-node-type",
       "path": "invalid/graph-projection-v1.requirement-node-type.json",
       "categories": [
@@ -91,6 +232,19 @@
       "expectedSemanticValid": false,
       "expectedViolations": [
         "RULE_NODE_TYPE_INVALID"
+      ]
+    },
+    {
+      "caseId": "invalid-requirement-unreachable",
+      "path": "invalid/graph-projection-v1.requirement-unreachable.json",
+      "categories": [
+        "INVALID",
+        "REQUIREMENT_RULE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "REQUIREMENT_RULE_UNREACHABLE"
       ]
     },
     {
@@ -106,6 +260,33 @@
         "DEFAULT_VISIBLE_NODE_IDS_NOT_SORTED",
         "LAYOUT_POSITIONS_NOT_SORTED",
         "NODES_NOT_SORTED"
+      ]
+    },
+    {
+      "caseId": "invalid-visibility-counts",
+      "path": "invalid/graph-projection-v1.visibility-counts.json",
+      "categories": [
+        "INVALID",
+        "VISIBILITY"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "VISIBILITY_EDGE_COUNT_MISMATCH",
+        "VISIBILITY_NODE_COUNT_MISMATCH"
+      ]
+    },
+    {
+      "caseId": "invalid-visibility-endpoints",
+      "path": "invalid/graph-projection-v1.visibility-endpoints.json",
+      "categories": [
+        "INVALID",
+        "VISIBILITY"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "DEFAULT_VISIBLE_EDGE_ENDPOINT_HIDDEN"
       ]
     },
     {
@@ -198,7 +379,9 @@
     "PREREQUISITE_DAG_IS_ACYCLIC",
     "PREREQUISITE_ENDPOINT_TYPES",
     "READINESS_INTERVAL_IS_ORDERED",
+    "READINESS_VERSION_AND_WATERMARK_MATCH",
     "REQUIREMENT_GRAPH_IS_ROOTED_AND_ACYCLIC",
+    "REQUIREMENT_K_OF_N_IS_FEASIBLE",
     "REQUIREMENT_NODE_TYPES",
     "STABLE_IDS_ARE_UNIQUE",
     "STRUCTURAL_FINGERPRINT_ORACLES",

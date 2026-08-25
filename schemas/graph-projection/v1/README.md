@@ -1,6 +1,8 @@
-# GraphProjectionV1 contract
+# GraphProjectionV1 contract design scaffold
 
-`graph-projection.schema.json` is the versioned server response contract shared by Explore Map and Outline. It is deliberately independent of React Flow, Dagre, and any runtime implementation.
+Status: design scaffold. `graph-projection.schema.json` and the fixture corpus define the intended versioned server response contract shared by Explore Map and Outline. This branch does not contain an executable serializer, semantic validator, stress materializer, React Flow adapter, or Dagre runtime. Manifest expectations and semantic violation codes are test requirements for that later implementation, not evidence that the checks already execute.
+
+The contract is deliberately independent of React Flow, Dagre, and any runtime implementation.
 
 ## Ownership boundary
 
@@ -25,9 +27,11 @@ JSON Schema validates shape. A server serializer and contract test must addition
 9. `visibilityHints` counts equal the complete arrays; its default-visible lists exactly match per-item `defaultVisible: true` flags and are capped at 150 nodes and 300 edges. Visibility hints do not persist the client's current semantic-zoom or filter state.
 10. `selectedVersions.targetProfileVersionId`, `requirements.targetProfileVersionId`, and `readiness.targetProfileVersionId` agree. Readiness and node policy versions agree with their selected versions. A current readiness result uses the projection input watermark; mismatches are rejected rather than silently combined.
 
-The fixture manifest classifies schema-valid, schema-invalid, semantic-invalid, boundary, and malicious cases. The deterministic stress descriptor fixes a 500-node recipe and the ADR-0004 performance oracles without adding a materializer or runtime dependency.
+The fixture manifest classifies schema-valid, schema-invalid, semantic-invalid, boundary, and malicious cases for a future executable contract suite. The deterministic stress descriptor fixes a 500-node recipe and the ADR-0004 performance targets without adding a materializer or runtime dependency. Until that suite exists, `expectedSchemaValid`, `expectedSemanticValid`, and `expectedViolations` are declarative design expectations.
 
-`structuralFingerprint` is lowercase SHA-256 over one minified, property-free JSON array containing only ASCII strings, integers, and null. Compare and sort stable IDs by unsigned ASCII byte value. The exact input is `["GraphProjectionV1Structure", 1, algorithmVersion, width, height, rankSpacing, nodeSpacing, nodeTuples, edgeTuples]`. Each node tuple is `[nodeId, nodeType, domainNodeId]`; each edge tuple is `[edgeId, edgeType, sourceNodeId, targetNodeId]`. Node and edge tuples are sorted by their first element. Serialize with RFC 8259 JSON grammar, no insignificant whitespace, UTF-8, then hash those bytes. The ID schema keeps every hashed string in ASCII, so escaping is unique. State, readiness, explanations, visibility, coordinates, entity/catalog versions, origins, overlay revisions, and effective personal positions are deliberately excluded. The stress `recipeFingerprint` is SHA-256 over its `materialization` object after removing `recipeFingerprint`.
+`structuralFingerprint` is lowercase SHA-256 over one minified, property-free JSON array containing only ASCII strings, integers, and null. Compare and sort stable IDs by unsigned ASCII byte value. The exact input is `["GraphProjectionV1Structure", 1, algorithmVersion, width, height, rankSpacing, nodeSpacing, nodeTuples, edgeTuples]`. Each node tuple is `[nodeId, nodeType, domainNodeId]`; each edge tuple is `[edgeId, edgeType, sourceNodeId, targetNodeId]`. Node and edge tuples are sorted by their first element. Serialize with RFC 8259 JSON grammar, no insignificant whitespace, UTF-8, then hash those bytes. The ID schema keeps every hashed string in ASCII, so escaping is unique. State, readiness, explanations, visibility, coordinates, entity/catalog versions, origins, overlay revisions, and effective personal positions are deliberately excluded.
+
+The stress `recipeFingerprint` is lowercase SHA-256 over the UTF-8 bytes of RFC 8785 JSON Canonicalization Scheme (JCS) serialization of the `materialization` object after omitting its `recipeFingerprint` member. The remaining object is valid I-JSON: object names are sorted by JCS, arrays retain their declared order, strings use JCS escaping, and numbers use the ECMAScript serialization required by RFC 8785. No whitespace or trailing newline is hashed. This definition is independent of source-file property order and formatting.
 
 ## Compatibility
 
