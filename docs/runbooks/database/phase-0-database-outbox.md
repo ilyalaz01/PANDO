@@ -23,8 +23,17 @@ pnpm verify:db
 
 The gate copies `supabase/` to an OS-created temporary directory, assigns a random local project ID
 and free database port, starts only the Postgres service, rebuilds from migrations, runs every file
-under `supabase/tests/database`, and lints at warning level. It then stops and deletes only that
-random project with `--no-backup`; it never resets or stops the repository's ordinary local stack.
+under `supabase/tests/database` by explicit path, and lints at warning level. The copy allowlist is
+limited to `config.toml`, `migrations/`, `seed.sql`, and `tests/database/`. Every copied entry
+must remain a contained regular file or real directory under the source `supabase/`; symlinks,
+junctions, devices, sockets, and other special entries fail closed.
+
+The first `SIGINT` or `SIGTERM` terminates the active non-cleanup CLI child, then runs the same
+memoized cleanup as normal completion. Cleanup ignores later signals, stops exactly the random
+project with `--no-backup`, removes the exact scratch directory, and returns conventional exit code
+130 or 143. It never resets or stops the repository's ordinary local stack. A free port is selected
+through an OS ephemeral bind and released before Docker binds it; if another process wins that small
+race, startup fails safely and the exact-project cleanup still runs. Rerun the gate.
 
 For deliberate work inside an already isolated disposable Supabase project, the equivalent pinned
 commands are:
@@ -89,6 +98,7 @@ Do not add a private schema to the Data API list, grant browser roles table acce
 | Delivery remains `leased` | Compare lease expiry and attempt count | Let the dispatcher reclaim it after expiry; do not overwrite the token |
 | Delivery is `dead_letter` | Inspect bounded failure class/code and original immutable event | Diagnose the consumer contract; Phase 0 has no manual replay RPC |
 | Local verification cannot connect | Docker daemon status and the isolated project ID printed by `pnpm verify:db` | Start Docker, then rerun `pnpm verify:db`; never stop another local project |
+| Verification was interrupted | Exit code 130 means `SIGINT`; 143 means `SIGTERM` | Confirm the printed random project is absent, then rerun; cleanup failure is an error, not a pass |
 
 ## Roll-forward
 

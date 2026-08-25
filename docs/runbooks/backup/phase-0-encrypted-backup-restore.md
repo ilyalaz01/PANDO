@@ -43,7 +43,7 @@ pnpm exec supabase db reset --local --sql-paths <relative-auth-data.sql> --sql-p
 pnpm exec supabase db lint --local --level warning
 ```
 
-Record the exact resolved extraction path before opening. After reset and verification, remove only that exact directory and verify that it is gone; never use a glob, repository root, shared parent, or unresolved environment variable for cleanup. The reset first recreates schema from migrations, then loads Auth before application data. Verify row counts, API/RLS isolation under at least two synthetic subjects, command/outbox contract versions, and the Storage manifest. `pnpm verify:backup` automates this against a randomly named temporary local stack and proves positive and negative restored-user isolation, the event contract, and ciphertext tamper rejection. It uses only synthetic `.test` identities and removes the stack with `supabase stop --no-backup`.
+Record the exact resolved extraction path before opening. After reset and verification, remove only that exact directory and verify that it is gone; never use a glob, repository root, shared parent, or unresolved environment variable for cleanup. The reset first recreates schema from migrations, then loads Auth before application data. Verify row counts, API/RLS isolation under at least two synthetic subjects, command/outbox contract versions, and the Storage manifest. `pnpm verify:backup` automates this against a randomly named temporary local stack and proves positive and negative restored-user isolation, the event contract, and ciphertext tamper rejection. It uses only synthetic `.test` identities and removes the stack with `pnpm exec supabase stop --no-backup`.
 
 ## Retention and off-site boundary
 
@@ -51,6 +51,9 @@ For a one-user pre-revenue deployment retain 7 daily, 4 weekly, and 6 monthly su
 
 Cloudflare R2 Standard is an optional off-site adapter, never a runtime or decryption dependency. `pnpm backup:r2-plan -- --input <archive>.pando --account-id <32 lowercase hex> --bucket <bucket>` structurally validates the encrypted envelope and emits the non-secret S3 target plan; it deliberately performs no upload. The emitted key is `pando/logical/<created-date>/<backup-id>.pando`. Upload only the final `.pando` ciphertext using an S3-compatible client, a bucket-scoped token, TLS, and conditional overwrite prevention. R2 credentials and the decryption secret must be separate. A live upload needs an operations-owned adapter/rehearsal; no cloud credentials are required by this repository test.
 
-Repository setting follow-up: configure the external GitHub branch ruleset to require both the ordinary verification and `backup-restore` CI checks before merging to `main`; repository files cannot enforce that hosting setting.
+Repository setting follow-up: configure the external GitHub branch ruleset to require the
+aggregate `phase0` CI check before merging to `main`. That check depends on `secrets`, `verify`,
+`database`, and `backup-restore`, without rerunning their expensive work. Repository files cannot
+enforce that hosting setting.
 
 Primary references: [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started), [Supabase database backups](https://supabase.com/docs/guides/platform/backups), [Supabase Storage downloads](https://supabase.com/docs/guides/storage/management/download-objects), [PostgreSQL pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html), [Node.js crypto](https://nodejs.org/docs/latest-v24.x/api/crypto.html), and [Cloudflare R2 S3 API](https://developers.cloudflare.com/r2/get-started/s3/).
