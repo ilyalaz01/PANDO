@@ -59,7 +59,10 @@ tests/
 
 Each bounded-context directory documents its owner. When implementation is added, code is split
 by `domain`, `application`, and `infrastructure`; domain code remains pure and framework-free.
-Cross-module writes will use commands and versioned events.
+The [module topology](docs/design/MODULE_TOPOLOGY.md) maps every accepted context, derived
+projection owner, command/query/event path, and task-oriented reading route. Cross-context
+interaction is limited to owning commands, bounded queries, versioned events, and read-only
+projection composition.
 
 ## Dependency policy
 

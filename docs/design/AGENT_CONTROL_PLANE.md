@@ -28,6 +28,8 @@ flowchart LR
 ```
 
 The browser UI enters at the same preview/application services. No agent-specific business mutation exists.
+Agent Control's coordinator dependencies and the owning modules behind each arrow are defined in the
+[module topology](MODULE_TOPOLOGY.md) and [ADR-0009](../adr/0009-module-topology-and-projection-ownership.md).
 
 ## 3. Context layers
 

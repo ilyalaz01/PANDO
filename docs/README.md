@@ -23,9 +23,19 @@ The canonical product baseline contains exactly nine Markdown files:
 8. [`06_PROMPT_LIBRARY_UX.md`](06_PROMPT_LIBRARY_UX.md) — user-facing prompt catalog for creating project-compatible proposal files through ChatGPT Work.
 9. [`../SOFTWARE_PROJECT_GUIDELINES.md`](../SOFTWARE_PROJECT_GUIDELINES.md) — mandatory engineering, security, testing, review, release, and AI-agent execution standards.
 
-After this index, implementation agents read `00` through `06` in numeric order, then the engineering guideline.
+For any product-semantic, architecture, ownership, or cross-context change, implementation agents
+read `00` through `06` in numeric order, then the engineering guideline. A narrowly scoped
+implementation task still begins here and in the Phase 0 baseline, then follows the smallest complete
+route in the [module topology and reading map](design/MODULE_TOPOLOGY.md). If the task can affect
+more than one route or reinterpret a product rule, read the complete canonical set.
 
-Implementation records under [Phase 0 Technical Baseline](PHASE_0_TECHNICAL_BASELINE.md), [adr/](adr/), [design/](design/), and [policies/](policies/) are supporting documents, not additional canonical product documents. Agent Control is detailed in [ADR-0008](adr/0008-agent-control-plane.md) and the [Agent Control Plane design](design/AGENT_CONTROL_PLANE.md). Supporting documents may select implementation mechanisms but may not change product semantics.
+Implementation records under [Phase 0 Technical Baseline](PHASE_0_TECHNICAL_BASELINE.md), [adr/](adr/),
+[design/](design/), and [policies/](policies/) are supporting documents, not additional canonical
+product documents. Module interaction and projection ownership are recorded in [ADR-0009](adr/0009-module-topology-and-projection-ownership.md)
+and the [module topology](design/MODULE_TOPOLOGY.md). Agent Control is detailed in
+[ADR-0008](adr/0008-agent-control-plane.md) and the
+[Agent Control Plane design](design/AGENT_CONTROL_PLANE.md). Supporting documents may select
+implementation mechanisms but may not change product semantics.
 
 If documents conflict, earlier product documents in this list have precedence over later product documents. `SOFTWARE_PROJECT_GUIDELINES.md` governs implementation and delivery but must not silently contradict product semantics. Stop and record the conflict instead of guessing.
 

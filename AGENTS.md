@@ -5,14 +5,21 @@
 For every new task:
 
 1. Read docs/README.md completely.
-2. Follow its canonical reading order for any product or architecture change.
-3. Read docs/PHASE_0_TECHNICAL_BASELINE.md and only the ADRs or policies relevant to the task.
-4. Stop and report any conflict. Do not silently reinterpret product semantics.
+2. Follow its full canonical reading order for any product-semantic, architecture, ownership, or
+   cross-context change.
+3. For a narrow implementation task, read docs/PHASE_0_TECHNICAL_BASELINE.md, use
+   docs/design/MODULE_TOPOLOGY.md to identify the owner and reading route, then read every canonical
+   section, ADR, policy, schema, and module contract decisive for that route.
+4. If the task touches several routes or could reinterpret a product rule, read all nine canonical
+   documents instead of optimizing the reading set.
+5. Stop and report any conflict. Do not silently reinterpret product semantics.
 
 The nine canonical documents outrank supporting ADRs. A superseding ADR is required before changing an accepted hard-to-reverse technical decision.
 
 ## Repository orientation
 
+- Use docs/design/MODULE_TOPOLOGY.md to identify the authoritative owner, allowed interaction form,
+  and decisive reading route before choosing files.
 - When `graphify-out/graph.json` exists, use the project `graphify` skill and a bounded graph query before broad searches for architecture, dependency paths, or cross-file impact.
 - Treat Graphify as a regenerable repository index. Verify decisive claims in authoritative source files before editing.
 - Never confuse Graphify with the competency DAG, GraphProjectionV1, AgentControlContextV1, authorization, or live user state.

@@ -22,6 +22,7 @@ This is a supporting implementation record. The nine canonical documents retain 
 | Review | Table-driven scheduler; no FSRS in MVP | [Review policy](policies/REVIEW_POLICY_V0.1.md) |
 | AI and PyPrep | No embedded AI or conversation retention in MVP; PyPrep is always an integration boundary | [ADR-0007](adr/0007-ai-and-pyprep-boundaries.md) |
 | Agent Control | External ChatGPT Work/Codex clients over compact read resources and preview/confirm/apply ChangeSets; OAuth user scope; same commands as UI. Graphify is repository orientation only. | [ADR-0008](adr/0008-agent-control-plane.md) |
+| Module topology | Eleven bounded contexts, four permitted cross-context interaction forms, explicit derived projection ownership, and task-oriented reading routes. | [ADR-0009](adr/0009-module-topology-and-projection-ownership.md) |
 
 ## 2. Repository shape
 
@@ -40,6 +41,7 @@ The first implementation chat creates a single-package modular monolith:
         review/
         planning/
         integrations/
+        agent-control/
       shared/
       ui/
     supabase/

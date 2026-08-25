@@ -35,14 +35,23 @@ Modules expose commands, queries, and versioned events—not direct cross-module
 
 Important contracts:
 
+The complete interaction matrix, derived projection ownership, and purpose-specific cross-context
+flows are defined in the [module topology](design/MODULE_TOPOLOGY.md) and
+[ADR-0009](adr/0009-module-topology-and-projection-ownership.md). The eleven bounded contexts remain
+the authoritative owners; rebuildable client projections do not create additional domain owners.
+
 - Catalog publishes canonical competency, activity, resource, and roadmap-template versions and changes.
-- Targets owns and publishes target-profile series/versions, target requirements, readiness goals, and campaign lifecycle changes.
+- Targets owns and publishes target-profile series/versions, target requirements, readiness goals,
+  campaign lifecycle changes, and target-specific readiness snapshots calculated from versioned
+  Mastery inputs.
 - Planning owns the Growth Plan, Learning Tracks, availability/capacity, campaign allocation overrides, and plan snapshots.
 - User Overlay owns workspace-scoped competencies and personal catalog deltas; it cannot publish canonical content.
 - Evidence accepts normalized observations and publishes ledger append events.
 - Mastery consumes evidence changes and publishes competency-state changes.
 - Review consumes evidence/mastery/deadlines and publishes review-item changes.
-- Planning queries current read models and writes versioned plan snapshots.
+- Planning queries current read models and owns versioned plan snapshots and Today explanations.
+- The server-side Explore composer assembles `GraphProjectionV1` from authorized module queries. It
+  owns the response contract but no domain rows and has no write path.
 - Agent Control publishes minimized read contexts and coordinates confirmed change sets through owning-context commands; it never emits authoritative mastery/evidence facts.
 - PyPrep publishes `CardReviewed`, `DeckCompleted`, `RetentionUpdated`, and `ModuleProgressChanged` through an integration adapter.
 
@@ -65,8 +74,13 @@ Maintain:
 Imported Preparation Packs are stored in three layers:
 
 1. Integrations retains the immutable original file set, fingerprint, schema-validation result, and import status.
-2. Targets stages profile/requirement proposals; User Overlay stages proposed workspace-scoped competencies, activities, resources, mappings, and edges.
-3. Confirmation publishes immutable workspace-scoped target-profile versions and accepted personal items through domain commands. Rejection or partial acceptance preserves the original import and decision audit without mutating canonical content.
+2. Targets stages profile/requirement proposals; User Overlay stages proposed workspace-scoped
+   competencies, activities, resources, mappings, and edges. Integrations retains the normalized
+   plan proposal and preview audit while Planning validates the intended plan/track commands.
+3. Confirmation publishes immutable workspace-scoped target-profile versions and accepted personal
+   items, then applies accepted Growth Plan, track, capacity, and cadence changes through the owning
+   domain commands. Rejection or partial acceptance preserves the original import and decision audit
+   without mutating canonical content.
 
 ## 5. Deployment and file exchange boundary
 

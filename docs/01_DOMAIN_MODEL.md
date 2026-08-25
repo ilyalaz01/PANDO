@@ -6,7 +6,7 @@
 |---|---|---|
 | Identity & Workspace | users, workspaces, roles, preferences | mastery or roadmap content |
 | Catalog | canonical competencies, prerequisite DAG, activities, resources, roadmap templates | target profiles and user-specific state |
-| Targets | outcome goals, readiness goals, interview campaigns, target-profile series/versions/drafts, requirement rules | evidence calculation and canonical competencies |
+| Targets | outcome goals, readiness goals, interview campaigns, target-profile series/versions/drafts, requirement rules, target-specific readiness policy and snapshots | evidence and competency-state calculation, and canonical competencies |
 | User Overlay | workspace-scoped competencies, activities, resources, edges, exclusions, notes, positions, and accepted mappings | canonical template/catalog mutation |
 | Evidence | attempts and immutable evidence ledger | UI-specific progress fields |
 | Mastery | derived competency states and estimate confidence | raw attempts |
@@ -31,6 +31,7 @@ TemplateItem(template version, item ref, requirement rule, visual grouping)
 TargetProfileSeries(id, scope canonical/workspace, owning workspace nullable, lifecycle)
 TargetProfileVersion(id, series, version, role/company metadata, sources, freshness, published_at)
 TargetRequirement(profile version, competency/domain, weight, floor, criticality)
+ReadinessSnapshot(id, readiness goal, profile version, input watermark, policy version, interval/status/confidence/explanation)
 TargetProfileDraft(id, workspace, source import, base profile version, lifecycle)
 TargetRequirementDraft(id, profile draft, proposed target ref, rule, provenance)
 ```
@@ -273,7 +274,9 @@ Preparation Pack imports use a staging model:
 3. A vacancy-specific profile is staged as `TargetProfileDraft` owned by Targets.
 4. Unknown competencies are staged as workspace-scoped competency drafts owned by User Overlay.
 5. The preview shows every proposed create/update/mapping and its provenance.
-6. Confirmation publishes a workspace-scoped target-profile version and accepted personal catalog items through ordinary commands.
+6. Confirmation publishes a workspace-scoped target-profile version and accepted personal catalog
+   items, then applies the accepted Growth Plan, track, capacity, and cadence changes through ordinary
+   Planning commands.
 7. Personal content can influence only its workspace until separately curated into a canonical version.
 
 Template upgrades run a deterministic three-way merge: old template, new template, user overlay. Conflicts are shown; user content is never discarded silently.

@@ -116,6 +116,8 @@ The importer must:
 - be idempotent by pack ID and content fingerprint;
 - retain the original pack for audit and re-import diagnosis.
 - stage profile/requirement proposals in Targets and new competency/activity/resource proposals in User Overlay;
+- translate accepted Growth Plan, track, capacity, and cadence proposals into ordinary Planning
+  commands; Integrations never owns the resulting plan;
 - publish accepted personal content only in the importing workspace;
 - require a separate curator workflow for promotion into canonical catalog/template/profile versions.
 

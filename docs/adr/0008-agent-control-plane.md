@@ -54,6 +54,10 @@ Voice is an input mode of the connected client. It receives no extra permissions
 
 ### Repository orientation and Graphify
 
+The accepted module owners, interaction forms, and task reading routes are recorded in
+[ADR-0009](0009-module-topology-and-projection-ownership.md) and the
+[module topology](../design/MODULE_TOPOLOGY.md).
+
 The repository contains `AGENTS.md`, project-local skills, schemas, fixtures, and a Graphify map so coding agents can navigate with low context cost. Graphify is pinned and run with a secret-safe ignore policy. Generated graph data:
 
 - is derived from repository code and approved documentation only;
