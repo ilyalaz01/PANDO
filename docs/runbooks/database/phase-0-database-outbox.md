@@ -6,7 +6,7 @@ This slice establishes only the database execution boundary required by Phase 0:
 
 - private bounded-context schemas and the exposed `api` schema;
 - Supabase Auth subject mapping, personal workspace bootstrap, and membership;
-- command receipts, immutable versioned outbox events, deliveries, and consumer receipts;
+- command receipts, immutable versioned outbox events, deliveries, consumer receipts, and the fixed probe projection effect;
 - fixed worker RPCs for the `phase0.identity_workspace_bootstrap_probe` contract;
 - grants, forced RLS, idempotency, lease fencing, bounded retry, and dead letter behavior.
 
@@ -32,7 +32,8 @@ The tests cover:
 - anon and missing-subject denial;
 - same-request replay, changed-request conflict, and database-computed request hashes;
 - rollback when event insertion fails after the identity writes;
-- delivery uniqueness, five-row claim bounds, 120-second leases, stale-token fencing, lease reclaim, duplicate completion, retry, and dead letter transitions.
+- delivery uniqueness, five-row claim bounds, 120-second leases, stale-token fencing, lease reclaim, duplicate completion, retry, and dead letter transitions;
+- rollback after a probe effect is inserted but before its receipt, followed by lease reclaim and exactly one final effect.
 
 JWT expiry is enforced before SQL by the Auth/PostgREST boundary. pgTAP verifies anon and missing-subject database behavior; a real expired-token HTTP scenario belongs in the server integration suite once that boundary exists.
 
@@ -43,6 +44,16 @@ JWT expiry is enforced before SQL by the Auth/PostgREST boundary. pgTAP verifies
 `outbox.events.event_position` is an observation cursor, not global commit order. Aggregate ordering uses `aggregate_version`. Event payloads contain only the minimum identifiers and facts needed by the contract.
 
 The worker surface has a fixed consumer name and handler contract version. Callers cannot select a workspace, event body, or consumer. A claim returns at most five due rows and gives each a random 120-second lease. Completion requires the current lease token and exact input event position. Eight total claims are the Phase 0 attempt limit; a permanent failure or exhausted lease moves the delivery to `dead_letter`.
+
+The fixed probe is the executable proof for delivery idempotency. Its durable effect is an immutable row in `outbox.phase0_probe_effects`, keyed uniquely by `(event_id, consumer_name, handler_contract_version)`. The purpose-specific completion RPC validates the exact version 1 workspace-bootstrap contract, inserts that effect, inserts the consumer receipt, and marks the delivery succeeded in one transaction. A failure in any later step rolls back the effect; timeout recovery can then reclaim the same delivery with a new fencing token. Duplicate completion after success returns `false` and creates no second effect.
+
+Production consumers remain purpose-specific. They must commit their authoritative effect plus receipt/completion atomically, or prove an equivalent idempotency invariant for a genuinely external side effect. The probe table is not a generic handler registry or caller-selectable execution surface.
+
+## Command-principal prerequisite
+
+The current Agent Control Plane executes user-directed changes as the verified OAuth user. The Phase 0 `outbox.command_receipts.actor_user_id NOT NULL` model is therefore sufficient for the currently authorized user command surface.
+
+Before the first command originated by a scheduler, provider, or other system/integration principal, stop implementation and add a forward SQL migration for an explicit command-principal model. It must distinguish user, system, and integration actors, preserve an optional initiating user separately, and define a collision-safe idempotency scope for commands without a user. Do not attribute those commands to a fake Identity user. Update ADR-0003, authorization tests, event provenance tests, and this runbook in the same change.
 
 ## Security checks
 

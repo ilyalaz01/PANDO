@@ -264,6 +264,18 @@ for insert
 to pando_outbox_worker
 with check (true);
 
+create policy worker_select_phase0_probe_effects
+on outbox.phase0_probe_effects
+for select
+to pando_outbox_worker
+using (true);
+
+create policy worker_insert_phase0_probe_effects
+on outbox.phase0_probe_effects
+for insert
+to pando_outbox_worker
+with check (true);
+
 grant select, insert on identity.users to pando_identity_api;
 grant select, insert on identity.workspaces to pando_identity_api;
 grant select, insert on identity.workspace_memberships to pando_identity_api;
@@ -274,6 +286,7 @@ grant usage, select on sequence outbox.events_event_position_seq to pando_identi
 grant select on outbox.events to pando_outbox_worker;
 grant select, update on outbox.deliveries to pando_outbox_worker;
 grant select, insert on outbox.consumer_receipts to pando_outbox_worker;
+grant select, insert on outbox.phase0_probe_effects to pando_outbox_worker;
 
 create function identity.bootstrap_personal_workspace_impl(
   p_idempotency_key text,
@@ -723,7 +736,7 @@ set search_path = ''
 as $function$
 declare
   v_delivery outbox.deliveries%rowtype;
-  v_event_position bigint;
+  v_event outbox.events%rowtype;
   v_receipt outbox.consumer_receipts%rowtype;
 begin
   if p_delivery_id is null
@@ -748,8 +761,8 @@ begin
       message = 'delivery is not accessible';
   end if;
 
-  select event.event_position
-  into v_event_position
+  select event.*
+  into v_event
   from outbox.events as event
   where event.event_id = v_delivery.event_id
     and event.workspace_id = v_delivery.workspace_id;
@@ -762,7 +775,16 @@ begin
 
     if found
        and v_receipt.lease_token = p_lease_token
-       and v_receipt.input_event_position = p_expected_event_position then
+       and v_receipt.input_event_position = p_expected_event_position
+       and exists (
+         select 1
+         from outbox.phase0_probe_effects as effect
+         where effect.delivery_id = v_delivery.delivery_id
+           and effect.event_id = v_delivery.event_id
+           and effect.consumer_name = v_delivery.consumer_name
+           and effect.handler_contract_version = v_delivery.handler_contract_version
+           and effect.input_event_position = p_expected_event_position
+       ) then
       return false;
     end if;
 
@@ -779,11 +801,46 @@ begin
       message = 'delivery lease is stale';
   end if;
 
-  if v_event_position is distinct from p_expected_event_position then
+  if v_event.event_position is distinct from p_expected_event_position then
     raise exception using
       errcode = '22023',
       message = 'delivery input watermark does not match';
   end if;
+
+  if v_event.event_name <> 'identity.workspace_bootstrapped'
+     or v_event.event_schema_version <> 1
+     or v_event.aggregate_type <> 'identity.workspace'
+     or v_event.aggregate_id is distinct from v_delivery.workspace_id
+     or v_event.aggregate_version is null
+     or v_event.payload ->> 'workspace_id' is distinct from v_delivery.workspace_id::text
+     or v_event.payload ->> 'workspace_kind' is distinct from 'personal' then
+    raise exception using
+      errcode = '22023',
+      message = 'probe delivery contract does not match';
+  end if;
+
+  insert into outbox.phase0_probe_effects (
+    event_id,
+    workspace_id,
+    consumer_name,
+    handler_contract_version,
+    delivery_id,
+    input_event_position,
+    event_name,
+    event_schema_version,
+    workspace_kind
+  )
+  values (
+    v_delivery.event_id,
+    v_delivery.workspace_id,
+    v_delivery.consumer_name,
+    v_delivery.handler_contract_version,
+    v_delivery.delivery_id,
+    v_event.event_position,
+    v_event.event_name,
+    v_event.event_schema_version,
+    v_event.payload ->> 'workspace_kind'
+  );
 
   insert into outbox.consumer_receipts (
     delivery_id,
@@ -800,7 +857,7 @@ begin
     v_delivery.workspace_id,
     v_delivery.consumer_name,
     v_delivery.handler_contract_version,
-    v_event_position,
+    v_event.event_position,
     p_lease_token
   );
 
@@ -998,6 +1055,8 @@ revoke all on function outbox.reject_event_mutation()
 revoke all on function outbox.protect_completed_command_receipt()
   from public, anon, authenticated, service_role;
 revoke all on function outbox.reject_consumer_receipt_mutation()
+  from public, anon, authenticated, service_role;
+revoke all on function outbox.reject_phase0_probe_effect_mutation()
   from public, anon, authenticated, service_role;
 
 revoke create on schema identity from pando_rls_authorizer, pando_identity_api;

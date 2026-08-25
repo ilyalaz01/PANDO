@@ -225,6 +225,46 @@ create table outbox.consumer_receipts (
   constraint consumer_receipts_delivery_key unique (delivery_id)
 );
 
+create table outbox.phase0_probe_effects (
+  event_id uuid not null,
+  workspace_id uuid not null,
+  consumer_name text not null,
+  handler_contract_version smallint not null,
+  delivery_id uuid not null,
+  input_event_position bigint not null,
+  event_name text not null,
+  event_schema_version smallint not null,
+  workspace_kind text not null,
+  applied_at timestamptz not null default clock_timestamp(),
+  constraint phase0_probe_effects_delivery_contract_fk
+    foreign key (
+      delivery_id,
+      event_id,
+      workspace_id,
+      consumer_name,
+      handler_contract_version
+    )
+    references outbox.deliveries (
+      delivery_id,
+      event_id,
+      workspace_id,
+      consumer_name,
+      handler_contract_version
+    )
+    on delete restrict,
+  constraint phase0_probe_effects_contract_check check (
+    consumer_name = 'phase0.identity_workspace_bootstrap_probe'
+    and handler_contract_version = 1
+    and event_name = 'identity.workspace_bootstrapped'
+    and event_schema_version = 1
+    and workspace_kind = 'personal'
+    and input_event_position > 0
+  ),
+  constraint phase0_probe_effects_event_consumer_contract_key
+    primary key (event_id, consumer_name, handler_contract_version),
+  constraint phase0_probe_effects_delivery_key unique (delivery_id)
+);
+
 alter table identity.users enable row level security;
 alter table identity.users force row level security;
 alter table identity.workspaces enable row level security;
@@ -239,6 +279,8 @@ alter table outbox.deliveries enable row level security;
 alter table outbox.deliveries force row level security;
 alter table outbox.consumer_receipts enable row level security;
 alter table outbox.consumer_receipts force row level security;
+alter table outbox.phase0_probe_effects enable row level security;
+alter table outbox.phase0_probe_effects force row level security;
 
 create function outbox.reject_event_mutation()
 returns trigger
@@ -291,6 +333,22 @@ $function$;
 create trigger consumer_receipts_are_immutable
 before update or delete on outbox.consumer_receipts
 for each row execute function outbox.reject_consumer_receipt_mutation();
+
+create function outbox.reject_phase0_probe_effect_mutation()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  raise exception using
+    errcode = '55000',
+    message = 'phase 0 probe effects are immutable';
+end
+$function$;
+
+create trigger phase0_probe_effects_are_immutable
+before update or delete on outbox.phase0_probe_effects
+for each row execute function outbox.reject_phase0_probe_effect_mutation();
 
 revoke all on all tables in schema identity from public, anon, authenticated;
 revoke all on all sequences in schema identity from public, anon, authenticated;

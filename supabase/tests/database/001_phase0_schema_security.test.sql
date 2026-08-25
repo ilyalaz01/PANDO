@@ -33,7 +33,8 @@ from (values
   ('outbox', 'command_receipts'),
   ('outbox', 'events'),
   ('outbox', 'deliveries'),
-  ('outbox', 'consumer_receipts')
+  ('outbox', 'consumer_receipts'),
+  ('outbox', 'phase0_probe_effects')
 ) as expected(schema_name, table_name);
 
 select ok(
@@ -50,7 +51,8 @@ where (namespace.nspname, class.relname) in (
   ('outbox', 'command_receipts'),
   ('outbox', 'events'),
   ('outbox', 'deliveries'),
-  ('outbox', 'consumer_receipts')
+  ('outbox', 'consumer_receipts'),
+  ('outbox', 'phase0_probe_effects')
 )
 order by namespace.nspname, class.relname;
 
@@ -87,7 +89,8 @@ where (namespace.nspname, class.relname) in (
   ('outbox', 'command_receipts'),
   ('outbox', 'events'),
   ('outbox', 'deliveries'),
-  ('outbox', 'consumer_receipts')
+  ('outbox', 'consumer_receipts'),
+  ('outbox', 'phase0_probe_effects')
 )
 order by namespace.nspname, class.relname;
 
@@ -124,7 +127,8 @@ where (namespace.nspname, class.relname) in (
   ('outbox', 'command_receipts'),
   ('outbox', 'events'),
   ('outbox', 'deliveries'),
-  ('outbox', 'consumer_receipts')
+  ('outbox', 'consumer_receipts'),
+  ('outbox', 'phase0_probe_effects')
 )
 order by namespace.nspname, class.relname;
 
@@ -161,7 +165,8 @@ where (namespace.nspname, class.relname) in (
   ('outbox', 'command_receipts'),
   ('outbox', 'events'),
   ('outbox', 'deliveries'),
-  ('outbox', 'consumer_receipts')
+  ('outbox', 'consumer_receipts'),
+  ('outbox', 'phase0_probe_effects')
 )
 order by namespace.nspname, class.relname;
 
