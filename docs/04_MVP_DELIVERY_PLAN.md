@@ -30,7 +30,7 @@ Optimize for a coherent vertical product, not maximum catalog size or visual spe
 - Versioned PyPrep adapter contract, tested mock, and manual path. A live connection is conditional on its event source being available and passing release gates.
 - No required LLM API or per-token product cost; embedded Learning Partner is deferred or feature-flagged.
 - Compact `AgentControlContextV1`, focused read tools, version-checked ChangeSet preview/confirm/apply, lifecycle-preserving replanning, and UI parity.
-- Authenticated hosted MCP adapter for ChatGPT Work plus a project-local Codex skill/CLI adapter using the same application commands; typed and voice input share the same permissions.
+- Authenticated hosted MCP adapter for ChatGPT Work plus a project-local Codex skill/CLI adapter using the same application commands; typed control is the compatibility baseline, and voice shares the same permissions only in client modes that expose those tools.
 - Template upgrade preview/three-way merge proven by at least one controlled version change.
 - Mobile-quality responsive Today, Review, Focus, notes, and Preparation Pack upload/preview; full graph editing remains desktop-first.
 - RLS/authorization, audit basics, observability, accessibility, and reduced motion.
@@ -97,7 +97,7 @@ Exit: a user with seeded state can open Today, understand the recommendation, ch
 
 Build `AgentControlContextV1`, selective detail resources, ChangeSet preview/confirmation/application, plan-revision audit, focused MCP tools, OAuth user authorization, and the local Codex skill/CLI adapter. Both adapters call the same Phase 4 application commands and expose pending recalculation status. Build PreparationContext download, Preparation Pack schemas/storage, browser upload, immutable import audit, profile/personal-competency staging, validation, preview/diff, partial acceptance, confirmed application, and Prompt Library core scenarios. Add repository-folder import only as an optional development/self-hosted convenience.
 
-Exit: from a short typed or voice request, a connected ChatGPT Work/Codex client can explain the current plan, preview and confirm a version-checked multi-part change, and produce the same result as the manual UI. Cancelling an interview restores base-plan allocation and retains history. A user can also create a substantial Growth Plan or Interview Campaign through browser-uploaded Preparation Pack; invalid identifiers fail safely; PANDO runs no AI service and requires no filesystem watcher.
+Exit: from a short typed request, a connected ChatGPT Work/Codex client can explain the current plan, preview and confirm a version-checked multi-part change, and produce the same result as the manual UI. The same acceptance scenario runs by voice where the tested client mode supports PANDO tool calls; an unsupported voice mode must make no change and give a clear handoff. Cancelling an interview restores base-plan allocation and retains history. A user can also create a substantial Growth Plan or Interview Campaign through browser-uploaded Preparation Pack; invalid identifiers fail safely; PANDO runs no AI service and requires no filesystem watcher.
 
 ### Phase 6 — Integration and resilience
 

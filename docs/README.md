@@ -53,7 +53,7 @@ The immutable evidence history is the source of truth. Completion, mastery, read
 
 ## First release outcome
 
-A signed-in user can select a seeded target or import a Preparation Pack, start from a versioned roadmap, record meaningful evidence manually, see explainable competency/readiness states, receive a deterministic next-best-action plan, complete a focus session, and manage a unified review queue. The same user can connect ChatGPT Work/Codex, ask for the plan in a few words or by voice, and preview/confirm lifecycle-safe changes through the same commands as the UI. The release includes a tested PyPrep contract and manual fallback; a live PyPrep connection ships only when its source is available and passes the same gates.
+A signed-in user can select a seeded target or import a Preparation Pack, start from a versioned roadmap, record meaningful evidence manually, see explainable competency/readiness states, receive a deterministic next-best-action plan, complete a focus session, and manage a unified review queue. The same user can connect ChatGPT Work/Codex, ask for the plan in a few words, and preview/confirm lifecycle-safe changes through the same commands as the UI. Voice uses that flow only in client modes that expose PANDO tools; unsupported voice modes make no change and hand off clearly. The release includes a tested PyPrep contract and manual fallback; a live PyPrep connection ships only when its source is available and passes the same gates.
 
 The first release must remain useful without AI, without the agent connector, and without unofficial LeetCode synchronization.
 
@@ -86,7 +86,7 @@ The first release must remain useful without AI, without the agent connector, an
 | Imported content | Vacancy profiles and unknown competencies are staged and published as workspace-scoped personal content, never directly as canonical content. |
 | Goal/cardinality model | One active Growth Plan and at most one active Interview Campaign in MVP; exact ownership of deadline, capacity, profile version, and overrides is defined in the Domain Model. |
 | Phase dependency | Session/evidence precedes Review Core; Review Core precedes Planning; Today later enters the already-built Focus lifecycle. |
-| Agent control | External ChatGPT Work/Codex and voice are first-class clients over a compact control context and preview/confirm/apply ChangeSet contract. They use the same domain commands as the UI and require no embedded PANDO model. |
+| Agent control | External ChatGPT Work/Codex is a first-class client over a compact control context and preview/confirm/apply ChangeSet contract. Voice uses the same path only where the client mode exposes PANDO tools; otherwise it performs no change and hands off. All supported clients use the UI's domain commands and require no embedded PANDO model. |
 | Repository graph | Graphify is a secret-safe, regenerable orientation index for code/docs. It is separate from the competency graph, UI GraphProjection, and live control context. |
 
 ## Explicit non-goals for MVP

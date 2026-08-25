@@ -6,7 +6,7 @@ Canonical semantics: [Product Constitution](../00_PRODUCT_CONSTITUTION.md), [Dom
 
 ## 1. Outcome
 
-A connected ChatGPT Work or Codex client can understand the user's current PANDO state from a small response, explain it, and safely make the same plan changes available in the web UI. Short typed and voice requests are first-class. PANDO remains useful without the connector and never pays for or trusts an embedded model.
+A connected ChatGPT Work or Codex client can understand the user's current PANDO state from a small response, explain it, and safely make the same plan changes available in the web UI. Short typed requests are first-class; voice is first-class where the selected client mode can invoke PANDO tools, with a no-change handoff everywhere else. PANDO remains useful without the connector and never pays for or trusts an embedded model.
 
 ## 2. Boundary map
 

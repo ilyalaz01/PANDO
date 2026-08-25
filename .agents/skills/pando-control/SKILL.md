@@ -52,4 +52,4 @@ Never directly set mastery, readiness, evidence, review dates, completed work, c
 - “Switch university and specialty; three months” → resolve current goal, ask only for missing target/deadline facts, preview supersession/creation and capacity trade-offs; route substantial target research to Preparation Pack.
 - “Stop interview prep; keep Python and ML” → cancel/end the campaign, not shared competencies or named retained tracks.
 
-A voice request has exactly the same permissions and confirmation rules as typed input.
+A voice request has exactly the same permissions and confirmation rules as typed input when the current client mode exposes the connected PANDO tools. If it does not, state that no live read or write occurred and hand the intent to a compatible typed or Work/Codex task.

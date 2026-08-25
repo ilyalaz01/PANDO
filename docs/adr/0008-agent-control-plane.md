@@ -50,7 +50,7 @@ Provide focused read and proposal tools, with a single confirmed apply tool:
 
 The hosted adapter uses Streamable HTTP MCP with OAuth 2.1 user authorization. A local PANDO CLI adapter lets Codex call the same hosted application services. Neither surface accepts arbitrary SQL, table names, file paths, event bodies, or caller-selected workspace authority.
 
-Voice is an input mode of the connected client. It receives no extra permissions and follows the same preview and confirmation contract.
+Voice is an input mode of a connected client only when that mode exposes the configured PANDO tools. It receives no extra permissions and follows the same preview and confirmation contract. A voice mode without tool access may draft intent but must not claim a PANDO read or write; typed MCP/CLI remains the compatibility baseline.
 
 ### Repository orientation and Graphify
 
@@ -108,5 +108,6 @@ A future transport may replace MCP or the local CLI without changing `AgentContr
 - [OpenAI: define focused tools](https://developers.openai.com/plugins/plan/tools)
 - [OpenAI: MCP authentication](https://developers.openai.com/plugins/build/auth)
 - [OpenAI: plugin skills](https://developers.openai.com/plugins/concepts/skills)
-- [OpenAI: Voice](https://learn.chatgpt.com/docs/features/voice)
+- [OpenAI: Developer mode and MCP apps in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-and-full-mcp-connectors-in-chatgpt)
+- [OpenAI: ChatGPT Voice](https://help.openai.com/en/articles/20001274)
 - [Graphify](https://github.com/Graphify-Labs/graphify) — third-party repository mapping tool

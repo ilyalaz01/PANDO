@@ -159,7 +159,7 @@ The competency inspector keeps Self-confidence visually separate from objective 
 
 ## 8. Conversational control and optional Learning Partner
 
-ChatGPT Work or Codex may act as PANDO's external text/voice control surface when the user connects the authenticated PANDO tools. PANDO supplies facts and deterministic previews; the external model interprets the user's language. No model runs inside PANDO for this workflow.
+ChatGPT Work or Codex may act as PANDO's external text/voice control surface when the current client mode can invoke the authenticated PANDO tools. PANDO supplies facts and deterministic previews; the external model interprets the user's language. No model runs inside PANDO for this workflow. If a voice mode cannot call connected tools, it may prepare the intent but must say that no state changed and hand off to a compatible typed or Work/Codex task.
 
 The agent can:
 

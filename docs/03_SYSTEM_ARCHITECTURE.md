@@ -201,7 +201,9 @@ A stale preview, changed aggregate version, expired token, missing confirmation,
 
 The hosted MCP endpoint uses OAuth 2.1 user authorization and workspace-scoped permissions. Local development credentials live outside Git and are never copied into skills or Graphify output. Ordinary user commands never use the Supabase service role.
 
-Voice is only an input mode of the connected ChatGPT/Codex client. It receives exactly the same tool permissions, previews, and confirmation requirements as typed input; PANDO does not add a separate voice recording or retention system.
+Voice is only an input mode of the connected ChatGPT/Codex client. When that client mode can invoke the configured PANDO tools, it receives exactly the same tool permissions, previews, and confirmation requirements as typed input; PANDO does not add a separate voice recording or retention system.
+
+Typed MCP/CLI control is the compatibility baseline. Voice is release-tested only in a client mode that actually exposes tool calls. A speech mode that cannot use connected apps may capture or restate intent, but it must report that no PANDO state changed and hand the request to a compatible typed or Work/Codex task. Voice availability by itself never implies PANDO tool availability.
 
 The root context excludes raw evidence bodies, personal notes, provider payloads, secrets, unrelated history, and unrestricted database rows. Expanded resources repeat authorization and return the minimum required fields. Audit records retain operation metadata and user reason, not external model conversation transcripts.
 
