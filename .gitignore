@@ -1,0 +1,35 @@
+# Dependencies and builds
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.turbo/
+
+# Test artifacts
+playwright-report/
+test-results/
+blob-report/
+
+# Provider and local tooling
+.vercel/
+.supabase/
+supabase/.branches/
+supabase/.temp/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.local
+AGENTS.override.md
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+pnpm-debug.log*
