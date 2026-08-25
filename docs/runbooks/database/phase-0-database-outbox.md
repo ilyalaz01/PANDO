@@ -80,3 +80,8 @@ Do not add a private schema to the Data API list, grant browser roles table acce
 ## Roll-forward
 
 Migrations are immutable after sharing. Correct a defect with a new timestamped migration and rerun the full reset plus pgTAP suite. Do not delete or edit persisted event/receipt history. This slice has no down migration; a development reset recreates an empty local database, while a deployed correction must roll forward.
+
+
+## Encrypted backup restore
+
+The destructive clean-restore rehearsal runs only in a randomly named temporary local stack. Follow [the Phase 0 encrypted backup runbook](../backup/phase-0-encrypted-backup-restore.md); migrations remain the schema source, and plaintext dumps must stay in private temporary storage.

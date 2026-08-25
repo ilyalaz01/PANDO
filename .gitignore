@@ -41,3 +41,8 @@ Thumbs.db
 # Logs
 *.log
 pnpm-debug.log*
+
+# Local backup material
+*.pando
+*.pando-backup
+backup-private/

@@ -96,6 +96,8 @@ Phase 0 does not exit until:
 10. an encrypted dump restores into a clean local database.
 11. Agent Control context/change-set schemas and project skills validate; the root context fixture is at most 12 KiB; repository indexing excludes secrets, user exports, generated state, and production data.
 
+Gate 10 has an executable local proof in `pnpm verify:backup` for the current Phase 0 relational boundary and a Storage object manifest. See [the encrypted backup and restore runbook](runbooks/backup/phase-0-encrypted-backup-restore.md). This does not declare Phase 0 complete: the other gates remain independent, live R2 upload is operational follow-up, and Storage object-byte export/restore must be added before any irreplaceable object is accepted.
+
 Initial measurable budgets:
 
 - Core Web Vitals at p75: LCP at most 2.5 s, INP at most 200 ms, CLS at most 0.1;

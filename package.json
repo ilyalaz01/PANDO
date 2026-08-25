@@ -29,7 +29,11 @@
     "test:e2e:install": "playwright install chromium",
     "test:e2e:install:ci": "playwright install --with-deps chromium",
     "test:e2e": "next build && playwright test",
-    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:unit:coverage && pnpm test:e2e"
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:contracts && pnpm test:unit:coverage && pnpm test:e2e",
+    "backup:seal": "node scripts/backup/pando-backup.mjs --command seal",
+    "backup:open": "node scripts/backup/pando-backup.mjs --command open",
+    "verify:backup": "node scripts/backup/backup.integration.mjs",
+    "backup:r2-plan": "node scripts/backup/r2-plan.mjs"
   },
   "dependencies": {
     "ajv": "8.20.0",
@@ -55,6 +59,7 @@
     "jsdom": "30.0.1",
     "postcss": "8.5.26",
     "prettier": "3.9.6",
+    "supabase": "2.115.0",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "vitest": "4.1.11"
