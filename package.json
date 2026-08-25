@@ -4,6 +4,12 @@
   "private": true,
   "type": "module",
   "description": "PANDO modular-monolith foundation",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "homepage": "https://github.com/ilyalaz01/PANDO#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ilyalaz01/PANDO.git"
+  },
   "packageManager": "pnpm@11.19.0",
   "engines": {
     "node": "24.x",

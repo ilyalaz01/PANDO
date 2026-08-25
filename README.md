@@ -1,5 +1,9 @@
 # PANDO
 
+PANDO is **source-available**, not OSI-approved open-source software. Noncommercial use is governed
+by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribution in
+[NOTICE](NOTICE). This public license does not grant commercial rights; see
+[COMMERCIAL.md](COMMERCIAL.md) for non-binding information about requesting a separate agreement.
 PANDO is currently at the Phase 0 foundation stage. This repository contains an executable
 Next.js modular-monolith shell and its quality harness; product features, persistence, and
 domain calculations are intentionally not implemented in this change.
@@ -64,3 +68,13 @@ format, type, unit, accessibility, and E2E tools are development-only dependenci
 ADR-0001 and this executable foundation. There is no ORM, monorepo tooling, global state library,
 or runtime provider SDK. `pnpm-workspace.yaml` is pnpm 11's required project-settings file; because
 it declares no `packages`, the repository remains a single package.
+
+## Licensing and contributions
+
+- Read [LICENSE](LICENSE) and [NOTICE](NOTICE) before using or redistributing PANDO.
+- [COMMERCIAL.md](COMMERCIAL.md) is informational only and grants no commercial rights.
+- External contributions are closed until the project has a contributor license agreement that
+  supports both public and commercial licensing; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+The repository's licensing documents are not legal advice. A qualified lawyer and tax adviser must
+review any commercial agreement for the relevant parties and jurisdictions.
