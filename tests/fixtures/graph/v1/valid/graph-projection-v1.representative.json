@@ -1,0 +1,3152 @@
+{
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "projectionId": "projection:graph-representative-v1",
+  "workspaceScope": {
+    "workspaceId": "workspace:fixture-primary",
+    "overlayRevision": "overlay:fixture-primary-v1",
+    "acceptedPersonalContentOnly": true
+  },
+  "selectedVersions": {
+    "catalogVersionId": "catalog:seed-v1",
+    "roadmapTemplateVersionId": "roadmap:nvidia-python-verification-v1",
+    "targetProfileVersionId": "target:nvidia-python-verification-v1",
+    "masteryPolicyVersion": "mastery-readiness-v0.1",
+    "readinessPolicyVersion": "mastery-readiness-v0.1"
+  },
+  "projectionState": {
+    "semanticRevision": "revision:graph-representative-v1",
+    "inputWatermark": "watermark:fixture-2026-08-25",
+    "generatedAt": "2026-08-25T12:00:00Z",
+    "calculationState": "CURRENT",
+    "staleReason": null,
+    "explanation": "Current deterministic projection for the representative Phase 0 target fixture."
+  },
+  "layout": {
+    "layoutVersion": "graph-layout-v1",
+    "algorithmVersion": "dagre-layered-v1",
+    "structuralFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394",
+    "coordinateSystem": "TOP_LEFT",
+    "fixedNodeSize": {
+      "width": 240,
+      "height": 104
+    },
+    "spacing": {
+      "rank": 88,
+      "node": 40
+    },
+    "positions": [
+      {
+        "nodeId": "node:competency:algorithms-complexity-analysis",
+        "canonical": {
+          "x": 360,
+          "y": 140
+        },
+        "effective": {
+          "x": 360,
+          "y": 140
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:algorithms-graph-traversal",
+        "canonical": {
+          "x": 700,
+          "y": 140
+        },
+        "effective": {
+          "x": 700,
+          "y": 140
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:algorithms-hash-tables",
+        "canonical": {
+          "x": 1040,
+          "y": 140
+        },
+        "effective": {
+          "x": 1040,
+          "y": 140
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:algorithms-problem-decomposition",
+        "canonical": {
+          "x": 360,
+          "y": 320
+        },
+        "effective": {
+          "x": 360,
+          "y": 320
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:linux-cli-pipelines",
+        "canonical": {
+          "x": 360,
+          "y": 660
+        },
+        "effective": {
+          "x": 360,
+          "y": 660
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:linux-file-permissions",
+        "canonical": {
+          "x": 700,
+          "y": 660
+        },
+        "effective": {
+          "x": 700,
+          "y": 660
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:linux-log-triage",
+        "canonical": {
+          "x": 1040,
+          "y": 660
+        },
+        "effective": {
+          "x": 1080,
+          "y": 684
+        },
+        "source": "WORKSPACE_OVERRIDE",
+        "overrideRevision": "overlay:fixture-primary-v1",
+        "overrideWorkspaceId": "workspace:fixture-primary"
+      },
+      {
+        "nodeId": "node:competency:linux-process-debugging",
+        "canonical": {
+          "x": 360,
+          "y": 840
+        },
+        "effective": {
+          "x": 360,
+          "y": 840
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:networking-http-basics",
+        "canonical": {
+          "x": 360,
+          "y": 1180
+        },
+        "effective": {
+          "x": 360,
+          "y": 1180
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:networking-socket-debugging",
+        "canonical": {
+          "x": 700,
+          "y": 1180
+        },
+        "effective": {
+          "x": 700,
+          "y": 1180
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:networking-tcp-ip",
+        "canonical": {
+          "x": 1040,
+          "y": 1180
+        },
+        "effective": {
+          "x": 1040,
+          "y": 1180
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:python-data-model",
+        "canonical": {
+          "x": 360,
+          "y": 1700
+        },
+        "effective": {
+          "x": 360,
+          "y": 1700
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:python-error-handling",
+        "canonical": {
+          "x": 700,
+          "y": 1700
+        },
+        "effective": {
+          "x": 700,
+          "y": 1700
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:python-iterators-generators",
+        "canonical": {
+          "x": 1040,
+          "y": 1700
+        },
+        "effective": {
+          "x": 1040,
+          "y": 1700
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:python-standard-library",
+        "canonical": {
+          "x": 360,
+          "y": 1880
+        },
+        "effective": {
+          "x": 360,
+          "y": 1880
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:python-typing",
+        "canonical": {
+          "x": 700,
+          "y": 1880
+        },
+        "effective": {
+          "x": 700,
+          "y": 1880
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:testing-debugging-strategy",
+        "canonical": {
+          "x": 360,
+          "y": 2220
+        },
+        "effective": {
+          "x": 360,
+          "y": 2220
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:testing-integration-testing",
+        "canonical": {
+          "x": 700,
+          "y": 2220
+        },
+        "effective": {
+          "x": 700,
+          "y": 2220
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:testing-test-design",
+        "canonical": {
+          "x": 1040,
+          "y": 2220
+        },
+        "effective": {
+          "x": 1040,
+          "y": 2220
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:testing-unit-testing",
+        "canonical": {
+          "x": 360,
+          "y": 2400
+        },
+        "effective": {
+          "x": 360,
+          "y": 2400
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:domain:algorithms",
+        "canonical": {
+          "x": 0,
+          "y": 0
+        },
+        "effective": {
+          "x": 0,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:domain:linux",
+        "canonical": {
+          "x": 0,
+          "y": 520
+        },
+        "effective": {
+          "x": 0,
+          "y": 520
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:domain:networking",
+        "canonical": {
+          "x": 0,
+          "y": 1040
+        },
+        "effective": {
+          "x": 0,
+          "y": 1040
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:domain:python",
+        "canonical": {
+          "x": 0,
+          "y": 1560
+        },
+        "effective": {
+          "x": 0,
+          "y": 1560
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:domain:testing",
+        "canonical": {
+          "x": 0,
+          "y": 2080
+        },
+        "effective": {
+          "x": 0,
+          "y": 2080
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "nodeId": "node:competency:algorithms-complexity-analysis",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:algorithms-complexity-analysis",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:algorithms",
+      "title": "Complexity analysis",
+      "shortLabel": "Complexity analysis",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-20T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:core-breadth"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:competency:algorithms-complexity-analysis"
+          ],
+          "relatedRuleIds": [
+            "rule:core-breadth"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Complexity analysis, competency",
+        "description": "Complexity analysis competency in the algorithms domain.",
+        "statusText": "VERIFIED with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 2,
+        "outlineItemId": "outline:node:competency:algorithms-complexity-analysis"
+      },
+      "inspectorRef": "inspector:node:competency:algorithms-complexity-analysis"
+    },
+    {
+      "nodeId": "node:competency:algorithms-graph-traversal",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:algorithms-graph-traversal",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:algorithms",
+      "title": "Graph traversal",
+      "shortLabel": "Graph traversal",
+      "state": {
+        "achievementLevel": "COMPLETED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "LOW",
+          "lastMeaningfulEvidenceAt": "2026-08-17T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "COMPLETED with WEAK evidence and LOW confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "COMPLETED with WEAK evidence and LOW confidence.",
+          "relatedNodeIds": [
+            "node:competency:algorithms-graph-traversal"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Graph traversal, competency",
+        "description": "Graph traversal competency in the algorithms domain.",
+        "statusText": "COMPLETED with WEAK evidence and LOW confidence.",
+        "keyboardOrder": 3,
+        "outlineItemId": "outline:node:competency:algorithms-graph-traversal"
+      },
+      "inspectorRef": "inspector:node:competency:algorithms-graph-traversal"
+    },
+    {
+      "nodeId": "node:competency:algorithms-hash-tables",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:algorithms-hash-tables",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:algorithms",
+      "title": "Hash tables",
+      "shortLabel": "Hash tables",
+      "state": {
+        "achievementLevel": "MASTERED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-21T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "MASTERED with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:overall-readiness"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "MASTERED with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:competency:algorithms-hash-tables"
+          ],
+          "relatedRuleIds": [
+            "rule:overall-readiness"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Hash tables, competency",
+        "description": "Hash tables competency in the algorithms domain.",
+        "statusText": "MASTERED with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 4,
+        "outlineItemId": "outline:node:competency:algorithms-hash-tables"
+      },
+      "inspectorRef": "inspector:node:competency:algorithms-hash-tables"
+    },
+    {
+      "nodeId": "node:competency:algorithms-problem-decomposition",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:algorithms-problem-decomposition",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:algorithms",
+      "title": "Problem decomposition",
+      "shortLabel": "Problem decomposition",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-18T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:algorithms-problem-decomposition"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Problem decomposition, competency",
+        "description": "Problem decomposition competency in the algorithms domain.",
+        "statusText": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 5,
+        "outlineItemId": "outline:node:competency:algorithms-problem-decomposition"
+      },
+      "inspectorRef": "inspector:node:competency:algorithms-problem-decomposition"
+    },
+    {
+      "nodeId": "node:competency:linux-cli-pipelines",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:linux-cli-pipelines",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:linux",
+      "title": "CLI pipelines",
+      "shortLabel": "CLI pipelines",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-18T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:overall-readiness"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:linux-cli-pipelines"
+          ],
+          "relatedRuleIds": [
+            "rule:overall-readiness"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "CLI pipelines, competency",
+        "description": "CLI pipelines competency in the linux domain.",
+        "statusText": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 7,
+        "outlineItemId": "outline:node:competency:linux-cli-pipelines"
+      },
+      "inspectorRef": "inspector:node:competency:linux-cli-pipelines"
+    },
+    {
+      "nodeId": "node:competency:linux-file-permissions",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:linux-file-permissions",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:linux",
+      "title": "File permissions",
+      "shortLabel": "File permissions",
+      "state": {
+        "achievementLevel": "COMPLETED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "LOW",
+          "lastMeaningfulEvidenceAt": "2026-08-16T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "COMPLETED with WEAK evidence and LOW confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "COMPLETED with WEAK evidence and LOW confidence.",
+          "relatedNodeIds": [
+            "node:competency:linux-file-permissions"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "File permissions, competency",
+        "description": "File permissions competency in the linux domain.",
+        "statusText": "COMPLETED with WEAK evidence and LOW confidence.",
+        "keyboardOrder": 8,
+        "outlineItemId": "outline:node:competency:linux-file-permissions"
+      },
+      "inspectorRef": "inspector:node:competency:linux-file-permissions"
+    },
+    {
+      "nodeId": "node:competency:linux-log-triage",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:linux-log-triage",
+        "entityVersionId": null
+      },
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "workspace:fixture-primary",
+        "overlayRevision": "overlay:fixture-primary-v1",
+        "acceptance": "ACCEPTED"
+      },
+      "domainNodeId": "node:domain:linux",
+      "title": "Personal log triage runbook",
+      "shortLabel": "Personal log triage runbook",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_UNKNOWN",
+        "ruleIds": [
+          "rule:any-practical-proof"
+        ],
+        "attainment": {
+          "lower": 0,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:linux-log-triage"
+          ],
+          "relatedRuleIds": [
+            "rule:any-practical-proof"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "PERSONAL_OVERLAY",
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Personal log triage runbook, competency",
+        "description": "Personal log triage runbook competency in the linux domain.",
+        "statusText": "Unknown because no qualifying evidence is available.",
+        "keyboardOrder": 9,
+        "outlineItemId": "outline:node:competency:linux-log-triage"
+      },
+      "inspectorRef": "inspector:node:competency:linux-log-triage"
+    },
+    {
+      "nodeId": "node:competency:linux-process-debugging",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:linux-process-debugging",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:linux",
+      "title": "Process debugging",
+      "shortLabel": "Process debugging",
+      "state": {
+        "achievementLevel": "COMPLETED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-19T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "COMPLETED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:core-breadth"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "COMPLETED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:linux-process-debugging"
+          ],
+          "relatedRuleIds": [
+            "rule:core-breadth"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Process debugging, competency",
+        "description": "Process debugging competency in the linux domain.",
+        "statusText": "COMPLETED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 10,
+        "outlineItemId": "outline:node:competency:linux-process-debugging"
+      },
+      "inspectorRef": "inspector:node:competency:linux-process-debugging"
+    },
+    {
+      "nodeId": "node:competency:networking-http-basics",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:networking-http-basics",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:networking",
+      "title": "HTTP basics",
+      "shortLabel": "HTTP basics",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_UNKNOWN",
+        "ruleIds": [
+          "rule:overall-readiness"
+        ],
+        "attainment": {
+          "lower": 0,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:networking-http-basics"
+          ],
+          "relatedRuleIds": [
+            "rule:overall-readiness"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "HTTP basics, competency",
+        "description": "HTTP basics competency in the networking domain.",
+        "statusText": "Unknown because no qualifying evidence is available.",
+        "keyboardOrder": 12,
+        "outlineItemId": "outline:node:competency:networking-http-basics"
+      },
+      "inspectorRef": "inspector:node:competency:networking-http-basics"
+    },
+    {
+      "nodeId": "node:competency:networking-socket-debugging",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:networking-socket-debugging",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:networking",
+      "title": "Socket debugging",
+      "shortLabel": "Socket debugging",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:networking-socket-debugging"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Socket debugging, competency",
+        "description": "Socket debugging competency in the networking domain.",
+        "statusText": "Unknown because no qualifying evidence is available.",
+        "keyboardOrder": 13,
+        "outlineItemId": "outline:node:competency:networking-socket-debugging"
+      },
+      "inspectorRef": "inspector:node:competency:networking-socket-debugging"
+    },
+    {
+      "nodeId": "node:competency:networking-tcp-ip",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:networking-tcp-ip",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:networking",
+      "title": "TCP and IP",
+      "shortLabel": "TCP and IP",
+      "state": {
+        "achievementLevel": "COMPLETED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STALE",
+          "confidence": "LOW",
+          "lastMeaningfulEvidenceAt": "2026-06-01T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "COMPLETED with stale evidence and LOW confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:linux-networking-floor",
+          "rule:overall-readiness"
+        ],
+        "attainment": {
+          "lower": 0.53,
+          "upper": 0.53
+        },
+        "floorStatus": "BELOW"
+      },
+      "explanations": [
+        {
+          "code": "state.stale",
+          "message": "COMPLETED with stale evidence and LOW confidence.",
+          "relatedNodeIds": [
+            "node:competency:networking-tcp-ip"
+          ],
+          "relatedRuleIds": [
+            "rule:linux-networking-floor",
+            "rule:overall-readiness"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "MANDATORY_BLOCKER",
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "TCP and IP, competency",
+        "description": "TCP and IP competency in the networking domain.",
+        "statusText": "COMPLETED with stale evidence and LOW confidence.",
+        "keyboardOrder": 14,
+        "outlineItemId": "outline:node:competency:networking-tcp-ip"
+      },
+      "inspectorRef": "inspector:node:competency:networking-tcp-ip"
+    },
+    {
+      "nodeId": "node:competency:python-data-model",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:python-data-model",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:python",
+      "title": "Python data model",
+      "shortLabel": "Python data model",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-20T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:python-data-model"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Python data model, competency",
+        "description": "Python data model competency in the python domain.",
+        "statusText": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 16,
+        "outlineItemId": "outline:node:competency:python-data-model"
+      },
+      "inspectorRef": "inspector:node:competency:python-data-model"
+    },
+    {
+      "nodeId": "node:competency:python-error-handling",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:python-error-handling",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:python",
+      "title": "Error handling",
+      "shortLabel": "Error handling",
+      "state": {
+        "achievementLevel": "MASTERED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-22T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "MASTERED with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:any-practical-proof"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "MASTERED with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:competency:python-error-handling"
+          ],
+          "relatedRuleIds": [
+            "rule:any-practical-proof"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Error handling, competency",
+        "description": "Error handling competency in the python domain.",
+        "statusText": "MASTERED with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 17,
+        "outlineItemId": "outline:node:competency:python-error-handling"
+      },
+      "inspectorRef": "inspector:node:competency:python-error-handling"
+    },
+    {
+      "nodeId": "node:competency:python-iterators-generators",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:python-iterators-generators",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:python",
+      "title": "Iterators and generators",
+      "shortLabel": "Iterators and generators",
+      "state": {
+        "achievementLevel": "COMPLETED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-18T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "COMPLETED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "COMPLETED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:python-iterators-generators"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Iterators and generators, competency",
+        "description": "Iterators and generators competency in the python domain.",
+        "statusText": "COMPLETED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 18,
+        "outlineItemId": "outline:node:competency:python-iterators-generators"
+      },
+      "inspectorRef": "inspector:node:competency:python-iterators-generators"
+    },
+    {
+      "nodeId": "node:competency:python-standard-library",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:python-standard-library",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:python",
+      "title": "Standard library",
+      "shortLabel": "Standard library",
+      "state": {
+        "achievementLevel": "MASTERED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-23T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "MASTERED with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:core-breadth"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "MASTERED with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:competency:python-standard-library"
+          ],
+          "relatedRuleIds": [
+            "rule:core-breadth"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Standard library, competency",
+        "description": "Standard library competency in the python domain.",
+        "statusText": "MASTERED with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 19,
+        "outlineItemId": "outline:node:competency:python-standard-library"
+      },
+      "inspectorRef": "inspector:node:competency:python-standard-library"
+    },
+    {
+      "nodeId": "node:competency:python-typing",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:python-typing",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:python",
+      "title": "Python typing",
+      "shortLabel": "Python typing",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-21T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:overall-readiness"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:python-typing"
+          ],
+          "relatedRuleIds": [
+            "rule:overall-readiness"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Python typing, competency",
+        "description": "Python typing competency in the python domain.",
+        "statusText": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 20,
+        "outlineItemId": "outline:node:competency:python-typing"
+      },
+      "inspectorRef": "inspector:node:competency:python-typing"
+    },
+    {
+      "nodeId": "node:competency:testing-debugging-strategy",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:testing-debugging-strategy",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:testing",
+      "title": "Debugging strategy",
+      "shortLabel": "Debugging strategy",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-19T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:testing-debugging-strategy"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Debugging strategy, competency",
+        "description": "Debugging strategy competency in the testing domain.",
+        "statusText": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 22,
+        "outlineItemId": "outline:node:competency:testing-debugging-strategy"
+      },
+      "inspectorRef": "inspector:node:competency:testing-debugging-strategy"
+    },
+    {
+      "nodeId": "node:competency:testing-integration-testing",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:testing-integration-testing",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:testing",
+      "title": "Integration testing",
+      "shortLabel": "Integration testing",
+      "state": {
+        "achievementLevel": "COMPLETED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "LOW",
+          "lastMeaningfulEvidenceAt": "2026-08-15T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "COMPLETED with WEAK evidence and LOW confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:overall-readiness"
+        ],
+        "attainment": {
+          "lower": 0.67,
+          "upper": 0.67
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "COMPLETED with WEAK evidence and LOW confidence.",
+          "relatedNodeIds": [
+            "node:competency:testing-integration-testing"
+          ],
+          "relatedRuleIds": [
+            "rule:overall-readiness"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Integration testing, competency",
+        "description": "Integration testing competency in the testing domain.",
+        "statusText": "COMPLETED with WEAK evidence and LOW confidence.",
+        "keyboardOrder": 23,
+        "outlineItemId": "outline:node:competency:testing-integration-testing"
+      },
+      "inspectorRef": "inspector:node:competency:testing-integration-testing"
+    },
+    {
+      "nodeId": "node:competency:testing-test-design",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:testing-test-design",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:testing",
+      "title": "Test design",
+      "shortLabel": "Test design",
+      "state": {
+        "achievementLevel": "VERIFIED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-20T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "VERIFIED with STRONG evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_KNOWN",
+        "ruleIds": [
+          "rule:core-breadth"
+        ],
+        "attainment": {
+          "lower": 1,
+          "upper": 1
+        },
+        "floorStatus": "NOT_APPLICABLE"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:competency:testing-test-design"
+          ],
+          "relatedRuleIds": [
+            "rule:core-breadth"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Test design, competency",
+        "description": "Test design competency in the testing domain.",
+        "statusText": "VERIFIED with STRONG evidence and MEDIUM confidence.",
+        "keyboardOrder": 24,
+        "outlineItemId": "outline:node:competency:testing-test-design"
+      },
+      "inspectorRef": "inspector:node:competency:testing-test-design"
+    },
+    {
+      "nodeId": "node:competency:testing-unit-testing",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:testing-unit-testing",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:testing",
+      "title": "Unit testing",
+      "shortLabel": "Unit testing",
+      "state": {
+        "achievementLevel": "MASTERED",
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-22T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "MASTERED with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "MASTERED with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:competency:testing-unit-testing"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Unit testing, competency",
+        "description": "Unit testing competency in the testing domain.",
+        "statusText": "MASTERED with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 25,
+        "outlineItemId": "outline:node:competency:testing-unit-testing"
+      },
+      "inspectorRef": "inspector:node:competency:testing-unit-testing"
+    },
+    {
+      "nodeId": "node:domain:algorithms",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:algorithms",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Algorithms",
+      "shortLabel": "Algorithms",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-20T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Aggregate with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "Aggregate with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:domain:algorithms"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Algorithms, domain summary",
+        "description": "Algorithms domain in the target graph.",
+        "statusText": "Aggregate with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 1,
+        "outlineItemId": "outline:node:domain:algorithms"
+      },
+      "inspectorRef": "inspector:node:domain:algorithms"
+    },
+    {
+      "nodeId": "node:domain:linux",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:linux",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Linux",
+      "shortLabel": "Linux",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-18T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Aggregate with WEAK evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "Aggregate with WEAK evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:domain:linux"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Linux, domain summary",
+        "description": "Linux domain in the target graph.",
+        "statusText": "Aggregate with WEAK evidence and MEDIUM confidence.",
+        "keyboardOrder": 6,
+        "outlineItemId": "outline:node:domain:linux"
+      },
+      "inspectorRef": "inspector:node:domain:linux"
+    },
+    {
+      "nodeId": "node:domain:networking",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:networking",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Networking",
+      "shortLabel": "Networking",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:domain:networking"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Networking, domain summary",
+        "description": "Networking domain in the target graph.",
+        "statusText": "Unknown because no qualifying evidence is available.",
+        "keyboardOrder": 11,
+        "outlineItemId": "outline:node:domain:networking"
+      },
+      "inspectorRef": "inspector:node:domain:networking"
+    },
+    {
+      "nodeId": "node:domain:python",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:python",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Python",
+      "shortLabel": "Python",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "HIGH",
+          "lastMeaningfulEvidenceAt": "2026-08-22T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Aggregate with STRONG evidence and HIGH confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.strong",
+          "message": "Aggregate with STRONG evidence and HIGH confidence.",
+          "relatedNodeIds": [
+            "node:domain:python"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Python, domain summary",
+        "description": "Python domain in the target graph.",
+        "statusText": "Aggregate with STRONG evidence and HIGH confidence.",
+        "keyboardOrder": 15,
+        "outlineItemId": "outline:node:domain:python"
+      },
+      "inspectorRef": "inspector:node:domain:python"
+    },
+    {
+      "nodeId": "node:domain:testing",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:testing",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Testing",
+      "shortLabel": "Testing",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "MEDIUM",
+          "lastMeaningfulEvidenceAt": "2026-08-19T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Aggregate with WEAK evidence and MEDIUM confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "Aggregate with WEAK evidence and MEDIUM confidence.",
+          "relatedNodeIds": [
+            "node:domain:testing"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Testing, domain summary",
+        "description": "Testing domain in the target graph.",
+        "statusText": "Aggregate with WEAK evidence and MEDIUM confidence.",
+        "keyboardOrder": 21,
+        "outlineItemId": "outline:node:domain:testing"
+      },
+      "inspectorRef": "inspector:node:domain:testing"
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "edge:part-of:algorithms-complexity-analysis",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:algorithms-complexity-analysis",
+      "targetNodeId": "node:domain:algorithms",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Complexity analysis is shown inside the algorithms navigation domain.",
+      "accessibilityLabel": "Complexity analysis is part of the algorithms domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:algorithms-graph-traversal",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:algorithms-graph-traversal",
+      "targetNodeId": "node:domain:algorithms",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Graph traversal is shown inside the algorithms navigation domain.",
+      "accessibilityLabel": "Graph traversal is part of the algorithms domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:algorithms-hash-tables",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:algorithms-hash-tables",
+      "targetNodeId": "node:domain:algorithms",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Hash tables is shown inside the algorithms navigation domain.",
+      "accessibilityLabel": "Hash tables is part of the algorithms domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:algorithms-problem-decomposition",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:algorithms-problem-decomposition",
+      "targetNodeId": "node:domain:algorithms",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Problem decomposition is shown inside the algorithms navigation domain.",
+      "accessibilityLabel": "Problem decomposition is part of the algorithms domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:linux-cli-pipelines",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:linux-cli-pipelines",
+      "targetNodeId": "node:domain:linux",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "CLI pipelines is shown inside the linux navigation domain.",
+      "accessibilityLabel": "CLI pipelines is part of the linux domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:linux-file-permissions",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:linux-file-permissions",
+      "targetNodeId": "node:domain:linux",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "File permissions is shown inside the linux navigation domain.",
+      "accessibilityLabel": "File permissions is part of the linux domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:linux-log-triage",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:linux-log-triage",
+      "targetNodeId": "node:domain:linux",
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "workspace:fixture-primary",
+        "overlayRevision": "overlay:fixture-primary-v1",
+        "acceptance": "ACCEPTED"
+      },
+      "blocking": false,
+      "rationale": "Personal log triage runbook is shown inside the linux navigation domain.",
+      "accessibilityLabel": "Personal log triage runbook is part of the linux domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:linux-process-debugging",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:linux-process-debugging",
+      "targetNodeId": "node:domain:linux",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Process debugging is shown inside the linux navigation domain.",
+      "accessibilityLabel": "Process debugging is part of the linux domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:networking-http-basics",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:networking-http-basics",
+      "targetNodeId": "node:domain:networking",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "HTTP basics is shown inside the networking navigation domain.",
+      "accessibilityLabel": "HTTP basics is part of the networking domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:networking-socket-debugging",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:networking-socket-debugging",
+      "targetNodeId": "node:domain:networking",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Socket debugging is shown inside the networking navigation domain.",
+      "accessibilityLabel": "Socket debugging is part of the networking domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:networking-tcp-ip",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:networking-tcp-ip",
+      "targetNodeId": "node:domain:networking",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "TCP and IP is shown inside the networking navigation domain.",
+      "accessibilityLabel": "TCP and IP is part of the networking domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:python-data-model",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:python-data-model",
+      "targetNodeId": "node:domain:python",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Python data model is shown inside the python navigation domain.",
+      "accessibilityLabel": "Python data model is part of the python domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:python-error-handling",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:python-error-handling",
+      "targetNodeId": "node:domain:python",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Error handling is shown inside the python navigation domain.",
+      "accessibilityLabel": "Error handling is part of the python domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:python-iterators-generators",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:python-iterators-generators",
+      "targetNodeId": "node:domain:python",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Iterators and generators is shown inside the python navigation domain.",
+      "accessibilityLabel": "Iterators and generators is part of the python domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:python-standard-library",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:python-standard-library",
+      "targetNodeId": "node:domain:python",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Standard library is shown inside the python navigation domain.",
+      "accessibilityLabel": "Standard library is part of the python domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:python-typing",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:python-typing",
+      "targetNodeId": "node:domain:python",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Python typing is shown inside the python navigation domain.",
+      "accessibilityLabel": "Python typing is part of the python domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:testing-debugging-strategy",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:testing-debugging-strategy",
+      "targetNodeId": "node:domain:testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Debugging strategy is shown inside the testing navigation domain.",
+      "accessibilityLabel": "Debugging strategy is part of the testing domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:testing-integration-testing",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:testing-integration-testing",
+      "targetNodeId": "node:domain:testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Integration testing is shown inside the testing navigation domain.",
+      "accessibilityLabel": "Integration testing is part of the testing domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:testing-test-design",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:testing-test-design",
+      "targetNodeId": "node:domain:testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Test design is shown inside the testing navigation domain.",
+      "accessibilityLabel": "Test design is part of the testing domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:testing-unit-testing",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:testing-unit-testing",
+      "targetNodeId": "node:domain:testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Unit testing is shown inside the testing navigation domain.",
+      "accessibilityLabel": "Unit testing is part of the testing domain.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:algorithms-complexity-analysis:algorithms-graph-traversal",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:algorithms-complexity-analysis",
+      "targetNodeId": "node:competency:algorithms-graph-traversal",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "algorithms complexity analysis supports algorithms graph traversal.",
+      "accessibilityLabel": "algorithms complexity analysis is a prerequisite of algorithms graph traversal.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:algorithms-hash-tables:algorithms-graph-traversal",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:algorithms-hash-tables",
+      "targetNodeId": "node:competency:algorithms-graph-traversal",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "algorithms hash tables supports algorithms graph traversal.",
+      "accessibilityLabel": "algorithms hash tables is a prerequisite of algorithms graph traversal.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:algorithms-problem-decomposition:algorithms-complexity-analysis",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:algorithms-problem-decomposition",
+      "targetNodeId": "node:competency:algorithms-complexity-analysis",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "algorithms problem decomposition supports algorithms complexity analysis.",
+      "accessibilityLabel": "algorithms problem decomposition is a prerequisite of algorithms complexity analysis.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:linux-cli-pipelines:linux-file-permissions",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:linux-cli-pipelines",
+      "targetNodeId": "node:competency:linux-file-permissions",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "linux cli pipelines supports linux file permissions.",
+      "accessibilityLabel": "linux cli pipelines is a prerequisite of linux file permissions.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:linux-cli-pipelines:linux-process-debugging",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:linux-cli-pipelines",
+      "targetNodeId": "node:competency:linux-process-debugging",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "linux cli pipelines supports linux process debugging.",
+      "accessibilityLabel": "linux cli pipelines is a prerequisite of linux process debugging.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:linux-cli-pipelines:networking-socket-debugging",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:linux-cli-pipelines",
+      "targetNodeId": "node:competency:networking-socket-debugging",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "linux cli pipelines supports networking socket debugging.",
+      "accessibilityLabel": "linux cli pipelines is a prerequisite of networking socket debugging.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:networking-tcp-ip:networking-http-basics",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:networking-tcp-ip",
+      "targetNodeId": "node:competency:networking-http-basics",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "networking tcp ip supports networking http basics.",
+      "accessibilityLabel": "networking tcp ip is a prerequisite of networking http basics.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:networking-tcp-ip:networking-socket-debugging",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:networking-tcp-ip",
+      "targetNodeId": "node:competency:networking-socket-debugging",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "networking tcp ip supports networking socket debugging.",
+      "accessibilityLabel": "networking tcp ip is a prerequisite of networking socket debugging.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:python-data-model:python-error-handling",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:python-data-model",
+      "targetNodeId": "node:competency:python-error-handling",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "python data model supports python error handling.",
+      "accessibilityLabel": "python data model is a prerequisite of python error handling.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:python-standard-library:python-iterators-generators",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:python-standard-library",
+      "targetNodeId": "node:competency:python-iterators-generators",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "python standard library supports python iterators generators.",
+      "accessibilityLabel": "python standard library is a prerequisite of python iterators generators.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:python-typing:python-data-model",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:python-typing",
+      "targetNodeId": "node:competency:python-data-model",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "python typing supports python data model.",
+      "accessibilityLabel": "python typing is a prerequisite of python data model.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:testing-debugging-strategy:testing-integration-testing",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:testing-debugging-strategy",
+      "targetNodeId": "node:competency:testing-integration-testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "testing debugging strategy supports testing integration testing.",
+      "accessibilityLabel": "testing debugging strategy is a prerequisite of testing integration testing.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:testing-test-design:testing-unit-testing",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:testing-test-design",
+      "targetNodeId": "node:competency:testing-unit-testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "testing test design supports testing unit testing.",
+      "accessibilityLabel": "testing test design is a prerequisite of testing unit testing.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:testing-unit-testing:testing-integration-testing",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:testing-unit-testing",
+      "targetNodeId": "node:competency:testing-integration-testing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "testing unit testing supports testing integration testing.",
+      "accessibilityLabel": "testing unit testing is a prerequisite of testing integration testing.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:user-added:linux-log-triage:linux-process-debugging",
+      "edgeType": "USER_ADDED",
+      "sourceNodeId": "node:competency:linux-log-triage",
+      "targetNodeId": "node:competency:linux-process-debugging",
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "workspace:fixture-primary",
+        "overlayRevision": "overlay:fixture-primary-v1",
+        "acceptance": "ACCEPTED"
+      },
+      "blocking": false,
+      "rationale": "The accepted personal runbook is useful context for process debugging.",
+      "accessibilityLabel": "Personal log triage runbook is related to process debugging.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "PERSONAL_CONTEXT"
+      }
+    }
+  ],
+  "requirements": {
+    "targetProfileVersionId": "target:nvidia-python-verification-v1",
+    "rootRuleId": "rule:target-root",
+    "rules": [
+      {
+        "ruleId": "rule:any-practical-proof",
+        "ruleType": "ANY",
+        "title": "Practical Python or operations proof",
+        "criticality": "MANDATORY",
+        "explanation": "Either demonstrated Python error handling or the accepted personal log triage competency qualifies.",
+        "accessibilityLabel": "Any one of two practical proof requirements.",
+        "members": [
+          {
+            "memberType": "NODE",
+            "nodeId": "node:competency:linux-log-triage",
+            "dimension": "APPLICATION",
+            "requiredLevel": "COMPLETED"
+          },
+          {
+            "memberType": "NODE",
+            "nodeId": "node:competency:python-error-handling",
+            "dimension": "APPLICATION",
+            "requiredLevel": "VERIFIED"
+          }
+        ]
+      },
+      {
+        "ruleId": "rule:core-breadth",
+        "ruleType": "K_OF_N",
+        "title": "Cross-domain core breadth",
+        "criticality": "MANDATORY",
+        "explanation": "At least three of four core competencies must meet their required level.",
+        "accessibilityLabel": "Three of four core breadth requirements.",
+        "requiredCount": 3,
+        "members": [
+          {
+            "memberType": "NODE",
+            "nodeId": "node:competency:algorithms-complexity-analysis",
+            "dimension": "APPLICATION",
+            "requiredLevel": "VERIFIED"
+          },
+          {
+            "memberType": "NODE",
+            "nodeId": "node:competency:linux-process-debugging",
+            "dimension": "APPLICATION",
+            "requiredLevel": "COMPLETED"
+          },
+          {
+            "memberType": "NODE",
+            "nodeId": "node:competency:python-standard-library",
+            "dimension": "APPLICATION",
+            "requiredLevel": "VERIFIED"
+          },
+          {
+            "memberType": "NODE",
+            "nodeId": "node:competency:testing-test-design",
+            "dimension": "APPLICATION",
+            "requiredLevel": "VERIFIED"
+          }
+        ]
+      },
+      {
+        "ruleId": "rule:linux-networking-floor",
+        "ruleType": "MANDATORY_FLOOR",
+        "title": "Networking verification floor",
+        "criticality": "MANDATORY",
+        "explanation": "TCP and IP must have current verified application evidence and cannot be compensated by a high average.",
+        "accessibilityLabel": "Mandatory TCP and IP verified floor, currently below requirement.",
+        "member": {
+          "memberType": "NODE",
+          "nodeId": "node:competency:networking-tcp-ip",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED"
+        }
+      },
+      {
+        "ruleId": "rule:overall-readiness",
+        "ruleType": "WEIGHTED_THRESHOLD",
+        "title": "Weighted target readiness",
+        "criticality": "MANDATORY",
+        "explanation": "Known and unknown weighted attainment is compared with the profile threshold without converting unknown to zero.",
+        "accessibilityLabel": "Weighted readiness threshold of eighty percent.",
+        "threshold": 0.8,
+        "members": [
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:algorithms-hash-tables",
+              "dimension": "APPLICATION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.2
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:linux-cli-pipelines",
+              "dimension": "APPLICATION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.15
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:networking-http-basics",
+              "dimension": "KNOWLEDGE",
+              "requiredLevel": "COMPLETED"
+            },
+            "weight": 0.1
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:networking-tcp-ip",
+              "dimension": "APPLICATION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.2
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:python-typing",
+              "dimension": "APPLICATION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.2
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:testing-integration-testing",
+              "dimension": "APPLICATION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.15
+          }
+        ]
+      },
+      {
+        "ruleId": "rule:target-root",
+        "ruleType": "ALL",
+        "title": "Target profile root",
+        "criticality": "MANDATORY",
+        "explanation": "Every root rule must qualify; visual grouping does not imply this requirement.",
+        "accessibilityLabel": "All four target requirement groups.",
+        "members": [
+          {
+            "memberType": "RULE",
+            "ruleId": "rule:any-practical-proof"
+          },
+          {
+            "memberType": "RULE",
+            "ruleId": "rule:core-breadth"
+          },
+          {
+            "memberType": "RULE",
+            "ruleId": "rule:linux-networking-floor"
+          },
+          {
+            "memberType": "RULE",
+            "ruleId": "rule:overall-readiness"
+          }
+        ]
+      }
+    ]
+  },
+  "readiness": {
+    "targetProfileVersionId": "target:nvidia-python-verification-v1",
+    "engineVersion": "readiness-engine-v0.1",
+    "policyVersion": "mastery-readiness-v0.1",
+    "calculatedAt": "2026-08-25T12:00:00Z",
+    "inputWatermark": "watermark:fixture-2026-08-25",
+    "status": "NOT_READY",
+    "estimate": {
+      "lower": 0.7565,
+      "upper": 0.8565
+    },
+    "coverage": 0.9,
+    "confidence": "MEDIUM",
+    "mandatoryBlockerRuleIds": [
+      "rule:linux-networking-floor"
+    ],
+    "unknownNodeIds": [
+      "node:competency:linux-log-triage",
+      "node:competency:networking-http-basics",
+      "node:competency:networking-socket-debugging",
+      "node:domain:networking"
+    ],
+    "staleNodeIds": [
+      "node:competency:networking-tcp-ip"
+    ],
+    "domainBreakdown": [
+      {
+        "domainNodeId": "node:domain:algorithms",
+        "estimate": {
+          "lower": 0.82,
+          "upper": 0.82
+        },
+        "coverage": 1,
+        "confidence": "HIGH"
+      },
+      {
+        "domainNodeId": "node:domain:linux",
+        "estimate": {
+          "lower": 0.62,
+          "upper": 0.75
+        },
+        "coverage": 0.75,
+        "confidence": "MEDIUM"
+      },
+      {
+        "domainNodeId": "node:domain:networking",
+        "estimate": {
+          "lower": 0.18,
+          "upper": 0.78
+        },
+        "coverage": 0.33,
+        "confidence": "LOW"
+      },
+      {
+        "domainNodeId": "node:domain:python",
+        "estimate": {
+          "lower": 0.9,
+          "upper": 0.9
+        },
+        "coverage": 1,
+        "confidence": "HIGH"
+      },
+      {
+        "domainNodeId": "node:domain:testing",
+        "estimate": {
+          "lower": 0.68,
+          "upper": 0.68
+        },
+        "coverage": 1,
+        "confidence": "MEDIUM"
+      }
+    ],
+    "explanations": [
+      {
+        "code": "mandatory-floor-below",
+        "message": "TCP and IP is below the mandatory verified application floor.",
+        "relatedNodeIds": [
+          "node:competency:networking-tcp-ip"
+        ],
+        "relatedRuleIds": [
+          "rule:linux-networking-floor"
+        ]
+      },
+      {
+        "code": "readiness-interval",
+        "message": "Readiness is an interval because required areas remain unknown.",
+        "relatedNodeIds": [
+          "node:competency:networking-http-basics"
+        ],
+        "relatedRuleIds": [
+          "rule:overall-readiness"
+        ]
+      },
+      {
+        "code": "unknown-coverage",
+        "message": "Networking contains unknown evidence and lowers estimate confidence without becoming zero.",
+        "relatedNodeIds": [
+          "node:domain:networking"
+        ],
+        "relatedRuleIds": [
+          "rule:overall-readiness"
+        ]
+      }
+    ],
+    "displayLabel": "Readiness 76 to 86 out of 100, confidence Medium, status Not ready."
+  },
+  "visibilityHints": {
+    "completeTargetGraph": true,
+    "defaultVisibleNodeIds": [
+      "node:competency:algorithms-complexity-analysis",
+      "node:competency:algorithms-graph-traversal",
+      "node:competency:algorithms-hash-tables",
+      "node:competency:algorithms-problem-decomposition",
+      "node:competency:linux-cli-pipelines",
+      "node:competency:linux-file-permissions",
+      "node:competency:linux-log-triage",
+      "node:competency:linux-process-debugging",
+      "node:competency:networking-http-basics",
+      "node:competency:networking-socket-debugging",
+      "node:competency:networking-tcp-ip",
+      "node:competency:python-data-model",
+      "node:competency:python-error-handling",
+      "node:competency:python-iterators-generators",
+      "node:competency:python-standard-library",
+      "node:competency:python-typing",
+      "node:competency:testing-debugging-strategy",
+      "node:competency:testing-integration-testing",
+      "node:competency:testing-test-design",
+      "node:competency:testing-unit-testing",
+      "node:domain:algorithms",
+      "node:domain:linux",
+      "node:domain:networking",
+      "node:domain:python",
+      "node:domain:testing"
+    ],
+    "defaultVisibleEdgeIds": [
+      "edge:part-of:algorithms-complexity-analysis",
+      "edge:part-of:algorithms-graph-traversal",
+      "edge:part-of:algorithms-hash-tables",
+      "edge:part-of:algorithms-problem-decomposition",
+      "edge:part-of:linux-cli-pipelines",
+      "edge:part-of:linux-file-permissions",
+      "edge:part-of:linux-log-triage",
+      "edge:part-of:linux-process-debugging",
+      "edge:part-of:networking-http-basics",
+      "edge:part-of:networking-socket-debugging",
+      "edge:part-of:networking-tcp-ip",
+      "edge:part-of:python-data-model",
+      "edge:part-of:python-error-handling",
+      "edge:part-of:python-iterators-generators",
+      "edge:part-of:python-standard-library",
+      "edge:part-of:python-typing",
+      "edge:part-of:testing-debugging-strategy",
+      "edge:part-of:testing-integration-testing",
+      "edge:part-of:testing-test-design",
+      "edge:part-of:testing-unit-testing",
+      "edge:prerequisite:algorithms-complexity-analysis:algorithms-graph-traversal",
+      "edge:prerequisite:algorithms-hash-tables:algorithms-graph-traversal",
+      "edge:prerequisite:algorithms-problem-decomposition:algorithms-complexity-analysis",
+      "edge:prerequisite:linux-cli-pipelines:linux-file-permissions",
+      "edge:prerequisite:linux-cli-pipelines:linux-process-debugging",
+      "edge:prerequisite:linux-cli-pipelines:networking-socket-debugging",
+      "edge:prerequisite:networking-tcp-ip:networking-http-basics",
+      "edge:prerequisite:networking-tcp-ip:networking-socket-debugging",
+      "edge:prerequisite:python-data-model:python-error-handling",
+      "edge:prerequisite:python-standard-library:python-iterators-generators",
+      "edge:prerequisite:python-typing:python-data-model",
+      "edge:prerequisite:testing-debugging-strategy:testing-integration-testing",
+      "edge:prerequisite:testing-test-design:testing-unit-testing",
+      "edge:prerequisite:testing-unit-testing:testing-integration-testing",
+      "edge:user-added:linux-log-triage:linux-process-debugging"
+    ],
+    "totalNodeCount": 25,
+    "totalEdgeCount": 35,
+    "maximumRenderedNodes": 150,
+    "maximumRenderedEdges": 300
+  },
+  "outline": {
+    "projectionId": "projection:graph-representative-v1",
+    "rootItemIds": [
+      "outline:node:domain:algorithms",
+      "outline:node:domain:linux",
+      "outline:node:domain:networking",
+      "outline:node:domain:python",
+      "outline:node:domain:testing"
+    ],
+    "items": [
+      {
+        "outlineItemId": "outline:node:competency:algorithms-complexity-analysis",
+        "nodeId": "node:competency:algorithms-complexity-analysis",
+        "parentItemId": "outline:node:domain:algorithms",
+        "depth": 1,
+        "sortKey": "0101:algorithms-complexity-analysis",
+        "childItemIds": [],
+        "accessibilityLabel": "Complexity analysis, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:algorithms-graph-traversal",
+        "nodeId": "node:competency:algorithms-graph-traversal",
+        "parentItemId": "outline:node:domain:algorithms",
+        "depth": 1,
+        "sortKey": "0102:algorithms-graph-traversal",
+        "childItemIds": [],
+        "accessibilityLabel": "Graph traversal, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:algorithms-hash-tables",
+        "nodeId": "node:competency:algorithms-hash-tables",
+        "parentItemId": "outline:node:domain:algorithms",
+        "depth": 1,
+        "sortKey": "0103:algorithms-hash-tables",
+        "childItemIds": [],
+        "accessibilityLabel": "Hash tables, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:algorithms-problem-decomposition",
+        "nodeId": "node:competency:algorithms-problem-decomposition",
+        "parentItemId": "outline:node:domain:algorithms",
+        "depth": 1,
+        "sortKey": "0104:algorithms-problem-decomposition",
+        "childItemIds": [],
+        "accessibilityLabel": "Problem decomposition, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:linux-cli-pipelines",
+        "nodeId": "node:competency:linux-cli-pipelines",
+        "parentItemId": "outline:node:domain:linux",
+        "depth": 1,
+        "sortKey": "0201:linux-cli-pipelines",
+        "childItemIds": [],
+        "accessibilityLabel": "CLI pipelines, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:linux-file-permissions",
+        "nodeId": "node:competency:linux-file-permissions",
+        "parentItemId": "outline:node:domain:linux",
+        "depth": 1,
+        "sortKey": "0202:linux-file-permissions",
+        "childItemIds": [],
+        "accessibilityLabel": "File permissions, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:linux-log-triage",
+        "nodeId": "node:competency:linux-log-triage",
+        "parentItemId": "outline:node:domain:linux",
+        "depth": 1,
+        "sortKey": "0203:linux-log-triage",
+        "childItemIds": [],
+        "accessibilityLabel": "Personal log triage runbook, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:linux-process-debugging",
+        "nodeId": "node:competency:linux-process-debugging",
+        "parentItemId": "outline:node:domain:linux",
+        "depth": 1,
+        "sortKey": "0204:linux-process-debugging",
+        "childItemIds": [],
+        "accessibilityLabel": "Process debugging, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:networking-http-basics",
+        "nodeId": "node:competency:networking-http-basics",
+        "parentItemId": "outline:node:domain:networking",
+        "depth": 1,
+        "sortKey": "0301:networking-http-basics",
+        "childItemIds": [],
+        "accessibilityLabel": "HTTP basics, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:networking-socket-debugging",
+        "nodeId": "node:competency:networking-socket-debugging",
+        "parentItemId": "outline:node:domain:networking",
+        "depth": 1,
+        "sortKey": "0302:networking-socket-debugging",
+        "childItemIds": [],
+        "accessibilityLabel": "Socket debugging, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:networking-tcp-ip",
+        "nodeId": "node:competency:networking-tcp-ip",
+        "parentItemId": "outline:node:domain:networking",
+        "depth": 1,
+        "sortKey": "0303:networking-tcp-ip",
+        "childItemIds": [],
+        "accessibilityLabel": "TCP and IP, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:python-data-model",
+        "nodeId": "node:competency:python-data-model",
+        "parentItemId": "outline:node:domain:python",
+        "depth": 1,
+        "sortKey": "0401:python-data-model",
+        "childItemIds": [],
+        "accessibilityLabel": "Python data model, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:python-error-handling",
+        "nodeId": "node:competency:python-error-handling",
+        "parentItemId": "outline:node:domain:python",
+        "depth": 1,
+        "sortKey": "0402:python-error-handling",
+        "childItemIds": [],
+        "accessibilityLabel": "Error handling, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:python-iterators-generators",
+        "nodeId": "node:competency:python-iterators-generators",
+        "parentItemId": "outline:node:domain:python",
+        "depth": 1,
+        "sortKey": "0403:python-iterators-generators",
+        "childItemIds": [],
+        "accessibilityLabel": "Iterators and generators, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:python-standard-library",
+        "nodeId": "node:competency:python-standard-library",
+        "parentItemId": "outline:node:domain:python",
+        "depth": 1,
+        "sortKey": "0404:python-standard-library",
+        "childItemIds": [],
+        "accessibilityLabel": "Standard library, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:python-typing",
+        "nodeId": "node:competency:python-typing",
+        "parentItemId": "outline:node:domain:python",
+        "depth": 1,
+        "sortKey": "0405:python-typing",
+        "childItemIds": [],
+        "accessibilityLabel": "Python typing, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:testing-debugging-strategy",
+        "nodeId": "node:competency:testing-debugging-strategy",
+        "parentItemId": "outline:node:domain:testing",
+        "depth": 1,
+        "sortKey": "0501:testing-debugging-strategy",
+        "childItemIds": [],
+        "accessibilityLabel": "Debugging strategy, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:testing-integration-testing",
+        "nodeId": "node:competency:testing-integration-testing",
+        "parentItemId": "outline:node:domain:testing",
+        "depth": 1,
+        "sortKey": "0502:testing-integration-testing",
+        "childItemIds": [],
+        "accessibilityLabel": "Integration testing, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:testing-test-design",
+        "nodeId": "node:competency:testing-test-design",
+        "parentItemId": "outline:node:domain:testing",
+        "depth": 1,
+        "sortKey": "0503:testing-test-design",
+        "childItemIds": [],
+        "accessibilityLabel": "Test design, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:testing-unit-testing",
+        "nodeId": "node:competency:testing-unit-testing",
+        "parentItemId": "outline:node:domain:testing",
+        "depth": 1,
+        "sortKey": "0504:testing-unit-testing",
+        "childItemIds": [],
+        "accessibilityLabel": "Unit testing, competency"
+      },
+      {
+        "outlineItemId": "outline:node:domain:algorithms",
+        "nodeId": "node:domain:algorithms",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0100:algorithms",
+        "childItemIds": [
+          "outline:node:competency:algorithms-complexity-analysis",
+          "outline:node:competency:algorithms-graph-traversal",
+          "outline:node:competency:algorithms-hash-tables",
+          "outline:node:competency:algorithms-problem-decomposition"
+        ],
+        "accessibilityLabel": "Algorithms, domain summary"
+      },
+      {
+        "outlineItemId": "outline:node:domain:linux",
+        "nodeId": "node:domain:linux",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0200:linux",
+        "childItemIds": [
+          "outline:node:competency:linux-cli-pipelines",
+          "outline:node:competency:linux-file-permissions",
+          "outline:node:competency:linux-log-triage",
+          "outline:node:competency:linux-process-debugging"
+        ],
+        "accessibilityLabel": "Linux, domain summary"
+      },
+      {
+        "outlineItemId": "outline:node:domain:networking",
+        "nodeId": "node:domain:networking",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0300:networking",
+        "childItemIds": [
+          "outline:node:competency:networking-http-basics",
+          "outline:node:competency:networking-socket-debugging",
+          "outline:node:competency:networking-tcp-ip"
+        ],
+        "accessibilityLabel": "Networking, domain summary"
+      },
+      {
+        "outlineItemId": "outline:node:domain:python",
+        "nodeId": "node:domain:python",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0400:python",
+        "childItemIds": [
+          "outline:node:competency:python-data-model",
+          "outline:node:competency:python-error-handling",
+          "outline:node:competency:python-iterators-generators",
+          "outline:node:competency:python-standard-library",
+          "outline:node:competency:python-typing"
+        ],
+        "accessibilityLabel": "Python, domain summary"
+      },
+      {
+        "outlineItemId": "outline:node:domain:testing",
+        "nodeId": "node:domain:testing",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0500:testing",
+        "childItemIds": [
+          "outline:node:competency:testing-debugging-strategy",
+          "outline:node:competency:testing-integration-testing",
+          "outline:node:competency:testing-test-design",
+          "outline:node:competency:testing-unit-testing"
+        ],
+        "accessibilityLabel": "Testing, domain summary"
+      }
+    ]
+  }
+}

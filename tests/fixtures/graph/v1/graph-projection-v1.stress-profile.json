@@ -1,0 +1,340 @@
+{
+  "fixtureVersion": "1.0.0",
+  "fixtureType": "DETERMINISTIC_STRESS_STRUCTURE_DESCRIPTOR",
+  "scenarioId": "graph-stress-500-v1",
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "purpose": "Uniquely materialize the structural 500-node stress oracle and its semantic distributions without committing renderer or layout runtime code.",
+  "materialization": {
+    "recipeFingerprint": "f097d00cdc03a9b147ae74f0c5f0a1fc9a7d8415e169eb3636191579cff22175",
+    "materializerVersion": "pando-stress-materializer-v1",
+    "randomness": "NONE",
+    "decimalOrdinalFormat": "FOUR_DIGITS_ZERO_PADDED",
+    "constants": {
+      "workspaceId": "workspace:stress-primary",
+      "overlayRevision": "overlay:stress-v1",
+      "catalogVersionId": "catalog:stress-v1",
+      "roadmapTemplateVersionId": "roadmap:stress-v1",
+      "targetProfileVersionId": "target:stress-v1",
+      "projectionId": "projection:graph-stress-500-v1",
+      "semanticRevision": "revision:graph-stress-v1",
+      "inputWatermark": "watermark:stress-2026-08-25",
+      "generatedAndCalculatedAt": "2026-08-25T12:00:00Z",
+      "masteryAndReadinessPolicyVersion": "mastery-readiness-v0.1",
+      "readinessEngineVersion": "readiness-engine-v0.1"
+    },
+    "ordering": {
+      "comparator": "UNSIGNED_ASCII_STABLE_ID",
+      "arrays": "SORT_BY_ID_BEFORE_SERIALIZATION",
+      "ruleMembers": "SORT_BY_REFERENCED_STABLE_ID",
+      "outlineKeyboardOrder": "FOR_DOMAIN_1_THROUGH_10_EMIT_DOMAIN_THEN_COMPETENCIES_D_D_PLUS_10_THROUGH_490"
+    },
+    "layout": {
+      "layoutVersion": "graph-layout-v1",
+      "algorithmVersion": "dagre-layered-v1",
+      "fixedNodeSize": {
+        "width": 240,
+        "height": 104
+      },
+      "spacing": {
+        "rank": 88,
+        "node": 40
+      },
+      "canonicalPositionFormula": "globalOrdinal is domainOrdinal or 10 plus competencyOrdinal; x=((globalOrdinal-1)%10)*340; y=floor((globalOrdinal-1)/10)*180",
+      "personalEffectivePositionFormula": "canonical x plus 40 and y plus 24",
+      "personalOverrideOwnership": "overrideWorkspaceId and overrideRevision equal the fixture workspace constants"
+    },
+    "nodeRecipe": {
+      "totalNodeCount": 500,
+      "domainOrdinals": {
+        "first": 1,
+        "last": 10,
+        "count": 10
+      },
+      "competencyOrdinals": {
+        "first": 1,
+        "last": 490,
+        "count": 490
+      },
+      "canonicalDomainCount": 10,
+      "canonicalCompetencyOrdinals": {
+        "first": 1,
+        "last": 465,
+        "count": 465
+      },
+      "acceptedPersonalCompetencyOrdinals": {
+        "first": 466,
+        "last": 490,
+        "count": 25
+      },
+      "domainForCompetencyFormula": "((competencyOrdinal-1)%10)+1",
+      "globalStateOrdinalFormula": "domainOrdinal for domains; 10+competencyOrdinal for competencies",
+      "idTemplates": {
+        "domainNodeId": "node:domain:stress-{dddd}",
+        "competencyNodeId": "node:competency:stress-{dddd}",
+        "domainEntityId": "domain:stress-{dddd}",
+        "competencyEntityId": "competency:stress-{dddd}",
+        "outlineItemId": "outline:{nodeId}",
+        "inspectorRef": "inspector:{nodeId}"
+      },
+      "textTemplates": {
+        "domainTitle": "Stress domain {dddd}",
+        "domainShortLabel": "Domain {dddd}",
+        "domainAccessibilityLabel": "Stress domain {dddd}, domain summary",
+        "domainDescription": "Deterministic stress domain {dddd}.",
+        "competencyTitle": "Stress competency {dddd}",
+        "competencyShortLabel": "Competency {dddd}",
+        "competencyAccessibilityLabel": "Stress competency {dddd}, competency",
+        "competencyDescription": "Deterministic competency {dddd} in stress domain {domainDddd}."
+      },
+      "stateBuckets": [
+        {
+          "globalOrdinalFirst": 1,
+          "globalOrdinalLast": 50,
+          "count": 50,
+          "availability": "UNKNOWN",
+          "achievementForCompetency": "NOT_STARTED",
+          "achievementForDomain": null,
+          "lastMeaningfulEvidenceAt": null,
+          "summaryText": "Unknown because no qualifying evidence is available."
+        },
+        {
+          "globalOrdinalFirst": 51,
+          "globalOrdinalLast": 125,
+          "count": 75,
+          "availability": "KNOWN",
+          "condition": "STALE",
+          "confidence": "LOW",
+          "achievementForCompetency": "COMPLETED",
+          "achievementForDomain": null,
+          "lastMeaningfulEvidenceAt": "2026-01-01T00:00:00Z",
+          "summaryText": "Known STALE estimate with LOW confidence."
+        },
+        {
+          "globalOrdinalFirst": 126,
+          "globalOrdinalLast": 250,
+          "count": 125,
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "LOW",
+          "achievementForCompetency": "COMPLETED",
+          "achievementForDomain": null,
+          "lastMeaningfulEvidenceAt": "2026-08-01T00:00:00Z",
+          "summaryText": "Known WEAK estimate with LOW confidence."
+        },
+        {
+          "globalOrdinalFirst": 251,
+          "globalOrdinalLast": 500,
+          "count": 250,
+          "availability": "KNOWN",
+          "condition": "STRONG",
+          "confidence": "MEDIUM",
+          "achievementForCompetency": "VERIFIED",
+          "achievementForDomain": null,
+          "lastMeaningfulEvidenceAt": "2026-08-20T00:00:00Z",
+          "summaryText": "Known STRONG estimate with MEDIUM confidence."
+        }
+      ],
+      "originRule": "All domains and competency ordinals 1..465 are CANONICAL; 466..490 are accepted WORKSPACE_OVERLAY content in the fixture workspace.",
+      "requirementStateRule": "Build sorted direct ruleIds from rule leaf membership. Unknown required leaves use interval 0..1. Known VERIFIED leaves use 1; known STALE leaves use 0.5333333333; other known leaves use 0.67. A direct mandatory-floor leaf uses UNKNOWN or BELOW, otherwise NOT_APPLICABLE.",
+      "visibilityRule": "Domains use DOMAIN,GROUP,COMPETENCY and STRUCTURAL_CONTEXT. Competencies use COMPETENCY,SELECTED_ACTIVITY and PERSONAL_OVERLAY, REQUIRED_BY_TARGET, or STRUCTURAL_CONTEXT by that precedence.",
+      "explanationRule": "Each node has one state.{lowercaseBucket} explanation whose message equals summaryText and whose references are the node plus its sorted direct ruleIds."
+    },
+    "edgeRecipe": {
+      "totalEdgeCount": 1285,
+      "families": [
+        {
+          "edgeType": "PART_OF",
+          "count": 490,
+          "sourceOrdinals": "1..490",
+          "targetFormula": "domainForCompetency(source)",
+          "edgeIdTemplate": "edge:part-of:stress-{sourceDddd}",
+          "blocking": false,
+          "originRule": "Same as source node",
+          "visibilityReason": "NAVIGATION_ONLY"
+        },
+        {
+          "edgeType": "PREREQUISITE_OF",
+          "count": 489,
+          "sourceOrdinals": "1..489",
+          "targetFormula": "source+1",
+          "edgeIdTemplate": "edge:prerequisite:offset-0001:source-{sourceDddd}",
+          "blocking": true,
+          "originRule": "WORKSPACE_OVERLAY when source ordinal is 465..489 because either endpoint is personal; CANONICAL otherwise.",
+          "visibilityReason": "ACTIVE_PREREQUISITE"
+        },
+        {
+          "edgeType": "PREREQUISITE_OF",
+          "count": 231,
+          "sourceOrdinals": "1..231",
+          "targetFormula": "source+10",
+          "edgeIdTemplate": "edge:prerequisite:offset-0010:source-{sourceDddd}",
+          "blocking": true,
+          "originRule": "CANONICAL",
+          "visibilityReason": "ACTIVE_PREREQUISITE"
+        },
+        {
+          "edgeType": "RELATED_TO",
+          "count": 50,
+          "sourceOrdinals": "1..50",
+          "targetFormula": "source+100",
+          "edgeIdTemplate": "edge:related:source-{sourceDddd}",
+          "blocking": false,
+          "originRule": "CANONICAL",
+          "visibilityReason": "SEMANTIC_CONTEXT"
+        },
+        {
+          "edgeType": "USER_ADDED",
+          "count": 25,
+          "sourceOrdinals": "466..490",
+          "targetFormula": "source-465",
+          "edgeIdTemplate": "edge:user-added:source-{sourceDddd}",
+          "blocking": false,
+          "originRule": "WORKSPACE_OVERLAY",
+          "visibilityReason": "PERSONAL_CONTEXT"
+        }
+      ],
+      "textTemplates": {
+        "partOfRationale": "Stress competency {sourceDddd} belongs to stress domain {domainDddd} for navigation.",
+        "partOfAccessibility": "Stress competency {sourceDddd} is part of stress domain {domainDddd}.",
+        "offsetOneRationale": "Offset one prerequisite from {sourceDddd} to {targetDddd}.",
+        "offsetTenRationale": "Offset ten prerequisite from {sourceDddd} to {targetDddd}.",
+        "prerequisiteAccessibility": "Stress competency {sourceDddd} is a prerequisite of stress competency {targetDddd}.",
+        "relatedRationale": "Deterministic non-blocking related context from {sourceDddd} to {targetDddd}.",
+        "relatedAccessibility": "Stress competency {sourceDddd} is related to stress competency {targetDddd}.",
+        "userAddedRationale": "Accepted personal non-blocking context from {sourceDddd} to {targetDddd}.",
+        "userAddedAccessibility": "Personal stress competency {sourceDddd} is related to stress competency {targetDddd}."
+      },
+      "prerequisiteDagProof": "Every prerequisite target ordinal is greater than its source ordinal."
+    },
+    "requirementRecipe": {
+      "ruleCount": 25,
+      "ruleIdTemplate": "rule:stress:{dddd}",
+      "commonTextTemplates": {
+        "explanation": "Deterministic stress rule {dddd} of type {RULE_TYPE}.",
+        "accessibilityLabel": "Stress rule {dddd}, {RULE_TYPE}."
+      },
+      "construction": [
+        "0001 ALL references rules 0002..0005 and is root.",
+        "0002 ANY references rules 0006..0010.",
+        "0003 K_OF_N requires 3 of rules 0011..0015.",
+        "0004 WEIGHTED_THRESHOLD 0.8 references rules 0016..0020 at weight 0.2 each.",
+        "0005 ALL references rules 0021..0025.",
+        "0006..0010 are MANDATORY_FLOOR rules for competency ordinals 1..5 at APPLICATION VERIFIED.",
+        "0011..0015 are ANY rules over consecutive triples of competency ordinals 6..20 at KNOWLEDGE COMPLETED.",
+        "0016..0020 are K_OF_N rules requiring 2 of consecutive triples of competency ordinals 21..35 at APPLICATION COMPLETED.",
+        "0021..0024 are WEIGHTED_THRESHOLD 0.75 rules over consecutive groups of five competency ordinals 36..55 at weight 0.2 and RECALL VERIFIED.",
+        "0025 is a MANDATORY_FLOOR for competency ordinal 56 at APPLICATION VERIFIED."
+      ],
+      "ruleTitleTemplates": {
+        "0001": "Stress root",
+        "0002": "Stress floor alternatives",
+        "0003": "Stress breadth groups",
+        "0004": "Stress weighted groups",
+        "0005": "Stress final groups",
+        "0006..0010": "Stress floor {dddd}",
+        "0011..0015": "Stress alternatives {dddd}",
+        "0016..0020": "Stress two of three {dddd}",
+        "0021..0024": "Stress weighted leaves {dddd}",
+        "0025": "Stress known stale floor"
+      },
+      "criticality": "MANDATORY",
+      "visualContainmentCreatesRules": false
+    },
+    "readinessRecipe": {
+      "status": "NOT_READY",
+      "estimate": {
+        "lower": 0.1523809524,
+        "upper": 0.8666666667
+      },
+      "coverage": 0.2857142857,
+      "confidence": "LOW",
+      "mandatoryBlockerRuleIds": [
+        "rule:stress:0025"
+      ],
+      "unknownNodeSelection": "All nodes whose global state ordinal is 1..50, sorted by nodeId.",
+      "staleNodeSelection": "All nodes whose global state ordinal is 51..125, sorted by nodeId.",
+      "domainBreakdownRule": "Ten domain rows in domain-node ID order, each with interval 0.15..0.87, coverage 0.29, confidence LOW.",
+      "explanations": [
+        {
+          "code": "mandatory-floor-below",
+          "message": "Stress competency 0056 is known stale and below its verified mandatory floor.",
+          "relatedNodeIds": [
+            "node:competency:stress-0056"
+          ],
+          "relatedRuleIds": [
+            "rule:stress:0025"
+          ]
+        },
+        {
+          "code": "unknown-coverage",
+          "message": "Forty required competencies remain unknown and are represented as intervals, not zero.",
+          "relatedNodeIds": [
+            "node:competency:stress-0001"
+          ],
+          "relatedRuleIds": [
+            "rule:stress:0002"
+          ]
+        }
+      ],
+      "displayLabel": "Readiness 15 to 87 out of 100, confidence Low, status Not ready."
+    },
+    "outlineRecipe": {
+      "itemCount": 500,
+      "domainItems": "Ten roots. sortKey is {domainOrdinal*100 as dddd}:stress-{domainDddd}. childItemIds are competencies d,d+10,...,d+480 sorted by outlineItemId.",
+      "competencyItems": "Parent is domainForCompetency. depth 1. sortKey is {1000+competencyOrdinal as dddd}:stress-{competencyDddd}. No children.",
+      "oneItemPerNode": true,
+      "independentOfRenderedDomOrder": true
+    },
+    "visibilityRecipe": {
+      "completeTargetGraph": true,
+      "defaultVisibleNodeCount": 150,
+      "defaultVisibleEdgeCount": 299,
+      "selectionRule": "Select all ten domain nodes plus competency ordinals 1..140, then sort those 150 node IDs. From all edges whose two endpoints are selected, take the first 299 sorted edge IDs.",
+      "perItemFlagRule": "Set node or edge visibilityHint.defaultVisible true exactly when its ID is present in the corresponding default-visible list; false otherwise.",
+      "maximumRenderedNodeCount": 150,
+      "maximumRenderedEdgeCount": 300
+    },
+    "serializationRecipe": "Construct properties in GraphProjectionV1 schema order and sort every identity array by the declared comparator. Exact expanded-byte hashing is intentionally deferred until a committed test materializer exists."
+  },
+  "structuralOracle": {
+    "dependencyFreeReferenceMaterializationSchemaValid": true,
+    "structuralFingerprint": "7edc89cac0e66ee0d5eac70ab63759c2ad05be9ed08e4a50a49a7cf0141e9372",
+    "expandedArtifactHashAndByteMetrics": "DEFERRED_UNTIL_COMMITTED_TEST_MATERIALIZER",
+    "nodeCount": 500,
+    "edgeCount": 1285,
+    "ruleCount": 25,
+    "outlineItemCount": 500,
+    "unknownNodeCount": 50,
+    "staleNodeCount": 75,
+    "defaultVisibleNodeCount": 150,
+    "defaultVisibleEdgeCount": 299
+  },
+  "oracles": {
+    "allReferencesResolve": true,
+    "stableIdsUnique": true,
+    "deterministicOrdering": true,
+    "prerequisiteDagAcyclic": true,
+    "requirementGraphAcyclicAndRooted": true,
+    "outlineHierarchyAcyclic": true,
+    "outlineNodeBijection": true,
+    "foreignWorkspaceContentCount": 0,
+    "hiddenProposalCount": 0,
+    "rawEvidenceBodyCount": 0,
+    "clientOwnedStateFieldCount": 0,
+    "maximumRenderedNodeCount": 150,
+    "maximumRenderedEdgeCount": 300,
+    "visibleEdgesHaveVisibleEndpoints": true
+  },
+  "provisionalBudgets": {
+    "representativeCompressedPayloadBytesMax": 153600,
+    "projectionAndLayoutP95MillisecondsMax": 250,
+    "panAndZoomFrameP95MillisecondsMax": 32,
+    "mainThreadTaskMillisecondsMax": 100,
+    "serverExpansionTriggerTotalNodesGreaterThan": 500,
+    "serverExpansionTriggerCompressedBytesGreaterThan": 256000
+  },
+  "scopeNote": "The dependency-free structure and semantic distributions were materialized ephemerally and validated against GraphProjectionV1. Exact expanded-byte hashing plus runtime p95 and frame budgets remain for the later committed test materializer and renderer/layout implementation; this task adds no generator dependency, React Flow, or Dagre runtime."
+}

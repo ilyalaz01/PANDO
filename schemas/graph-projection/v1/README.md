@@ -1,0 +1,34 @@
+# GraphProjectionV1 contract
+
+`graph-projection.schema.json` is the versioned server response contract shared by Explore Map and Outline. It is deliberately independent of React Flow, Dagre, and any runtime implementation.
+
+## Ownership boundary
+
+The server owns selected immutable versions, workspace-filtered node and edge semantics, accepted personal overlay content, requirement rules, readiness, explanations, visibility hints, accessibility text, deterministic coordinates, the structural fingerprint, and the layout algorithm version.
+
+The client owns the current viewport, selection, query and filters, focus, semantic-zoom choice, drag state, and other temporary interaction state. Those fields are absent from the schema, and strict `additionalProperties: false` checks reject them if they are injected into a projection. Inspector bodies are fetched separately; this projection contains only an opaque `inspectorRef`.
+
+`DOMAIN`, `GROUP`, `COMPETENCY`, and selected `ACTIVITY` nodes are tagged projection variants. Domain and group nodes expose aggregate estimates, competency nodes expose versioned mastery estimates, and activity nodes expose only lifecycle plus expected-evidence semantics. An activity completion never becomes competency truth. `PREREQUISITE_OF` connects competencies, `ACTIVITY_EVIDENCES` connects a selected activity to a competency, and the remaining visual relationships are non-blocking. These variants do not collapse the underlying Catalog, Targets, Overlay, Evidence, or activity domain models into a universal authoritative node.
+
+## Semantic validation beyond JSON Schema
+
+JSON Schema validates shape. A server serializer and contract test must additionally enforce these invariants:
+
+1. Every node, edge, position, rule, explanation, visibility, and Outline reference resolves within the same projection.
+2. IDs are unique and stable. `nodes`, `edges`, `layout.positions`, `requirements.rules`, `outline.items`, and every ID-only list are sorted lexicographically by their stable identifier. Rule members use their referenced stable ID as the ordering key.
+3. The subgraph formed by `PREREQUISITE_OF` edges is acyclic and contains no self-loop. Other edge types are not silently treated as prerequisites. `RELATED_TO`, `PART_OF`, and the representative `USER_ADDED` relationship are non-blocking.
+4. Requirement-rule references form a rooted acyclic graph. Every rule is reachable from `rootRuleId`; `K_OF_N.requiredCount` is no greater than its member count; a weighted rule has positive finite weights. A NODE requirement may reference only a `COMPETENCY` or `DOMAIN`, never an activity lifecycle or navigation group. Visual `PART_OF` containment never creates a requirement.
+5. `UNKNOWN` estimates have no condition, confidence, timestamp, or fabricated value. A `STALE` estimate is still known. Readiness intervals satisfy `lower <= upper`; blocker, unknown, stale, and domain references are consistent with node and rule state.
+6. Every projection node appears exactly once in Outline. Outline parent/child links, roots, depths, labels, and node `outlineItemId` back-references agree and form an acyclic hierarchy.
+7. Every layout position refers to exactly one node. Canonical coordinates and the structural fingerprint are independent of mastery, readiness, evidence, review, provenance revisions, and effective personal coordinates. A workspace override changes only `effective`, and its `overrideWorkspaceId` plus `overrideRevision` must match `workspaceScope`; reset returns to `canonical`.
+8. Every `WORKSPACE_OVERLAY` origin matches `workspaceScope`, is accepted, and contains no hidden proposal, raw evidence, personal note, or foreign-workspace data. A `CANONICAL` edge cannot reference a workspace-overlay node; any relationship involving personal content is itself overlay-owned.
+9. `visibilityHints` counts equal the complete arrays; its default-visible lists exactly match per-item `defaultVisible: true` flags and are capped at 150 nodes and 300 edges. Visibility hints do not persist the client's current semantic-zoom or filter state.
+10. `selectedVersions.targetProfileVersionId`, `requirements.targetProfileVersionId`, and `readiness.targetProfileVersionId` agree. Readiness and node policy versions agree with their selected versions. A current readiness result uses the projection input watermark; mismatches are rejected rather than silently combined.
+
+The fixture manifest classifies schema-valid, schema-invalid, semantic-invalid, boundary, and malicious cases. The deterministic stress descriptor fixes a 500-node recipe and the ADR-0004 performance oracles without adding a materializer or runtime dependency.
+
+`structuralFingerprint` is lowercase SHA-256 over one minified, property-free JSON array containing only ASCII strings, integers, and null. Compare and sort stable IDs by unsigned ASCII byte value. The exact input is `["GraphProjectionV1Structure", 1, algorithmVersion, width, height, rankSpacing, nodeSpacing, nodeTuples, edgeTuples]`. Each node tuple is `[nodeId, nodeType, domainNodeId]`; each edge tuple is `[edgeId, edgeType, sourceNodeId, targetNodeId]`. Node and edge tuples are sorted by their first element. Serialize with RFC 8259 JSON grammar, no insignificant whitespace, UTF-8, then hash those bytes. The ID schema keeps every hashed string in ASCII, so escaping is unique. State, readiness, explanations, visibility, coordinates, entity/catalog versions, origins, overlay revisions, and effective personal positions are deliberately excluded. The stress `recipeFingerprint` is SHA-256 over its `materialization` object after removing `recipeFingerprint`.
+
+## Compatibility
+
+Additive changes that remain optional may extend `v1`. Any new required field, removed enum value, changed ownership rule, or altered semantic invariant requires a new contract version and a migration/consumer-coordination plan.

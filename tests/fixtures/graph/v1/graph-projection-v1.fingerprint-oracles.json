@@ -1,0 +1,108 @@
+{
+  "fixtureVersion": "1.0.0",
+  "fixtureType": "STRUCTURAL_FINGERPRINT_ORACLES",
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "baseFixturePath": "valid/graph-projection-v1.representative.json",
+  "algorithm": {
+    "version": 1,
+    "sort": "UNSIGNED_ASCII_BY_STABLE_ID",
+    "serialization": "MINIFIED_RFC8259_ASCII_TUPLE_ARRAY_UTF8",
+    "digest": "SHA-256"
+  },
+  "baseFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394",
+  "cases": [
+    {
+      "caseId": "algorithm-change",
+      "operation": {
+        "path": "layout.algorithmVersion",
+        "kind": "REPLACE",
+        "value": "dagre-layered-v2"
+      },
+      "expectedRelation": "DIFFERENT",
+      "expectedFingerprint": "cb07fdbe19c51f01226e967584e2d41fe00dc33b1214958f41e386e6c863b4dd"
+    },
+    {
+      "caseId": "domain-parent-change",
+      "operation": {
+        "path": "nodes[node:competency:python-typing].domainNodeId",
+        "kind": "REPLACE",
+        "value": "node:domain:testing"
+      },
+      "expectedRelation": "DIFFERENT",
+      "expectedFingerprint": "0a7a122a896281e993f055cb14bdd70d41edda82355ab65b88ffd2e7243be2b2"
+    },
+    {
+      "caseId": "effective-position-only",
+      "operation": {
+        "path": "layout.positions[node:competency:linux-log-triage].effective.x",
+        "kind": "ADD_NUMBER",
+        "value": 1
+      },
+      "expectedRelation": "SAME",
+      "expectedFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394"
+    },
+    {
+      "caseId": "fixed-width-change",
+      "operation": {
+        "path": "layout.fixedNodeSize.width",
+        "kind": "ADD_NUMBER",
+        "value": 1
+      },
+      "expectedRelation": "DIFFERENT",
+      "expectedFingerprint": "8d0556ba12517cf2b2855145ad282890a14728dc30255231f9aab64d5d702c1a"
+    },
+    {
+      "caseId": "provenance-only",
+      "operation": {
+        "path": "nodes[node:competency:algorithms-complexity-analysis].origin.sourceVersionId",
+        "kind": "REPLACE",
+        "value": "catalog:seed-v2"
+      },
+      "companionOperation": {
+        "path": "nodes[node:competency:algorithms-complexity-analysis].entityRef.entityVersionId",
+        "kind": "REPLACE",
+        "value": "catalog:seed-v2"
+      },
+      "expectedRelation": "SAME",
+      "expectedFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394"
+    },
+    {
+      "caseId": "readiness-only",
+      "operation": {
+        "path": "readiness.displayLabel",
+        "kind": "REPLACE",
+        "value": "Changed readiness-only label."
+      },
+      "expectedRelation": "SAME",
+      "expectedFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394"
+    },
+    {
+      "caseId": "state-only",
+      "operation": {
+        "path": "nodes[node:competency:algorithms-complexity-analysis].state.summaryText",
+        "kind": "REPLACE",
+        "value": "Changed state-only summary."
+      },
+      "expectedRelation": "SAME",
+      "expectedFingerprint": "650e5b39cea63a3b6746aca6ce3234e20756eb3b7422b5df8d26be18e7f29394"
+    },
+    {
+      "caseId": "topology-add-edge",
+      "operation": {
+        "path": "edges",
+        "kind": "ADD_STRUCTURAL_EDGE",
+        "value": {
+          "edgeId": "edge:related:fixture-extra",
+          "edgeType": "RELATED_TO",
+          "sourceNodeId": "node:competency:python-typing",
+          "targetNodeId": "node:competency:testing-test-design"
+        }
+      },
+      "expectedRelation": "DIFFERENT",
+      "expectedFingerprint": "ba46785242608af94dedcb8de10c8e6992328bdf166f7829ed03821c11f6cfc9"
+    }
+  ]
+}

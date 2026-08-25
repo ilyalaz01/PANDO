@@ -1,0 +1,209 @@
+{
+  "fixtureManifestVersion": "1.0.0",
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "schemaPath": "../../../../schemas/graph-projection/v1/graph-projection.schema.json",
+  "cases": [
+    {
+      "caseId": "boundary-minimal",
+      "path": "valid/graph-projection-v1.boundary-minimal.json",
+      "categories": [
+        "BOUNDARY",
+        "VALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "fingerprint-oracles",
+      "path": "graph-projection-v1.fingerprint-oracles.json",
+      "categories": [
+        "DETERMINISM",
+        "STRUCTURAL_FINGERPRINT"
+      ],
+      "expectedSchemaValid": "NOT_APPLICABLE_DESCRIPTOR",
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "invalid-activity-evidence-endpoints",
+      "path": "invalid/graph-projection-v1.activity-evidence-endpoints.json",
+      "categories": [
+        "EDGE_SEMANTICS",
+        "INVALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "ACTIVITY_EVIDENCE_ENDPOINT_TYPE"
+      ]
+    },
+    {
+      "caseId": "invalid-dangling-reference",
+      "path": "invalid/graph-projection-v1.dangling-reference.json",
+      "categories": [
+        "INVALID",
+        "REFERENCE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "EDGE_TARGET_MISSING"
+      ]
+    },
+    {
+      "caseId": "invalid-prerequisite-cycle",
+      "path": "invalid/graph-projection-v1.prerequisite-cycle.json",
+      "categories": [
+        "DAG",
+        "INVALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "PREREQUISITE_CYCLE"
+      ]
+    },
+    {
+      "caseId": "invalid-prerequisite-endpoints",
+      "path": "invalid/graph-projection-v1.prerequisite-endpoints.json",
+      "categories": [
+        "EDGE_SEMANTICS",
+        "INVALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "PREREQUISITE_ENDPOINT_TYPE"
+      ]
+    },
+    {
+      "caseId": "invalid-requirement-node-type",
+      "path": "invalid/graph-projection-v1.requirement-node-type.json",
+      "categories": [
+        "INVALID",
+        "REQUIREMENT_RULE"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "RULE_NODE_TYPE_INVALID"
+      ]
+    },
+    {
+      "caseId": "invalid-unstable-order",
+      "path": "invalid/graph-projection-v1.unstable-order.json",
+      "categories": [
+        "DETERMINISM",
+        "INVALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "DEFAULT_VISIBLE_NODE_IDS_NOT_SORTED",
+        "LAYOUT_POSITIONS_NOT_SORTED",
+        "NODES_NOT_SORTED"
+      ]
+    },
+    {
+      "caseId": "malicious-client-state-injection",
+      "path": "malicious/graph-projection-v1.client-state-injection.json",
+      "categories": [
+        "CLIENT_AUTHORITY",
+        "MALICIOUS"
+      ],
+      "expectedSchemaValid": false,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "CLIENT_OWNED_FIELD_PRESENT",
+        "ROOT_ADDITIONAL_PROPERTY"
+      ]
+    },
+    {
+      "caseId": "malicious-foreign-overlay",
+      "path": "malicious/graph-projection-v1.foreign-overlay.json",
+      "categories": [
+        "MALICIOUS",
+        "WORKSPACE_ISOLATION"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "FOREIGN_OVERLAY_ORIGIN"
+      ]
+    },
+    {
+      "caseId": "malicious-foreign-position-override",
+      "path": "malicious/graph-projection-v1.foreign-position-override.json",
+      "categories": [
+        "MALICIOUS",
+        "WORKSPACE_ISOLATION"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "FOREIGN_POSITION_OVERRIDE"
+      ]
+    },
+    {
+      "caseId": "representative-25-node",
+      "path": "valid/graph-projection-v1.representative.json",
+      "categories": [
+        "REPRESENTATIVE",
+        "VALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "stress-500-node-descriptor",
+      "path": "graph-projection-v1.stress-profile.json",
+      "categories": [
+        "BOUNDARY",
+        "PERFORMANCE",
+        "STRESS"
+      ],
+      "expectedSchemaValid": "NOT_APPLICABLE_DESCRIPTOR",
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "typed-variants",
+      "path": "valid/graph-projection-v1.typed-variants.json",
+      "categories": [
+        "TYPED_VARIANTS",
+        "VALID"
+      ],
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    }
+  ],
+  "semanticChecks": [
+    "ACCESSIBILITY_FIELDS_PRESENT",
+    "ACTIVITY_EVIDENCE_ENDPOINT_TYPES",
+    "ALL_REFERENCES_RESOLVE",
+    "ARRAYS_SORTED_BY_STABLE_ID",
+    "CANONICAL_EDGE_EXCLUDES_OVERLAY_ENDPOINTS",
+    "CLIENT_OWNED_FIELDS_ABSENT",
+    "LAYOUT_COVERS_NODES_EXACTLY_ONCE",
+    "NO_HIDDEN_OR_FOREIGN_OVERLAY_CONTENT",
+    "OUTLINE_IS_NODE_BIJECTION",
+    "OUTLINE_IS_ROOTED_AND_ACYCLIC",
+    "POSITION_OVERRIDE_WORKSPACE_MATCH",
+    "PREREQUISITE_DAG_IS_ACYCLIC",
+    "PREREQUISITE_ENDPOINT_TYPES",
+    "READINESS_INTERVAL_IS_ORDERED",
+    "REQUIREMENT_GRAPH_IS_ROOTED_AND_ACYCLIC",
+    "REQUIREMENT_NODE_TYPES",
+    "STABLE_IDS_ARE_UNIQUE",
+    "STRUCTURAL_FINGERPRINT_ORACLES",
+    "UNKNOWN_IS_NOT_NUMERIC_ZERO",
+    "VISIBILITY_COUNTS_MATCH",
+    "VISIBLE_EDGES_HAVE_VISIBLE_ENDPOINTS"
+  ]
+}

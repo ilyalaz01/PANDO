@@ -1,0 +1,537 @@
+{
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "projectionId": "projection:graph-invalid-activity-evidence-endpoints-v1",
+  "workspaceScope": {
+    "workspaceId": "workspace:fixture-primary",
+    "overlayRevision": "overlay:fixture-primary-v1",
+    "acceptedPersonalContentOnly": true
+  },
+  "selectedVersions": {
+    "catalogVersionId": "catalog:seed-v1",
+    "roadmapTemplateVersionId": "roadmap:typed-variants-v1",
+    "targetProfileVersionId": "target:typed-variants-v1",
+    "masteryPolicyVersion": "mastery-readiness-v0.1",
+    "readinessPolicyVersion": "mastery-readiness-v0.1"
+  },
+  "projectionState": {
+    "semanticRevision": "revision:graph-typed-variants-v1",
+    "inputWatermark": "watermark:typed-2026-08-25",
+    "generatedAt": "2026-08-25T12:00:00Z",
+    "calculationState": "CURRENT",
+    "staleReason": null,
+    "explanation": "Small valid projection exercising domain, group, competency, and selected activity variants."
+  },
+  "layout": {
+    "layoutVersion": "graph-layout-v1",
+    "algorithmVersion": "dagre-layered-v1",
+    "structuralFingerprint": "124c7f1c803b28c3a285b6db02d1f73dc067e8737dcb52dae5d76b4588487c2a",
+    "coordinateSystem": "TOP_LEFT",
+    "fixedNodeSize": {
+      "width": 240,
+      "height": 104
+    },
+    "spacing": {
+      "rank": 88,
+      "node": 40
+    },
+    "positions": [
+      {
+        "nodeId": "node:activity:tcp-troubleshooting-exercise",
+        "canonical": {
+          "x": 1080,
+          "y": 0
+        },
+        "effective": {
+          "x": 1080,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:networking-tcp-ip",
+        "canonical": {
+          "x": 720,
+          "y": 0
+        },
+        "effective": {
+          "x": 720,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:domain:networking",
+        "canonical": {
+          "x": 0,
+          "y": 0
+        },
+        "effective": {
+          "x": 0,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:group:networking-fundamentals",
+        "canonical": {
+          "x": 360,
+          "y": 0
+        },
+        "effective": {
+          "x": 360,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "nodeId": "node:activity:tcp-troubleshooting-exercise",
+      "nodeType": "ACTIVITY",
+      "entityRef": {
+        "entityType": "ACTIVITY",
+        "entityId": "activity:tcp-troubleshooting-exercise",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:networking",
+      "title": "TCP troubleshooting exercise",
+      "shortLabel": "TCP exercise",
+      "state": {
+        "lifecycleStatus": "AVAILABLE",
+        "evidenceExpectation": "EXPECTED",
+        "summaryText": "Available selected activity that may produce application evidence after an observed result."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "activity.available",
+          "message": "The activity is available but does not directly establish competency mastery.",
+          "relatedNodeIds": [
+            "node:activity:tcp-troubleshooting-exercise"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "SELECTED_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "TCP troubleshooting exercise, selected activity",
+        "description": "Selected activity under TCP and IP.",
+        "statusText": "Available, expected to produce evidence only after an observed result.",
+        "keyboardOrder": 4,
+        "outlineItemId": "outline:node:activity:tcp-troubleshooting-exercise"
+      },
+      "inspectorRef": "inspector:node:activity:tcp-troubleshooting-exercise"
+    },
+    {
+      "nodeId": "node:competency:networking-tcp-ip",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:networking-tcp-ip",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:networking",
+      "title": "TCP and IP",
+      "shortLabel": "TCP and IP",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_UNKNOWN",
+        "ruleIds": [
+          "rule:typed-floor"
+        ],
+        "attainment": {
+          "lower": 0,
+          "upper": 1
+        },
+        "floorStatus": "UNKNOWN"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:networking-tcp-ip"
+          ],
+          "relatedRuleIds": [
+            "rule:typed-floor"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "MANDATORY_BLOCKER",
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "TCP and IP, competency",
+        "description": "TCP and IP competency under networking fundamentals.",
+        "statusText": "Unknown, mandatory verified floor cannot yet be evaluated.",
+        "keyboardOrder": 3,
+        "outlineItemId": "outline:node:competency:networking-tcp-ip"
+      },
+      "inspectorRef": "inspector:node:competency:networking-tcp-ip"
+    },
+    {
+      "nodeId": "node:domain:networking",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:networking",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Networking",
+      "shortLabel": "Networking",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "LOW",
+          "lastMeaningfulEvidenceAt": "2026-08-01T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Aggregate networking estimate is weak with Low confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "Aggregate networking estimate is weak with Low confidence.",
+          "relatedNodeIds": [
+            "node:domain:networking"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Networking, domain summary",
+        "description": "Networking domain in the typed-variant graph.",
+        "statusText": "Weak aggregate estimate with Low confidence.",
+        "keyboardOrder": 1,
+        "outlineItemId": "outline:node:domain:networking"
+      },
+      "inspectorRef": "inspector:node:domain:networking"
+    },
+    {
+      "nodeId": "node:group:networking-fundamentals",
+      "nodeType": "GROUP",
+      "entityRef": {
+        "entityType": "GROUP",
+        "entityId": "group:networking-fundamentals",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": "node:domain:networking",
+      "title": "Networking fundamentals",
+      "shortLabel": "Fundamentals",
+      "state": {
+        "achievementLevel": null,
+        "estimate": {
+          "availability": "KNOWN",
+          "condition": "WEAK",
+          "confidence": "LOW",
+          "lastMeaningfulEvidenceAt": "2026-08-01T12:00:00Z"
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Navigation group aggregate is weak with Low confidence."
+      },
+      "requirementState": {
+        "kind": "NOT_REQUIRED"
+      },
+      "explanations": [
+        {
+          "code": "state.weak",
+          "message": "Navigation group aggregate is weak with Low confidence.",
+          "relatedNodeIds": [
+            "node:group:networking-fundamentals"
+          ],
+          "relatedRuleIds": []
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "DOMAIN",
+          "GROUP",
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "STRUCTURAL_CONTEXT"
+        ]
+      },
+      "accessibility": {
+        "label": "Networking fundamentals, group summary",
+        "description": "Navigation group inside the Networking domain.",
+        "statusText": "Weak aggregate estimate with Low confidence.",
+        "keyboardOrder": 2,
+        "outlineItemId": "outline:node:group:networking-fundamentals"
+      },
+      "inspectorRef": "inspector:node:group:networking-fundamentals"
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "edge:activity-evidences:tcp-exercise:tcp-ip",
+      "edgeType": "ACTIVITY_EVIDENCES",
+      "sourceNodeId": "node:competency:networking-tcp-ip",
+      "targetNodeId": "node:activity:tcp-troubleshooting-exercise",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "A graded troubleshooting outcome may provide application evidence for TCP and IP.",
+      "accessibilityLabel": "TCP troubleshooting exercise may evidence TCP and IP.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "SEMANTIC_CONTEXT"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:networking-fundamentals",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:group:networking-fundamentals",
+      "targetNodeId": "node:domain:networking",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "Networking fundamentals is a navigation group inside Networking.",
+      "accessibilityLabel": "Networking fundamentals is part of Networking.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:tcp-exercise",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:activity:tcp-troubleshooting-exercise",
+      "targetNodeId": "node:competency:networking-tcp-ip",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "The selected activity is shown under the competency it may evidence.",
+      "accessibilityLabel": "TCP troubleshooting exercise is shown under TCP and IP.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    },
+    {
+      "edgeId": "edge:part-of:tcp-ip",
+      "edgeType": "PART_OF",
+      "sourceNodeId": "node:competency:networking-tcp-ip",
+      "targetNodeId": "node:group:networking-fundamentals",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": false,
+      "rationale": "TCP and IP is shown inside the Networking fundamentals navigation group.",
+      "accessibilityLabel": "TCP and IP is part of Networking fundamentals.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "NAVIGATION_ONLY"
+      }
+    }
+  ],
+  "requirements": {
+    "targetProfileVersionId": "target:typed-variants-v1",
+    "rootRuleId": "rule:typed-floor",
+    "rules": [
+      {
+        "ruleId": "rule:typed-floor",
+        "ruleType": "MANDATORY_FLOOR",
+        "title": "Typed networking floor",
+        "criticality": "MANDATORY",
+        "explanation": "TCP and IP requires verified application evidence.",
+        "accessibilityLabel": "Mandatory verified TCP and IP floor with unknown evidence.",
+        "member": {
+          "memberType": "NODE",
+          "nodeId": "node:competency:networking-tcp-ip",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED"
+        }
+      }
+    ]
+  },
+  "readiness": {
+    "targetProfileVersionId": "target:typed-variants-v1",
+    "engineVersion": "readiness-engine-v0.1",
+    "policyVersion": "mastery-readiness-v0.1",
+    "calculatedAt": "2026-08-25T12:00:00Z",
+    "inputWatermark": "watermark:typed-2026-08-25",
+    "status": "INSUFFICIENT_EVIDENCE",
+    "estimate": {
+      "lower": 0,
+      "upper": 1
+    },
+    "coverage": 0,
+    "confidence": "LOW",
+    "mandatoryBlockerRuleIds": [],
+    "unknownNodeIds": [
+      "node:competency:networking-tcp-ip"
+    ],
+    "staleNodeIds": [],
+    "domainBreakdown": [
+      {
+        "domainNodeId": "node:domain:networking",
+        "estimate": {
+          "lower": 0,
+          "upper": 1
+        },
+        "coverage": 0,
+        "confidence": "LOW"
+      }
+    ],
+    "explanations": [
+      {
+        "code": "mandatory-floor-unknown",
+        "message": "TCP and IP is unknown, so the mandatory floor is not treated as zero.",
+        "relatedNodeIds": [
+          "node:competency:networking-tcp-ip"
+        ],
+        "relatedRuleIds": [
+          "rule:typed-floor"
+        ]
+      }
+    ],
+    "displayLabel": "Readiness 0 to 100 out of 100, confidence Low, status Insufficient evidence."
+  },
+  "visibilityHints": {
+    "completeTargetGraph": true,
+    "defaultVisibleNodeIds": [
+      "node:activity:tcp-troubleshooting-exercise",
+      "node:competency:networking-tcp-ip",
+      "node:domain:networking",
+      "node:group:networking-fundamentals"
+    ],
+    "defaultVisibleEdgeIds": [
+      "edge:activity-evidences:tcp-exercise:tcp-ip",
+      "edge:part-of:networking-fundamentals",
+      "edge:part-of:tcp-exercise",
+      "edge:part-of:tcp-ip"
+    ],
+    "totalNodeCount": 4,
+    "totalEdgeCount": 4,
+    "maximumRenderedNodes": 150,
+    "maximumRenderedEdges": 300
+  },
+  "outline": {
+    "projectionId": "projection:graph-invalid-activity-evidence-endpoints-v1",
+    "rootItemIds": [
+      "outline:node:domain:networking"
+    ],
+    "items": [
+      {
+        "outlineItemId": "outline:node:activity:tcp-troubleshooting-exercise",
+        "nodeId": "node:activity:tcp-troubleshooting-exercise",
+        "parentItemId": "outline:node:competency:networking-tcp-ip",
+        "depth": 3,
+        "sortKey": "0103:tcp-troubleshooting-exercise",
+        "childItemIds": [],
+        "accessibilityLabel": "TCP troubleshooting exercise, selected activity"
+      },
+      {
+        "outlineItemId": "outline:node:competency:networking-tcp-ip",
+        "nodeId": "node:competency:networking-tcp-ip",
+        "parentItemId": "outline:node:group:networking-fundamentals",
+        "depth": 2,
+        "sortKey": "0102:networking-tcp-ip",
+        "childItemIds": [
+          "outline:node:activity:tcp-troubleshooting-exercise"
+        ],
+        "accessibilityLabel": "TCP and IP, competency"
+      },
+      {
+        "outlineItemId": "outline:node:domain:networking",
+        "nodeId": "node:domain:networking",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0100:networking",
+        "childItemIds": [
+          "outline:node:group:networking-fundamentals"
+        ],
+        "accessibilityLabel": "Networking, domain summary"
+      },
+      {
+        "outlineItemId": "outline:node:group:networking-fundamentals",
+        "nodeId": "node:group:networking-fundamentals",
+        "parentItemId": "outline:node:domain:networking",
+        "depth": 1,
+        "sortKey": "0101:networking-fundamentals",
+        "childItemIds": [
+          "outline:node:competency:networking-tcp-ip"
+        ],
+        "accessibilityLabel": "Networking fundamentals, group summary"
+      }
+    ]
+  }
+}

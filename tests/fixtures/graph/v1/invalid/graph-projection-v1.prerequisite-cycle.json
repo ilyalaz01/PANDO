@@ -1,0 +1,337 @@
+{
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "projectionId": "projection:graph-invalid-cycle-v1",
+  "workspaceScope": {
+    "workspaceId": "workspace:fixture-primary",
+    "overlayRevision": "overlay:fixture-primary-v1",
+    "acceptedPersonalContentOnly": true
+  },
+  "selectedVersions": {
+    "catalogVersionId": "catalog:seed-v1",
+    "roadmapTemplateVersionId": "roadmap:boundary-v1",
+    "targetProfileVersionId": "target:boundary-v1",
+    "masteryPolicyVersion": "mastery-readiness-v0.1",
+    "readinessPolicyVersion": "mastery-readiness-v0.1"
+  },
+  "projectionState": {
+    "semanticRevision": "revision:graph-boundary-minimal-v1",
+    "inputWatermark": "watermark:boundary-2026-08-25",
+    "generatedAt": "2026-08-25T12:00:00Z",
+    "calculationState": "CURRENT",
+    "staleReason": null,
+    "explanation": "Minimal valid target graph with an unknown mandatory floor."
+  },
+  "layout": {
+    "layoutVersion": "graph-layout-v1",
+    "algorithmVersion": "dagre-layered-v1",
+    "structuralFingerprint": "b32e7315049ce16ba1b74ebac5d1f7bbcec5ecdc15cc2b731a5f9c39535f953a",
+    "coordinateSystem": "TOP_LEFT",
+    "fixedNodeSize": {
+      "width": 240,
+      "height": 104
+    },
+    "spacing": {
+      "rank": 88,
+      "node": 40
+    },
+    "positions": [
+      {
+        "nodeId": "node:competency:cycle-a",
+        "canonical": {
+          "x": 0,
+          "y": 0
+        },
+        "effective": {
+          "x": 0,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:cycle-b",
+        "canonical": {
+          "x": 360,
+          "y": 0
+        },
+        "effective": {
+          "x": 360,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "nodeId": "node:competency:cycle-a",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:cycle-a",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Cycle A",
+      "shortLabel": "Cycle A",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_UNKNOWN",
+        "ruleIds": [
+          "rule:single-floor"
+        ],
+        "attainment": {
+          "lower": 0,
+          "upper": 1
+        },
+        "floorStatus": "UNKNOWN"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:cycle-a"
+          ],
+          "relatedRuleIds": [
+            "rule:single-floor"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "MANDATORY_BLOCKER",
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Cycle A, competency",
+        "description": "Cycle A competency in the minimal boundary graph.",
+        "statusText": "Unknown, mandatory floor cannot yet be evaluated.",
+        "keyboardOrder": 1,
+        "outlineItemId": "outline:node:competency:cycle-a"
+      },
+      "inspectorRef": "inspector:node:competency:cycle-a"
+    },
+    {
+      "nodeId": "node:competency:cycle-b",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:cycle-b",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Cycle B",
+      "shortLabel": "Cycle B",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_UNKNOWN",
+        "ruleIds": [
+          "rule:single-floor"
+        ],
+        "attainment": {
+          "lower": 0,
+          "upper": 1
+        },
+        "floorStatus": "UNKNOWN"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:cycle-b"
+          ],
+          "relatedRuleIds": [
+            "rule:single-floor"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "MANDATORY_BLOCKER",
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Cycle B, competency",
+        "description": "Cycle B competency in the minimal boundary graph.",
+        "statusText": "Unknown, mandatory floor cannot yet be evaluated.",
+        "keyboardOrder": 2,
+        "outlineItemId": "outline:node:competency:cycle-b"
+      },
+      "inspectorRef": "inspector:node:competency:cycle-b"
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "edge:prerequisite:cycle-a:cycle-b",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:cycle-a",
+      "targetNodeId": "node:competency:cycle-b",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "Cycle A deliberately points to Cycle B.",
+      "accessibilityLabel": "Cycle A is a prerequisite of Cycle B.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    },
+    {
+      "edgeId": "edge:prerequisite:cycle-b:cycle-a",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:cycle-b",
+      "targetNodeId": "node:competency:cycle-a",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "Cycle B deliberately points back to Cycle A.",
+      "accessibilityLabel": "Cycle B is a prerequisite of Cycle A.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    }
+  ],
+  "requirements": {
+    "targetProfileVersionId": "target:boundary-v1",
+    "rootRuleId": "rule:single-floor",
+    "rules": [
+      {
+        "ruleId": "rule:single-floor",
+        "ruleType": "MANDATORY_FLOOR",
+        "title": "Single unknown floor",
+        "criticality": "MANDATORY",
+        "explanation": "The one competency must be verified, while absent evidence remains unknown.",
+        "accessibilityLabel": "Mandatory verified floor with unknown evidence.",
+        "member": {
+          "memberType": "NODE",
+          "nodeId": "node:competency:cycle-a",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED"
+        }
+      }
+    ]
+  },
+  "readiness": {
+    "targetProfileVersionId": "target:boundary-v1",
+    "engineVersion": "readiness-engine-v0.1",
+    "policyVersion": "mastery-readiness-v0.1",
+    "calculatedAt": "2026-08-25T12:00:00Z",
+    "inputWatermark": "watermark:boundary-2026-08-25",
+    "status": "INSUFFICIENT_EVIDENCE",
+    "estimate": {
+      "lower": 0,
+      "upper": 1
+    },
+    "coverage": 0,
+    "confidence": "LOW",
+    "mandatoryBlockerRuleIds": [],
+    "unknownNodeIds": [
+      "node:competency:cycle-a",
+      "node:competency:cycle-b"
+    ],
+    "staleNodeIds": [],
+    "domainBreakdown": [],
+    "explanations": [
+      {
+        "code": "mandatory-floor-unknown",
+        "message": "The mandatory floor is unknown and cannot be treated as zero.",
+        "relatedNodeIds": [
+          "node:competency:cycle-a"
+        ],
+        "relatedRuleIds": [
+          "rule:single-floor"
+        ]
+      }
+    ],
+    "displayLabel": "Readiness 0 to 100 out of 100, confidence Low, status Insufficient evidence."
+  },
+  "visibilityHints": {
+    "completeTargetGraph": true,
+    "defaultVisibleNodeIds": [
+      "node:competency:cycle-a",
+      "node:competency:cycle-b"
+    ],
+    "defaultVisibleEdgeIds": [
+      "edge:prerequisite:cycle-a:cycle-b",
+      "edge:prerequisite:cycle-b:cycle-a"
+    ],
+    "totalNodeCount": 2,
+    "totalEdgeCount": 2,
+    "maximumRenderedNodes": 150,
+    "maximumRenderedEdges": 300
+  },
+  "outline": {
+    "projectionId": "projection:graph-invalid-cycle-v1",
+    "rootItemIds": [
+      "outline:node:competency:cycle-a",
+      "outline:node:competency:cycle-b"
+    ],
+    "items": [
+      {
+        "outlineItemId": "outline:node:competency:cycle-a",
+        "nodeId": "node:competency:cycle-a",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0001:cycle-a",
+        "childItemIds": [],
+        "accessibilityLabel": "Cycle A, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:cycle-b",
+        "nodeId": "node:competency:cycle-b",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0002:cycle-b",
+        "childItemIds": [],
+        "accessibilityLabel": "Cycle B, competency"
+      }
+    ]
+  }
+}

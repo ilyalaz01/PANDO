@@ -1,0 +1,227 @@
+{
+  "contract": {
+    "name": "GraphProjectionV1",
+    "version": "1.0.0"
+  },
+  "projectionId": "projection:graph-invalid-dangling-v1",
+  "workspaceScope": {
+    "workspaceId": "workspace:fixture-primary",
+    "overlayRevision": "overlay:fixture-primary-v1",
+    "acceptedPersonalContentOnly": true
+  },
+  "selectedVersions": {
+    "catalogVersionId": "catalog:seed-v1",
+    "roadmapTemplateVersionId": "roadmap:boundary-v1",
+    "targetProfileVersionId": "target:boundary-v1",
+    "masteryPolicyVersion": "mastery-readiness-v0.1",
+    "readinessPolicyVersion": "mastery-readiness-v0.1"
+  },
+  "projectionState": {
+    "semanticRevision": "revision:graph-boundary-minimal-v1",
+    "inputWatermark": "watermark:boundary-2026-08-25",
+    "generatedAt": "2026-08-25T12:00:00Z",
+    "calculationState": "CURRENT",
+    "staleReason": null,
+    "explanation": "Minimal valid target graph with an unknown mandatory floor."
+  },
+  "layout": {
+    "layoutVersion": "graph-layout-v1",
+    "algorithmVersion": "dagre-layered-v1",
+    "structuralFingerprint": "c1b25d5ca83a468b65cbe36e8eb86c7e034bd88c81776ce77ca30ecad1c5338d",
+    "coordinateSystem": "TOP_LEFT",
+    "fixedNodeSize": {
+      "width": 240,
+      "height": 104
+    },
+    "spacing": {
+      "rank": 88,
+      "node": 40
+    },
+    "positions": [
+      {
+        "nodeId": "node:competency:boundary-unknown",
+        "canonical": {
+          "x": 0,
+          "y": 0
+        },
+        "effective": {
+          "x": 0,
+          "y": 0
+        },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "nodeId": "node:competency:boundary-unknown",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:boundary-unknown",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "domainNodeId": null,
+      "title": "Boundary unknown",
+      "shortLabel": "Boundary unknown",
+      "state": {
+        "achievementLevel": "NOT_STARTED",
+        "estimate": {
+          "availability": "UNKNOWN",
+          "lastMeaningfulEvidenceAt": null
+        },
+        "policyVersion": "mastery-readiness-v0.1",
+        "summaryText": "Unknown because no qualifying evidence is available."
+      },
+      "requirementState": {
+        "kind": "REQUIRED_UNKNOWN",
+        "ruleIds": [
+          "rule:single-floor"
+        ],
+        "attainment": {
+          "lower": 0,
+          "upper": 1
+        },
+        "floorStatus": "UNKNOWN"
+      },
+      "explanations": [
+        {
+          "code": "state.unknown",
+          "message": "Unknown because no qualifying evidence is available.",
+          "relatedNodeIds": [
+            "node:competency:boundary-unknown"
+          ],
+          "relatedRuleIds": [
+            "rule:single-floor"
+          ]
+        }
+      ],
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": [
+          "COMPETENCY",
+          "SELECTED_ACTIVITY"
+        ],
+        "reasonCodes": [
+          "MANDATORY_BLOCKER",
+          "REQUIRED_BY_TARGET"
+        ]
+      },
+      "accessibility": {
+        "label": "Boundary unknown, competency",
+        "description": "Boundary unknown competency in the minimal boundary graph.",
+        "statusText": "Unknown, mandatory floor cannot yet be evaluated.",
+        "keyboardOrder": 1,
+        "outlineItemId": "outline:node:competency:boundary-unknown"
+      },
+      "inspectorRef": "inspector:node:competency:boundary-unknown"
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "edge:prerequisite:boundary-unknown:missing",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:boundary-unknown",
+      "targetNodeId": "node:competency:missing",
+      "origin": {
+        "kind": "CANONICAL",
+        "sourceVersionId": "catalog:seed-v1"
+      },
+      "blocking": true,
+      "rationale": "The target deliberately does not exist.",
+      "accessibilityLabel": "Boundary unknown is a prerequisite of a missing node.",
+      "visibilityHint": {
+        "defaultVisible": true,
+        "reasonCode": "ACTIVE_PREREQUISITE"
+      }
+    }
+  ],
+  "requirements": {
+    "targetProfileVersionId": "target:boundary-v1",
+    "rootRuleId": "rule:single-floor",
+    "rules": [
+      {
+        "ruleId": "rule:single-floor",
+        "ruleType": "MANDATORY_FLOOR",
+        "title": "Single unknown floor",
+        "criticality": "MANDATORY",
+        "explanation": "The one competency must be verified, while absent evidence remains unknown.",
+        "accessibilityLabel": "Mandatory verified floor with unknown evidence.",
+        "member": {
+          "memberType": "NODE",
+          "nodeId": "node:competency:boundary-unknown",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED"
+        }
+      }
+    ]
+  },
+  "readiness": {
+    "targetProfileVersionId": "target:boundary-v1",
+    "engineVersion": "readiness-engine-v0.1",
+    "policyVersion": "mastery-readiness-v0.1",
+    "calculatedAt": "2026-08-25T12:00:00Z",
+    "inputWatermark": "watermark:boundary-2026-08-25",
+    "status": "INSUFFICIENT_EVIDENCE",
+    "estimate": {
+      "lower": 0,
+      "upper": 1
+    },
+    "coverage": 0,
+    "confidence": "LOW",
+    "mandatoryBlockerRuleIds": [],
+    "unknownNodeIds": [
+      "node:competency:boundary-unknown"
+    ],
+    "staleNodeIds": [],
+    "domainBreakdown": [],
+    "explanations": [
+      {
+        "code": "mandatory-floor-unknown",
+        "message": "The mandatory floor is unknown and cannot be treated as zero.",
+        "relatedNodeIds": [
+          "node:competency:boundary-unknown"
+        ],
+        "relatedRuleIds": [
+          "rule:single-floor"
+        ]
+      }
+    ],
+    "displayLabel": "Readiness 0 to 100 out of 100, confidence Low, status Insufficient evidence."
+  },
+  "visibilityHints": {
+    "completeTargetGraph": true,
+    "defaultVisibleNodeIds": [
+      "node:competency:boundary-unknown"
+    ],
+    "defaultVisibleEdgeIds": [
+      "edge:prerequisite:boundary-unknown:missing"
+    ],
+    "totalNodeCount": 1,
+    "totalEdgeCount": 1,
+    "maximumRenderedNodes": 150,
+    "maximumRenderedEdges": 300
+  },
+  "outline": {
+    "projectionId": "projection:graph-invalid-dangling-v1",
+    "rootItemIds": [
+      "outline:node:competency:boundary-unknown"
+    ],
+    "items": [
+      {
+        "outlineItemId": "outline:node:competency:boundary-unknown",
+        "nodeId": "node:competency:boundary-unknown",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0001:boundary-unknown",
+        "childItemIds": [],
+        "accessibilityLabel": "Boundary unknown, competency"
+      }
+    ]
+  }
+}
