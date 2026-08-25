@@ -14,13 +14,26 @@ It does not add Catalog, Evidence, Planning, or other domain feature tables. Ful
 
 ## Rebuild and verify
 
-From the repository root, with Docker running and a compatible Supabase CLI available:
+From the repository root, with Docker running, use the pinned local Supabase CLI through the safe
+isolated gate:
 
 ```text
-supabase start
-supabase db reset --local
-supabase test db --local
-supabase db lint --local --level warning
+pnpm verify:db
+```
+
+The gate copies `supabase/` to an OS-created temporary directory, assigns a random local project ID
+and free database port, starts only the Postgres service, rebuilds from migrations, runs every file
+under `supabase/tests/database`, and lints at warning level. It then stops and deletes only that
+random project with `--no-backup`; it never resets or stops the repository's ordinary local stack.
+
+For deliberate work inside an already isolated disposable Supabase project, the equivalent pinned
+commands are:
+
+```text
+pnpm exec supabase db start
+pnpm exec supabase db reset --local
+pnpm exec supabase test db supabase/tests/database --local
+pnpm exec supabase db lint --local --level warning --fail-on warning
 ```
 
 `db reset` must rebuild from the timestamped files under `supabase/migrations/`; do not patch a local database manually. The seed file is intentionally empty. pgTAP fixtures use only synthetic `.test` identities and are rolled back.
@@ -75,7 +88,7 @@ Do not add a private schema to the Data API list, grant browser roles table acce
 | Workspace query returns `workspace is not accessible` | Live membership is absent or the ID belongs to another tenant | Restore membership only through an authorized Identity command |
 | Delivery remains `leased` | Compare lease expiry and attempt count | Let the dispatcher reclaim it after expiry; do not overwrite the token |
 | Delivery is `dead_letter` | Inspect bounded failure class/code and original immutable event | Diagnose the consumer contract; Phase 0 has no manual replay RPC |
-| Local verification cannot connect | Docker daemon and Supabase local stack status | Start Docker, then rerun the four rebuild/verify commands above |
+| Local verification cannot connect | Docker daemon status and the isolated project ID printed by `pnpm verify:db` | Start Docker, then rerun `pnpm verify:db`; never stop another local project |
 
 ## Roll-forward
 

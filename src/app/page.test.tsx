@@ -8,14 +8,16 @@ describe("FoundationPage", () => {
     render(<FoundationPage />);
 
     expect(
-      screen.getByRole("heading", { name: "A calm, testable foundation for PANDO." }),
+      screen.getByRole("heading", { name: "A working Phase 0 baseline for PANDO." }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute(
       "href",
       "#main-content",
     );
     expect(
-      screen.getByText(/Product features are intentionally not implemented/i),
+      screen.getByText(
+        /Authenticated product workflows and live projections are still being built/i,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Motion accessibility contract")).toHaveTextContent(
       "full · reduced · off",

@@ -5,7 +5,7 @@ test("renders the foundation and supports keyboard bypass", async ({ page }) => 
   await page.goto("/");
 
   await expect(
-    page.getByRole("heading", { name: "A calm, testable foundation for PANDO." }),
+    page.getByRole("heading", { name: "A working Phase 0 baseline for PANDO." }),
   ).toBeVisible();
 
   await page.keyboard.press("Tab");

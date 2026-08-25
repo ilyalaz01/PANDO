@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "PANDO Foundation",
-  description: "Executable Phase 0 foundation for PANDO.",
+  title: "PANDO Phase 0",
+  description: "Executable Phase 0 contracts, domain engines, database gates, and Explore proof.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

@@ -1,18 +1,18 @@
 import { motionModes } from "../ui/design-system/motion";
 import { SkipLink } from "../ui/primitives/skip-link";
 
-const foundationCapabilities = [
+const phase0Capabilities = [
   {
-    title: "Boundaries before features",
-    description: "Bounded contexts are reserved without inventing domain behavior.",
+    title: "Deterministic domain core",
+    description: "Mastery, readiness, and review calculations are versioned, pure, and tested.",
   },
   {
-    title: "Accessible by default",
-    description: "Focus, target-size, contrast, and motion tokens live in the repository.",
+    title: "Database invariants",
+    description: "Migrations and pgTAP prove tenancy, RLS, commands, and transactional outbox.",
   },
   {
-    title: "One verification gate",
-    description: "Formatting, lint, types, unit tests, build, E2E, and axe run together.",
+    title: "Accessible Explore proof",
+    description: "A stable 25-node fixture proves keyboard, responsive, and graph budgets.",
   },
 ] as const;
 
@@ -26,7 +26,7 @@ export default function FoundationPage() {
             <p className="text-sm font-extrabold tracking-[0.22em] text-[var(--color-accent)]">
               PANDO
             </p>
-            <p className="text-sm text-[var(--color-text-muted)]">Phase 0 · Foundation</p>
+            <p className="text-sm text-[var(--color-text-muted)]">Phase 0 · Executable baseline</p>
           </div>
         </header>
 
@@ -37,17 +37,18 @@ export default function FoundationPage() {
         >
           <section aria-labelledby="foundation-title" className="max-w-3xl">
             <p className="mb-4 text-sm font-bold uppercase tracking-[0.18em] text-[var(--color-accent)]">
-              Executable skeleton
+              Verified slices
             </p>
             <h1
               id="foundation-title"
               className="text-balance text-4xl font-black tracking-[-0.04em] sm:text-6xl"
             >
-              A calm, testable foundation for PANDO.
+              A working Phase 0 baseline for PANDO.
             </h1>
             <p className="mt-6 max-w-[var(--measure-prose)] text-lg leading-8 text-[var(--color-text-muted)]">
-              The application shell, architectural boundaries, design tokens, and quality gates are
-              ready. Product features are intentionally not implemented.
+              Contracts, deterministic calculations, database invariants, encrypted restore, and an
+              accessible Explore fixture are executable. Authenticated product workflows and live
+              projections are still being built.
             </p>
           </section>
 
@@ -56,7 +57,7 @@ export default function FoundationPage() {
               Foundation capabilities
             </h2>
             <ul className="grid gap-4 md:grid-cols-3">
-              {foundationCapabilities.map((capability) => (
+              {phase0Capabilities.map((capability) => (
                 <li
                   key={capability.title}
                   className="rounded-[var(--radius-panel)] border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-panel)]"

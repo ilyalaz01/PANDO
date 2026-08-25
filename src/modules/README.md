@@ -18,8 +18,9 @@ map, derived contract ownership, cross-context flows, and task reading routes ar
 | planning         | Planning             |
 | agent-control    | Agent Control        |
 
-This foundation adds no authoritative state or business behavior. When a module gains code, it uses
-this internal shape:
+The current Phase 0 implementation includes pure calculation cores in Mastery, Targets, and Review,
+plus the Identity/transactional-outbox SQL boundary. Other module directories may still reserve
+ownership without implemented commands or persistence. Module code uses this internal shape:
 
 ```text
 module-name/

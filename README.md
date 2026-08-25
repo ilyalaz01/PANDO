@@ -4,15 +4,18 @@ PANDO is **source-available**, not OSI-approved open-source software. Noncommerc
 by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribution in
 [NOTICE](NOTICE). This public license does not grant commercial rights; see
 [COMMERCIAL.md](COMMERCIAL.md) for non-binding information about requesting a separate agreement.
-PANDO is currently at the Phase 0 foundation stage. The repository contains the executable
-Next.js modular-monolith shell, contract/runtime harnesses, and a representative `/explore`
-vertical slice. Persistence, authenticated production queries, and authoritative domain
-calculations are not implemented by that fixture-backed slice.
+PANDO is currently in Phase 0 implementation. The repository contains the executable Next.js
+modular monolith, strict contract/runtime validators, deterministic mastery/readiness/review
+engines, the Identity/RLS/outbox database boundary, an encrypted clean-restore proof, and a
+representative accessible `/explore` vertical slice. The Explore adapter is fixture-backed;
+authenticated production projections and the remaining product command/persistence paths are not
+yet implemented.
 
 ## Prerequisites
 
 - Node.js `24.19.0` (pinned in `.node-version` and `.nvmrc`)
 - pnpm `11.19.0` (pinned in `package.json`)
+- Docker Desktop or Docker Engine for the complete database and backup/restore gates
 
 Enable Corepack if pnpm is not already available, then install the locked dependencies and the
 test browser:
@@ -36,7 +39,7 @@ Open <http://localhost:3000>. The representative 25-node accessible graph slice 
 
 ## Verify locally
 
-One command runs the complete local gate:
+The ordinary application gate does not require Docker:
 
 ```shell
 pnpm verify
@@ -44,8 +47,21 @@ pnpm verify
 
 The gate checks formatting, lint rules and module-boundary guards, strict TypeScript, contract and
 unit tests, coverage, representative graph payload/layout budgets, the production build, and
-Chromium end-to-end/accessibility and graph-interaction budgets. CI runs the same command from a
-frozen lockfile and scans the committed Git history for secrets.
+Chromium end-to-end/accessibility and graph-interaction budgets.
+
+The complete Phase 0 aggregate also proves migrations, every database pgTAP file, database lint,
+and encrypted clean restore in separate randomly named local Supabase stacks:
+
+```shell
+pnpm verify:phase0
+```
+
+Use `pnpm verify:db` or `pnpm verify:backup` for an individual Docker-backed gate. These commands
+copy the required Supabase files to OS-created temporary directories and stop only their own random
+project IDs, so they do not reset or remove an ordinary local development stack. CI runs the three
+expensive suites as separate jobs from the same frozen lockfile and combines their results in a
+cheap `phase0` status; it does not rerun them in the aggregate job. Committed history is scanned for
+secrets.
 
 ## Repository shape
 
