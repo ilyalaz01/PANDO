@@ -1,0 +1,214 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "Each mutation remains structurally valid and must be rejected by semantic validation.",
+  "base_pack": "valid/minimal",
+  "default_integrity_isolation": "After mutating target-profile.json or preparation-plan.json, serialize with two-space indentation, LF, and one trailing LF, then recompute that file's manifest byte_length and sha256 before evaluating the named semantic rule. Manifest-only mutations preserve all non-mutated exact file descriptors.",
+  "manifest_integrity_cases": ["checksum-content-mismatch", "checksum-byte-length-mismatch"],
+  "cases": [
+    {
+      "case_id": "dangling-canonical-reference",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/requirements/0/subject_ref/competency_id", "value": "competency:not-in-context" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_CANONICAL_REF" }
+    },
+    {
+      "case_id": "dangling-proposed-reference",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/requirements/1/subject_ref/proposed_competency_id", "value": "personal-competency:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_PROPOSED_REF" }
+    },
+    {
+      "case_id": "dangling-source-reference",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/requirements/0/source_refs/0", "value": "source:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_SOURCE_REF" }
+    },
+    {
+      "case_id": "checksum-content-mismatch",
+      "base": "valid/minimal/manifest.json",
+      "patch": [{ "op": "replace", "path": "/files/0/checksum/digest", "value": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_CHECKSUM_MISMATCH" }
+    },
+    {
+      "case_id": "checksum-byte-length-mismatch",
+      "base": "valid/minimal/manifest.json",
+      "patch": [{ "op": "replace", "path": "/files/0/byte_length", "value": 3809 }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_BYTE_LENGTH_MISMATCH" }
+    },
+    {
+      "case_id": "input-context-fingerprint-mismatch",
+      "base": "valid/minimal/manifest.json",
+      "patch": [{ "op": "replace", "path": "/input_context/fingerprint/digest", "value": "2222222222222222222222222222222222222222222222222222222222222222" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_CONTEXT_FINGERPRINT_MISMATCH" }
+    },
+    {
+      "case_id": "input-context-id-mismatch",
+      "base": "valid/minimal/manifest.json",
+      "patch": [{ "op": "replace", "path": "/input_context/context_id", "value": "context:well-formed-but-different" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_CONTEXT_ID_MISMATCH" }
+    },
+    {
+      "case_id": "manifest-target-kind-mismatch",
+      "base": "valid/minimal/manifest.json",
+      "patch": [
+        { "op": "replace", "path": "/target/kind", "value": "growth_plan" },
+        { "op": "remove", "path": "/target/deadline" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_TARGET_KIND_MISMATCH" }
+    },
+    {
+      "case_id": "manifest-target-deadline-mismatch",
+      "base": "valid/minimal/manifest.json",
+      "patch": [{ "op": "replace", "path": "/target/deadline", "value": "2026-09-29" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_TARGET_DEADLINE_MISMATCH" }
+    },
+    {
+      "case_id": "plan-target-deadline-mismatch",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/deadline", "value": "2026-09-29" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_TARGET_DEADLINE_MISMATCH" }
+    },
+    {
+      "case_id": "target-profile-cross-file-mismatch",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/target_profile_ref/profile_id", "value": "target-profile:well-formed-but-different" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_TARGET_PROFILE_REF_MISMATCH" }
+    },
+    {
+      "case_id": "phase-date-order",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/phases/0/ends_on", "value": "2026-08-25" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DATE_ORDER" }
+    },
+    {
+      "case_id": "effort-range-order",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [
+        { "op": "replace", "path": "/proposed_activities/0/effort/minimum_minutes", "value": 91 },
+        { "op": "replace", "path": "/proposed_activities/0/effort/maximum_minutes", "value": 90 }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_EFFORT_RANGE_ORDER" }
+    },
+    {
+      "case_id": "prerequisite-cycle",
+      "fixture": "invalid/semantic/cycle.target-profile.json",
+      "mode": "semantic-rule-unit",
+      "integrity_policy": "Run after structural parsing; archive integrity is outside this cycle unit fixture.",
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_PREREQUISITE_CYCLE" }
+    },
+    {
+      "case_id": "canonical-catalog-version-mismatch",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/requirements/0/subject_ref/catalog_version", "value": "1.0.1" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_CATALOG_VERSION_MISMATCH" }
+    },
+    {
+      "case_id": "dangling-requirement-group-member",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/requirement_groups/0/member_requirement_ids/0", "value": "requirement:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_REQUIREMENT_REF" }
+    },
+    {
+      "case_id": "duplicate-requirement-id-different-body",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/requirements/1/requirement_id", "value": "requirement:python-parsing" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "duplicate-source-id-different-body",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [{ "op": "replace", "path": "/sources/1/source_id", "value": "source:vacancy" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "dangling-milestone-phase",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/milestones/0/phase_id", "value": "phase:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_PHASE_REF" }
+    },
+    {
+      "case_id": "dangling-path-milestone",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/paths/0/milestone_ids/0", "value": "milestone:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_MILESTONE_REF" }
+    },
+    {
+      "case_id": "dangling-path-activity",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/paths/0/activity_ids/0", "value": "personal-activity:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_ACTIVITY_REF" }
+    },
+    {
+      "case_id": "dangling-checkpoint-milestone",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/mock_checkpoints/0/milestone_id", "value": "milestone:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_MILESTONE_REF" }
+    },
+    {
+      "case_id": "dangling-plan-source",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/capacity/source_refs/0", "value": "source:not-declared" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_UNKNOWN_SOURCE_REF" }
+    },
+    {
+      "case_id": "target-profile-version-cross-file-mismatch",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [{ "op": "replace", "path": "/target_profile_ref/profile_version", "value": "1.0.1" }],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_TARGET_PROFILE_REF_MISMATCH" }
+    },
+    {
+      "case_id": "duplicate-phase-id-different-body",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [
+        { "op": "copy", "from": "/phases/0", "path": "/phases/1" },
+        { "op": "replace", "path": "/phases/1/title", "value": "Different phase body" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "duplicate-milestone-id-different-body",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [
+        { "op": "copy", "from": "/milestones/0", "path": "/milestones/1" },
+        { "op": "replace", "path": "/milestones/1/title", "value": "Different milestone body" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "duplicate-activity-id-different-body",
+      "base": "valid/minimal/preparation-plan.json",
+      "patch": [
+        { "op": "copy", "from": "/proposed_activities/0", "path": "/proposed_activities/1" },
+        { "op": "replace", "path": "/proposed_activities/1/title", "value": "Different activity body" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "duplicate-proposed-competency-id-different-body",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [
+        { "op": "copy", "from": "/proposed_competencies/0", "path": "/proposed_competencies/1" },
+        { "op": "replace", "path": "/proposed_competencies/1/title", "value": "Different proposed competency body" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "duplicate-requirement-group-id-different-body",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [
+        { "op": "copy", "from": "/requirement_groups/0", "path": "/requirement_groups/2" },
+        { "op": "replace", "path": "/requirement_groups/2/title", "value": "Different requirement group body" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    },
+    {
+      "case_id": "duplicate-stage-id-different-body",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [
+        { "op": "copy", "from": "/interview_stages/0", "path": "/interview_stages/1" },
+        { "op": "replace", "path": "/interview_stages/1/title", "value": "Different interview stage body" }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_DUPLICATE_ID" }
+    }
+  ]
+}

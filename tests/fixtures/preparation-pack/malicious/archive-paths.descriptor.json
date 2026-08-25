@@ -1,0 +1,125 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "Each RFC 6902 patch is applied independently to a complete valid five-entry archive metadata base. Bodies are intentionally absent.",
+  "error_precedence": [
+    "ARCHIVE_NUL_PATH",
+    "ARCHIVE_ABSOLUTE_PATH",
+    "ARCHIVE_PARENT_TRAVERSAL",
+    "ARCHIVE_SYMLINK",
+    "ARCHIVE_ENCRYPTED_MEMBER",
+    "ARCHIVE_DUPLICATE_NORMALIZED_PATH",
+    "ARCHIVE_CASE_COLLISION",
+    "ARCHIVE_MULTIPLE_ROOTS",
+    "ARCHIVE_UNSUPPORTED_ENTRY",
+    "ARCHIVE_NON_UTF8"
+  ],
+  "base": {
+    "entries": [
+      { "path": "manifest.json", "kind": "file", "encrypted": false, "encoding": "utf-8" },
+      { "path": "preparation-plan.json", "kind": "file", "encrypted": false, "encoding": "utf-8" },
+      { "path": "rationale.md", "kind": "file", "encrypted": false, "encoding": "utf-8" },
+      { "path": "sources.md", "kind": "file", "encrypted": false, "encoding": "utf-8" },
+      { "path": "target-profile.json", "kind": "file", "encrypted": false, "encoding": "utf-8" }
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "parent-traversal",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "../target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_PARENT_TRAVERSAL" }
+    },
+    {
+      "case_id": "nested-parent-traversal",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "safe/../../target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_PARENT_TRAVERSAL" }
+    },
+    {
+      "case_id": "backslash-parent-traversal",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "safe\\..\\target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_PARENT_TRAVERSAL" }
+    },
+    {
+      "case_id": "absolute-posix-path",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "/target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_ABSOLUTE_PATH" }
+    },
+    {
+      "case_id": "absolute-windows-backslash-path",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "C:\\target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_ABSOLUTE_PATH" }
+    },
+    {
+      "case_id": "absolute-windows-slash-path",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "C:/target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_ABSOLUTE_PATH" }
+    },
+    {
+      "case_id": "unc-path",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "\\\\server\\share\\target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_ABSOLUTE_PATH" }
+    },
+    {
+      "case_id": "windows-device-path",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "\\\\?\\C:\\target-profile.json" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_ABSOLUTE_PATH" }
+    },
+    {
+      "case_id": "backslash-alias",
+      "patch": [{ "op": "add", "path": "/entries/5", "value": { "path": "pack\\target-profile.json", "kind": "file", "encrypted": false, "encoding": "utf-8" } }],
+      "precondition_patch": [
+        { "op": "replace", "path": "/entries/0/path", "value": "pack/manifest.json" },
+        { "op": "replace", "path": "/entries/1/path", "value": "pack/preparation-plan.json" },
+        { "op": "replace", "path": "/entries/2/path", "value": "pack/rationale.md" },
+        { "op": "replace", "path": "/entries/3/path", "value": "pack/sources.md" },
+        { "op": "replace", "path": "/entries/4/path", "value": "pack/target-profile.json" }
+      ],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_DUPLICATE_NORMALIZED_PATH" }
+    },
+    {
+      "case_id": "nul-path",
+      "patch": [{ "op": "replace", "path": "/entries/4/path", "value": "target-profile.json\u0000.md" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_NUL_PATH" }
+    },
+    {
+      "case_id": "case-collision",
+      "patch": [{ "op": "add", "path": "/entries/5", "value": { "path": "TARGET-PROFILE.JSON", "kind": "file", "encrypted": false, "encoding": "utf-8" } }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_CASE_COLLISION" }
+    },
+    {
+      "case_id": "exact-duplicate-path",
+      "patch": [{ "op": "copy", "from": "/entries/4", "path": "/entries/5" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_DUPLICATE_NORMALIZED_PATH" }
+    },
+    {
+      "case_id": "two-enclosing-roots",
+      "patch": [
+        { "op": "replace", "path": "/entries/0/path", "value": "one/manifest.json" },
+        { "op": "replace", "path": "/entries/1/path", "value": "two/preparation-plan.json" },
+        { "op": "replace", "path": "/entries/2/path", "value": "one/rationale.md" },
+        { "op": "replace", "path": "/entries/3/path", "value": "one/sources.md" },
+        { "op": "replace", "path": "/entries/4/path", "value": "one/target-profile.json" }
+      ],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_MULTIPLE_ROOTS" }
+    },
+    {
+      "case_id": "symlink",
+      "patch": [{ "op": "replace", "path": "/entries/4/kind", "value": "symlink" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_SYMLINK" }
+    },
+    {
+      "case_id": "encrypted-member",
+      "patch": [{ "op": "replace", "path": "/entries/4/encrypted", "value": true }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_ENCRYPTED_MEMBER" }
+    },
+    {
+      "case_id": "non-utf8-json",
+      "patch": [{ "op": "replace", "path": "/entries/4/encoding", "value": "windows-1252" }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_NON_UTF8" }
+    },
+    {
+      "case_id": "unsupported-entry",
+      "patch": [{ "op": "add", "path": "/entries/5", "value": { "path": "payload.exe", "kind": "file", "encrypted": false, "encoding": "utf-8" } }],
+      "expected": { "result": "reject", "primary_code": "ARCHIVE_UNSUPPORTED_ENTRY" }
+    }
+  ]
+}

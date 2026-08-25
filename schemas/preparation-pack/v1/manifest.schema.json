@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pando.invalid/preparation-pack/v1/manifest-1.0.0.schema.json",
+  "title": "PANDO Preparation Pack manifest",
+  "description": "Manifest for the four non-manifest pack files. The server computes the pack content fingerprint; the manifest never hashes itself and cannot declare that fingerprint.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "pack_id",
+    "generated_at",
+    "target",
+    "generator",
+    "input_context",
+    "files"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "pack_id": { "$ref": "common.schema.json#/$defs/packId" },
+    "generated_at": { "$ref": "common.schema.json#/$defs/utcTimestamp" },
+    "target": { "$ref": "#/$defs/target" },
+    "generator": { "$ref": "#/$defs/generator" },
+    "input_context": { "$ref": "#/$defs/inputContext" },
+    "files": {
+      "type": "array",
+      "description": "Exactly the four non-manifest files, in lexicographic path order.",
+      "prefixItems": [
+        { "$ref": "#/$defs/preparationPlanDescriptor" },
+        { "$ref": "#/$defs/rationaleDescriptor" },
+        { "$ref": "#/$defs/sourcesDescriptor" },
+        { "$ref": "#/$defs/targetProfileDescriptor" }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    }
+  },
+  "$defs": {
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["growth_plan", "interview_campaign"] },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "deadline": { "$ref": "common.schema.json#/$defs/date" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "type": "object",
+            "properties": { "kind": { "const": "interview_campaign" } },
+            "required": ["kind"]
+          },
+          "then": { "type": "object", "required": ["deadline"] }
+        },
+        {
+          "if": {
+            "type": "object",
+            "properties": { "kind": { "const": "growth_plan" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "type": "object",
+            "not": { "type": "object", "required": ["deadline"] }
+          }
+        }
+      ]
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "model": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "prompt_id": {
+          "type": "string",
+          "pattern": "^prompt:[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$",
+          "maxLength": 71
+        },
+        "prompt_version": { "$ref": "common.schema.json#/$defs/semver" }
+      }
+    },
+    "inputContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["context_id", "schema_version", "fingerprint"],
+      "properties": {
+        "context_id": { "$ref": "common.schema.json#/$defs/contextId" },
+        "schema_version": { "const": "1.0.0" },
+        "fingerprint": { "$ref": "common.schema.json#/$defs/contextFingerprint" }
+      }
+    },
+    "preparationPlanDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "encoding", "schema_id", "schema_version", "byte_length", "checksum"],
+      "properties": {
+        "path": { "const": "preparation-plan.json" },
+        "media_type": { "const": "application/json" },
+        "encoding": { "const": "utf-8" },
+        "schema_id": { "const": "https://schemas.pando.invalid/preparation-pack/v1/preparation-plan-1.0.0.schema.json" },
+        "schema_version": { "const": "1.0.0" },
+        "byte_length": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "checksum": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "rationaleDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "encoding", "byte_length", "checksum"],
+      "properties": {
+        "path": { "const": "rationale.md" },
+        "media_type": { "const": "text/markdown" },
+        "encoding": { "const": "utf-8" },
+        "byte_length": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "checksum": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "sourcesDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "encoding", "byte_length", "checksum"],
+      "properties": {
+        "path": { "const": "sources.md" },
+        "media_type": { "const": "text/markdown" },
+        "encoding": { "const": "utf-8" },
+        "byte_length": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "checksum": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    },
+    "targetProfileDescriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "encoding", "schema_id", "schema_version", "byte_length", "checksum"],
+      "properties": {
+        "path": { "const": "target-profile.json" },
+        "media_type": { "const": "application/json" },
+        "encoding": { "const": "utf-8" },
+        "schema_id": { "const": "https://schemas.pando.invalid/preparation-pack/v1/target-profile-1.0.0.schema.json" },
+        "schema_version": { "const": "1.0.0" },
+        "byte_length": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "checksum": { "$ref": "common.schema.json#/$defs/sha256" }
+      }
+    }
+  }
+}

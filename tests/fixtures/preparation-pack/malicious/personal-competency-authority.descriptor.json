@@ -1,0 +1,37 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "Independent RFC 6902 mutations proving model output cannot promote or establish truth for a personal competency.",
+  "base": "valid/minimal/target-profile.json",
+  "cases": [
+    {
+      "case_id": "personal-proposal-canonical-scope",
+      "patch": [{ "op": "replace", "path": "/proposed_competencies/0/scope", "value": "canonical" }],
+      "expected": { "stage": "structural", "result": "reject", "code": "SCHEMA_PERSONAL_SCOPE" }
+    },
+    {
+      "case_id": "personal-proposal-published-lifecycle",
+      "patch": [{ "op": "replace", "path": "/proposed_competencies/0/lifecycle", "value": "published" }],
+      "expected": { "stage": "structural", "result": "reject", "code": "SCHEMA_PERSONAL_LIFECYCLE" }
+    },
+    {
+      "case_id": "personal-proposal-canonical-id",
+      "patch": [{ "op": "replace", "path": "/proposed_competencies/0/proposed_competency_id", "value": "competency:verification-design" }],
+      "expected": { "stage": "structural", "result": "reject", "code": "SCHEMA_ID_PATTERN" }
+    },
+    {
+      "case_id": "personal-proposal-mastered",
+      "patch": [{ "op": "add", "path": "/proposed_competencies/0/mastery", "value": "MASTERED" }],
+      "expected": { "stage": "structural", "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "personal-proposal-fabricated-evidence",
+      "patch": [{ "op": "add", "path": "/proposed_competencies/0/completed_evidence", "value": true }],
+      "expected": { "stage": "structural", "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "personal-proposal-injected-workspace",
+      "patch": [{ "op": "add", "path": "/proposed_competencies/0/workspace_id", "value": "workspace:other-tenant" }],
+      "expected": { "stage": "structural", "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    }
+  ]
+}

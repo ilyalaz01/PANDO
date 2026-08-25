@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "pack:fixture-minimal",
+  "generated_at": "2026-08-25T09:05:00Z",
+  "target": {
+    "kind": "interview_campaign",
+    "title": "Fixture verification interview",
+    "deadline": "2026-09-30"
+  },
+  "generator": {
+    "label": "Synthetic contract fixture",
+    "prompt_id": "prompt:interview-campaign",
+    "prompt_version": "1.0.0"
+  },
+  "input_context": {
+    "context_id": "context:fixture-minimal",
+    "schema_version": "1.0.0",
+    "fingerprint": {
+      "algorithm": "sha256",
+      "digest": "0fac2b2af7c558fb9361ca79704205ab2867b9e42b2f52beb844288113c96bf6",
+      "canonicalization": "pando-preparation-context-v1"
+    }
+  },
+  "files": [
+    {
+      "path": "preparation-plan.json",
+      "media_type": "application/json",
+      "encoding": "utf-8",
+      "schema_id": "https://schemas.pando.invalid/preparation-pack/v1/preparation-plan-1.0.0.schema.json",
+      "schema_version": "1.0.0",
+      "byte_length": 3810,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "f1bab6aa7ce69cfb4ae551626ff5102c333203da948a45e87258fe0f7c4200d9"
+      }
+    },
+    {
+      "path": "rationale.md",
+      "media_type": "text/markdown",
+      "encoding": "utf-8",
+      "byte_length": 184,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "a84dcc4808c21c7ce1e5d5d3258a1397235a44213bc5d36ec7e8e6bd7bd42cc5"
+      }
+    },
+    {
+      "path": "sources.md",
+      "media_type": "text/markdown",
+      "encoding": "utf-8",
+      "byte_length": 160,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "19266118edf85eeea152a06f773805916cba50983da28b9d510f02249692d232"
+      }
+    },
+    {
+      "path": "target-profile.json",
+      "media_type": "application/json",
+      "encoding": "utf-8",
+      "schema_id": "https://schemas.pando.invalid/preparation-pack/v1/target-profile-1.0.0.schema.json",
+      "schema_version": "1.0.0",
+      "byte_length": 3697,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "db7eb7f586fb7705be055326e5902e5a435438e5ade937d990c370b994642208"
+      }
+    }
+  ]
+}

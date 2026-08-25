@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "context_id": "context:fixture-minimal",
+  "exported_at": "2026-08-25T09:00:00Z",
+  "context_fingerprint": {
+    "algorithm": "sha256",
+    "digest": "0fac2b2af7c558fb9361ca79704205ab2867b9e42b2f52beb844288113c96bf6",
+    "canonicalization": "pando-preparation-context-v1"
+  },
+  "goal": {
+    "kind": "interview_campaign",
+    "title": "Fixture verification interview",
+    "company": "Example Systems",
+    "role": "Verification Engineer",
+    "deadline": "2026-09-30",
+    "vacancy_text": "Synthetic fixture: Python parsing and verification design."
+  },
+  "availability": {
+    "timezone": "Asia/Jerusalem",
+    "weekly_minutes": 480,
+    "unavailable_dates": [],
+    "constraints": ["Preserve one long-term learning session each week."]
+  },
+  "catalog": {
+    "catalog_version": "1.0.0",
+    "supported_competencies": [
+      {
+        "competency_id": "competency:python.parsing",
+        "title": "Parse structured text with Python"
+      }
+    ]
+  },
+  "competency_summaries": [
+    {
+      "competency_ref": {
+        "kind": "canonical",
+        "competency_id": "competency:python.parsing",
+        "catalog_version": "1.0.0"
+      },
+      "dimensions": [
+        {
+          "dimension": "Application",
+          "state": "Unknown",
+          "confidence": "unknown"
+        }
+      ]
+    }
+  ],
+  "growth_plan": {
+    "title": "Engineering foundations",
+    "tracks": [
+      {
+        "track_id": "track:foundations",
+        "title": "Engineering foundations",
+        "priority": 80,
+        "protected_weekly_minutes": 60
+      }
+    ]
+  }
+}

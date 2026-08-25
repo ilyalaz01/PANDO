@@ -1,0 +1,34 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "ajv-formats calendar boundary vectors applied independently with RFC 6902.",
+  "cases": [
+    {
+      "case_id": "leap-day-valid",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "replace", "path": "/deadline", "value": "2028-02-29" }],
+      "expected": { "structural": "accept" }
+    },
+    {
+      "case_id": "leap-day-timestamp-valid",
+      "base": "valid/minimal/preparation-context.json",
+      "schema": "preparation-context.schema.json",
+      "patch": [{ "op": "replace", "path": "/exported_at", "value": "2028-02-29T23:59:59Z" }],
+      "expected": { "structural": "accept" }
+    },
+    {
+      "case_id": "non-leap-day-invalid",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "replace", "path": "/deadline", "value": "2027-02-29" }],
+      "expected": { "structural": "reject", "code": "SCHEMA_DATE_FORMAT" }
+    },
+    {
+      "case_id": "month-day-overflow-invalid",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "replace", "path": "/deadline", "value": "2028-04-31" }],
+      "expected": { "structural": "reject", "code": "SCHEMA_DATE_FORMAT" }
+    }
+  ]
+}

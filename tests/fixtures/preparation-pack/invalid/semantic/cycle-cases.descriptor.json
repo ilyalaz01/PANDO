@@ -1,0 +1,73 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "Cycle cases beyond the concrete two-proposed-node fixture.",
+  "mode": "semantic-rule-unit",
+  "integrity_policy": "Cycle evaluation receives structurally valid parsed profile and catalog state after file-integrity validation; archive checks are outside this unit fixture.",
+  "cases": [
+    {
+      "case_id": "prerequisite-self-loop",
+      "base": "valid/minimal/target-profile.json",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/prerequisite_proposals/0/to",
+          "value": {
+            "kind": "canonical",
+            "competency_id": "competency:python.parsing",
+            "catalog_version": "1.0.0"
+          }
+        }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_PREREQUISITE_SELF_EDGE" }
+    },
+    {
+      "case_id": "canonical-plus-proposed-cycle",
+      "base": "valid/minimal/target-profile.json",
+      "catalog_state": {
+        "catalog_version": "1.0.0",
+        "competency_ids": ["competency:python.parsing", "competency:cycle-a", "competency:cycle-b"],
+        "prerequisite_edges": [
+          { "from": "competency:cycle-a", "to": "competency:cycle-b" }
+        ]
+      },
+      "patch": [
+        {
+          "op": "add",
+          "path": "/proposed_competencies/1",
+          "value": {
+            "proposed_competency_id": "personal-competency:cycle-bridge",
+            "scope": "workspace",
+            "lifecycle": "draft",
+            "title": "Synthetic cycle bridge",
+            "description": "Closes a cycle only when combined with the supplied canonical DAG state.",
+            "confidence": "low",
+            "source_refs": ["source:unconfirmed"]
+          }
+        },
+        {
+          "op": "add",
+          "path": "/prerequisite_proposals/1",
+          "value": {
+            "from": { "kind": "canonical", "competency_id": "competency:cycle-b", "catalog_version": "1.0.0" },
+            "to": { "kind": "proposed", "proposed_competency_id": "personal-competency:cycle-bridge" },
+            "relationship": "PREREQUISITE_OF",
+            "confidence": "low",
+            "source_refs": ["source:unconfirmed"]
+          }
+        },
+        {
+          "op": "add",
+          "path": "/prerequisite_proposals/2",
+          "value": {
+            "from": { "kind": "proposed", "proposed_competency_id": "personal-competency:cycle-bridge" },
+            "to": { "kind": "canonical", "competency_id": "competency:cycle-a", "catalog_version": "1.0.0" },
+            "relationship": "PREREQUISITE_OF",
+            "confidence": "low",
+            "source_refs": ["source:unconfirmed"]
+          }
+        }
+      ],
+      "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_PREREQUISITE_CYCLE" }
+    }
+  ]
+}

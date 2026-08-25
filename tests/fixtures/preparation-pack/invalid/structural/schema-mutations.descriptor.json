@@ -1,0 +1,214 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "RFC 6902 mutations applied independently to the named valid base fixture.",
+  "cases": [
+    {
+      "case_id": "unknown-manifest-top-level-field",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "add", "path": "/server_content_fingerprint", "value": "not-generator-owned" }],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "unknown-proposed-competency-field",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "add", "path": "/proposed_competencies/0/mastery", "value": "MASTERED" }],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "bad-profile-id-traversal",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "replace", "path": "/profile_id", "value": "target-profile:../canonical" }],
+      "expected": { "result": "reject", "code": "SCHEMA_ID_PATTERN" }
+    },
+    {
+      "case_id": "bad-profile-id-control-character",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "replace", "path": "/profile_id", "value": "target-profile:bad\u0000id" }],
+      "expected": { "result": "reject", "code": "SCHEMA_ID_PATTERN" }
+    },
+    {
+      "case_id": "bad-reference-tag",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/requirements/1/subject_ref",
+          "value": {
+            "kind": "canonical",
+            "proposed_competency_id": "personal-competency:verification-design"
+          }
+        }
+      ],
+      "expected": { "result": "reject", "code": "SCHEMA_REFERENCE_SHAPE" }
+    },
+    {
+      "case_id": "bad-proposed-reference-namespace",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "replace", "path": "/requirements/1/subject_ref/proposed_competency_id", "value": "competency:verification-design" }],
+      "expected": { "result": "reject", "code": "SCHEMA_ID_PATTERN" }
+    },
+    {
+      "case_id": "unsupported-schema-version",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "replace", "path": "/schema_version", "value": "2.0.0" }],
+      "expected": { "result": "reject", "code": "SCHEMA_VERSION_UNSUPPORTED" }
+    },
+    {
+      "case_id": "checksum-unsupported-algorithm",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "replace", "path": "/files/0/checksum/algorithm", "value": "md5" }],
+      "expected": { "result": "reject", "code": "SCHEMA_CHECKSUM_ALGORITHM" }
+    },
+    {
+      "case_id": "checksum-uppercase-digest",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "replace", "path": "/files/0/checksum/digest", "value": "F1BAB6AA7CE69CFB4AE551626FF5102C333203DA948A45E87258FE0F7C4200D9" }],
+      "expected": { "result": "reject", "code": "SCHEMA_CHECKSUM_DIGEST" }
+    },
+    {
+      "case_id": "fingerprint-malformed-digest",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "replace", "path": "/input_context/fingerprint/digest", "value": "1234" }],
+      "expected": { "result": "reject", "code": "SCHEMA_FINGERPRINT_DIGEST" }
+    },
+    {
+      "case_id": "fingerprint-unsupported-canonicalization",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "replace", "path": "/input_context/fingerprint/canonicalization", "value": "untrusted-algorithm" }],
+      "expected": { "result": "reject", "code": "SCHEMA_FINGERPRINT_CANONICALIZATION" }
+    },
+    {
+      "case_id": "forged-server-pack-content-fingerprint",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [
+        {
+          "op": "add",
+          "path": "/content_fingerprint",
+          "value": {
+            "algorithm": "sha256",
+            "canonicalization": "pando-pack-content-v1",
+            "digest": "4dbeb98357c01e4e088563dcfd1baeb31b221dfb0fe5970005c06b847b9ca681"
+          }
+        }
+      ],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "manifest-hashes-itself",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "replace", "path": "/files/0/path", "value": "manifest.json" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DESCRIPTOR_PATH" }
+    },
+    {
+      "case_id": "manifest-descriptor-parent-traversal",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "replace", "path": "/files/0/path", "value": "../preparation-plan.json" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DESCRIPTOR_PATH" }
+    },
+    {
+      "case_id": "unknown-context-root-field",
+      "base": "valid/minimal/preparation-context.json",
+      "schema": "preparation-context.schema.json",
+      "patch": [{ "op": "add", "path": "/raw_evidence", "value": [] }],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "unknown-target-profile-root-field",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "add", "path": "/published_at", "value": "2026-08-25T09:00:00Z" }],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "unknown-preparation-plan-root-field",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "add", "path": "/immutable_daily_calendar", "value": [] }],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "unknown-tagged-reference-field",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "add", "path": "/requirements/0/subject_ref/workspace_id", "value": "workspace:other" }],
+      "expected": { "result": "reject", "code": "SCHEMA_REFERENCE_SHAPE" }
+    },
+    {
+      "case_id": "unknown-plan-claim-field",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "add", "path": "/proposed_activities/0/readiness", "value": 100 }],
+      "expected": { "result": "reject", "code": "SCHEMA_UNKNOWN_FIELD" }
+    },
+    {
+      "case_id": "unknown-dimension-has-known-condition",
+      "base": "valid/minimal/preparation-context.json",
+      "schema": "preparation-context.schema.json",
+      "patch": [{ "op": "add", "path": "/competency_summaries/0/dimensions/0/condition", "value": "Strong" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DIMENSION_STATE" }
+    },
+    {
+      "case_id": "known-dimension-has-unknown-confidence",
+      "base": "valid/minimal/preparation-context.json",
+      "schema": "preparation-context.schema.json",
+      "patch": [{ "op": "replace", "path": "/competency_summaries/0/dimensions/0/state", "value": "COMPLETED" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DIMENSION_STATE" }
+    },
+    {
+      "case_id": "calendar-invalid-date",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "replace", "path": "/deadline", "value": "2026-02-29" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DATE_FORMAT" }
+    },
+    {
+      "case_id": "calendar-day-overflow",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "replace", "path": "/deadline", "value": "2026-04-31" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DATE_FORMAT" }
+    },
+    {
+      "case_id": "calendar-invalid-timestamp",
+      "base": "valid/minimal/preparation-context.json",
+      "schema": "preparation-context.schema.json",
+      "patch": [{ "op": "replace", "path": "/exported_at", "value": "2026-02-31T09:00:00Z" }],
+      "expected": { "result": "reject", "code": "SCHEMA_DATE_TIME_FORMAT" }
+    },
+    {
+      "case_id": "plan-activity-missing-confidence",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "remove", "path": "/proposed_activities/0/confidence" }],
+      "expected": { "result": "reject", "code": "SCHEMA_REQUIRED_PROVENANCE" }
+    },
+    {
+      "case_id": "plan-phase-missing-source-refs",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "remove", "path": "/phases/0/source_refs" }],
+      "expected": { "result": "reject", "code": "SCHEMA_REQUIRED_PROVENANCE" }
+    },
+    {
+      "case_id": "target-group-missing-confidence",
+      "base": "valid/minimal/target-profile.json",
+      "schema": "target-profile.schema.json",
+      "patch": [{ "op": "remove", "path": "/requirement_groups/0/confidence" }],
+      "expected": { "result": "reject", "code": "SCHEMA_REQUIRED_PROVENANCE" }
+    }
+  ]
+}

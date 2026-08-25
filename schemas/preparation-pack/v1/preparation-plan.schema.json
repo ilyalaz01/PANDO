@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pando.invalid/preparation-pack/v1/preparation-plan-1.0.0.schema.json",
+  "title": "PANDO Preparation Pack plan proposal",
+  "description": "Initial strategy and candidate work, never an immutable daily calendar or evidence claim.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "kind",
+    "target_profile_ref",
+    "capacity",
+    "phases",
+    "milestones",
+    "proposed_activities",
+    "paths",
+    "initial_reviews",
+    "mock_checkpoints",
+    "excluded_items",
+    "unknowns",
+    "assumptions"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "plan_id": { "$ref": "common.schema.json#/$defs/planId" },
+    "kind": { "type": "string", "enum": ["growth_plan", "interview_campaign"] },
+    "target_profile_ref": { "$ref": "#/$defs/targetProfileRef" },
+    "deadline": { "$ref": "common.schema.json#/$defs/date" },
+    "capacity": { "$ref": "#/$defs/capacity" },
+    "phases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/phase" }
+    },
+    "milestones": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": { "$ref": "#/$defs/milestone" }
+    },
+    "proposed_activities": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "$ref": "#/$defs/proposedActivity" }
+    },
+    "paths": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/path" }
+    },
+    "initial_reviews": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "$ref": "#/$defs/initialReview" }
+    },
+    "mock_checkpoints": {
+      "type": "array",
+      "maxItems": 50,
+      "items": { "$ref": "#/$defs/mockCheckpoint" }
+    },
+    "excluded_items": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "$ref": "#/$defs/excludedItem" }
+    },
+    "unknowns": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "common.schema.json#/$defs/claim" }
+    },
+    "assumptions": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "$ref": "common.schema.json#/$defs/claim" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "properties": { "kind": { "const": "interview_campaign" } },
+        "required": ["kind"]
+      },
+      "then": { "type": "object", "required": ["deadline"] }
+    },
+    {
+      "if": {
+        "type": "object",
+        "properties": { "kind": { "const": "growth_plan" } },
+        "required": ["kind"]
+      },
+      "then": {
+        "type": "object",
+        "not": { "type": "object", "required": ["deadline"] }
+      }
+    }
+  ],
+  "$defs": {
+    "targetProfileRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "profile_id", "profile_version"],
+      "properties": {
+        "file": { "const": "target-profile.json" },
+        "profile_id": { "$ref": "common.schema.json#/$defs/profileId" },
+        "profile_version": { "$ref": "common.schema.json#/$defs/semver" }
+      }
+    },
+    "capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["weekly_minutes", "protected_growth_minutes", "confidence", "source_refs"],
+      "properties": {
+        "weekly_minutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "protected_growth_minutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" },
+        "constraints": {
+          "type": "array",
+          "maxItems": 50,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 300 }
+        }
+      }
+    },
+    "phase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["phase_id", "title", "objective", "order", "confidence", "source_refs"],
+      "properties": {
+        "phase_id": { "$ref": "common.schema.json#/$defs/phaseId" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "objective": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "order": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" },
+        "starts_on": { "$ref": "common.schema.json#/$defs/date" },
+        "ends_on": { "$ref": "common.schema.json#/$defs/date" }
+      }
+    },
+    "milestone": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestone_id", "phase_id", "title", "success_criteria", "confidence", "source_refs"],
+      "properties": {
+        "milestone_id": { "$ref": "common.schema.json#/$defs/milestoneId" },
+        "phase_id": { "$ref": "common.schema.json#/$defs/phaseId" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "success_criteria": { "type": "string", "minLength": 1, "maxLength": 1000 },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" },
+        "due_on": { "$ref": "common.schema.json#/$defs/date" }
+      }
+    },
+    "competencyImpact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["competency_ref", "impact", "confidence", "source_refs"],
+      "properties": {
+        "competency_ref": { "$ref": "common.schema.json#/$defs/competencyRef" },
+        "impact": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" }
+      }
+    },
+    "proposedActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activity_id",
+        "scope",
+        "lifecycle",
+        "title",
+        "activity_type",
+        "effort",
+        "competency_impacts",
+        "expected_evidence",
+        "confidence",
+        "source_refs"
+      ],
+      "properties": {
+        "activity_id": { "$ref": "common.schema.json#/$defs/activityId" },
+        "scope": { "const": "workspace" },
+        "lifecycle": { "const": "draft" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "activity_type": {
+          "type": "string",
+          "enum": ["coding", "reading", "recall", "explanation", "project", "mock_interview"]
+        },
+        "effort": { "$ref": "common.schema.json#/$defs/effortRange" },
+        "competency_impacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/competencyImpact" }
+        },
+        "expected_evidence": {
+          "type": "string",
+          "enum": [
+            "CodingAttemptAccepted",
+            "ReviewGraded",
+            "ExplanationAssessed",
+            "MockInterviewAssessed",
+            "ProjectArtifactVerified",
+            "EvidenceSelfReportAdded"
+          ]
+        },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" }
+      }
+    },
+    "path": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "milestone_ids", "activity_ids", "confidence", "source_refs"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["minimum", "stretch"] },
+        "milestone_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "uniqueItems": true,
+          "items": { "$ref": "common.schema.json#/$defs/milestoneId" }
+        },
+        "activity_ids": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": { "$ref": "common.schema.json#/$defs/activityId" }
+        },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" }
+      }
+    },
+    "initialReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["competency_ref", "reason", "not_before", "confidence", "source_refs"],
+      "properties": {
+        "competency_ref": { "$ref": "common.schema.json#/$defs/competencyRef" },
+        "reason": { "const": "VERIFICATION_NEEDED" },
+        "not_before": { "$ref": "common.schema.json#/$defs/date" },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" }
+      }
+    },
+    "mockCheckpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["milestone_id", "scheduled_on", "competency_refs", "confidence", "source_refs"],
+      "properties": {
+        "milestone_id": { "$ref": "common.schema.json#/$defs/milestoneId" },
+        "scheduled_on": { "$ref": "common.schema.json#/$defs/date" },
+        "competency_refs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "common.schema.json#/$defs/competencyRef" }
+        },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" }
+      }
+    },
+    "excludedItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "reason", "confidence", "source_refs"],
+      "properties": {
+        "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "reason": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "confidence": { "$ref": "common.schema.json#/$defs/confidence" },
+        "source_refs": { "$ref": "common.schema.json#/$defs/sourceRefs" }
+      }
+    }
+  }
+}

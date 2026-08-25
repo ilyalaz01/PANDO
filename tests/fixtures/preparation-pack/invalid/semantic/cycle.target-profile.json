@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "target-profile:fixture-cycle",
+  "profile_version": "1.0.0",
+  "scope": "workspace",
+  "lifecycle": "draft",
+  "title": "Schema-valid cyclic proposal",
+  "role": "Synthetic role",
+  "metadata_confidence": "low",
+  "metadata_source_refs": ["source:unconfirmed"],
+  "sources": [
+    {
+      "source_id": "source:unconfirmed",
+      "kind": "unconfirmed",
+      "label": "Synthetic cycle fixture",
+      "assertion_status": "unconfirmed"
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "requirement:cycle-a",
+      "subject_ref": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:cycle-a"
+      },
+      "category": "mandatory",
+      "weight": 1,
+      "minimum_level": "COMPLETED",
+      "criticality": "blocking",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "requirement_groups": [
+    {
+      "requirement_group_id": "requirement-group:cycle",
+      "title": "Cycle fixture group",
+      "member_requirement_ids": ["requirement:cycle-a"],
+      "rule": { "kind": "ALL" },
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "interview_stages": [],
+  "proposed_competencies": [
+    {
+      "proposed_competency_id": "personal-competency:cycle-a",
+      "scope": "workspace",
+      "lifecycle": "draft",
+      "title": "Cycle A",
+      "description": "Synthetic proposed competency A.",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    },
+    {
+      "proposed_competency_id": "personal-competency:cycle-b",
+      "scope": "workspace",
+      "lifecycle": "draft",
+      "title": "Cycle B",
+      "description": "Synthetic proposed competency B.",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "prerequisite_proposals": [
+    {
+      "from": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:cycle-a"
+      },
+      "to": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:cycle-b"
+      },
+      "relationship": "PREREQUISITE_OF",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    },
+    {
+      "from": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:cycle-b"
+      },
+      "to": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:cycle-a"
+      },
+      "relationship": "PREREQUISITE_OF",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "unknowns": [],
+  "assumptions": []
+}

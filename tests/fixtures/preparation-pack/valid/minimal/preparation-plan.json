@@ -1,0 +1,136 @@
+{
+  "schema_version": "1.0.0",
+  "plan_id": "preparation-plan:fixture-verification",
+  "kind": "interview_campaign",
+  "target_profile_ref": {
+    "file": "target-profile.json",
+    "profile_id": "target-profile:fixture-verification",
+    "profile_version": "1.0.0"
+  },
+  "deadline": "2026-09-30",
+  "capacity": {
+    "weekly_minutes": 480,
+    "protected_growth_minutes": 60,
+    "confidence": "high",
+    "source_refs": ["source:vacancy"],
+    "constraints": ["Keep the protected long-term track active."]
+  },
+  "phases": [
+    {
+      "phase_id": "phase:foundation",
+      "title": "Foundation and verification",
+      "objective": "Reduce unknowns with one representative exercise.",
+      "order": 1,
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"],
+      "starts_on": "2026-08-26",
+      "ends_on": "2026-09-29"
+    }
+  ],
+  "milestones": [
+    {
+      "milestone_id": "milestone:verified-exercise",
+      "phase_id": "phase:foundation",
+      "title": "Complete a verification exercise",
+      "success_criteria": "Produce a reviewed parser and explain the verification strategy.",
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"],
+      "due_on": "2026-09-20"
+    }
+  ],
+  "proposed_activities": [
+    {
+      "activity_id": "personal-activity:parser-verification",
+      "scope": "workspace",
+      "lifecycle": "draft",
+      "title": "Build and verify a small log parser",
+      "activity_type": "coding",
+      "effort": {
+        "minimum_minutes": 45,
+        "maximum_minutes": 90
+      },
+      "competency_impacts": [
+        {
+          "competency_ref": {
+            "kind": "canonical",
+            "competency_id": "competency:python.parsing",
+            "catalog_version": "1.0.0"
+          },
+          "impact": 0.6,
+          "confidence": "medium",
+          "source_refs": ["source:vacancy"]
+        },
+        {
+          "competency_ref": {
+            "kind": "proposed",
+            "proposed_competency_id": "personal-competency:verification-design"
+          },
+          "impact": 0.4,
+          "confidence": "medium",
+          "source_refs": ["source:vacancy"]
+        }
+      ],
+      "expected_evidence": "CodingAttemptAccepted",
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "paths": [
+    {
+      "kind": "minimum",
+      "milestone_ids": ["milestone:verified-exercise"],
+      "activity_ids": ["personal-activity:parser-verification"],
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "initial_reviews": [
+    {
+      "competency_ref": {
+        "kind": "canonical",
+        "competency_id": "competency:python.parsing",
+        "catalog_version": "1.0.0"
+      },
+      "reason": "VERIFICATION_NEEDED",
+      "not_before": "2026-09-01",
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "mock_checkpoints": [
+    {
+      "milestone_id": "milestone:verified-exercise",
+      "scheduled_on": "2026-09-24",
+      "competency_refs": [
+        {
+          "kind": "proposed",
+          "proposed_competency_id": "personal-competency:verification-design"
+        }
+      ],
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "excluded_items": [
+    {
+      "label": "Large unrelated project",
+      "reason": "It does not fit the available preparation window.",
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "Daily allocation will be recalculated by PANDO.",
+      "confidence": "high",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "assumptions": [
+    {
+      "text": "The declared weekly capacity remains available.",
+      "confidence": "medium",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ]
+}

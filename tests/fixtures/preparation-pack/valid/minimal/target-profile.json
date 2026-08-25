@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "target-profile:fixture-verification",
+  "profile_version": "1.0.0",
+  "scope": "workspace",
+  "lifecycle": "draft",
+  "title": "Fixture verification target",
+  "role": "Verification Engineer",
+  "company": "Example Systems",
+  "metadata_confidence": "high",
+  "metadata_source_refs": ["source:vacancy"],
+  "vacancy_reference": "user-provided:synthetic-fixture",
+  "deadline": "2026-09-30",
+  "sources": [
+    {
+      "source_id": "source:vacancy",
+      "kind": "vacancy",
+      "label": "Synthetic vacancy fixture",
+      "locator": "user-provided:synthetic-fixture",
+      "assertion_status": "user-stated"
+    },
+    {
+      "source_id": "source:unconfirmed",
+      "kind": "unconfirmed",
+      "label": "Fixture assumption",
+      "assertion_status": "unconfirmed"
+    }
+  ],
+  "requirements": [
+    {
+      "requirement_id": "requirement:python-parsing",
+      "subject_ref": {
+        "kind": "canonical",
+        "competency_id": "competency:python.parsing",
+        "catalog_version": "1.0.0"
+      },
+      "category": "mandatory",
+      "weight": 0.7,
+      "minimum_level": "COMPLETED",
+      "criticality": "blocking",
+      "confidence": "high",
+      "source_refs": ["source:vacancy"]
+    },
+    {
+      "requirement_id": "requirement:verification-design",
+      "subject_ref": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:verification-design"
+      },
+      "category": "preferred",
+      "weight": 0.3,
+      "minimum_level": "COMPLETED",
+      "criticality": "important",
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "requirement_groups": [
+    {
+      "requirement_group_id": "requirement-group:mandatory",
+      "title": "Mandatory floor",
+      "member_requirement_ids": ["requirement:python-parsing"],
+      "rule": {
+        "kind": "MANDATORY_FLOOR",
+        "floor": "COMPLETED"
+      },
+      "confidence": "high",
+      "source_refs": ["source:vacancy"]
+    },
+    {
+      "requirement_group_id": "requirement-group:preferred",
+      "title": "Preferred capabilities",
+      "member_requirement_ids": ["requirement:verification-design"],
+      "rule": {
+        "kind": "ANY"
+      },
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "interview_stages": [
+    {
+      "stage_id": "stage:technical",
+      "title": "Technical interview",
+      "order": 1,
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "proposed_competencies": [
+    {
+      "proposed_competency_id": "personal-competency:verification-design",
+      "scope": "workspace",
+      "lifecycle": "draft",
+      "title": "Design a small verification strategy",
+      "description": "Proposed workspace competency derived from the synthetic vacancy fixture.",
+      "confidence": "medium",
+      "source_refs": ["source:vacancy"]
+    }
+  ],
+  "prerequisite_proposals": [
+    {
+      "from": {
+        "kind": "canonical",
+        "competency_id": "competency:python.parsing",
+        "catalog_version": "1.0.0"
+      },
+      "to": {
+        "kind": "proposed",
+        "proposed_competency_id": "personal-competency:verification-design"
+      },
+      "relationship": "PREREQUISITE_OF",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "unknowns": [
+    {
+      "text": "The exact interview format is unknown.",
+      "confidence": "high",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "assumptions": [
+    {
+      "text": "The technical interview includes a small design discussion.",
+      "confidence": "low",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ]
+}
