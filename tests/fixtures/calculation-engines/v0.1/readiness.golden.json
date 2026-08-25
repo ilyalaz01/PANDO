@@ -1,0 +1,114 @@
+{
+  "fixtureVersion": "calculation-engines/0.1",
+  "clock": {
+    "asOf": "2024-04-01T12:00:00Z"
+  },
+  "input": {
+    "targetProfileVersionId": "target-profile:backend/1",
+    "rootRuleId": "rule:weighted",
+    "inputWatermark": "mastery:0042",
+    "targetThreshold": 0.8,
+    "rules": [
+      {
+        "ruleId": "rule:weighted",
+        "kind": "WEIGHTED_THRESHOLD",
+        "threshold": 0.8,
+        "members": [
+          {
+            "member": {
+              "memberType": "NODE",
+              "competencyId": "competency:application",
+              "dimension": "APPLICATION",
+              "requiredLevel": "MASTERED"
+            },
+            "weight": 0.5
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "competencyId": "competency:recall",
+              "dimension": "RECALL",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.3
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "competencyId": "competency:interview",
+              "dimension": "INTERVIEW_EXECUTION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 0.2
+          }
+        ]
+      }
+    ],
+    "masteryDimensions": [
+      {
+        "competencyId": "competency:application",
+        "dimension": "APPLICATION",
+        "calculatedAsOf": "2024-04-01T12:00:00Z",
+        "value": "KNOWN",
+        "achievementLevel": "MASTERED",
+        "freshness": "FRESH",
+        "confidence": "HIGH"
+      },
+      {
+        "competencyId": "competency:recall",
+        "dimension": "RECALL",
+        "calculatedAsOf": "2024-04-01T12:00:00Z",
+        "value": "KNOWN",
+        "achievementLevel": "VERIFIED",
+        "freshness": "STALE",
+        "confidence": "MEDIUM"
+      },
+      {
+        "competencyId": "competency:interview",
+        "dimension": "INTERVIEW_EXECUTION",
+        "calculatedAsOf": "2024-04-01T12:00:00Z",
+        "value": "UNKNOWN",
+        "achievementLevel": "NOT_STARTED",
+        "freshness": "UNKNOWN",
+        "confidence": null
+      }
+    ]
+  },
+  "expected": {
+    "engineVersion": "readiness-engine/0.1.0",
+    "policyVersion": "mastery-readiness-policy/0.1",
+    "targetProfileVersionId": "target-profile:backend/1",
+    "inputWatermark": "mastery:0042",
+    "calculatedAsOf": "2024-04-01T12:00:00.000Z",
+    "targetThreshold": 0.8,
+    "lower": 0.74,
+    "upper": 0.94,
+    "coverage": 0.8,
+    "status": "DEVELOPING",
+    "confidence": "MEDIUM",
+    "blockers": [
+      {
+        "code": "AGGREGATE_BELOW_THRESHOLD",
+        "ruleId": "rule:weighted",
+        "lower": 0.74,
+        "upper": 0.94
+      }
+    ],
+    "ruleEvaluations": [
+      {
+        "ruleId": "rule:weighted",
+        "kind": "WEIGHTED_THRESHOLD",
+        "lower": 0.74,
+        "upper": 0.94,
+        "coverage": 0.8,
+        "threshold": 0.8,
+        "outcome": "UNRESOLVED"
+      }
+    ],
+    "explanationCodes": [
+      "STATUS_DEVELOPING",
+      "UNKNOWN_PRESERVED_AS_INTERVAL",
+      "MANDATORY_FLOORS_EVALUATED_FIRST"
+    ]
+  }
+}

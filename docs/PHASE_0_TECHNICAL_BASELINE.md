@@ -92,7 +92,7 @@ Phase 0 does not exit until:
 6. an expired lease is reclaimed and a permanent failure reaches dead letter state;
 7. a representative 25-node graph is keyboard accessible, stable across reloads, and meets the graph budget;
 8. a valid and malicious Preparation Pack fixture exercise both schema and semantic validation;
-9. mastery, readiness, and review golden fixtures are deterministic under an explicit clock;
+9. mastery, readiness, and review golden fixtures are deterministic under an explicit clock ([executable status and remaining integration work](implementation/PHASE_0_GATE_9_STATUS.md));
 10. an encrypted dump restores into a clean local database.
 11. Agent Control context/change-set schemas and project skills validate; the root context fixture is at most 12 KiB; repository indexing excludes secrets, user exports, generated state, and production data.
 

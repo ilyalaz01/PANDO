@@ -1,0 +1,121 @@
+{
+  "fixtureVersion": "calculation-engines/0.1",
+  "clock": {
+    "asOf": "2024-04-01T12:00:00Z"
+  },
+  "input": {
+    "competencyId": "competency:typescript",
+    "inputWatermark": "evidence:0003",
+    "evidence": [
+      {
+        "evidenceId": "evidence:3",
+        "attemptId": "attempt:3",
+        "sourceId": "source:mock",
+        "occurredAt": "2024-03-03T12:00:00Z",
+        "dimension": "INTERVIEW_EXECUTION",
+        "outcome": "SUCCESS",
+        "engagement": "INDEPENDENT",
+        "normalized": true,
+        "invalidated": false,
+        "observedResult": true,
+        "mappingConfidence": 0.95,
+        "sourceReliability": 0.9,
+        "targetRelevant": true
+      },
+      {
+        "evidenceId": "evidence:1",
+        "attemptId": "attempt:1",
+        "sourceId": "source:test",
+        "occurredAt": "2024-02-28T12:00:00Z",
+        "dimension": "KNOWLEDGE",
+        "outcome": "SUCCESS",
+        "engagement": "INDEPENDENT",
+        "normalized": true,
+        "invalidated": false,
+        "observedResult": true,
+        "mappingConfidence": 0.9,
+        "sourceReliability": 0.8,
+        "targetRelevant": false
+      },
+      {
+        "evidenceId": "evidence:2",
+        "attemptId": "attempt:2",
+        "sourceId": "source:project",
+        "occurredAt": "2024-02-29T12:00:00Z",
+        "dimension": "APPLICATION",
+        "outcome": "SUCCESS",
+        "engagement": "INDEPENDENT",
+        "normalized": true,
+        "invalidated": false,
+        "observedResult": true,
+        "mappingConfidence": 0.9,
+        "sourceReliability": 0.9,
+        "targetRelevant": true
+      }
+    ]
+  },
+  "expected": {
+    "engineVersion": "mastery-engine/0.1.0",
+    "policyVersion": "mastery-readiness-policy/0.1",
+    "inputWatermark": "evidence:0003",
+    "competencyId": "competency:typescript",
+    "calculatedAsOf": "2024-04-01T12:00:00.000Z",
+    "achievementLevel": "MASTERED",
+    "dimensions": {
+      "KNOWLEDGE": {
+        "dimension": "KNOWLEDGE",
+        "value": "KNOWN",
+        "achievementLevel": "COMPLETED",
+        "condition": "STRONG",
+        "confidence": "LOW",
+        "freshness": "FRESH",
+        "lastMeaningfulEvidenceAt": "2024-02-28T12:00:00.000Z",
+        "supportingEvidenceIds": ["evidence:1"],
+        "contradictingEvidenceIds": [],
+        "explanationCodes": ["ACHIEVEMENT_COMPLETED", "WITHIN_FRESHNESS_WINDOW"]
+      },
+      "RECALL": {
+        "dimension": "RECALL",
+        "value": "UNKNOWN",
+        "achievementLevel": "NOT_STARTED",
+        "condition": null,
+        "confidence": null,
+        "freshness": "UNKNOWN",
+        "lastMeaningfulEvidenceAt": null,
+        "supportingEvidenceIds": [],
+        "contradictingEvidenceIds": [],
+        "explanationCodes": ["NO_RELEVANT_EVIDENCE", "UNKNOWN_NOT_ZERO"]
+      },
+      "APPLICATION": {
+        "dimension": "APPLICATION",
+        "value": "KNOWN",
+        "achievementLevel": "COMPLETED",
+        "condition": "STRONG",
+        "confidence": "LOW",
+        "freshness": "FRESH",
+        "lastMeaningfulEvidenceAt": "2024-02-29T12:00:00.000Z",
+        "supportingEvidenceIds": ["evidence:2"],
+        "contradictingEvidenceIds": [],
+        "explanationCodes": ["ACHIEVEMENT_COMPLETED", "WITHIN_FRESHNESS_WINDOW"]
+      },
+      "INTERVIEW_EXECUTION": {
+        "dimension": "INTERVIEW_EXECUTION",
+        "value": "KNOWN",
+        "achievementLevel": "COMPLETED",
+        "condition": "STRONG",
+        "confidence": "LOW",
+        "freshness": "FRESH",
+        "lastMeaningfulEvidenceAt": "2024-03-03T12:00:00.000Z",
+        "supportingEvidenceIds": ["evidence:3"],
+        "contradictingEvidenceIds": [],
+        "explanationCodes": ["ACHIEVEMENT_COMPLETED", "WITHIN_FRESHNESS_WINDOW"]
+      }
+    },
+    "supportingEvidenceIds": ["evidence:1", "evidence:2", "evidence:3"],
+    "contradictingEvidenceIds": [],
+    "explanationCodes": [
+      "ACHIEVEMENT_MASTERED",
+      "FULL_RECALCULATION_FROM_ACTIVE_EVIDENCE"
+    ]
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "fixtureVersion": "calculation-engines/0.1",
+  "clock": {
+    "asOf": "2024-04-01T12:00:00Z"
+  },
+  "input": {
+    "workspaceId": "workspace:personal",
+    "subjectId": "competency:typescript/recall",
+    "inputWatermark": "review-events:0005",
+    "reasonEvents": [
+      {
+        "eventId": "event:retention:1",
+        "sourceKey": "retention:competency:typescript",
+        "sourceRevision": 1,
+        "subjectId": "competency:typescript/recall",
+        "reason": "RETENTION_RISK",
+        "dueAt": "2024-04-05T12:00:00Z",
+        "active": true
+      },
+      {
+        "eventId": "event:goal:1",
+        "sourceKey": "goal:campaign:backend",
+        "sourceRevision": 1,
+        "subjectId": "competency:typescript/recall",
+        "reason": "GOAL_DEADLINE",
+        "dueAt": "2024-04-03T12:00:00Z",
+        "active": true
+      },
+      {
+        "eventId": "event:verification:1",
+        "sourceKey": "verification:evidence:first",
+        "sourceRevision": 1,
+        "subjectId": "competency:typescript/recall",
+        "reason": "VERIFICATION_NEEDED",
+        "dueAt": "2024-03-31T12:00:00Z",
+        "active": true
+      },
+      {
+        "eventId": "event:verification:2",
+        "sourceKey": "verification:evidence:first",
+        "sourceRevision": 2,
+        "subjectId": "competency:typescript/recall",
+        "reason": "VERIFICATION_NEEDED",
+        "dueAt": "2024-03-31T12:00:00Z",
+        "active": false
+      },
+      {
+        "eventId": "event:personal:1",
+        "sourceKey": "reminder:user:1",
+        "sourceRevision": 1,
+        "subjectId": "competency:typescript/recall",
+        "reason": "PERSONAL_REMINDER",
+        "dueAt": "2024-04-02T12:00:00Z",
+        "active": true
+      },
+      {
+        "eventId": "event:retention:1",
+        "sourceKey": "retention:competency:typescript",
+        "sourceRevision": 1,
+        "subjectId": "competency:typescript/recall",
+        "reason": "RETENTION_RISK",
+        "dueAt": "2024-04-05T12:00:00Z",
+        "active": true
+      }
+    ]
+  },
+  "expected": {
+    "engineVersion": "review-engine/0.1.0",
+    "policyVersion": "review-policy/0.1",
+    "inputWatermark": "review-events:0005",
+    "calculatedAsOf": "2024-04-01T12:00:00.000Z",
+    "item": {
+      "workspaceId": "workspace:personal",
+      "subjectId": "competency:typescript/recall",
+      "effectiveDueAt": "2024-04-02T12:00:00.000Z",
+      "timing": "UPCOMING",
+      "reasons": [
+        {
+          "sourceKey": "reminder:user:1",
+          "sourceRevision": 1,
+          "sourceEventId": "event:personal:1",
+          "reason": "PERSONAL_REMINDER",
+          "dueAt": "2024-04-02T12:00:00.000Z"
+        },
+        {
+          "sourceKey": "goal:campaign:backend",
+          "sourceRevision": 1,
+          "sourceEventId": "event:goal:1",
+          "reason": "GOAL_DEADLINE",
+          "dueAt": "2024-04-03T12:00:00.000Z"
+        },
+        {
+          "sourceKey": "retention:competency:typescript",
+          "sourceRevision": 1,
+          "sourceEventId": "event:retention:1",
+          "reason": "RETENTION_RISK",
+          "dueAt": "2024-04-05T12:00:00.000Z"
+        }
+      ]
+    },
+    "replayedEventIds": [
+      "event:goal:1",
+      "event:personal:1",
+      "event:retention:1",
+      "event:verification:1",
+      "event:verification:2"
+    ],
+    "explanationCodes": [
+      "ONE_ITEM_PER_SUBJECT",
+      "EARLIEST_ACTIVE_REASON_WINS",
+      "SOURCE_REVISIONS_DEDUPLICATED"
+    ]
+  }
+}
