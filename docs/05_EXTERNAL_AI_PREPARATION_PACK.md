@@ -1,4 +1,4 @@
-# PANDO — External AI Preparation Pack v0.2
+# PANDO — External AI Preparation Pack v0.3
 
 ## 1. Decision
 
@@ -7,6 +7,8 @@ The MVP does not pay for an embedded LLM API. Complex vacancy analysis or major 
 This avoids ongoing token cost without weakening the deterministic daily product.
 
 Important limitation: a ChatGPT subscription is subject to the product's current usage limits and does not guarantee literally unlimited computation. The architecture therefore treats ChatGPT as an optional external authoring tool, not a runtime dependency.
+
+Preparation Pack is the asynchronous bulk-authoring boundary for a substantial new target profile or initial/reworked plan. It is deliberately separate from the live Agent Control protocol. Small operational changes—cancel a campaign, pause a track, change capacity/deadline, or ask for an explanation—use `AgentControlContextV1` and a confirmed ChangeSet instead of regenerating or editing pack files.
 
 ## 2. User flow
 

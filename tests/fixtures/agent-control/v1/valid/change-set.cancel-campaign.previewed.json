@@ -1,0 +1,44 @@
+{
+  "contract_version": "1.0.0",
+  "change_set_id": "change:cancel-interview",
+  "status": "previewed",
+  "source_client": "chatgpt_work",
+  "reason": "Recruiter confirmed that the interview will not happen.",
+  "base_projection_watermark": 42,
+  "operations": [
+    {
+      "operation_id": "op:1",
+      "operation_type": "cancel_campaign",
+      "aggregate_ref": "campaign:interview",
+      "expected_version": 3,
+      "arguments": {
+        "lifecycle_reason": "Interview cancelled by employer",
+        "campaign_id": "campaign:interview"
+      }
+    }
+  ],
+  "preview": {
+    "preview_token": "preview:cancel-interview",
+    "preview_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expires_at": "2026-08-25T18:15:00Z",
+    "requires_confirmation": true,
+    "impacts": [
+      {
+        "kind": "cancel",
+        "summary": "Cancel the active interview campaign and retain its history."
+      },
+      {
+        "kind": "replan",
+        "summary": "Remove temporary allocation overrides and restore base Growth Plan allocation."
+      },
+      {
+        "kind": "retain",
+        "summary": "Keep all goals, tracks, readiness history, and evidence."
+      }
+    ],
+    "warnings": [],
+    "material_unknowns": []
+  },
+  "confirmation": null,
+  "result": null
+}

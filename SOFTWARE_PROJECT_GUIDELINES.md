@@ -436,6 +436,9 @@ Critical exploitable findings block release. Exceptions require owner, rationale
 - Imported content cannot create completed evidence, `Verified`, `Mastered`, readiness truth, canonical graph mutations, executable code, or privileged configuration.
 - Prompts MUST NOT contain provider secrets or unrestricted user/database dumps.
 - URL metadata retrieval MUST defend against SSRF, unsafe redirects, excessive payloads, and unsupported schemes.
+- External agent reads MUST use minimized, authorized control resources; unrestricted database dumps and repository mirrors of live user state are forbidden.
+- External agent writes MUST use focused proposal tools, an exact preview, confirmation bound to that preview, expected versions/watermark, idempotency, audit, and the ordinary domain command/outbox path.
+- MCP, CLI, voice, and UI clients MUST have the same ownership and lifecycle semantics. No client may mutate live state by editing files, fixtures, Graphify output, SQL, or tables directly.
 
 ## 12. UX, accessibility, and design system
 
@@ -528,6 +531,7 @@ An implementation agent MUST begin by stating which phase/acceptance criterion i
 Before editing, the agent MUST:
 
 - inspect repository instructions and relevant source/tests;
+- query an existing Graphify repository graph first for architecture or cross-file impact, then verify decisive claims in authoritative source files;
 - check for existing user changes;
 - identify authoritative module ownership;
 - resolve unstable external facts using primary sources;
@@ -541,6 +545,7 @@ During implementation, the agent MUST:
 - update tests and docs with behavior;
 - avoid destructive commands and broad rewrites;
 - validate generated files and schema outputs.
+- refresh the explicit Graphify artifacts after a material repository-architecture change, without installing hooks or indexing secrets/user data.
 
 At handoff, the agent MUST report:
 

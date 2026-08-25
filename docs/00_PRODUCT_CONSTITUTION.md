@@ -1,4 +1,4 @@
-# PANDO — Product Constitution v0.2
+# PANDO — Product Constitution v0.3
 
 ## 1. Product purpose
 
@@ -82,6 +82,10 @@ PANDO is a hosted responsive web application in the MVP. External AI authoring e
 
 Imported target profiles and proposed competencies begin as workspace-scoped drafts. Accepted personal content may participate in that workspace's planning and readiness, but only a separate curator workflow can publish it as canonical template or catalog content.
 
+### P17 — Conversational control is a first-class client
+
+An authenticated external agent such as ChatGPT Work or Codex may explain current state and propose changes from short text or voice instructions. It receives a minimized, versioned control context and uses the same semantic command boundary as the manual UI. It never edits production tables, repository files, mastery, evidence, or calculated projections directly. Material changes are previewed, preserve history, and require explicit user confirmation before application.
+
 ## 3. Product boundaries
 
 ### In scope
@@ -93,6 +97,7 @@ Imported target profiles and proposed competencies begin as workspace-scoped dra
 - PyPrep as a bounded learning provider.
 - Manual coding practice evidence and external resource links.
 - AI Learning Partner as an optional interaction layer.
+- Text and voice control through authenticated ChatGPT Work/Codex clients, with complete manual UI parity.
 
 ### Out of scope until separately approved
 
@@ -123,6 +128,8 @@ Use these terms consistently:
 | Readiness | Evidence/profile alignment, with uncertainty. |
 | Confidence | Reliability of the estimate, not the user’s self-confidence. |
 | Self-confidence | User-reported feeling, stored and displayed separately. |
+| Control Context | Compact, versioned read model that lets an authorized agent understand active goals, constraints, blockers, capacity, and current plan without receiving unrestricted database contents. |
+| Change Set | Version-checked, auditable proposal containing semantic domain operations and their expected effects; it is not authoritative until confirmed and applied. |
 
 ## 5. Decision hierarchy
 
@@ -141,6 +148,7 @@ Reject or redesign a feature if any answer is “yes”:
 
 - Can a click create `Mastered` without sufficient evidence?
 - Can an LLM silently change readiness or the canonical graph?
+- Can an agent bypass preview, confirmation, authorization, expected versions, or the ordinary command path?
 - Does a provider outage make the core workflow unusable?
 - Does a missing datapoint display as a proven zero?
 - Can a high average hide a mandatory critical blocker?

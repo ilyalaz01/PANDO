@@ -1,4 +1,4 @@
-# PANDO — Product and UX Specification v0.2
+# PANDO — Product and UX Specification v0.3
 
 ## 1. Primary users and jobs
 
@@ -24,7 +24,7 @@ Primary navigation:
 - `Prompt Library`
 - profile/settings/integrations
 
-`Learning Partner` appears only when an embedded AI provider is enabled. No core navigation or workflow may depend on it.
+`Agent Control` does not require an embedded model or an in-app chat surface. When an authenticated connector is configured, ChatGPT Work or Codex can explain and manage the same plan through the external control interface. The optional in-app `Learning Partner` remains separately feature-flagged. Every agent action has a complete manual UI path.
 
 For MVP onboarding, `New Goal` supports `Import Preparation Pack`. The user downloads `preparation-context.json`, generates the pack externally with the prepared prompt, and uploads the resulting pack in the browser. PANDO shows a human-readable preview of target requirements, assumptions, workspace-scoped competency drafts, schedule constraints, and proposed activities before activation. Repository-folder detection may exist in development but is not part of the hosted user flow.
 
@@ -157,23 +157,34 @@ Stale: 14 competencies
 
 The competency inspector keeps Self-confidence visually separate from objective dimensions.
 
-## 8. Learning Partner
+## 8. Conversational control and optional Learning Partner
 
-The Learning Partner can:
+ChatGPT Work or Codex may act as PANDO's external text/voice control surface when the user connects the authenticated PANDO tools. PANDO supplies facts and deterministic previews; the external model interprets the user's language. No model runs inside PANDO for this workflow.
 
-- explain readiness and recommendations;
-- ask about time, energy, deadlines, and preferences;
-- choose among deterministic planner candidates;
-- propose a custom activity, mapping, or schedule change;
-- help analyze a mistake;
-- summarize a session;
-- answer questions using current product state.
+The agent can:
 
-Every proposed write is previewed as a structured diff and requires confirmation. It cannot directly set mastery, change canonical content, calculate review dates independently, invent completed work, or silently alter a plan.
+- explain the whole current plan or one goal from the compact control context;
+- answer what changed, what is blocked, what is due, and why Today recommends an action;
+- create a long-term track or a deadline-driven campaign;
+- pause, resume, complete, end, cancel, supersede, or reprioritize plans through lifecycle commands;
+- change deadline, weekly capacity, availability, cadence, target, country, university, specialty, or other structured constraints;
+- preview a multi-part replan and apply it atomically after confirmation;
+- fetch detailed evidence or target information only when the question needs it.
 
-If AI is unavailable, all core flows remain functional.
+The interaction contract is:
 
-For MVP, the in-app Learning Partner is optional and may be absent entirely. The supported low-cost workflow is asynchronous: export current state, analyze it in ChatGPT Work, upload a validated proposal pack, review the diff, and confirm. The user never has to paste model output manually into database fields.
+1. Read one compact control summary and expand only relevant resources.
+2. Translate the user's intent into semantic operations; ask only for missing information that materially changes the result.
+3. Generate a deterministic preview tied to current aggregate versions and input watermark.
+4. Explain what will stop, remain, move, or be created, including capacity impact and retained history.
+5. Obtain explicit confirmation for the exact preview.
+6. Apply one idempotent change set through the ordinary command boundary and report the resulting revision.
+
+For example, “the interview was cancelled” previews cancellation of the active Interview Campaign, removal of its temporary overrides, restoration of the base Growth Plan allocation, and retention of all evidence. “I need to change university and specialty in three months” creates or supersedes the relevant goal, records the deadline and constraints, previews capacity trade-offs, and leaves unrelated tracks intact unless the user confirms otherwise.
+
+The manual Plan, Today, Review, Targets, and Settings UI exposes equivalent read and mutation capabilities. Connector or model unavailability never blocks manual use. The in-app Learning Partner remains optional and may be absent entirely.
+
+Preparation Packs remain the low-cost bulk-authoring/import path for substantial new profiles or plans. They do not replace the live Agent Control context or change-set protocol.
 
 ## 9. Adding custom resources
 

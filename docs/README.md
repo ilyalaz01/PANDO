@@ -1,11 +1,11 @@
 # PANDO — Project Documentation
 
-Status: product and architecture baseline v0.2  
+Status: product and architecture baseline v0.3
 Date: 2026-08-25
 
 ## Product in one sentence
 
-PANDO is an evidence-first learning and planning system that turns a canonical competency graph, real learning evidence, retention, and target-role requirements into an explainable daily plan and readiness view.
+PANDO is an evidence-first learning and planning system that turns a canonical competency graph, real learning evidence, retention, and changing life goals into an explainable daily plan that can be managed either manually or through short authenticated ChatGPT Work/Codex text or voice instructions.
 
 It is **not** a task tracker with a decorative skill tree and it does **not** predict the probability of receiving an offer.
 
@@ -25,7 +25,7 @@ The canonical product baseline contains exactly nine Markdown files:
 
 After this index, implementation agents read `00` through `06` in numeric order, then the engineering guideline.
 
-Implementation records under [Phase 0 Technical Baseline](PHASE_0_TECHNICAL_BASELINE.md), [adr/](adr/), and [policies/](policies/) are supporting documents, not additional canonical product documents. They may select implementation mechanisms but may not change product semantics.
+Implementation records under [Phase 0 Technical Baseline](PHASE_0_TECHNICAL_BASELINE.md), [adr/](adr/), [design/](design/), and [policies/](policies/) are supporting documents, not additional canonical product documents. Agent Control is detailed in [ADR-0008](adr/0008-agent-control-plane.md) and the [Agent Control Plane design](design/AGENT_CONTROL_PLANE.md). Supporting documents may select implementation mechanisms but may not change product semantics.
 
 If documents conflict, earlier product documents in this list have precedence over later product documents. `SOFTWARE_PROJECT_GUIDELINES.md` governs implementation and delivery but must not silently contradict product semantics. Stop and record the conflict instead of guessing.
 
@@ -43,9 +43,9 @@ The immutable evidence history is the source of truth. Completion, mastery, read
 
 ## First release outcome
 
-A signed-in user can select a seeded target or import a Preparation Pack, start from a versioned roadmap, record meaningful evidence manually, see explainable competency/readiness states, receive a deterministic next-best-action plan, complete a focus session, and manage a unified review queue. The release includes a tested PyPrep contract and manual fallback; a live PyPrep connection ships only when its source is available and passes the same gates.
+A signed-in user can select a seeded target or import a Preparation Pack, start from a versioned roadmap, record meaningful evidence manually, see explainable competency/readiness states, receive a deterministic next-best-action plan, complete a focus session, and manage a unified review queue. The same user can connect ChatGPT Work/Codex, ask for the plan in a few words or by voice, and preview/confirm lifecycle-safe changes through the same commands as the UI. The release includes a tested PyPrep contract and manual fallback; a live PyPrep connection ships only when its source is available and passes the same gates.
 
-The first release must remain useful without AI and without unofficial LeetCode synchronization.
+The first release must remain useful without AI, without the agent connector, and without unofficial LeetCode synchronization.
 
 ## Current canonical decisions
 
@@ -54,6 +54,8 @@ The first release must remain useful without AI and without unofficial LeetCode 
 - Versioned templates plus user overlay; no full mutable roadmap copy per user.
 - Evidence-first mastery; `Unknown` is distinct from a low score.
 - Deterministic calculations; AI explains and proposes but does not establish truth.
+- ChatGPT Work/Codex is an authenticated external client: compact context, focused tools, exact preview, explicit confirmation, ordinary commands, and full UI parity.
+- Graphify maps repository code/docs for agent orientation and token reduction; it never contains or authorizes live user state.
 - PANDO is primarily a hosted responsive web application. Preparation Packs are imported by browser upload; a local folder watcher is development convenience only.
 - Desktop-first graph; mobile-quality Today, Review, Focus, and notes. An embedded Learning Partner is optional and not a release dependency.
 - Stable deterministic layout, semantic zoom, visible-subgraph rendering, and reduced-motion support.
@@ -61,7 +63,7 @@ The first release must remain useful without AI and without unofficial LeetCode 
 - MVP uses externally generated, file-based Preparation Packs; a built-in paid AI API is optional and deferred.
 - Phase 0 uses Next.js 16, React, strict TypeScript, pnpm, Vercel Hobby, and Supabase Free. The accepted choices, limits, and exit paths are indexed in [Phase 0 Technical Baseline](PHASE_0_TECHNICAL_BASELINE.md).
 
-## v0.2 architecture review resolutions
+## v0.3 architecture review resolutions
 
 | Review topic | Canonical resolution |
 |---|---|
@@ -74,6 +76,8 @@ The first release must remain useful without AI and without unofficial LeetCode 
 | Imported content | Vacancy profiles and unknown competencies are staged and published as workspace-scoped personal content, never directly as canonical content. |
 | Goal/cardinality model | One active Growth Plan and at most one active Interview Campaign in MVP; exact ownership of deadline, capacity, profile version, and overrides is defined in the Domain Model. |
 | Phase dependency | Session/evidence precedes Review Core; Review Core precedes Planning; Today later enters the already-built Focus lifecycle. |
+| Agent control | External ChatGPT Work/Codex and voice are first-class clients over a compact control context and preview/confirm/apply ChangeSet contract. They use the same domain commands as the UI and require no embedded PANDO model. |
+| Repository graph | Graphify is a secret-safe, regenerable orientation index for code/docs. It is separate from the competency graph, UI GraphProjection, and live control context. |
 
 ## Explicit non-goals for MVP
 
@@ -82,5 +86,6 @@ The first release must remain useful without AI and without unofficial LeetCode 
 - Microservices or a graph database.
 - A permanent force-directed graph simulation.
 - AI-controlled mastery, hidden plan changes, or opaque readiness scores.
+- Direct agent mutation of database tables, exported state files, Graphify output, or repository documents as a substitute for PANDO commands.
 - Full internal coding judge, public portfolio, mentor dashboard, or multi-company simulator.
 - Heavy XP, coins, streak punishment, or achievements for low-value clicks.

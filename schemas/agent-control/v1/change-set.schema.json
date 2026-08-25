@@ -1,0 +1,369 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/agent-control/v1/change-set.schema.json",
+  "title": "PlanChangeSetV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "change_set_id",
+    "status",
+    "source_client",
+    "reason",
+    "base_projection_watermark",
+    "operations",
+    "preview",
+    "confirmation",
+    "result"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "change_set_id": {
+      "$ref": "#/$defs/id"
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "previewed",
+        "applied",
+        "rejected",
+        "expired"
+      ]
+    },
+    "source_client": {
+      "enum": [
+        "web",
+        "chatgpt_work",
+        "codex",
+        "api"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "base_projection_watermark": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/operation"
+      }
+    },
+    "preview": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/preview"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "confirmation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/confirmation"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/result"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "operation_type",
+        "aggregate_ref",
+        "expected_version",
+        "arguments"
+      ],
+      "properties": {
+        "operation_id": {
+          "$ref": "#/$defs/id"
+        },
+        "operation_type": {
+          "enum": [
+            "create_goal",
+            "supersede_goal",
+            "start_campaign",
+            "end_campaign",
+            "cancel_campaign",
+            "change_campaign_deadline",
+            "change_campaign_target",
+            "pause_growth_plan",
+            "resume_growth_plan",
+            "archive_growth_plan",
+            "create_track",
+            "pause_track",
+            "resume_track",
+            "complete_track",
+            "archive_track",
+            "set_default_capacity",
+            "set_availability",
+            "set_track_cadence",
+            "set_allocation",
+            "accept_staged_personal_content"
+          ]
+        },
+        "aggregate_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expected_version": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "arguments": {
+          "$ref": "#/$defs/arguments"
+        }
+      }
+    },
+    "arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "goal_kind": {
+          "enum": [
+            "outcome",
+            "readiness",
+            "growth"
+          ]
+        },
+        "lifecycle_reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date"
+        },
+        "target_profile_version_id": {
+          "$ref": "#/$defs/id"
+        },
+        "weekly_capacity_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "available_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "cadence_per_week": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "protected_minimum_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "allocation_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "track_id": {
+          "$ref": "#/$defs/id"
+        },
+        "goal_id": {
+          "$ref": "#/$defs/id"
+        },
+        "campaign_id": {
+          "$ref": "#/$defs/id"
+        },
+        "staged_item_ids": {
+          "type": "array",
+          "maxItems": 500,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "impact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "summary"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "create",
+            "change",
+            "pause",
+            "resume",
+            "complete",
+            "end",
+            "cancel",
+            "archive",
+            "supersede",
+            "retain",
+            "replan"
+          ]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview_token",
+        "preview_digest",
+        "expires_at",
+        "requires_confirmation",
+        "impacts",
+        "warnings",
+        "material_unknowns"
+      ],
+      "properties": {
+        "preview_token": {
+          "$ref": "#/$defs/id"
+        },
+        "preview_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "requires_confirmation": {
+          "const": true
+        },
+        "impacts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/impact"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "material_unknowns": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "confirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "preview_digest",
+        "confirmed_at"
+      ],
+      "properties": {
+        "preview_digest": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "confirmed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "plan_revision_id",
+        "resulting_projection_watermark",
+        "applied_at"
+      ],
+      "properties": {
+        "plan_revision_id": {
+          "$ref": "#/$defs/id"
+        },
+        "resulting_projection_watermark": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "applied_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

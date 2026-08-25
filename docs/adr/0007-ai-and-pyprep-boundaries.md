@@ -14,6 +14,7 @@ The MVP must work without an AI API and without a live PyPrep source. The curren
 
 - Do not integrate an embedded AI model or provider in MVP.
 - Store no AI conversation history because PANDO conducts no embedded AI conversation.
+- An authenticated external ChatGPT Work/Codex Agent Control client is allowed by [ADR-0008](0008-agent-control-plane.md): language interpretation stays outside PANDO and every read/write uses the ordinary authorized product boundary.
 - The external Preparation Pack workflow remains provider-neutral, file-based, versioned, previewed, and explicitly confirmed.
 - Prompts and exported context minimize personal data and remain useful with any capable external tool.
 - A future embedded AI feature requires a superseding ADR with a named outcome, provider comparison, data-flow diagram, consent, retention and deletion policy, monthly hard cap, observability, evaluation fixtures, and a complete non-AI fallback.

@@ -11,6 +11,22 @@ For every new task:
 
 The nine canonical documents outrank supporting ADRs. A superseding ADR is required before changing an accepted hard-to-reverse technical decision.
 
+## Repository orientation
+
+- When `graphify-out/graph.json` exists, use the project `graphify` skill and a bounded graph query before broad searches for architecture, dependency paths, or cross-file impact.
+- Treat Graphify as a regenerable repository index. Verify decisive claims in authoritative source files before editing.
+- Never confuse Graphify with the competency DAG, GraphProjectionV1, AgentControlContextV1, authorization, or live user state.
+- Do not install Graphify hooks, change its pinned version, use remote semantic backends, or broaden `.graphifyignore` without explicit approval and review.
+
+## Product control safety
+
+- For a live PANDO explanation or plan change, use the `pando-control` skill and authenticated PANDO tools.
+- Never change live goals, campaigns, tracks, evidence, mastery, readiness, or reviews by editing repository files, exports, fixtures, SQL, or Graphify output.
+- Reads use the compact control summary first and expand only relevant detail.
+- Writes follow preview → exact confirmation → idempotent apply through the ordinary command boundary.
+- Preserve history with pause, resume, complete, end, cancel, archive, or supersede. Agent-facing destructive deletion is not an MVP operation.
+- If live tools are unavailable, say that no product state was changed.
+
 ## Delivery rules
 
 - Work on one clearly named outcome per task.

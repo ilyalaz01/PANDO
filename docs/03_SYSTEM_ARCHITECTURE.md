@@ -1,4 +1,4 @@
-# PANDO — System Architecture v0.2
+# PANDO — System Architecture v0.3
 
 ## 1. Architecture style
 
@@ -19,12 +19,12 @@ Do not introduce microservices or a graph database until measured workload or te
 
 ```mermaid
 flowchart TD
-    A["UI / API command"] --> B["Domain transaction"]
+    A["UI / authenticated agent command"] --> B["Domain transaction"]
     B --> C["Authoritative tables"]
     B --> D["Transactional outbox"]
     D --> E["Evidence / mastery / review workers"]
     E --> F["Read models"]
-    F --> G["Today / Map / Readiness UI"]
+    F --> G["Today / Map / Readiness / Agent Context"]
 ```
 
 An external provider event first enters the integration inbox, is deduplicated and validated, then normalized into a typed observation. Only that normalized observation can enter the Evidence command path. Raw `ProviderEventImported` and session/activity lifecycle events never enter the evidence ledger directly.
@@ -43,7 +43,7 @@ Important contracts:
 - Mastery consumes evidence changes and publishes competency-state changes.
 - Review consumes evidence/mastery/deadlines and publishes review-item changes.
 - Planning queries current read models and writes versioned plan snapshots.
-- Learning Partner reads approved context and emits proposals, never authoritative mastery events.
+- Agent Control publishes minimized read contexts and coordinates confirmed change sets through owning-context commands; it never emits authoritative mastery/evidence facts.
 - PyPrep publishes `CardReviewed`, `DeckCompleted`, `RetentionUpdated`, and `ModuleProgressChanged` through an integration adapter.
 
 In a single database these boundaries are enforced in code and tests before physical separation is considered.
@@ -134,36 +134,70 @@ Every calculation records:
 
 Jobs must be idempotent. Late or corrected evidence triggers affected projections. Start with coarse targeted recalculation; optimize incrementally after profiling.
 
-## 9. Learning Partner architecture
+## 9. External Agent Control architecture
 
-### MVP: external file-based AI workflow
+Agent Control is a required external-client capability, not an embedded AI provider. ChatGPT Work, Codex, voice, the web UI, and future clients share the same authenticated read and command contracts.
 
-The default MVP architecture has no mandatory paid LLM API. ChatGPT Work acts as an external planning workstation:
+### 9.1 Two different planes
 
-1. The product exports a compact `PreparationContext` containing the vacancy, deadline, availability, current competency/evidence summary, and supported catalog identifiers.
-2. The user attaches the export to a prepared ChatGPT prompt; direct project-workspace access is an optional convenience.
-3. ChatGPT Work produces a versioned `PreparationPack` conforming to the repository schema.
-4. The user uploads the generated pack in the PANDO web UI; a local watcher may perform the same handoff only in development/self-hosted mode.
-5. The backend stores the original pack and validates schema, identifiers, provenance, dates, and invariants.
-6. The UI presents requirements, assumptions, unknowns, proposed mappings, and plan changes as a diff.
-7. Only confirmed items are imported through ordinary domain commands.
+The agent orientation plane helps a coding or operations agent understand the repository:
 
-The application, not ChatGPT, performs daily recalculation, review scheduling, readiness calculation, and evidence updates. Therefore normal use after import consumes no LLM tokens.
+- `AGENTS.md` and project skills define workflow and safety rules;
+- Graphify indexes repository code and documentation for selective navigation;
+- generated repository graphs exclude secrets, local state, user exports, caches, and production data;
+- Graphify output is an optimization hint and audit map, never product truth, authorization, or a live user-state interface.
 
-### Future: embedded provider
+The live control plane manages PANDO state:
 
-Use retrieval of explicit product state rather than pasting unrestricted database contents.
+- `AgentControlContextV1` is a compact root summary capped at 12 KiB;
+- detail resources expand one goal, campaign, track, target, blocker, or explanation on demand;
+- focused read tools return current versions/watermarks;
+- proposal tools create deterministic previews;
+- one `ApplyPlanChangeSet` command applies the confirmed preview atomically;
+- the same application service and Postgres RPC boundary serves UI, MCP, and local CLI adapters.
 
-Flow:
+Repository files never mirror or become authoritative user plans. An agent must not edit SQL, JSON exports, fixtures, Graphify files, or project documentation to change a live plan.
 
-1. Authorize the user and requested scope.
-2. Build a minimal structured context from read models, goals, constraints, and recent evidence.
-3. Ask the model for explanation or a typed proposal.
-4. Validate proposal schema and domain rules server-side.
-5. Display a diff and rationale.
-6. Execute only after user confirmation through normal commands.
+### 9.2 Transport and tool surface
 
-Prompt output is untrusted input. It cannot bypass authorization, invariants, or evidence rules. Sensitive provider secrets never enter model context.
+The hosted adapter exposes Streamable HTTP MCP tools for ChatGPT Work and other compatible clients. A local `pando` CLI adapter gives Codex the same typed operations without adding another domain path. Both call the hosted PANDO application boundary.
+
+Initial focused operations are:
+
+- reads: `get_control_summary`, `get_goal_context`, `explain_today`, `get_change_status`;
+- proposals: `preview_create_goal`, `preview_change_goal`, `preview_close_goal`, `preview_change_set`;
+- mutation: `apply_change_set` using the preview token, expected versions, base watermark, and idempotency key.
+
+Reads and writes are separate tools. Tool schemas use stable identifiers and bounded payloads; tools never accept arbitrary SQL, file paths, table names, event bodies, or cross-workspace identifiers.
+
+### 9.3 Intent-to-change flow
+
+1. Authenticate the user and resolve the workspace from the session, never from an untrusted model claim.
+2. Fetch the root control summary and only the detail resources needed for the request.
+3. Map natural language to explicit semantic operations. PANDO itself does not run an LLM for this mapping.
+4. Validate permissions, lifecycle rules, cardinality, dates, capacity, and expected aggregate versions.
+5. Produce a deterministic preview showing before/after meaning, Today impact, warnings, retained history, and required confirmation.
+6. Bind confirmation to the exact preview digest and expiry.
+7. Apply the change set as one idempotent transaction with command receipt, plan revision, and transactional outbox.
+8. Return the resulting revision/watermark; clients refresh projections using ETag or `changed_since`.
+
+A stale preview, changed aggregate version, expired token, missing confirmation, or invalid operation applies nothing. Long-running recalculation follows through outbox consumers and exposes pending/complete/failed status.
+
+### 9.4 Authentication, privacy, and voice
+
+The hosted MCP endpoint uses OAuth 2.1 user authorization and workspace-scoped permissions. Local development credentials live outside Git and are never copied into skills or Graphify output. Ordinary user commands never use the Supabase service role.
+
+Voice is only an input mode of the connected ChatGPT/Codex client. It receives exactly the same tool permissions, previews, and confirmation requirements as typed input; PANDO does not add a separate voice recording or retention system.
+
+The root context excludes raw evidence bodies, personal notes, provider payloads, secrets, unrelated history, and unrestricted database rows. Expanded resources repeat authorization and return the minimum required fields. Audit records retain operation metadata and user reason, not external model conversation transcripts.
+
+### 9.5 Preparation Pack and embedded AI boundaries
+
+Preparation Packs remain the asynchronous bulk-authoring path for substantial new target profiles, competency proposals, or initial plans. They are validated, previewed, and confirmed through browser upload. They are not the protocol for small live edits such as cancelling a campaign, pausing a track, changing capacity, or moving a deadline.
+
+No embedded model is required. The external user-owned ChatGPT Work/Codex session performs language interpretation, so PANDO's inference cost remains USD 0. A future embedded provider requires the separate approval and safeguards in ADR-0007 and must use these same read/proposal/confirmation contracts.
+
+All model output remains untrusted input. It cannot bypass authorization, invariants, evidence rules, version checks, or user confirmation. Sensitive provider secrets never enter model context.
 
 ## 10. Frontend architecture
 
@@ -215,6 +249,8 @@ Required test layers:
 - accessibility, keyboard, reduced-motion, interaction, and visual regression tests;
 - graph performance tests with representative visible and total sizes;
 - failure tests for partial import, delayed events, provider outage, and AI outage.
+- Agent Control contract tests for compact-context budgets, tool authorization, cross-workspace isolation, stale previews, idempotent replay, atomic multi-operation rollback, and confirmation binding.
+- UI/agent parity scenarios proving that the same lifecycle change produces the same domain result from both clients.
 
 ## 13. Resolved Phase 0 technical decisions
 
@@ -226,6 +262,7 @@ The previously open implementation choices are accepted for Phase 0 and indexed 
 - React Flow with deterministic Dagre layout and a server-owned graph projection contract;
 - transparent versioned mastery, readiness, and review policies;
 - no embedded AI provider or retained AI conversations in MVP;
+- an authenticated external Agent Control adapter, compact control context, preview/confirm/apply change sets, and project-local Graphify orientation without live-state files;
 - PyPrep always crosses a versioned integration boundary, even if a later deployment shares physical infrastructure.
 
 The accepted decisions, alternatives, security impact, and migration triggers are recorded under [adr/](adr/). Future agents must create a superseding ADR before changing a hard-to-reverse decision.

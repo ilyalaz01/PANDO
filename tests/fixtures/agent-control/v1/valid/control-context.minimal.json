@@ -1,0 +1,94 @@
+{
+  "contract_version": "1.0.0",
+  "generated_at": "2026-08-25T18:00:00Z",
+  "etag": "ctx:42",
+  "projection_watermark": 42,
+  "workspace": {
+    "workspace_id": "ws:personal",
+    "time_zone": "Asia/Jerusalem"
+  },
+  "growth_plan": {
+    "growth_plan_id": "plan:growth",
+    "title": "Long-term growth",
+    "status": "active",
+    "version": 7,
+    "weekly_capacity_minutes": 600,
+    "tracks": [
+      {
+        "track_id": "track:python",
+        "title": "Python",
+        "status": "active",
+        "version": 4,
+        "priority": 80,
+        "protected_minimum_minutes": 90
+      },
+      {
+        "track_id": "track:ml",
+        "title": "Machine learning",
+        "status": "active",
+        "version": 2,
+        "priority": 60,
+        "protected_minimum_minutes": 60
+      }
+    ]
+  },
+  "active_campaign": {
+    "campaign_id": "campaign:interview",
+    "title": "Verification interview",
+    "status": "active",
+    "version": 3,
+    "readiness_goal_id": "goal:readiness",
+    "deadline": "2026-09-15",
+    "temporary_allocation_minutes": 240
+  },
+  "goals": [
+    {
+      "goal_id": "goal:readiness",
+      "kind": "readiness",
+      "title": "Interview ready",
+      "status": "active",
+      "version": 3,
+      "deadline": "2026-09-15"
+    }
+  ],
+  "blockers": [
+    {
+      "blocker_id": "blocker:networking",
+      "kind": "mandatory_floor",
+      "label": "Networking floor not met",
+      "severity": "critical",
+      "detail_ref": "detail:target"
+    }
+  ],
+  "today": [
+    {
+      "action_id": "action:linux",
+      "label": "Linux log parsing exercise",
+      "duration_minutes": 45,
+      "reason": "Campaign-critical blocker",
+      "source": "campaign"
+    }
+  ],
+  "capabilities": [
+    "read",
+    "preview_create_goal",
+    "preview_change_goal",
+    "preview_close_goal",
+    "preview_change_set",
+    "apply_change_set"
+  ],
+  "detail_refs": [
+    {
+      "ref": "detail:campaign",
+      "kind": "campaign",
+      "entity_id": "campaign:interview",
+      "version": 3
+    },
+    {
+      "ref": "detail:target",
+      "kind": "target",
+      "entity_id": "target:verification-v1",
+      "version": 1
+    }
+  ]
+}

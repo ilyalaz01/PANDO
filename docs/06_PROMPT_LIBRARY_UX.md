@@ -1,8 +1,10 @@
-# PANDO — Prompt Library UX v0.2
+# PANDO — Prompt Library UX v0.3
 
 ## 1. Purpose
 
 Prompt Library is the no-API bridge between the application and ChatGPT Work. It lets a non-technical user choose a situation, copy one prepared prompt, provide a small clearly explained set of inputs, and receive project-compatible files.
+
+For short live changes, a connected ChatGPT Work/Codex client uses Agent Control tools instead of file generation. Prompt Library remains the guided bulk-authoring path and includes a clear `Use connected assistant` action when the requested change fits the live protocol.
 
 The product must never assume the user knows which schema, folder, or architecture document to mention.
 
@@ -15,6 +17,7 @@ The landing page shows scenario cards grouped by purpose:
 - `Start or improve my long-term plan`
 - `I was invited to an interview`
 - `The interview date or availability changed`
+- `The interview or external goal was cancelled`
 - `I received new recruiter information`
 - `Rebalance my learning tracks`
 - `Review my recent progress and redesign the next month`

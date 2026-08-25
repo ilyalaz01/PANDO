@@ -1,4 +1,4 @@
-# PANDO — MVP Delivery Plan v0.2
+# PANDO — MVP Delivery Plan v0.3
 
 ## 1. MVP objective
 
@@ -29,6 +29,8 @@ Optimize for a coherent vertical product, not maximum catalog size or visual spe
 - Prompt Library with scenario cards, guided input checklist, copy action, expected-output explanation, and at least the core Growth Plan and Interview Campaign prompts.
 - Versioned PyPrep adapter contract, tested mock, and manual path. A live connection is conditional on its event source being available and passing release gates.
 - No required LLM API or per-token product cost; embedded Learning Partner is deferred or feature-flagged.
+- Compact `AgentControlContextV1`, focused read tools, version-checked ChangeSet preview/confirm/apply, lifecycle-preserving replanning, and UI parity.
+- Authenticated hosted MCP adapter for ChatGPT Work plus a project-local Codex skill/CLI adapter using the same application commands; typed and voice input share the same permissions.
 - Template upgrade preview/three-way merge proven by at least one controlled version change.
 - Mobile-quality responsive Today, Review, Focus, notes, and Preparation Pack upload/preview; full graph editing remains desktop-first.
 - RLS/authorization, audit basics, observability, accessibility, and reduced motion.
@@ -59,6 +61,7 @@ Deliverables:
 - repository architecture and module boundaries;
 - accepted Phase 0 ADRs and [technical baseline](PHASE_0_TECHNICAL_BASELINE.md);
 - schema/event conventions;
+- accepted Agent Control ADR, compact context/change-set schemas, project-local PANDO/Graphify skills, and secret-safe repository indexing policy;
 - design/motion/accessibility tokens;
 - CI, migrations, test harness, local seed data;
 - minimal transactional outbox table, dispatcher, idempotent consumer harness, and failure test;
@@ -86,15 +89,15 @@ Exit: due reviews are queryable and deterministic before Planning consumes them;
 
 ### Phase 4 — Today, Focus, and Planning
 
-Build Growth Plan tracks, capacity/availability, optional Interview Campaign requirement/allocation overrides, constraints, candidate generation, deterministic ranking, structured explanations, alternatives, and entry from Today/Review into the Phase 2 Focus Session lifecycle.
+Build Growth Plan tracks, capacity/availability, optional Interview Campaign requirement/allocation overrides, constraints, candidate generation, deterministic ranking, structured explanations, alternatives, and entry from Today/Review into the Phase 2 Focus Session lifecycle. Add versioned lifecycle commands for create, pause, resume, complete, end, cancel, supersede, deadline, target, capacity, cadence, and allocation changes.
 
-Exit: a user with seeded state can open Today, understand the recommendation, choose an alternative, and start within two actions. Activating or ending a campaign changes priorities without erasing the base plan or evidence.
+Exit: a user with seeded state can open Today, understand the recommendation, choose an alternative, and start within two actions. Activating, cancelling, or ending a campaign changes priorities without erasing the base plan or evidence. Every lifecycle change has a deterministic before/after preview.
 
-### Phase 5 — Preparation Pack onboarding and Prompt Library
+### Phase 5 — Agent Control, Preparation Pack, and Prompt Library
 
-Build PreparationContext download, Preparation Pack schemas and storage, browser upload, immutable import audit, profile/personal-competency staging, validation, preview/diff, partial acceptance, confirmed application, and Prompt Library core scenarios. Add repository-folder import only as an optional development/self-hosted convenience.
+Build `AgentControlContextV1`, selective detail resources, ChangeSet preview/confirmation/application, plan-revision audit, focused MCP tools, OAuth user authorization, and the local Codex skill/CLI adapter. Both adapters call the same Phase 4 application commands and expose pending recalculation status. Build PreparationContext download, Preparation Pack schemas/storage, browser upload, immutable import audit, profile/personal-competency staging, validation, preview/diff, partial acceptance, confirmed application, and Prompt Library core scenarios. Add repository-folder import only as an optional development/self-hosted convenience.
 
-Exit: a user can create or update a Growth Plan or Interview Campaign through ChatGPT Work and browser upload; new target/competency proposals remain workspace-scoped; invalid identifiers fail safely; PANDO runtime requires no AI service or filesystem watcher.
+Exit: from a short typed or voice request, a connected ChatGPT Work/Codex client can explain the current plan, preview and confirm a version-checked multi-part change, and produce the same result as the manual UI. Cancelling an interview restores base-plan allocation and retains history. A user can also create a substantial Growth Plan or Interview Campaign through browser-uploaded Preparation Pack; invalid identifiers fail safely; PANDO runs no AI service and requires no filesystem watcher.
 
 ### Phase 6 — Integration and resilience
 
@@ -134,6 +137,7 @@ A feature is done only when:
 - tests cover the happy path and important failure/correction paths;
 - documentation and ADRs reflect hard-to-reverse decisions;
 - no AI or integration dependency silently becomes authoritative.
+- every agent-visible read is minimized and every agent-visible write has equivalent UI behavior, authorization, preview, confirmation, optimistic concurrency, audit, and idempotency tests.
 
 ## 6. Release acceptance scenarios
 
@@ -152,6 +156,8 @@ A feature is done only when:
 13. **Preparation Pack:** an external pack is uploaded through the hosted browser flow, validated, and previewed; invalid references fail safely; accepted new profiles and competencies remain workspace-scoped versioned data.
 14. **Global plus campaign plan:** a long-term LeetCode/Python/ML plan continues without a vacancy; starting a three-week campaign temporarily reallocates capacity; ending it restores the baseline with all new evidence retained.
 15. **Responsive core:** Today, Review, Focus, notes, and pack upload/preview are usable at the agreed mobile viewport and pass keyboard/touch accessibility checks; full graph editing is not required on mobile.
+16. **Short agent request:** “I want to switch specialty and have three months” loads the compact context, asks only material missing facts, previews a version-checked replan, and applies the confirmed change with the same result as manual UI operations.
+17. **Cancelled interview:** “the interview was cancelled” previews campaign cancellation, removes temporary overrides, restores base allocation, preserves goals/evidence/history, and applies nothing until confirmation.
 
 ## 7. Risks and mitigations
 
@@ -162,6 +168,7 @@ A feature is done only when:
 | Graph becomes the product bottleneck | Today/Focus/Review first-class; visible-subgraph rendering. |
 | Provider dependency | Capability adapters, inbox/idempotency, manual fallback. |
 | AI invents truth | Typed advisory proposals, validation, confirmation, deterministic engines. |
+| Agent sees too much or mutates the wrong state | Minimized layered context, OAuth user scope, focused tools, preview-bound confirmation, expected versions, no direct table/file mutation, and cross-workspace negative tests. |
 | Template/user conflicts | Versioned template plus overlay and deterministic merge preview. |
 | Premature scale complexity | Modular monolith, workload model, profiling before decomposition. |
 | Gamified busywork | Reward delayed and applied evidence, not clicks or coercive streaks. |

@@ -1,0 +1,3 @@
+interface:
+  display_name: "PANDO Control"
+  short_description: "Explain and safely replan live PANDO state"

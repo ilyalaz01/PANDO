@@ -1,0 +1,438 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/agent-control/v1/control-context.schema.json",
+  "title": "AgentControlContextV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "generated_at",
+    "etag",
+    "projection_watermark",
+    "workspace",
+    "growth_plan",
+    "active_campaign",
+    "goals",
+    "blockers",
+    "today",
+    "capabilities",
+    "detail_refs"
+  ],
+  "properties": {
+    "contract_version": {
+      "const": "1.0.0"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "etag": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._:-]{1,128}$"
+    },
+    "projection_watermark": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "workspace": {
+      "$ref": "#/$defs/workspace"
+    },
+    "growth_plan": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/growthPlan"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "active_campaign": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/campaign"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "goals": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/goal"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "$ref": "#/$defs/blocker"
+      }
+    },
+    "today": {
+      "type": "array",
+      "maxItems": 6,
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "read",
+          "preview_create_goal",
+          "preview_change_goal",
+          "preview_close_goal",
+          "preview_change_set",
+          "apply_change_set"
+        ]
+      }
+    },
+    "detail_refs": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/detailRef"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspace_id",
+        "time_zone"
+      ],
+      "properties": {
+        "workspace_id": {
+          "$ref": "#/$defs/id"
+        },
+        "time_zone": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal_id",
+        "kind",
+        "title",
+        "status",
+        "version",
+        "deadline"
+      ],
+      "properties": {
+        "goal_id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "outcome",
+            "readiness",
+            "growth"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "active",
+            "paused",
+            "completed",
+            "cancelled",
+            "superseded",
+            "archived"
+          ]
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "deadline": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "track": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "track_id",
+        "title",
+        "status",
+        "version",
+        "priority",
+        "protected_minimum_minutes"
+      ],
+      "properties": {
+        "track_id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "completed",
+            "archived"
+          ]
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "protected_minimum_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        }
+      }
+    },
+    "growthPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "growth_plan_id",
+        "title",
+        "status",
+        "version",
+        "weekly_capacity_minutes",
+        "tracks"
+      ],
+      "properties": {
+        "growth_plan_id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "status": {
+          "enum": [
+            "active",
+            "paused",
+            "archived"
+          ]
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "weekly_capacity_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "tracks": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "$ref": "#/$defs/track"
+          }
+        }
+      }
+    },
+    "campaign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "campaign_id",
+        "title",
+        "status",
+        "version",
+        "readiness_goal_id",
+        "deadline",
+        "temporary_allocation_minutes"
+      ],
+      "properties": {
+        "campaign_id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "active",
+            "ended",
+            "cancelled"
+          ]
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        },
+        "readiness_goal_id": {
+          "$ref": "#/$defs/id"
+        },
+        "deadline": {
+          "type": "string",
+          "format": "date"
+        },
+        "temporary_allocation_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blocker_id",
+        "kind",
+        "label",
+        "severity",
+        "detail_ref"
+      ],
+      "properties": {
+        "blocker_id": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "mandatory_floor",
+            "deadline",
+            "capacity",
+            "unknown",
+            "stale",
+            "constraint"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "severity": {
+          "enum": [
+            "info",
+            "warning",
+            "critical"
+          ]
+        },
+        "detail_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/id"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_id",
+        "label",
+        "duration_minutes",
+        "reason",
+        "source"
+      ],
+      "properties": {
+        "action_id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "source": {
+          "enum": [
+            "growth_plan",
+            "campaign",
+            "review",
+            "manual"
+          ]
+        }
+      }
+    },
+    "detailRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ref",
+        "kind",
+        "entity_id",
+        "version"
+      ],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "goal",
+            "track",
+            "campaign",
+            "target",
+            "today_explanation",
+            "evidence_summary"
+          ]
+        },
+        "entity_id": {
+          "$ref": "#/$defs/id"
+        },
+        "version": {
+          "$ref": "#/$defs/version"
+        }
+      }
+    }
+  }
+}

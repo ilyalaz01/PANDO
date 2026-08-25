@@ -20,6 +20,11 @@ blob-report/
 supabase/.branches/
 supabase/.temp/
 
+# Graphify: commit only the compact query artifacts.
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/GRAPH_REPORT.md
+
 # Secrets and local configuration
 .env
 .env.*

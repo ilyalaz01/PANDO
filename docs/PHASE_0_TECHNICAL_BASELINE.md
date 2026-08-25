@@ -21,6 +21,7 @@ This is a supporting implementation record. The nine canonical documents retain 
 | Mastery/readiness | Transparent ordinal levels and readiness intervals; Unknown never becomes zero | [Mastery policy](policies/MASTERY_READINESS_POLICY_V0.1.md) |
 | Review | Table-driven scheduler; no FSRS in MVP | [Review policy](policies/REVIEW_POLICY_V0.1.md) |
 | AI and PyPrep | No embedded AI or conversation retention in MVP; PyPrep is always an integration boundary | [ADR-0007](adr/0007-ai-and-pyprep-boundaries.md) |
+| Agent Control | External ChatGPT Work/Codex clients over compact read resources and preview/confirm/apply ChangeSets; OAuth user scope; same commands as UI. Graphify is repository orientation only. | [ADR-0008](adr/0008-agent-control-plane.md) |
 
 ## 2. Repository shape
 
@@ -65,7 +66,7 @@ Expected recurring infrastructure cost for the current single-user, personal, no
 - Supabase Free: USD 0, subject to database, storage, egress, function, inactivity, backup, and support limits;
 - Cloudflare R2 Standard: expected USD 0 while encrypted backups stay inside its current monthly free allowance;
 - GitHub repository and CI within the applicable free allowance;
-- embedded AI usage: USD 0 because no provider is called.
+- embedded AI and PANDO inference usage: USD 0 because language interpretation stays in the user's external ChatGPT Work/Codex session.
 
 The product must show no availability promise while it runs on free tiers. Supabase Free can pause inactive projects and does not provide production-grade automatic backup or SLA. Cloudflare R2 Standard is the selected off-site destination for client-side-encrypted logical dumps and storage manifests. Before storing irreplaceable personal evidence, Phase 0 must provide the backup command, retention policy, secret recovery procedure, and a tested restore.
 
@@ -91,6 +92,7 @@ Phase 0 does not exit until:
 8. a valid and malicious Preparation Pack fixture exercise both schema and semantic validation;
 9. mastery, readiness, and review golden fixtures are deterministic under an explicit clock;
 10. an encrypted dump restores into a clean local database.
+11. Agent Control context/change-set schemas and project skills validate; the root context fixture is at most 12 KiB; repository indexing excludes secrets, user exports, generated state, and production data.
 
 Initial measurable budgets:
 
@@ -112,7 +114,7 @@ Use a separate Codex Project task for each distinct outcome:
 3. Catalog, Targets, overlay, and graph vertical slice.
 4. Sessions, evidence, and calculation engines.
 5. Review, readiness, planning, and Today.
-6. Preparation Pack and external integration contracts.
+6. Agent Control, Preparation Pack, and external integration contracts.
 7. Release hardening, accessibility, performance, backup, and operations.
 
 Only lanes with disjoint files and no unmet dependency run in parallel. Write-heavy work uses Git worktrees and separate branches. The main task owns architectural decisions, integration order, and final verification.
@@ -144,3 +146,7 @@ Review the baseline when any of the following occurs:
 - [JSON Schema specification](https://json-schema.org/specification)
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/)
 - [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)
+- [OpenAI MCP server guide](https://developers.openai.com/plugins/build/mcp-server)
+- [OpenAI plugin skills](https://developers.openai.com/plugins/concepts/skills)
+- [OpenAI Voice](https://learn.chatgpt.com/docs/features/voice)
+- [Graphify](https://github.com/Graphify-Labs/graphify) — third-party repository orientation tool, pinned by project policy

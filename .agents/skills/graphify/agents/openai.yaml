@@ -1,0 +1,3 @@
+interface:
+  display_name: "Graphify for PANDO"
+  short_description: "Query PANDO repository relationships safely"

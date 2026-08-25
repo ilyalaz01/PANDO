@@ -1,4 +1,4 @@
-# PANDO — Domain Model v0.2
+# PANDO — Domain Model v0.3
 
 ## 1. Bounded contexts
 
@@ -14,7 +14,7 @@
 | Planning | Growth Plan, Learning Tracks, availability/capacity policies, campaign allocation overrides, next-best-action ranking, explanations, snapshots | target requirements and free-form LLM decisions |
 | Sessions | focus sessions, time budgets, completion flow | competency truth |
 | Integrations | provider accounts, cursors, imports, normalized provider events | domain semantics |
-| Learning Partner | conversation, explanations, proposals | direct authoritative mutations |
+| Agent Control | minimized control read models, version-checked change sets, confirmation records, and cross-module command coordination | domain truth, conversation retention, or direct authoritative writes |
 
 ## 2. Principal entities
 
@@ -55,6 +55,9 @@ EvidenceCorrection(id, evidence id, reason, replacement/invalidation)
 CompetencyState(user, competency, dimensions, level, freshness, confidence, version)
 ReviewItem(id, subject, due_at, reasons, state, scheduler metadata)
 PlanSnapshot(id, horizon, constraints, ranked actions, engine version)
+PlanChangeSet(id, workspace, base watermark, status, source client, reason, expires_at)
+PlanChangeOperation(id, change set, command type, aggregate ref, expected version, parameters)
+PlanRevision(id, workspace, applied change set, before/after watermark, summary, occurred_at)
 ```
 
 Identifiers, timestamps, workspace ownership, schema version, provenance, and audit metadata are required where applicable.
@@ -62,13 +65,16 @@ Identifiers, timestamps, workspace ownership, schema version, provenance, and au
 ### Ownership and cardinality invariants
 
 - A personal workspace has exactly one active `GrowthPlan` in the MVP and may retain archived plans for history.
+- `GrowthPlan` lifecycle is `active | paused | archived`; `LearningTrack` lifecycle is `active | paused | completed | archived`. Pausing is reversible and never deletes prior plan revisions or evidence.
 - A `GrowthPlan` has one or more `LearningTrack` records. Track template/profile references always point to exact immutable versions.
 - A workspace may retain many past campaigns but has at most one active `InterviewCampaign` in the MVP. Supporting simultaneous active campaigns requires a later policy and ADR.
+- `InterviewCampaign` lifecycle is `draft | active | ended | cancelled`. `cancelled` records that the external opportunity disappeared; `ended` records a normal campaign close. Neither state deletes the associated readiness/outcome goal or evidence.
 - An `InterviewCampaign` owns exactly one deadline and references exactly one `ReadinessGoal`; that goal references exactly one immutable `TargetProfile` version.
 - An optional `OutcomeGoal` records the real-world result. Readiness never completes it automatically.
 - Default weekly capacity belongs to the `GrowthPlan`; dated availability belongs to `AvailabilityWindow`; temporary reallocations belong to `CampaignAllocationOverride`.
 - Requirement weights/floors belong to `TargetProfile` versions or `CampaignRequirementOverride`, never to Planning.
 - The active interview target is derived from the active campaign's readiness goal. It is not duplicated on the workspace or in a generic `UserGoal`.
+- Agent Control owns only proposal/audit coordination. The operation named in each change set is executed by the bounded context that owns the affected aggregate.
 - Publishing a new template/profile version never silently retargets an existing track or goal. Upgrade occurs through preview and confirmed migration.
 
 ## 3. Canonical edge types
@@ -275,3 +281,28 @@ Template upgrades run a deterministic three-way merge: old template, new templat
 ## 11. State-changing commands
 
 Every command validates authorization and invariants and is idempotent where external retries are possible. When a command publishes a domain event or triggers asynchronous projection work, its state change and outbox record are committed in the same transaction. Evidence append, correction, target/profile publication, template upgrade, campaign lifecycle, and provider-normalization commands always use this path. Read models are rebuildable from authoritative state plus ledger/history.
+
+An agent, CLI, MCP tool, or UI never receives a separate mutation path. Multi-operation plan changes use one purpose-specific `ApplyPlanChangeSet` coordinator. It verifies the authenticated workspace, preview token, expiry, expected aggregate versions, base watermark, and confirmation record; executes the ordered owning-context commands; writes the plan revision and outbox events; and commits all effects atomically. A stale or partially invalid proposal applies nothing.
+
+## 12. Agent control contract
+
+`AgentControlContextV1` is a compact read projection, not authoritative state. Its root summary contains:
+
+- workspace and projection watermarks;
+- active Growth Plan, tracks, zero or one active Interview Campaign, and stable identifiers;
+- deadlines, current capacity/availability, protected minima, blockers, unknown/stale counts, and near-term actions;
+- aggregate versions required for optimistic concurrency;
+- links or opaque references for selectively expanding one goal, track, campaign, target, or explanation.
+
+The root summary has a hard serialized budget of 12 KiB and excludes raw evidence bodies, notes, provider payloads, secrets, and unrelated history. Detail resources are fetched only when the request requires them. An ETag or `changed_since` cursor allows incremental refresh.
+
+`PlanChangeSet` states are `draft | previewed | applied | rejected | expired`. Preview is deterministic and reports:
+
+- semantic operations and owning contexts;
+- what stops, pauses, remains active, or is newly created;
+- capacity and Today-plan impact;
+- history retained;
+- warnings, material unknowns, and required confirmations;
+- expected versions and the base input watermark.
+
+Reads and explanations do not require confirmation. Persisted plan changes require an explicit confirmation bound to the exact preview. Destructive deletion is not an agent operation in MVP; cancellation, ending, pausing, archiving, and superseding preserve history.
