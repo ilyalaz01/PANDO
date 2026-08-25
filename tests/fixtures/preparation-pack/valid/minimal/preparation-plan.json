@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "plan_id": "preparation-plan:fixture-verification",
-  "kind": "interview_campaign",
+  "kind": "interview_campaign_change",
   "target_profile_ref": {
     "file": "target-profile.json",
     "profile_id": "target-profile:fixture-verification",

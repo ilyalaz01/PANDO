@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "plan_id": "preparation-plan:fixture-growth-plan",
+  "kind": "growth_plan_change",
+  "sources": [
+    {
+      "source_id": "source:user-goal",
+      "kind": "user_provided",
+      "label": "User requested practical Python growth",
+      "locator": "user-provided:growth-plan-fixture",
+      "assertion_status": "user-stated"
+    },
+    {
+      "source_id": "source:unconfirmed",
+      "kind": "unconfirmed",
+      "label": "Fixture planning assumption",
+      "assertion_status": "unconfirmed"
+    }
+  ],
+  "capacity": {
+    "weekly_minutes": 300,
+    "protected_growth_minutes": 0,
+    "confidence": "high",
+    "source_refs": ["source:user-goal"],
+    "constraints": ["Prefer three focused sessions per week."]
+  },
+  "phases": [
+    {
+      "phase_id": "phase:python-practice",
+      "title": "Practical parsing practice",
+      "objective": "Build repeatable confidence with small structured-text exercises.",
+      "order": 1,
+      "confidence": "medium",
+      "source_refs": ["source:user-goal"]
+    }
+  ],
+  "milestones": [
+    {
+      "milestone_id": "milestone:three-parsers",
+      "phase_id": "phase:python-practice",
+      "title": "Complete three small parsers",
+      "success_criteria": "Three reviewed parser exercises produce qualifying application evidence.",
+      "confidence": "medium",
+      "source_refs": ["source:user-goal"]
+    }
+  ],
+  "proposed_activities": [
+    {
+      "activity_id": "personal-activity:weekly-parser-practice",
+      "scope": "workspace",
+      "lifecycle": "draft",
+      "title": "Weekly structured-text parser exercise",
+      "activity_type": "coding",
+      "effort": {
+        "minimum_minutes": 45,
+        "maximum_minutes": 75
+      },
+      "competency_impacts": [
+        {
+          "competency_ref": {
+            "kind": "canonical",
+            "competency_id": "competency:python.parsing",
+            "catalog_version": "1.0.0"
+          },
+          "impact": 0.8,
+          "confidence": "medium",
+          "source_refs": ["source:user-goal"]
+        }
+      ],
+      "expected_evidence": "CodingAttemptAccepted",
+      "confidence": "medium",
+      "source_refs": ["source:user-goal"]
+    }
+  ],
+  "paths": [
+    {
+      "kind": "minimum",
+      "milestone_ids": ["milestone:three-parsers"],
+      "activity_ids": ["personal-activity:weekly-parser-practice"],
+      "confidence": "medium",
+      "source_refs": ["source:user-goal"]
+    }
+  ],
+  "initial_reviews": [],
+  "mock_checkpoints": [],
+  "excluded_items": [],
+  "unknowns": [
+    {
+      "text": "The exact exercise sequence remains adaptive.",
+      "confidence": "high",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ],
+  "assumptions": [
+    {
+      "text": "The declared weekly capacity remains available.",
+      "confidence": "medium",
+      "source_refs": ["source:unconfirmed"]
+    }
+  ]
+}

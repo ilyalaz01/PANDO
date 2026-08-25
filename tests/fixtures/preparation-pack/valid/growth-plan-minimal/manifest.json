@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "pack:fixture-growth-plan",
+  "generated_at": "2026-08-25T10:05:00Z",
+  "target": {
+    "kind": "growth_plan",
+    "title": "Strengthen practical Python engineering"
+  },
+  "generator": {
+    "label": "Synthetic Growth Plan contract fixture",
+    "prompt_id": "prompt:growth-plan",
+    "prompt_version": "1.0.0"
+  },
+  "input_context": {
+    "context_id": "context:fixture-growth-plan",
+    "schema_version": "1.0.0",
+    "fingerprint": {
+      "algorithm": "sha256",
+      "digest": "37b9a544d3d7832c87ab6987b198a58484ad141632575823847c1fe0badf1f91",
+      "canonicalization": "pando-preparation-context-v1"
+    }
+  },
+  "files": [
+    {
+      "path": "preparation-plan.json",
+      "media_type": "application/json",
+      "encoding": "utf-8",
+      "schema_id": "https://schemas.pando.invalid/preparation-pack/v1/preparation-plan-1.0.0.schema.json",
+      "schema_version": "1.0.0",
+      "byte_length": 2866,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "6f4b9339f1149b3ae50cb4c63959b86a5dc221bd807f7ebf8f511fe14d412287"
+      }
+    },
+    {
+      "path": "rationale.md",
+      "media_type": "text/markdown",
+      "encoding": "utf-8",
+      "byte_length": 155,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "0c164f6d6fab2ca14d58952dff91ca3bc61a17632737390dc07ea5561f7210f3"
+      }
+    },
+    {
+      "path": "sources.md",
+      "media_type": "text/markdown",
+      "encoding": "utf-8",
+      "byte_length": 160,
+      "checksum": {
+        "algorithm": "sha256",
+        "digest": "851bbd5a03893e10c3d1ed3b329922c4b121912254ecb89eaa5611528e733903"
+      }
+    }
+  ]
+}

@@ -25,26 +25,62 @@
       "expected": { "structural": "accept", "semantic": "accept" }
     },
     {
-      "case_id": "valid-preparation-plan",
+      "case_id": "valid-interview-campaign-change-plan",
       "fixture": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "expected": { "structural": "accept", "semantic": "accept" }
+    },
+    {
+      "case_id": "valid-growth-plan-context",
+      "fixture": "valid/growth-plan-minimal/preparation-context.json",
+      "schema": "preparation-context.schema.json",
+      "expected": { "structural": "accept" }
+    },
+    {
+      "case_id": "valid-growth-plan-manifest-without-target-profile",
+      "fixture": "valid/growth-plan-minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "expected": { "structural": "accept", "semantic": "accept" }
+    },
+    {
+      "case_id": "valid-growth-plan-change-plan-without-target-profile",
+      "fixture": "valid/growth-plan-minimal/preparation-plan.json",
       "schema": "preparation-plan.schema.json",
       "expected": { "structural": "accept", "semantic": "accept" }
     }
   ],
-  "valid_pack_derived_values": {
-    "fixture_directory": "valid/minimal",
-    "content_fingerprint": {
-      "algorithm": "sha256",
-      "canonicalization": "pando-pack-content-v1",
-      "digest": "4dbeb98357c01e4e088563dcfd1baeb31b221dfb0fe5970005c06b847b9ca681"
+  "valid_pack_derived_values": [
+    {
+      "variant": "interview_campaign_change",
+      "fixture_directory": "valid/minimal",
+      "content_fingerprint": {
+        "algorithm": "sha256",
+        "canonicalization": "pando-pack-content-v1",
+        "digest": "781c88421dfdbd2d0a6d9b72a44eb807b7357a5ebc9d290593575707678cb294"
+      },
+      "manifest_must_not_contain_this_value": true
     },
-    "manifest_must_not_contain_this_value": true
-  },
+    {
+      "variant": "growth_plan_change",
+      "fixture_directory": "valid/growth-plan-minimal",
+      "content_fingerprint": {
+        "algorithm": "sha256",
+        "canonicalization": "pando-pack-content-v1",
+        "digest": "d184a84aa5a7e5714d3ccd98cf0449816f8fc365966883d4349e11112aad4b0b"
+      },
+      "manifest_must_not_contain_this_value": true
+    }
+  ],
   "case_collections": [
     {
       "fixture": "invalid/structural/schema-mutations.descriptor.json",
       "stage": "structural",
       "coverage": ["unknown-fields-every-root", "unknown-deep-fields", "bad-ids", "bad-refs", "unknown-vs-known-dimensions", "calendar-format", "schema-version", "checksum-syntax", "fingerprint-syntax", "manifest-self-hash", "descriptor-traversal"]
+    },
+    {
+      "fixture": "invalid/structural/cross-variant-mutations.descriptor.json",
+      "stage": "structural",
+      "coverage": ["growth-plan-no-target-profile", "interview-target-profile-required", "deadline-ownership", "variant-source-registry", "variant-file-set"]
     },
     {
       "fixture": "invalid/semantic/semantic-mutations.descriptor.json",
@@ -85,6 +121,9 @@
     "The manifest input fingerprint matches the exported preparation context; the server computes the pack content fingerprint itself.",
     "The combined proposed competency and activity count is at most 500.",
     "ZIP safety and workspace retention quotas are enforced before persistence.",
-    "Accepted personal content remains workspace-scoped and requires explicit confirmation."
+    "Accepted personal content remains workspace-scoped and requires explicit confirmation.",
+    "A growth_plan_change contains no Target Profile, role, target requirements, interview stages, or deadline.",
+    "An interview_campaign_change requires one target-profile.json and an exact target_profile_ref.",
+    "Preparation Packs remain confirmed large-plan authoring proposals, not AgentContext snapshots or direct semantic command batches."
   ]
 }

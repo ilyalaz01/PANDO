@@ -32,7 +32,7 @@
     {
       "case_id": "checksum-byte-length-mismatch",
       "base": "valid/minimal/manifest.json",
-      "patch": [{ "op": "replace", "path": "/files/0/byte_length", "value": 3809 }],
+      "patch": [{ "op": "replace", "path": "/files/0/byte_length", "value": 3816 }],
       "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_BYTE_LENGTH_MISMATCH" }
     },
     {
@@ -48,11 +48,31 @@
       "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_CONTEXT_ID_MISMATCH" }
     },
     {
-      "case_id": "manifest-target-kind-mismatch",
-      "base": "valid/minimal/manifest.json",
+      "case_id": "plan-kind-vs-manifest-target-mismatch",
+      "base": "valid/minimal/preparation-plan.json",
       "patch": [
-        { "op": "replace", "path": "/target/kind", "value": "growth_plan" },
-        { "op": "remove", "path": "/target/deadline" }
+        { "op": "replace", "path": "/kind", "value": "growth_plan_change" },
+        { "op": "remove", "path": "/target_profile_ref" },
+        { "op": "remove", "path": "/deadline" },
+        {
+          "op": "add",
+          "path": "/sources",
+          "value": [
+            {
+              "source_id": "source:vacancy",
+              "kind": "user_provided",
+              "label": "Synthetic source retained only to isolate the cross-variant semantic rule",
+              "locator": "user-provided:synthetic-fixture",
+              "assertion_status": "user-stated"
+            },
+            {
+              "source_id": "source:unconfirmed",
+              "kind": "unconfirmed",
+              "label": "Synthetic unconfirmed source",
+              "assertion_status": "unconfirmed"
+            }
+          ]
+        }
       ],
       "expected": { "structural": "accept", "semantic": "reject", "code": "SEMANTIC_TARGET_KIND_MISMATCH" }
     },

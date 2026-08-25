@@ -1,0 +1,102 @@
+{
+  "descriptor_version": "1.0.0",
+  "description": "Independent structural mutations proving Growth Plan and Interview Campaign authoring variants cannot borrow each other's authority-bearing fields or file sets.",
+  "cases": [
+    {
+      "case_id": "growth-plan-target-profile-ref-forbidden",
+      "base": "valid/growth-plan-minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [
+        {
+          "op": "add",
+          "path": "/target_profile_ref",
+          "value": {
+            "file": "target-profile.json",
+            "profile_id": "target-profile:must-not-exist",
+            "profile_version": "1.0.0"
+          }
+        }
+      ],
+      "expected": { "result": "reject", "code": "SCHEMA_VARIANT_FIELD_FORBIDDEN" }
+    },
+    {
+      "case_id": "growth-plan-deadline-forbidden",
+      "base": "valid/growth-plan-minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "add", "path": "/deadline", "value": "2026-12-01" }],
+      "expected": { "result": "reject", "code": "SCHEMA_VARIANT_FIELD_FORBIDDEN" }
+    },
+    {
+      "case_id": "growth-plan-sources-required",
+      "base": "valid/growth-plan-minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "remove", "path": "/sources" }],
+      "expected": { "result": "reject", "code": "SCHEMA_VARIANT_REQUIRED_FIELD" }
+    },
+    {
+      "case_id": "interview-target-profile-ref-required",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "remove", "path": "/target_profile_ref" }],
+      "expected": { "result": "reject", "code": "SCHEMA_VARIANT_REQUIRED_FIELD" }
+    },
+    {
+      "case_id": "interview-deadline-required",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [{ "op": "remove", "path": "/deadline" }],
+      "expected": { "result": "reject", "code": "SCHEMA_VARIANT_REQUIRED_FIELD" }
+    },
+    {
+      "case_id": "interview-growth-source-registry-forbidden",
+      "base": "valid/minimal/preparation-plan.json",
+      "schema": "preparation-plan.schema.json",
+      "patch": [
+        {
+          "op": "add",
+          "path": "/sources",
+          "value": [
+            {
+              "source_id": "source:wrong-variant",
+              "kind": "unconfirmed",
+              "label": "Must remain in target-profile.json for this variant",
+              "assertion_status": "unconfirmed"
+            }
+          ]
+        }
+      ],
+      "expected": { "result": "reject", "code": "SCHEMA_VARIANT_FIELD_FORBIDDEN" }
+    },
+    {
+      "case_id": "growth-manifest-target-profile-file-forbidden",
+      "base": "valid/growth-plan-minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [
+        {
+          "op": "add",
+          "path": "/files/3",
+          "value": {
+            "path": "target-profile.json",
+            "media_type": "application/json",
+            "encoding": "utf-8",
+            "schema_id": "https://schemas.pando.invalid/preparation-pack/v1/target-profile-1.0.0.schema.json",
+            "schema_version": "1.0.0",
+            "byte_length": 1,
+            "checksum": {
+              "algorithm": "sha256",
+              "digest": "0000000000000000000000000000000000000000000000000000000000000000"
+            }
+          }
+        }
+      ],
+      "expected": { "result": "reject", "code": "SCHEMA_PACK_VARIANT_FILES" }
+    },
+    {
+      "case_id": "interview-manifest-target-profile-file-required",
+      "base": "valid/minimal/manifest.json",
+      "schema": "manifest.schema.json",
+      "patch": [{ "op": "remove", "path": "/files/3" }],
+      "expected": { "result": "reject", "code": "SCHEMA_PACK_VARIANT_FILES" }
+    }
+  ]
+}

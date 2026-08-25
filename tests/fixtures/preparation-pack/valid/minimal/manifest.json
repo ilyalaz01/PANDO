@@ -28,10 +28,10 @@
       "encoding": "utf-8",
       "schema_id": "https://schemas.pando.invalid/preparation-pack/v1/preparation-plan-1.0.0.schema.json",
       "schema_version": "1.0.0",
-      "byte_length": 3810,
+      "byte_length": 3817,
       "checksum": {
         "algorithm": "sha256",
-        "digest": "f1bab6aa7ce69cfb4ae551626ff5102c333203da948a45e87258fe0f7c4200d9"
+        "digest": "b17c54b4864e89a1d72d61730719d97def3c47500293fd4cb9ba6c44065c9f23"
       }
     },
     {

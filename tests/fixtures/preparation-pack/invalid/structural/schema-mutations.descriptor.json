@@ -99,7 +99,7 @@
           "value": {
             "algorithm": "sha256",
             "canonicalization": "pando-pack-content-v1",
-            "digest": "4dbeb98357c01e4e088563dcfd1baeb31b221dfb0fe5970005c06b847b9ca681"
+            "digest": "781c88421dfdbd2d0a6d9b72a44eb807b7357a5ebc9d290593575707678cb294"
           }
         }
       ],

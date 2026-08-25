@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.pando.invalid/preparation-pack/v1/manifest-1.0.0.schema.json",
   "title": "PANDO Preparation Pack manifest",
-  "description": "Manifest for the four non-manifest pack files. The server computes the pack content fingerprint; the manifest never hashes itself and cannot declare that fingerprint.",
+  "description": "Variant-aware manifest. Growth Plan changes omit target-profile.json; Interview Campaign changes require it. The server computes the pack content fingerprint and the manifest never hashes itself.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -22,19 +22,30 @@
     "generator": { "$ref": "#/$defs/generator" },
     "input_context": { "$ref": "#/$defs/inputContext" },
     "files": {
-      "type": "array",
-      "description": "Exactly the four non-manifest files, in lexicographic path order.",
-      "prefixItems": [
-        { "$ref": "#/$defs/preparationPlanDescriptor" },
-        { "$ref": "#/$defs/rationaleDescriptor" },
-        { "$ref": "#/$defs/sourcesDescriptor" },
-        { "$ref": "#/$defs/targetProfileDescriptor" }
-      ],
-      "items": false,
-      "minItems": 4,
-      "maxItems": 4
+      "oneOf": [
+        { "$ref": "#/$defs/growthPlanFiles" },
+        { "$ref": "#/$defs/interviewCampaignFiles" }
+      ]
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "type": "object",
+        "required": ["target"],
+        "properties": { "target": { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "growth_plan" } } } }
+      },
+      "then": { "type": "object", "properties": { "files": { "$ref": "#/$defs/growthPlanFiles" } } }
+    },
+    {
+      "if": {
+        "type": "object",
+        "required": ["target"],
+        "properties": { "target": { "type": "object", "required": ["kind"], "properties": { "kind": { "const": "interview_campaign" } } } }
+      },
+      "then": { "type": "object", "properties": { "files": { "$ref": "#/$defs/interviewCampaignFiles" } } }
+    }
+  ],
   "$defs": {
     "target": {
       "type": "object",
@@ -91,6 +102,31 @@
         "schema_version": { "const": "1.0.0" },
         "fingerprint": { "$ref": "common.schema.json#/$defs/contextFingerprint" }
       }
+    },
+    "growthPlanFiles": {
+      "type": "array",
+      "description": "Exactly the three non-manifest Growth Plan files in lexicographic order; no target profile is present.",
+      "prefixItems": [
+        { "$ref": "#/$defs/preparationPlanDescriptor" },
+        { "$ref": "#/$defs/rationaleDescriptor" },
+        { "$ref": "#/$defs/sourcesDescriptor" }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "interviewCampaignFiles": {
+      "type": "array",
+      "description": "Exactly the four non-manifest Interview Campaign files in lexicographic order.",
+      "prefixItems": [
+        { "$ref": "#/$defs/preparationPlanDescriptor" },
+        { "$ref": "#/$defs/rationaleDescriptor" },
+        { "$ref": "#/$defs/sourcesDescriptor" },
+        { "$ref": "#/$defs/targetProfileDescriptor" }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
     },
     "preparationPlanDescriptor": {
       "type": "object",
