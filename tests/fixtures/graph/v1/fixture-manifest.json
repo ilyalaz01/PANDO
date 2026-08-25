@@ -5,10 +5,10 @@
     "version": "1.0.0"
   },
   "status": {
-    "kind": "DESIGN_SCAFFOLD",
-    "committedExecutableSchemaValidatorAvailable": false,
-    "committedExecutableSemanticValidatorAvailable": false,
-    "note": "Case outcomes and violation codes are declarative requirements until the repository contains and runs the contract validator."
+    "kind": "EXECUTABLE_CONTRACT_SUITE",
+    "committedExecutableSchemaValidatorAvailable": true,
+    "committedExecutableSemanticValidatorAvailable": true,
+    "note": "Ajv Draft 2020-12 and the GraphProjection semantic validator execute every applicable case; descriptor cases execute through deterministic materializers."
   },
   "schemaPath": "../../../../schemas/graph-projection/v1/graph-projection.schema.json",
   "cases": [

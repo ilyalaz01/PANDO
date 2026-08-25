@@ -92,11 +92,12 @@
       "then": {
         "type": "object",
         "required": ["sources"],
+        "properties": { "sources": { "$ref": "#/properties/sources" } },
         "not": {
           "type": "object",
           "anyOf": [
-            { "type": "object", "required": ["target_profile_ref"] },
-            { "type": "object", "required": ["deadline"] }
+            { "type": "object", "properties": { "target_profile_ref": {} }, "required": ["target_profile_ref"] },
+            { "type": "object", "properties": { "deadline": {} }, "required": ["deadline"] }
           ]
         }
       }
@@ -110,7 +111,11 @@
       "then": {
         "type": "object",
         "required": ["target_profile_ref", "deadline"],
-        "not": { "type": "object", "required": ["sources"] }
+        "properties": {
+          "target_profile_ref": { "$ref": "#/$defs/targetProfileRef" },
+          "deadline": { "$ref": "common.schema.json#/$defs/date" }
+        },
+        "not": { "type": "object", "properties": { "sources": {} }, "required": ["sources"] }
       }
     }
   ],

@@ -744,7 +744,8 @@
               "nodeType": {
                 "const": "DOMAIN"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
@@ -753,7 +754,8 @@
                   "entityType": {
                     "const": "DOMAIN"
                   }
-                }
+                },
+                "type": "object"
               },
               "domainNodeId": {
                 "type": "null"
@@ -764,9 +766,11 @@
                   "achievementLevel": {
                     "type": "null"
                   }
-                }
+                },
+                "type": "object"
               }
-            }
+            },
+            "type": "object"
           }
         },
         {
@@ -775,7 +779,8 @@
               "nodeType": {
                 "const": "GROUP"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
@@ -784,7 +789,8 @@
                   "entityType": {
                     "const": "GROUP"
                   }
-                }
+                },
+                "type": "object"
               },
               "state": {
                 "$ref": "#/$defs/semanticState",
@@ -792,9 +798,11 @@
                   "achievementLevel": {
                     "type": "null"
                   }
-                }
+                },
+                "type": "object"
               }
-            }
+            },
+            "type": "object"
           }
         },
         {
@@ -803,7 +811,8 @@
               "nodeType": {
                 "const": "COMPETENCY"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
@@ -812,7 +821,8 @@
                   "entityType": {
                     "const": "COMPETENCY"
                   }
-                }
+                },
+                "type": "object"
               },
               "state": {
                 "$ref": "#/$defs/semanticState",
@@ -825,9 +835,11 @@
                       "MASTERED"
                     ]
                   }
-                }
+                },
+                "type": "object"
               }
-            }
+            },
+            "type": "object"
           }
         },
         {
@@ -836,7 +848,8 @@
               "nodeType": {
                 "const": "ACTIVITY"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
@@ -845,12 +858,14 @@
                   "entityType": {
                     "const": "ACTIVITY"
                   }
-                }
+                },
+                "type": "object"
               },
               "state": {
                 "$ref": "#/$defs/activityState"
               }
-            }
+            },
+            "type": "object"
           }
         }
       ]
@@ -934,14 +949,16 @@
                   "const": "PREREQUISITE_OF"
                 }
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
               "blocking": {
                 "const": false
               }
-            }
+            },
+            "type": "object"
           }
         },
         {
@@ -950,7 +967,8 @@
               "edgeType": {
                 "const": "USER_ADDED"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
@@ -959,9 +977,11 @@
                   "kind": {
                     "const": "WORKSPACE_OVERLAY"
                   }
-                }
+                },
+                "type": "object"
               }
-            }
+            },
+            "type": "object"
           }
         }
       ]
@@ -1506,7 +1526,8 @@
               "status": {
                 "const": "NOT_APPLICABLE"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "properties": {
@@ -1521,7 +1542,8 @@
                   "upper": {
                     "const": 0
                   }
-                }
+                },
+                "type": "object"
               },
               "coverage": {
                 "const": 0
@@ -1529,7 +1551,8 @@
               "confidence": {
                 "const": "NOT_APPLICABLE"
               }
-            }
+            },
+            "type": "object"
           },
           "else": {
             "properties": {
@@ -1543,7 +1566,8 @@
                   "HIGH"
                 ]
               }
-            }
+            },
+            "type": "object"
           }
         }
       ]
@@ -1725,7 +1749,8 @@
               "source": {
                 "const": "WORKSPACE_OVERRIDE"
               }
-            }
+            },
+            "type": "object"
           },
           "then": {
             "required": [
@@ -1734,20 +1759,29 @@
             "properties": {
               "overrideRevision": {
                 "$ref": "#/$defs/stableId"
+              },
+              "overrideWorkspaceId": {
+                "$ref": "#/$defs/stableId"
               }
-            }
+            },
+            "type": "object"
           },
           "else": {
             "not": {
+              "properties": {
+                "overrideWorkspaceId": {}
+              },
               "required": [
                 "overrideWorkspaceId"
-              ]
+              ],
+              "type": "object"
             },
             "properties": {
               "overrideRevision": {
                 "type": "null"
               }
-            }
+            },
+            "type": "object"
           }
         }
       ]

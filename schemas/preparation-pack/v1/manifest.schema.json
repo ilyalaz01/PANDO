@@ -63,7 +63,11 @@
             "properties": { "kind": { "const": "interview_campaign" } },
             "required": ["kind"]
           },
-          "then": { "type": "object", "required": ["deadline"] }
+          "then": {
+            "type": "object",
+            "required": ["deadline"],
+            "properties": { "deadline": { "$ref": "common.schema.json#/$defs/date" } }
+          }
         },
         {
           "if": {
@@ -73,7 +77,8 @@
           },
           "then": {
             "type": "object",
-            "not": { "type": "object", "required": ["deadline"] }
+            "properties": { "deadline": { "$ref": "common.schema.json#/$defs/date" } },
+            "not": { "type": "object", "properties": { "deadline": {} }, "required": ["deadline"] }
           }
         }
       ]

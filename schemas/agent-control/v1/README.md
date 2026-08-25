@@ -8,4 +8,13 @@ These Draft 2020-12 schemas define the compact external-client boundary accepted
 - Reads/proposals never persist domain state. `apply_change_set` cannot alter the preview and never accepts arbitrary SQL, table names, file paths, or event bodies.
 - These contracts are distinct from Preparation Pack, GraphProjectionV1, the competency DAG, and Graphify repository output.
 
-The committed fixtures cover a compact live summary and the cancelled-interview preview. Runtime Ajv/semantic harness work is tracked by the Phase 0 quality gates; until it exists these schemas are accepted design contracts, not a claim of a deployed MCP surface.
+The committed runtime harness lives in `src/shared/contracts/agent-control.ts`. It executes strict
+Ajv structure, the 12 KiB root budget, compact-reference/cardinality checks, operation/argument
+compatibility, lifecycle-state coherence, confirmation binding, explicit-clock expiry, and optional
+workspace/aggregate-version checks. `tests/contract/agent-control.test.ts` runs valid and adversarial
+vectors through that boundary.
+
+This still does not claim a deployed MCP surface or applied command transaction. OAuth membership,
+current aggregate lookup, preview-digest recomputation (whose canonical digest recipe is not yet
+specified), idempotency receipts, authorization, and all-or-nothing database application require the
+Phase 4/5 application boundary and database state.

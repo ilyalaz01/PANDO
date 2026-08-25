@@ -50,4 +50,14 @@ Archive validation precedes structural validation and enforces ADR-0005 path nor
 
 The v1 hard limits are: 1 MiB compressed archive; 4 MiB total uncompressed; 8 archive entries; 1 MiB per entry; 100:1 maximum compression ratio; JSON nesting 32; 200 target requirements; 500 proposed competencies plus activities in aggregate; and a 5-second validation timeout. Retention permits at most 20 accepted packs or 50 MiB per workspace, whichever is reached first.
 
-No compatible validator is installed in the repository yet and root package/config changes are outside this outcome. `tests/fixtures/preparation-pack/fixture-matrix.json` therefore provides the deterministic valid, invalid, boundary, semantic, archive, retention, and malicious matrix for the future Ajv/import harness.
+The committed runtime harness lives in `src/shared/contracts/preparation-pack.ts`,
+`preparation-archive.ts`, and `schema-registry.ts`. It executes strict local-only Ajv structure,
+RFC 8785 context and content fingerprints, raw-byte descriptor integrity, cross-file references,
+variant coherence, DAG/date/effort/cardinality rules, archive-metadata normalization, hard limits,
+and retention predicates. `tests/contract/preparation-pack.test.ts` materializes every RFC 6902,
+boundary, archive, retention, and malicious descriptor in the fixture matrix.
+
+The harness consumes already parsed JSON and archive-entry metadata. A streaming ZIP byte parser,
+upload timeout enforcement, authenticated workspace quota lookup, private storage, preview,
+confirmation, persistence, and cleanup job remain ingestion/application work; the metadata harness
+must be called by that parser and is not itself a claim that arbitrary ZIP bytes are safely opened.

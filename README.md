@@ -66,11 +66,12 @@ projection composition.
 
 ## Dependency policy
 
-The only production dependencies are Next.js, React, and React DOM. Tailwind CSS and the lint,
-format, type, unit, accessibility, and E2E tools are development-only dependencies required by
-ADR-0001 and this executable foundation. There is no ORM, monorepo tooling, global state library,
-or runtime provider SDK. `pnpm-workspace.yaml` is pnpm 11's required project-settings file; because
-it declares no `packages`, the repository remains a single package.
+Production dependencies are Next.js, React, and React DOM plus the contract-boundary libraries
+required by ADR-0005: Ajv Draft 2020-12, `ajv-formats`, and RFC 8785 JSON canonicalization. Tailwind
+CSS and the lint, format, type, unit, accessibility, and E2E tools remain development-only. There
+is no ORM, monorepo tooling, global state library, or runtime provider SDK. `pnpm-workspace.yaml`
+is pnpm 11's required project-settings file; because it declares no `packages`, the repository
+remains a single package.
 
 ## Licensing and contributions
 

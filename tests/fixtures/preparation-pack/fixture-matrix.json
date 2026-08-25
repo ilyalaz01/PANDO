@@ -1,52 +1,76 @@
 {
   "matrix_version": "1.0.0",
   "contract_version": "1.0.0",
-  "validator_status": "not-installed",
+  "validator_status": "runtime-ajv-and-semantic-harness-installed",
   "schema_resolution": "Load every schema from schemas/preparation-pack/v1 and resolve only relative local $ref values; remote loading is forbidden.",
   "case_materialization": "Descriptor patches use RFC 6902 and are applied independently to their base; precondition_patch runs before patch when present. Semantic cross-file cases follow their declared manifest recomputation policy so checksum failures cannot mask the named rule. Generated boundary cases use the exact seed, pointer, index range, and value template in the descriptor.",
-  "stages": ["structural", "semantic", "archive", "retention"],
+  "stages": [
+    "structural",
+    "semantic",
+    "archive",
+    "retention"
+  ],
   "valid_fixtures": [
     {
       "case_id": "valid-preparation-context",
       "fixture": "valid/minimal/preparation-context.json",
       "schema": "preparation-context.schema.json",
-      "expected": { "structural": "accept" }
+      "expected": {
+        "structural": "accept"
+      }
     },
     {
       "case_id": "valid-manifest",
       "fixture": "valid/minimal/manifest.json",
       "schema": "manifest.schema.json",
-      "expected": { "structural": "accept", "semantic": "accept" }
+      "expected": {
+        "structural": "accept",
+        "semantic": "accept"
+      }
     },
     {
       "case_id": "valid-target-profile-with-personal-proposal",
       "fixture": "valid/minimal/target-profile.json",
       "schema": "target-profile.schema.json",
-      "expected": { "structural": "accept", "semantic": "accept" }
+      "expected": {
+        "structural": "accept",
+        "semantic": "accept"
+      }
     },
     {
       "case_id": "valid-interview-campaign-change-plan",
       "fixture": "valid/minimal/preparation-plan.json",
       "schema": "preparation-plan.schema.json",
-      "expected": { "structural": "accept", "semantic": "accept" }
+      "expected": {
+        "structural": "accept",
+        "semantic": "accept"
+      }
     },
     {
       "case_id": "valid-growth-plan-context",
       "fixture": "valid/growth-plan-minimal/preparation-context.json",
       "schema": "preparation-context.schema.json",
-      "expected": { "structural": "accept" }
+      "expected": {
+        "structural": "accept"
+      }
     },
     {
       "case_id": "valid-growth-plan-manifest-without-target-profile",
       "fixture": "valid/growth-plan-minimal/manifest.json",
       "schema": "manifest.schema.json",
-      "expected": { "structural": "accept", "semantic": "accept" }
+      "expected": {
+        "structural": "accept",
+        "semantic": "accept"
+      }
     },
     {
       "case_id": "valid-growth-plan-change-plan-without-target-profile",
       "fixture": "valid/growth-plan-minimal/preparation-plan.json",
       "schema": "preparation-plan.schema.json",
-      "expected": { "structural": "accept", "semantic": "accept" }
+      "expected": {
+        "structural": "accept",
+        "semantic": "accept"
+      }
     }
   ],
   "valid_pack_derived_values": [
@@ -75,42 +99,108 @@
     {
       "fixture": "invalid/structural/schema-mutations.descriptor.json",
       "stage": "structural",
-      "coverage": ["unknown-fields-every-root", "unknown-deep-fields", "bad-ids", "bad-refs", "unknown-vs-known-dimensions", "calendar-format", "schema-version", "checksum-syntax", "fingerprint-syntax", "manifest-self-hash", "descriptor-traversal"]
+      "coverage": [
+        "unknown-fields-every-root",
+        "unknown-deep-fields",
+        "bad-ids",
+        "bad-refs",
+        "unknown-vs-known-dimensions",
+        "calendar-format",
+        "schema-version",
+        "checksum-syntax",
+        "fingerprint-syntax",
+        "manifest-self-hash",
+        "descriptor-traversal"
+      ]
     },
     {
       "fixture": "invalid/structural/cross-variant-mutations.descriptor.json",
       "stage": "structural",
-      "coverage": ["growth-plan-no-target-profile", "interview-target-profile-required", "deadline-ownership", "variant-source-registry", "variant-file-set"]
+      "coverage": [
+        "growth-plan-no-target-profile",
+        "interview-target-profile-required",
+        "deadline-ownership",
+        "variant-source-registry",
+        "variant-file-set"
+      ]
     },
     {
       "fixture": "invalid/semantic/semantic-mutations.descriptor.json",
       "stage": "semantic",
-      "coverage": ["dangling-competency-source-requirement-phase-milestone-activity-refs", "catalog-version", "duplicate-ids", "cycle", "checksum-verification", "fingerprint-verification", "context-id", "target-kind-and-deadline-consistency", "cross-file-refs", "date-order", "effort-order"]
+      "coverage": [
+        "dangling-competency-source-requirement-phase-milestone-activity-refs",
+        "catalog-version",
+        "duplicate-ids",
+        "cycle",
+        "checksum-verification",
+        "fingerprint-verification",
+        "context-id",
+        "target-kind-and-deadline-consistency",
+        "cross-file-refs",
+        "date-order",
+        "effort-order"
+      ]
     },
     {
       "fixture": "invalid/semantic/cycle-cases.descriptor.json",
       "stage": "semantic",
-      "coverage": ["self-edge", "canonical-plus-proposed-cycle"]
+      "coverage": [
+        "self-edge",
+        "canonical-plus-proposed-cycle"
+      ]
     },
     {
       "fixture": "boundary/quota-cases.descriptor.json",
       "stage": "mixed",
-      "coverage": ["archive-byte-limits", "entry-count", "compression-ratio", "json-nesting", "validation-timeout", "requirements-200", "proposals-500", "workspace-retention"]
+      "coverage": [
+        "archive-byte-limits",
+        "entry-count",
+        "compression-ratio",
+        "json-nesting",
+        "validation-timeout",
+        "requirements-200",
+        "proposals-500",
+        "workspace-retention"
+      ]
     },
     {
       "fixture": "boundary/calendar-cases.descriptor.json",
       "stage": "structural",
-      "coverage": ["valid-leap-day", "invalid-non-leap-day", "month-day-overflow", "valid-leap-timestamp"]
+      "coverage": [
+        "valid-leap-day",
+        "invalid-non-leap-day",
+        "month-day-overflow",
+        "valid-leap-timestamp"
+      ]
     },
     {
       "fixture": "malicious/archive-paths.descriptor.json",
       "stage": "archive",
-      "coverage": ["slash-and-backslash-parent-traversal", "posix-drive-unc-device-absolute-paths", "exact-and-normalized-duplicates", "path-aliases", "nul", "case-collision", "multiple-roots", "symlink", "encryption", "encoding", "unsupported-entry"]
+      "coverage": [
+        "slash-and-backslash-parent-traversal",
+        "posix-drive-unc-device-absolute-paths",
+        "exact-and-normalized-duplicates",
+        "path-aliases",
+        "nul",
+        "case-collision",
+        "multiple-roots",
+        "symlink",
+        "encryption",
+        "encoding",
+        "unsupported-entry"
+      ]
     },
     {
       "fixture": "malicious/personal-competency-authority.descriptor.json",
       "stage": "structural",
-      "coverage": ["canonical-promotion", "published-lifecycle", "canonical-id", "mastery", "fabricated-evidence", "workspace-injection"]
+      "coverage": [
+        "canonical-promotion",
+        "published-lifecycle",
+        "canonical-id",
+        "mastery",
+        "fabricated-evidence",
+        "workspace-injection"
+      ]
     }
   ],
   "non_schema_invariants": [

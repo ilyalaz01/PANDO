@@ -8,9 +8,9 @@
   },
   "purpose": "Uniquely materialize the structural 500-node stress oracle and its semantic distributions without committing renderer or layout runtime code.",
   "status": {
-    "kind": "DESIGN_SCAFFOLD",
-    "executableMaterializerAvailable": false,
-    "note": "The recipe and expected oracles are declarative until a committed materializer and semantic validator execute them."
+    "kind": "EXECUTABLE_CONTRACT_FIXTURE",
+    "executableMaterializerAvailable": true,
+    "note": "The committed deterministic materializer executes this recipe and validates the expanded artifact structurally and semantically."
   },
   "recipeFingerprintAlgorithm": {
     "canonicalization": "RFC_8785_JCS",
@@ -19,7 +19,7 @@
     "digest": "SHA-256"
   },
   "materialization": {
-    "recipeFingerprint": "303ab4f90999a0f9492a97fee9717e8a575de058cb4917c727ca73df181d1a2f",
+    "recipeFingerprint": "09c8f70e3e4fa93eedc26ff76099aca823e74ba3ed35286d963275788cc56474",
     "materializerVersion": "pando-stress-materializer-v1",
     "randomness": "NONE",
     "decimalOrdinalFormat": "FOUR_DIGITS_ZERO_PADDED",
@@ -308,12 +308,16 @@
       "maximumRenderedNodeCount": 150,
       "maximumRenderedEdgeCount": 300
     },
-    "serializationRecipe": "Construct properties in GraphProjectionV1 schema order and sort every identity array by the declared comparator. Exact expanded-byte hashing is intentionally deferred until a committed test materializer exists."
+    "serializationRecipe": "Construct properties in GraphProjectionV1 schema order and sort every identity array by the declared comparator. Serialize the expanded artifact as UTF-8 JSON with two-space indentation, LF line endings, and exactly one trailing LF."
   },
   "structuralOracle": {
     "dependencyFreeReferenceMaterializationSchemaValid": true,
     "structuralFingerprint": "7edc89cac0e66ee0d5eac70ab63759c2ad05be9ed08e4a50a49a7cf0141e9372",
-    "expandedArtifactHashAndByteMetrics": "DEFERRED_UNTIL_COMMITTED_TEST_MATERIALIZER",
+    "expandedArtifactHashAndByteMetrics": {
+      "serialization": "JSON_PRETTY_TWO_SPACES_LF_ONE_TRAILING_LF",
+      "byteLength": 2109910,
+      "sha256": "d3caecbb2df56b8e28ca21c3bd6c2272e9d2ec3b36bb80f4d1615e091e3e3ef4"
+    },
     "nodeCount": 500,
     "edgeCount": 1285,
     "ruleCount": 25,
@@ -347,5 +351,5 @@
     "serverExpansionTriggerTotalNodesGreaterThan": 500,
     "serverExpansionTriggerCompressedBytesGreaterThan": 256000
   },
-  "scopeNote": "This descriptor is a design scaffold. JSON parsing and the recipe fingerprint can be checked now, but expanded schema/semantic validation, exact expanded-byte hashing, runtime p95, and frame budgets remain for a later committed test materializer and renderer/layout implementation. This task adds no generator dependency, React Flow, or Dagre runtime."
+  "scopeNote": "The committed test materializer validates recipe fingerprint, expanded schema/semantics, structural fingerprint, exact expanded bytes, and count oracles. Browser frame and runtime p95 budgets remain Phase 1 renderer/layout work."
 }
