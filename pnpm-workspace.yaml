@@ -1,0 +1,11 @@
+# pnpm 11 stores project settings here. With no `packages` field, this remains a single package.
+engineStrict: true
+saveExact: true
+strictPeerDependencies: true
+
+# eslint-config-next 16.3.2's plugin peers cap ESLint below 10.
+allowedDeprecatedVersions:
+  eslint: "9.39.5"
+
+allowBuilds:
+  unrs-resolver: false

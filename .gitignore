@@ -1,10 +1,13 @@
 # Dependencies and builds
 node_modules/
+.pnpm-store/
 .next/
+next-env.d.ts
 out/
 dist/
 coverage/
 .turbo/
+*.tsbuildinfo
 
 # Test artifacts
 playwright-report/
