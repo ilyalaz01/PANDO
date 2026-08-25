@@ -7,6 +7,7 @@ import {
   MasteryInputError,
   type CalculateCompetencyStateInput,
   type MasteryEvidenceInput,
+  type MasteryPolicy,
 } from "./types";
 
 const fixture = masteryGolden as unknown as {
@@ -349,5 +350,33 @@ describe("calculateCompetencyState", () => {
       }),
     ).toThrow(/must not be empty/u);
     expect(() => calculate([], "2024-99-99T12:00:00Z")).toThrow(MasteryInputError);
+  });
+  it("rejects malformed runtime enums, booleans, and policy maps", () => {
+    const input: CalculateCompetencyStateInput = {
+      competencyId: "competency:test",
+      inputWatermark: "watermark:1",
+      evidence: [],
+    };
+    const missingFreshnessKey = {
+      ...MASTERY_POLICY_V0_1,
+      freshnessDays: {
+        KNOWLEDGE: 90,
+        RECALL: 30,
+        APPLICATION: 60,
+      },
+    } as unknown as MasteryPolicy;
+    const invalidDimension = evidence({
+      dimension: "SELF_CONFIDENCE" as unknown as MasteryEvidenceInput["dimension"],
+    });
+    const invalidBoolean = {
+      ...evidence(),
+      normalized: "yes",
+    } as unknown as MasteryEvidenceInput;
+
+    expect(() =>
+      calculateCompetencyState(input, missingFreshnessKey, { asOf: "2024-04-01T12:00:00Z" }),
+    ).toThrow(/must contain exactly/u);
+    expect(() => calculate([invalidDimension])).toThrow(/unsupported value/u);
+    expect(() => calculate([invalidBoolean])).toThrow(/must be boolean/u);
   });
 });

@@ -76,6 +76,32 @@ For weighted requirements:
 
 ALL, ANY, and K_OF_N evaluate their child rules explicitly. WEIGHTED_THRESHOLD uses the interval. MANDATORY_FLOOR is evaluated before the aggregate.
 
+Every rule records its raw attainment interval and its outcome at that rule's local threshold. When
+a rule is used as a member of a parent rule, the parent receives a satisfaction interval derived
+from that local outcome: SATISFIED becomes [1, 1], FAILED becomes [0, 0], and UNRESOLVED becomes
+[0, 1]. The child contributes only the witness metadata selected by its own operator; its raw
+attainment interval remains available in the child's rule evaluation and is not substituted into
+the parent.
+
+The effective target threshold is the input target-profile threshold, or the policy default when
+the input omits it. A root ALL, ANY, or K_OF_N rule evaluates its local outcome at that effective
+threshold. A root WEIGHTED_THRESHOLD must declare exactly the same threshold or the input is
+invalid. Nested ALL, ANY, and K_OF_N rules use threshold 1; nested WEIGHTED_THRESHOLD rules use
+their declared threshold; every MANDATORY_FLOOR uses threshold 1.
+
+Operator witness and coverage rules are deterministic:
+
+- ALL uses every child as a decision witness and averages child coverage;
+- ANY uses one strongest child and that child's coverage;
+- K_OF_N uses the K strongest children and averages their coverage;
+- WEIGHTED_THRESHOLD uses every positively weighted child, with known weight divided by total
+  weight as coverage.
+
+ANY and K_OF_N order candidate witnesses by lower bound descending, upper bound descending,
+coverage descending, confidence rank descending (High, Medium, Low, then absent), and stable member
+key ascending. Confidence considers only known, positively weighted decision inputs selected by the
+operator. Nested witness leaf identifiers are deduplicated and emitted in stable order.
+
 ## 5. Status
 
 - Not ready: any known mandatory floor is below its requirement, or all requirements are known and the upper bound is below the profile threshold.

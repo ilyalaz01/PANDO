@@ -101,6 +101,7 @@ export interface RuleEvaluation extends ReadinessInterval {
   readonly coverage: number;
   readonly threshold: number;
   readonly outcome: "SATISFIED" | "FAILED" | "UNRESOLVED";
+  readonly witnessMemberKeys: readonly string[];
 }
 
 export interface ReadinessBlocker extends ReadinessInterval {

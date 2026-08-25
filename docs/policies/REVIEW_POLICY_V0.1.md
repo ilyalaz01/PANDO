@@ -56,7 +56,7 @@ Completing qualifying evidence resolves the current occurrence, recalculates rea
 
 ## 6. Deduplication and corrections
 
-Events may arrive late or be replayed. The scheduler rebuilds from authoritative evidence and append-only actions using event and action identifiers. Duplicate input produces no additional item or reason. Evidence correction or invalidation can reopen a reason and must preserve audit history.
+Events may arrive late or be replayed. The scheduler rebuilds from authoritative evidence and append-only actions using event and action identifiers. Exact event-identifier replays are deduplicated. Before selecting the greatest revision for a reason source, the fold validates every `(sourceKey, sourceRevision)` group independently of input order. Two distinct event identifiers in one such group are conflicting input, including when that revision is older than the latest revision. Duplicate input produces no additional item or reason. Evidence correction or invalidation can reopen a reason and must preserve audit history.
 
 ## 7. Change rule
 

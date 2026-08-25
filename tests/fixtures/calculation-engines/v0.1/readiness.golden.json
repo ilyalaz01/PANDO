@@ -102,7 +102,12 @@
         "upper": 0.94,
         "coverage": 0.8,
         "threshold": 0.8,
-        "outcome": "UNRESOLVED"
+        "outcome": "UNRESOLVED",
+        "witnessMemberKeys": [
+          "NODE:competency:application:APPLICATION:MASTERED",
+          "NODE:competency:interview:INTERVIEW_EXECUTION:VERIFIED",
+          "NODE:competency:recall:RECALL:VERIFIED"
+        ]
       }
     ],
     "explanationCodes": [

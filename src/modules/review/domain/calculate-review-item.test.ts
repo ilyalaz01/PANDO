@@ -10,6 +10,7 @@ import { REVIEW_POLICY_V0_1 } from "./review-policy-v0.1";
 import {
   ReviewInputError,
   type CalculateReviewItemInput,
+  type ReviewPolicy,
   type ReviewReasonEventInput,
 } from "./review-types";
 
@@ -32,6 +33,15 @@ function reason(overrides: Partial<ReviewReasonEventInput> = {}): ReviewReasonEv
   };
 }
 
+function permutations<T>(items: readonly T[]): readonly (readonly T[])[] {
+  if (items.length <= 1) return [[...items]];
+  return items.flatMap((item, index) =>
+    permutations([...items.slice(0, index), ...items.slice(index + 1)]).map((tail) => [
+      item,
+      ...tail,
+    ]),
+  );
+}
 function calculate(reasonEvents: readonly ReviewReasonEventInput[], asOf = "2024-04-01T12:00:00Z") {
   return calculateReviewItem(
     {
@@ -224,6 +234,46 @@ describe("review engine", () => {
     );
   });
 
+  it("folds every valid source revision permutation identically", () => {
+    const events = [
+      reason({ eventId: "retention:1", sourceKey: "retention", sourceRevision: 1 }),
+      reason({
+        eventId: "retention:2",
+        sourceKey: "retention",
+        sourceRevision: 2,
+        dueAt: "2024-04-04T12:00:00Z",
+      }),
+      reason({
+        eventId: "goal:1",
+        sourceKey: "goal",
+        sourceRevision: 1,
+        reason: "GOAL_DEADLINE",
+        dueAt: "2024-04-03T12:00:00Z",
+      }),
+    ];
+    const expected = calculate(events);
+
+    for (const permutation of permutations(events)) {
+      expect(calculate(permutation)).toEqual(expected);
+    }
+  });
+
+  it("rejects conflicting historical revisions in every input permutation", () => {
+    const conflicting = [
+      reason({
+        eventId: "revision:2",
+        sourceKey: "retention",
+        sourceRevision: 2,
+        dueAt: "2024-04-04T12:00:00Z",
+      }),
+      reason({ eventId: "revision:1-a", sourceKey: "retention", sourceRevision: 1 }),
+      reason({ eventId: "revision:1-b", sourceKey: "retention", sourceRevision: 1 }),
+    ];
+
+    for (const permutation of permutations(conflicting)) {
+      expect(() => calculate(permutation)).toThrow(/conflicting events at revision 1/u);
+    }
+  });
   it("rejects invalid reminder input, foreign subjects, and conflicting revisions", () => {
     expect(() =>
       calculateInitialReviewDueAt(
@@ -341,5 +391,40 @@ describe("review engine", () => {
       ]),
     ).toThrow(/changes reason type/u);
     expect(() => calculate([reason({ dueAt: "2024-99-99T12:00:00Z" })])).toThrow(ReviewInputError);
+  });
+  it("rejects malformed runtime enums, unsafe revisions, and policy maps", () => {
+    const missingResponse = {
+      ...REVIEW_POLICY_V0_1,
+      responseRules: {
+        AGAIN: REVIEW_POLICY_V0_1.responseRules.AGAIN,
+        HARD: REVIEW_POLICY_V0_1.responseRules.HARD,
+        GOOD: REVIEW_POLICY_V0_1.responseRules.GOOD,
+      },
+    } as unknown as ReviewPolicy;
+
+    expect(() =>
+      scheduleReviewResponse(
+        { response: "GOOD", completedAt: "2024-04-01T12:00:00Z", previousIntervalDays: 3 },
+        missingResponse,
+      ),
+    ).toThrow(/must contain exactly/u);
+    expect(() =>
+      calculateInitialReviewDueAt(
+        {
+          reason: "UNTRUSTED" as never,
+          anchorAt: "2024-04-01T12:00:00Z",
+          selectedDueAt: null,
+          proposedDueAt: null,
+          goalDeadlineAt: null,
+        },
+        REVIEW_POLICY_V0_1,
+      ),
+    ).toThrow(/unsupported value/u);
+    expect(() => calculate([reason({ sourceRevision: Number.MAX_SAFE_INTEGER + 1 })])).toThrow(
+      /positive integer/u,
+    );
+    expect(() => calculate([reason({ reason: "UNTRUSTED" as never })])).toThrow(
+      /unsupported value/u,
+    );
   });
 });

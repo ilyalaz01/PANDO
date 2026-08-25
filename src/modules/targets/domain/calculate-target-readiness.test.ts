@@ -8,6 +8,7 @@ import {
   type AchievementLevel,
   type CalculateTargetReadinessInput,
   type ReadinessDimensionInput,
+  type ReadinessPolicy,
   type RequirementRule,
 } from "./readiness-types";
 
@@ -201,6 +202,177 @@ describe("calculateTargetReadiness", () => {
     expect(result.confidence).toBe("MEDIUM");
   });
 
+  it("uses only the deterministic ANY witness for coverage and confidence", () => {
+    const rules: RequirementRule[] = [
+      {
+        ruleId: "rule:root",
+        kind: "ANY",
+        members: [
+          node("competency:ready"),
+          node("competency:unknown-a"),
+          node("competency:unknown-b"),
+          node("competency:irrelevant-low"),
+        ],
+      },
+    ];
+    const result = calculate(rules, [
+      state("competency:ready", "MASTERED", { confidence: "HIGH" }),
+      state("competency:irrelevant-low", "NOT_STARTED", { confidence: "LOW" }),
+    ]);
+
+    expect(result).toMatchObject({
+      lower: 1,
+      upper: 1,
+      coverage: 1,
+      status: "READY",
+      confidence: "HIGH",
+    });
+    expect(result.ruleEvaluations[0]?.witnessMemberKeys).toEqual([
+      "NODE:competency:ready:APPLICATION:MASTERED",
+    ]);
+  });
+
+  it("keeps ANY unresolved when a known failure competes with Unknown", () => {
+    const result = calculate(
+      [
+        {
+          ruleId: "rule:root",
+          kind: "ANY",
+          members: [node("competency:failed"), node("competency:unknown")],
+        },
+      ],
+      [state("competency:failed", "NOT_STARTED", { confidence: "HIGH" })],
+    );
+
+    expect(result).toMatchObject({
+      lower: 0,
+      upper: 1,
+      coverage: 0,
+      status: "INSUFFICIENT_EVIDENCE",
+      confidence: "LOW",
+    });
+    expect(result.ruleEvaluations[0]?.witnessMemberKeys).toEqual([
+      "NODE:competency:unknown:APPLICATION:MASTERED",
+    ]);
+  });
+
+  it("uses only K deterministic witnesses and ignores unknown extras once K qualify", () => {
+    const result = calculate(
+      [
+        {
+          ruleId: "rule:root",
+          kind: "K_OF_N",
+          requiredCount: 2,
+          members: [
+            node("competency:ready-b"),
+            node("competency:unknown"),
+            node("competency:ready-a"),
+          ],
+        },
+      ],
+      [state("competency:ready-a", "MASTERED"), state("competency:ready-b", "MASTERED")],
+    );
+
+    expect(result).toMatchObject({ lower: 1, upper: 1, coverage: 1, status: "READY" });
+    expect(result.ruleEvaluations[0]?.witnessMemberKeys).toEqual([
+      "NODE:competency:ready-a:APPLICATION:MASTERED",
+      "NODE:competency:ready-b:APPLICATION:MASTERED",
+    ]);
+  });
+
+  it("converts nested weighted outcomes to satisfaction intervals", () => {
+    const rules: RequirementRule[] = [
+      {
+        ruleId: "rule:root",
+        kind: "ALL",
+        members: [{ memberType: "RULE", ruleId: "rule:weighted" }, node("competency:strong")],
+      },
+      {
+        ruleId: "rule:weighted",
+        kind: "WEIGHTED_THRESHOLD",
+        threshold: 0.9,
+        members: [{ member: node("competency:weighted"), weight: 1 }],
+      },
+    ];
+    const failed = calculate(rules, [
+      state("competency:strong", "MASTERED"),
+      state("competency:weighted", "MASTERED", { freshness: "STALE" }),
+    ]);
+    const unresolvedRules: RequirementRule[] = [
+      rules[0]!,
+      {
+        ruleId: "rule:weighted",
+        kind: "WEIGHTED_THRESHOLD",
+        threshold: 0.9,
+        members: [
+          { member: node("competency:weighted"), weight: 1 },
+          { member: node("competency:unknown"), weight: 1 },
+        ],
+      },
+    ];
+    const unresolved = calculate(unresolvedRules, [
+      state("competency:strong", "MASTERED"),
+      state("competency:weighted", "MASTERED"),
+    ]);
+
+    expect(failed).toMatchObject({ lower: 0, upper: 0, status: "NOT_READY" });
+    expect(failed.ruleEvaluations.find(({ ruleId }) => ruleId === "rule:weighted")).toMatchObject({
+      lower: 0.8,
+      upper: 0.8,
+      threshold: 0.9,
+      outcome: "FAILED",
+    });
+    expect(unresolved).toMatchObject({ lower: 0, upper: 1, coverage: 0.75 });
+    expect(
+      unresolved.ruleEvaluations.find(({ ruleId }) => ruleId === "rule:weighted"),
+    ).toMatchObject({ lower: 0.5, upper: 1, threshold: 0.9, outcome: "UNRESOLVED" });
+  });
+
+  it("rejects a root weighted threshold that differs from the target threshold", () => {
+    expect(() =>
+      calculate(
+        [
+          {
+            ruleId: "rule:root",
+            kind: "WEIGHTED_THRESHOLD",
+            threshold: 0.9,
+            members: [{ member: node("competency:ready"), weight: 1 }],
+          },
+        ],
+        [state("competency:ready", "MASTERED")],
+        0.8,
+      ),
+    ).toThrow(/must equal the effective target threshold/u);
+  });
+
+  it("is stable when unknown alternatives or tied ANY members are reordered", () => {
+    fc.assert(
+      fc.property(fc.integer({ min: 1, max: 12 }), fc.boolean(), (unknownCount, reverse) => {
+        const members = [
+          node("competency:ready-b"),
+          node("competency:ready-a"),
+          ...Array.from({ length: unknownCount }, (_, index) =>
+            node(`competency:unknown-${index}`),
+          ),
+        ];
+        const result = calculate(
+          [
+            {
+              ruleId: "rule:root",
+              kind: "ANY",
+              members: reverse ? [...members].reverse() : members,
+            },
+          ],
+          [state("competency:ready-a", "MASTERED"), state("competency:ready-b", "MASTERED")],
+        );
+
+        expect(result).toMatchObject({ status: "READY", coverage: 1, confidence: "HIGH" });
+        expect(result.ruleEvaluations[0]?.witnessMemberKeys).toEqual([
+          "NODE:competency:ready-a:APPLICATION:MASTERED",
+        ]);
+      }),
+    );
+  });
   it("always returns a bounded monotone interval", () => {
     fc.assert(
       fc.property(
@@ -390,5 +562,62 @@ describe("calculateTargetReadiness", () => {
         }),
       ]),
     ).toThrow(/inconsistent Unknown metadata/u);
+  });
+  it("rejects malformed runtime enums, policy maps, duplicate members, and overflowing weights", () => {
+    const baseRules: RequirementRule[] = [
+      { ruleId: "rule:root", kind: "ALL", members: [node("competency:x")] },
+    ];
+    const missingPolicyKey = {
+      ...READINESS_POLICY_V0_1,
+      requiredStrength: { COMPLETED: 0.5, VERIFIED: 0.75 },
+    } as unknown as ReadinessPolicy;
+    const invalidState = {
+      ...state("competency:x", "MASTERED"),
+      confidence: "UNTRUSTED",
+    } as unknown as ReadinessDimensionInput;
+
+    expect(() =>
+      calculateTargetReadiness(
+        {
+          targetProfileVersionId: "target-profile:test/1",
+          rootRuleId: "rule:root",
+          inputWatermark: "mastery:1",
+          targetThreshold: 0.8,
+          rules: baseRules,
+          masteryDimensions: [state("competency:x", "MASTERED")],
+        },
+        missingPolicyKey,
+        { asOf: AS_OF },
+      ),
+    ).toThrow(/must contain exactly/u);
+    expect(() => calculate(baseRules, [invalidState])).toThrow(/unsupported value/u);
+    expect(() =>
+      calculate(
+        [
+          {
+            ruleId: "rule:root",
+            kind: "ANY",
+            members: [node("competency:x"), node("competency:x")],
+          },
+        ],
+        [],
+      ),
+    ).toThrow(/duplicate semantic member/u);
+    expect(() =>
+      calculate(
+        [
+          {
+            ruleId: "rule:root",
+            kind: "WEIGHTED_THRESHOLD",
+            threshold: 0.8,
+            members: [
+              { member: node("competency:x"), weight: Number.MAX_VALUE },
+              { member: node("competency:y"), weight: Number.MAX_VALUE },
+            ],
+          },
+        ],
+        [],
+      ),
+    ).toThrow(/total weight must be positive and finite/u);
   });
 });

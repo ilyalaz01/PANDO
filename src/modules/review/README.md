@@ -15,8 +15,8 @@ The engine provides:
 - the table-driven Again/Hard/Good/Easy interval calculation, whole-day rounding, and 180-day cap;
 - one active item per workspace/subject with every independently auditable active reason;
 - earliest-active-reason due time and query-time Upcoming/Due/Overdue evaluation;
-- exact event replay deduplication and latest source-revision folding, including close and reopen
-  after correction/invalidation;
+- exact event replay deduplication and order-independent validation of every source/revision group
+  before latest-revision folding, including close and reopen after correction/invalidation;
 - explicit asOf, engine/policy/watermark metadata, and no implicit time or external dependency.
 
 Day-based UI choices must already be converted from the workspace IANA time zone to an explicit

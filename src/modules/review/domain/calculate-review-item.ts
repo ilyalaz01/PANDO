@@ -18,6 +18,14 @@ import {
   type ScheduledReviewResponse,
 } from "./review-types";
 
+const REVIEW_REASONS = [
+  "RETENTION_RISK",
+  "PERSONAL_REMINDER",
+  "GOAL_DEADLINE",
+  "VERIFICATION_NEEDED",
+] as const;
+const REVIEW_RESPONSES = ["AGAIN", "HARD", "GOOD", "EASY"] as const;
+
 interface EvaluatedReasonEvent {
   readonly input: ReviewReasonEventInput;
   readonly dueAtMs: number;
@@ -28,8 +36,33 @@ function fail(message: string): never {
 }
 
 function requireIdentifier(value: string, fieldName: string): void {
-  if (value.trim().length === 0) {
+  if (typeof value !== "string" || value.trim().length === 0) {
     fail(`${fieldName} must not be empty`);
+  }
+}
+
+function requireEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  fieldName: string,
+): asserts value is T {
+  if (typeof value !== "string" || !allowed.includes(value as T)) {
+    fail(`${fieldName} has an unsupported value`);
+  }
+}
+
+function requireExactKeys(
+  value: unknown,
+  expectedKeys: readonly string[],
+  fieldName: string,
+): void {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    fail(`${fieldName} must be an object`);
+  }
+  const actual = Object.keys(value).sort();
+  const expected = [...expectedKeys].sort();
+  if (actual.length !== expected.length || actual.some((key, index) => key !== expected[index])) {
+    fail(`${fieldName} must contain exactly: ${expected.join(", ")}`);
   }
 }
 
@@ -42,7 +75,7 @@ function parseReviewInstant(value: string, fieldName: string): number {
 }
 
 function validatePositiveWholeDay(value: number, fieldName: string): void {
-  if (!Number.isInteger(value) || value <= 0) {
+  if (!Number.isSafeInteger(value) || value <= 0) {
     fail(`${fieldName} must be a positive whole number of days`);
   }
 }
@@ -58,7 +91,8 @@ function validatePolicy(policy: ReviewPolicy): void {
   );
   validatePositiveWholeDay(policy.maximumIntervalDays, "policy.maximumIntervalDays");
 
-  const responses: readonly ReviewResponse[] = ["AGAIN", "HARD", "GOOD", "EASY"];
+  requireExactKeys(policy.responseRules, REVIEW_RESPONSES, "policy.responseRules");
+  const responses: readonly ReviewResponse[] = REVIEW_RESPONSES;
   for (const response of responses) {
     const rule = policy.responseRules[response];
     validatePositiveWholeDay(rule.minimumDays, `policy.responseRules.${response}.minimumDays`);
@@ -76,6 +110,7 @@ export function calculateInitialReviewDueAt(
   policy: ReviewPolicy,
 ): string {
   validatePolicy(policy);
+  requireEnum(input.reason, REVIEW_REASONS, "input.reason");
   const anchorAtMs = parseReviewInstant(input.anchorAt, "input.anchorAt");
 
   if (input.reason === "VERIFICATION_NEEDED") {
@@ -106,6 +141,7 @@ export function scheduleReviewResponse(
   policy: ReviewPolicy,
 ): ScheduledReviewResponse {
   validatePolicy(policy);
+  requireEnum(input.response, REVIEW_RESPONSES, "input.response");
   const completedAtMs = parseReviewInstant(input.completedAt, "input.completedAt");
   const previousIntervalDays = input.previousIntervalDays ?? policy.defaultPreviousIntervalDays;
 
@@ -140,16 +176,24 @@ function validateAndDeduplicateEvents(
   events: readonly ReviewReasonEventInput[],
   subjectId: string,
 ): readonly EvaluatedReasonEvent[] {
+  if (!Array.isArray(events)) {
+    fail("input.reasonEvents must be an array");
+  }
   const byEventId = new Map<string, EvaluatedReasonEvent>();
 
   for (const event of events) {
     requireIdentifier(event.eventId, "reasonEvent.eventId");
     requireIdentifier(event.sourceKey, `reasonEvent ${event.eventId} sourceKey`);
     requireIdentifier(event.subjectId, `reasonEvent ${event.eventId} subjectId`);
+    requireEnum(event.reason, REVIEW_REASONS, `reasonEvent ${event.eventId} reason`);
+    if (typeof event.active !== "boolean") {
+      fail(`reasonEvent ${event.eventId} active must be boolean`);
+    }
+
     if (event.subjectId !== subjectId) {
       fail(`reasonEvent ${event.eventId} belongs to another subject`);
     }
-    if (!Number.isInteger(event.sourceRevision) || event.sourceRevision < 1) {
+    if (!Number.isSafeInteger(event.sourceRevision) || event.sourceRevision < 1) {
       fail(`reasonEvent ${event.eventId} sourceRevision must be a positive integer`);
     }
 
@@ -171,33 +215,52 @@ function validateAndDeduplicateEvents(
 function latestReasonsBySource(
   events: readonly EvaluatedReasonEvent[],
 ): readonly EvaluatedReasonEvent[] {
-  const latest = new Map<string, EvaluatedReasonEvent>();
-
+  const bySourceRevision = new Map<string, EvaluatedReasonEvent[]>();
   for (const event of events) {
-    const existing = latest.get(event.input.sourceKey);
-    if (!existing) {
-      latest.set(event.input.sourceKey, event);
-      continue;
-    }
-    if (existing.input.reason !== event.input.reason) {
-      fail(`sourceKey ${event.input.sourceKey} changes reason type`);
-    }
-    if (
-      existing.input.sourceRevision === event.input.sourceRevision &&
-      existing.input.eventId !== event.input.eventId
-    ) {
+    const key = `${event.input.sourceKey}\u001f${event.input.sourceRevision}`;
+    const group = bySourceRevision.get(key) ?? [];
+    group.push(event);
+    bySourceRevision.set(key, group);
+  }
+
+  for (const key of [...bySourceRevision.keys()].sort()) {
+    const group = bySourceRevision.get(key)!;
+    if (group.length > 1) {
+      const event = [...group].sort((left, right) =>
+        left.input.eventId.localeCompare(right.input.eventId),
+      )[0]!;
       fail(
         `sourceKey ${event.input.sourceKey} has conflicting events at revision ${event.input.sourceRevision}`,
       );
     }
-    if (event.input.sourceRevision > existing.input.sourceRevision) {
-      latest.set(event.input.sourceKey, event);
-    }
   }
 
-  return [...latest.values()];
-}
+  const bySource = new Map<string, EvaluatedReasonEvent[]>();
+  for (const group of bySourceRevision.values()) {
+    const event = group[0]!;
+    const sourceEvents = bySource.get(event.input.sourceKey) ?? [];
+    sourceEvents.push(event);
+    bySource.set(event.input.sourceKey, sourceEvents);
+  }
 
+  const latest: EvaluatedReasonEvent[] = [];
+  for (const sourceKey of [...bySource.keys()].sort()) {
+    const sourceEvents = bySource.get(sourceKey)!;
+    const reasonTypes = new Set(sourceEvents.map(({ input }) => input.reason));
+    if (reasonTypes.size !== 1) {
+      fail(`sourceKey ${sourceKey} changes reason type`);
+    }
+    latest.push(
+      [...sourceEvents].sort(
+        (left, right) =>
+          right.input.sourceRevision - left.input.sourceRevision ||
+          left.input.eventId.localeCompare(right.input.eventId),
+      )[0]!,
+    );
+  }
+
+  return latest;
+}
 export function calculateReviewItem(
   input: CalculateReviewItemInput,
   policy: ReviewPolicy,

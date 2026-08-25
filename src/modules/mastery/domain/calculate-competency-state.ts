@@ -20,6 +20,8 @@ import {
 } from "./types";
 
 const HOURS_TO_MILLISECONDS = 3_600_000;
+const EVIDENCE_OUTCOMES = ["SUCCESS", "FAILURE"] as const;
+const EVIDENCE_ENGAGEMENTS = ["INDEPENDENT", "GUIDED", "PASSIVE"] as const;
 
 interface EvaluatedEvidence {
   readonly input: MasteryEvidenceInput;
@@ -31,7 +33,7 @@ function fail(message: string): never {
 }
 
 function requireIdentifier(value: string, fieldName: string): void {
-  if (value.trim().length === 0) {
+  if (typeof value !== "string" || value.trim().length === 0) {
     fail(`${fieldName} must not be empty`);
   }
 }
@@ -42,6 +44,30 @@ function requireProbability(value: number, fieldName: string): void {
   }
 }
 
+function requireEnum<T extends string>(
+  value: unknown,
+  allowed: readonly T[],
+  fieldName: string,
+): asserts value is T {
+  if (typeof value !== "string" || !allowed.includes(value as T)) {
+    fail(`${fieldName} has an unsupported value`);
+  }
+}
+
+function requireExactKeys(
+  value: unknown,
+  expectedKeys: readonly string[],
+  fieldName: string,
+): void {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    fail(`${fieldName} must be an object`);
+  }
+  const actual = Object.keys(value).sort();
+  const expected = [...expectedKeys].sort();
+  if (actual.length !== expected.length || actual.some((key, index) => key !== expected[index])) {
+    fail(`${fieldName} must contain exactly: ${expected.join(", ")}`);
+  }
+}
 function parseMasteryInstant(value: string, fieldName: string): number {
   try {
     return parseInstant(value, fieldName);
@@ -63,14 +89,15 @@ function validatePolicy(policy: MasteryPolicy): void {
   ] as const;
 
   for (const [name, value] of positivePolicyNumbers) {
-    if (!Number.isInteger(value) || value <= 0) {
+    if (!Number.isSafeInteger(value) || value <= 0) {
       fail(`policy.${name} must be a positive whole number`);
     }
   }
 
+  requireExactKeys(policy.freshnessDays, OBJECTIVE_DIMENSIONS, "policy.freshnessDays");
   for (const dimension of OBJECTIVE_DIMENSIONS) {
     const days = policy.freshnessDays[dimension];
-    if (!Number.isInteger(days) || days <= 0) {
+    if (!Number.isSafeInteger(days) || days <= 0) {
       fail(`policy.freshnessDays.${dimension} must be a positive whole number`);
     }
   }
@@ -97,11 +124,34 @@ function validateAndDeduplicateEvidence(
   input: readonly MasteryEvidenceInput[],
   asOfMs: number,
 ): readonly EvaluatedEvidence[] {
+  if (!Array.isArray(input)) {
+    fail("input.evidence must be an array");
+  }
   const unique = new Map<string, EvaluatedEvidence>();
 
   for (const evidence of input) {
     requireIdentifier(evidence.evidenceId, "evidence.evidenceId");
     requireIdentifier(evidence.attemptId, `evidence ${evidence.evidenceId} attemptId`);
+    requireEnum(
+      evidence.dimension,
+      OBJECTIVE_DIMENSIONS,
+      `evidence ${evidence.evidenceId} dimension`,
+    );
+    requireEnum(evidence.outcome, EVIDENCE_OUTCOMES, `evidence ${evidence.evidenceId} outcome`);
+    requireEnum(
+      evidence.engagement,
+      EVIDENCE_ENGAGEMENTS,
+      `evidence ${evidence.evidenceId} engagement`,
+    );
+    for (const [name, value] of [
+      ["normalized", evidence.normalized],
+      ["invalidated", evidence.invalidated],
+      ["observedResult", evidence.observedResult],
+      ["targetRelevant", evidence.targetRelevant],
+    ] as const) {
+      if (typeof value !== "boolean")
+        fail(`evidence ${evidence.evidenceId} ${name} must be boolean`);
+    }
     requireIdentifier(evidence.sourceId, `evidence ${evidence.evidenceId} sourceId`);
     requireProbability(
       evidence.mappingConfidence,
