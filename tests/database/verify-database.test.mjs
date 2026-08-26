@@ -56,6 +56,29 @@ async function waitForFile(path, timeoutMilliseconds = 10_000) {
   throw new Error(`Timed out waiting for fixture file: ${path}`);
 }
 
+function createFakeChild() {
+  const child = new EventEmitter();
+  child.exitCode = null;
+  child.signalCode = null;
+  child.killSignals = [];
+  child.kill = (signal) => {
+    child.killSignals.push(signal);
+    return true;
+  };
+  return child;
+}
+
+function commandFromSpawnArguments(arguments_) {
+  const workdirIndex = arguments_.indexOf("--workdir");
+  assert.notEqual(workdirIndex, -1);
+  return arguments_.slice(workdirIndex + 2);
+}
+
+function closeSuccessfully(child) {
+  child.exitCode = 0;
+  child.emit("close", 0, null);
+}
+
 test("memoizes cleanup so concurrent callers execute it exactly once", async () => {
   let calls = 0;
   const cleanup = createOnceAsync(async () => {
@@ -114,6 +137,129 @@ test("a pre-child signal prevents spawn and removes its exact scratch directory"
 
   assert.equal(exitCode, 143);
   assert.equal(spawnAttempted, false);
+  assert.deepEqual(await readdir(tempRoot), []);
+});
+
+test("waits for delayed close before signal cleanup starts its one stop child", async (t) => {
+  const tempRoot = await mkdtemp(join(tmpdir(), "pando-db-delayed-close-test-"));
+  t.after(() => rm(tempRoot, { recursive: true, force: true }));
+  const processObject = new EventEmitter();
+  const commands = [];
+
+  const exitCode = await runDatabaseGateCli({
+    root,
+    tempRoot,
+    processObject,
+    stdout: { write() {} },
+    stderr: { write() {} },
+    allocatePort: async () => 54_321,
+    terminateGraceMilliseconds: 250,
+    spawnImpl: (_executable, arguments_) => {
+      const command = commandFromSpawnArguments(arguments_);
+      commands.push(command);
+      const child = createFakeChild();
+
+      if (command[0] === "db" && command[1] === "start") {
+        child.exitCode = 0;
+        setImmediate(() => {
+          processObject.emit("SIGTERM");
+          setTimeout(() => child.emit("close", 0, null), 25);
+        });
+      } else if (command[0] === "stop") {
+        setImmediate(() => closeSuccessfully(child));
+      } else {
+        setImmediate(() => child.emit("close", 1, null));
+      }
+      return child;
+    },
+  });
+
+  assert.equal(exitCode, 143);
+  assert.equal(commands.length, 2);
+  assert.deepEqual(commands[0], ["db", "start"]);
+  assert.equal(commands[1][0], "stop");
+  assert.match(commands[1][2], /^pando-database-gate-[0-9a-f]{12}$/);
+  assert.deepEqual(commands[1].slice(3), ["--no-backup"]);
+  assert.deepEqual(await readdir(tempRoot), []);
+});
+
+test("a fake successful gate runs the complete exact argv set and stops once", async (t) => {
+  const tempRoot = await mkdtemp(join(tmpdir(), "pando-db-success-argv-test-"));
+  t.after(() => rm(tempRoot, { recursive: true, force: true }));
+  const commands = [];
+
+  const exitCode = await runDatabaseGateCli({
+    root,
+    tempRoot,
+    processObject: new EventEmitter(),
+    stdout: { write() {} },
+    stderr: { write() {} },
+    allocatePort: async () => 54_321,
+    spawnImpl: (_executable, arguments_) => {
+      commands.push(commandFromSpawnArguments(arguments_));
+      const child = createFakeChild();
+      setImmediate(() => closeSuccessfully(child));
+      return child;
+    },
+  });
+
+  assert.equal(exitCode, 0);
+  assert.equal(commands.length, 5);
+  assert.deepEqual(commands[0], ["db", "start"]);
+  assert.deepEqual(commands[1], ["db", "reset", "--local"]);
+  assert.deepEqual(commands[2], [
+    "test",
+    "db",
+    "supabase/tests/database/001_phase0_schema_security.test.sql",
+    "supabase/tests/database/002_identity_command_rls.test.sql",
+    "supabase/tests/database/003_outbox_delivery_lifecycle.test.sql",
+    "supabase/tests/database/004_phase0_probe_effect_atomicity.test.sql",
+    "--local",
+  ]);
+  assert.deepEqual(commands[3], [
+    "db",
+    "lint",
+    "--local",
+    "--level",
+    "warning",
+    "--fail-on",
+    "warning",
+  ]);
+  assert.equal(commands[4][0], "stop");
+  assert.match(commands[4][2], /^pando-database-gate-[0-9a-f]{12}$/);
+  assert.deepEqual(commands[4].slice(3), ["--no-backup"]);
+  assert.deepEqual(await readdir(tempRoot), []);
+});
+
+test("removes the exact scratch even when its stop child cannot spawn", async (t) => {
+  const tempRoot = await mkdtemp(join(tmpdir(), "pando-db-stop-failure-test-"));
+  t.after(() => rm(tempRoot, { recursive: true, force: true }));
+  const commands = [];
+
+  await assert.rejects(
+    runDatabaseGateCli({
+      root,
+      tempRoot,
+      processObject: new EventEmitter(),
+      stdout: { write() {} },
+      stderr: { write() {} },
+      allocatePort: async () => 54_321,
+      spawnImpl: (_executable, arguments_) => {
+        const command = commandFromSpawnArguments(arguments_);
+        commands.push(command);
+        if (command[0] === "stop") throw new Error("injected stop spawn failure");
+        const child = createFakeChild();
+        setImmediate(() => closeSuccessfully(child));
+        return child;
+      },
+    }),
+    /injected stop spawn failure/,
+  );
+
+  assert.equal(commands.length, 5);
+  assert.equal(commands[4][0], "stop");
+  assert.match(commands[4][2], /^pando-database-gate-[0-9a-f]{12}$/);
+  assert.deepEqual(commands[4].slice(3), ["--no-backup"]);
   assert.deepEqual(await readdir(tempRoot), []);
 });
 

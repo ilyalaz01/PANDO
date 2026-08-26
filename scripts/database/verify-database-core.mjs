@@ -207,31 +207,32 @@ export function findFreePort() {
   });
 }
 
-function delay(milliseconds) {
-  return new Promise((resolveDelay) => setTimeout(resolveDelay, milliseconds));
-}
-
-async function terminateChild(child, graceMilliseconds) {
-  if (child.exitCode !== null || child.signalCode !== null) return;
-  let closed = false;
-  const closedPromise = new Promise((resolveClose) => {
-    child.once("close", () => {
-      closed = true;
-      resolveClose();
+async function closesWithin(idlePromise, graceMilliseconds) {
+  return new Promise((resolveClosed) => {
+    const timeout = setTimeout(() => resolveClosed(false), graceMilliseconds);
+    idlePromise.then(() => {
+      clearTimeout(timeout);
+      resolveClosed(true);
     });
   });
+}
+
+async function terminateChild(current, graceMilliseconds) {
+  const { child, idlePromise } = current;
+  if (child.exitCode !== null || child.signalCode !== null) {
+    if (!(await closesWithin(idlePromise, graceMilliseconds))) {
+      throw new Error("Timed out waiting for the active Supabase CLI child to close");
+    }
+    return;
+  }
 
   child.kill("SIGTERM");
-  await Promise.race([closedPromise, delay(graceMilliseconds)]);
-  if (closed) return;
+  if (await closesWithin(idlePromise, graceMilliseconds)) return;
 
   child.kill("SIGKILL");
-  await Promise.race([
-    closedPromise,
-    delay(graceMilliseconds).then(() => {
-      throw new Error("Timed out terminating active Supabase CLI child");
-    }),
-  ]);
+  if (!(await closesWithin(idlePromise, graceMilliseconds))) {
+    throw new Error("Timed out terminating active Supabase CLI child");
+  }
 }
 
 export function createSupabaseRunner({
@@ -254,27 +255,38 @@ export function createSupabaseRunner({
     if (!quiet) stdout.write(`\n> supabase@2.115.0 ${args.join(" ")}\n`);
 
     return new Promise((resolveRun, rejectRun) => {
-      const child = spawnImpl(process.execPath, [supabaseCli, "--workdir", workdir, ...args], {
-        cwd: workdir,
-        env: { ...env, CI: "1", SUPABASE_TELEMETRY_DISABLED: "1" },
-        stdio: quiet ? "ignore" : "inherit",
-        shell: false,
+      let child;
+      try {
+        child = spawnImpl(process.execPath, [supabaseCli, "--workdir", workdir, ...args], {
+          cwd: workdir,
+          env: { ...env, CI: "1", SUPABASE_TELEMETRY_DISABLED: "1" },
+          stdio: quiet ? "ignore" : "inherit",
+          shell: false,
+        });
+      } catch (error) {
+        rejectRun(error);
+        return;
+      }
+
+      let resolveIdle;
+      const idlePromise = new Promise((resolveChildIdle) => {
+        resolveIdle = resolveChildIdle;
       });
-      const current = { child, protectedFromInterrupt };
+      const current = { child, idlePromise, protectedFromInterrupt };
       active = current;
-      let settled = false;
-      const finish = (error) => {
-        if (settled) return;
-        settled = true;
-        if (active === current) active = undefined;
-        if (error) rejectRun(error);
-        else resolveRun();
-      };
-      child.once("error", finish);
+      let childError;
+      child.once("error", (error) => {
+        childError = error;
+      });
       child.once("close", (code, signal) => {
-        if (code === 0) finish();
-        else {
-          finish(
+        if (active === current) active = undefined;
+        resolveIdle();
+        if (childError) {
+          rejectRun(childError);
+        } else if (code === 0) {
+          resolveRun();
+        } else {
+          rejectRun(
             new Error(
               `Supabase CLI failed with code ${code ?? "none"}, signal ${signal ?? "none"}`,
             ),
@@ -289,13 +301,22 @@ export function createSupabaseRunner({
     interruptedSignal = signal;
     const current = active;
     if (!current || current.protectedFromInterrupt) return interruptPromise;
-    interruptPromise = terminateChild(current.child, terminateGraceMilliseconds);
+    interruptPromise = terminateChild(current, terminateGraceMilliseconds);
     return interruptPromise;
+  }
+
+  async function waitForIdle() {
+    const current = active;
+    if (!current) return;
+    if (!(await closesWithin(current.idlePromise, terminateGraceMilliseconds))) {
+      throw new Error("Timed out waiting for the active Supabase CLI child to become idle");
+    }
   }
 
   return {
     run,
     requestInterrupt,
+    waitForIdle,
     hasActiveChild: () => active !== undefined,
     interruptedSignal: () => interruptedSignal,
   };
@@ -394,23 +415,30 @@ export async function runDatabaseGateCli({
   const cleanup = createOnceAsync(async () => {
     if (!scratch) return;
     let stopError;
-    if (cleanupRequired) {
-      if (!runner) {
-        stopError = new Error("Cannot clean an isolated project before the runner is initialized");
-      } else {
-        await runner
-          .run(["stop", "--project-id", projectId, "--no-backup"], {
-            quiet: true,
-            protectedFromInterrupt: true,
-          })
-          .catch((error) => {
-            stopError = error;
-          });
+    let removeError;
+    try {
+      if (cleanupRequired) {
+        if (!runner) {
+          throw new Error("Cannot clean an isolated project before the runner is initialized");
+        }
+        await runner.waitForIdle();
+        await runner.run(["stop", "--project-id", projectId, "--no-backup"], {
+          quiet: true,
+          protectedFromInterrupt: true,
+        });
+      }
+    } catch (error) {
+      stopError = error;
+    } finally {
+      try {
+        assertSafeScratch(scratch, tempRoot);
+        await rm(scratch, { recursive: true, force: true });
+      } catch (error) {
+        removeError = error;
       }
     }
-    assertSafeScratch(scratch, tempRoot);
-    await rm(scratch, { recursive: true, force: true });
-    if (stopError) throw stopError;
+    const finalCleanupError = combineErrors(stopError, removeError);
+    if (finalCleanupError) throw finalCleanupError;
   });
 
   const signalLatch = installSignalLatch({
