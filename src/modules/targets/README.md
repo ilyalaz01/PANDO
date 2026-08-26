@@ -66,5 +66,7 @@ The zero-workspace `api.get_explore_target_context_v1(goal)` composer combines t
 Catalog closure and accepted required Overlay nodes as strict
 [`ExploreTargetContextV1`](../../../schemas/explore-target-context/v1/README.md).
 
-This boundary contains no Mastery or readiness values. It cannot yet replace the representative
-Explore fixture and does not persist a readiness snapshot as a side effect of a read.
+This boundary contains no Mastery or readiness values. The live Explore composer correlates it with
+the current authorized structural source into `ExploreStructuralProjectionV1`, whose explicit
+`NOT_MATERIALIZED` state replaces the representative fixture without pretending that calculation
+has happened. The read does not persist a readiness snapshot or emit an outbox event.

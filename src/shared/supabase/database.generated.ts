@@ -79,12 +79,8 @@ export type Database = {
         Args: { p_workspace_id: string }
         Returns: Json
       }
-      get_explore_source_v1: {
-        Args: {
-          p_readiness_goal_key: string
-          p_selected_activity_key?: string
-          p_workspace_id: string
-        }
+      get_current_explore_source_v1: {
+        Args: { p_readiness_goal_key: string; p_selected_activity_key?: string }
         Returns: Json
       }
       get_explore_target_context_v1: {

@@ -10,4 +10,5 @@ pair into deterministic target scope: roadmap membership, required canonical see
 transitive prerequisite ancestor, and competency domain parents. It returns only the bounded nodes
 and relevant prerequisite edges, including descriptions and rationales. It knows no workspace
 goal, target rule, overlay, Mastery, or readiness state; the `api` read projection supplies only
-stable owner-query inputs.
+stable owner-query inputs. Live Explore uses this bounded closure to materialize structure only;
+the query never assigns competency or readiness state.

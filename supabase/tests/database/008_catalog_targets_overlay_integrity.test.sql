@@ -377,10 +377,7 @@ insert into phase1_integrity_results values(
   )
 );
 insert into phase1_integrity_results values(
-  'alice-explore-after-retire',api.get_explore_source_v1(
-    (select workspace_id from phase1_integrity_workspaces where name='alice-bootstrap'),
-    'goal:integrity-alice',null
-  )
+  'alice-explore-after-retire',api.get_current_explore_source_v1('goal:integrity-alice', null)
 );
 insert into phase1_integrity_results values(
   'alice-position-after-retire',api.set_overlay_position(

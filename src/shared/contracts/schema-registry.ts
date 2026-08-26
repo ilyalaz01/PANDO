@@ -4,6 +4,7 @@ import addFormats from "ajv-formats";
 import agentChangeSetSchema from "../../../schemas/agent-control/v1/change-set.schema.json";
 import agentControlContextSchema from "../../../schemas/agent-control/v1/control-context.schema.json";
 import exploreSourceSchema from "../../../schemas/explore-source/v1/explore-source.schema.json";
+import exploreStructuralProjectionSchema from "../../../schemas/explore-structural-projection/v1/explore-structural-projection.schema.json";
 import exploreTargetContextSchema from "../../../schemas/explore-target-context/v1/explore-target-context.schema.json";
 import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-projection.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
@@ -19,6 +20,7 @@ export const schemaNames = [
   "agent-control-context",
   "agent-change-set",
   "explore-source",
+  "explore-structural-projection",
   "explore-target-context",
   "preparation-context",
   "preparation-manifest",
@@ -36,6 +38,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "agent-control-context": agentControlContextSchema,
   "agent-change-set": agentChangeSetSchema,
   "explore-source": exploreSourceSchema,
+  "explore-structural-projection": exploreStructuralProjectionSchema,
   "explore-target-context": exploreTargetContextSchema,
   "preparation-context": preparationContextSchema,
   "preparation-manifest": preparationManifestSchema,

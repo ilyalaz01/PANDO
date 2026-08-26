@@ -1,0 +1,90 @@
+{
+  "cases": [
+    {
+      "caseId": "calculation-availability-lie",
+      "patch": [
+        { "op": "replace", "path": "/calculationAvailability", "value": "CURRENT" }
+      ],
+      "expectedSchemaValid": false,
+      "expectedViolations": ["SCHEMA_CONST"]
+    },
+    {
+      "caseId": "layout-node-bijection",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/layout/positions/2/nodeId",
+          "value": "node:competency:alpha"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": ["STRUCTURAL_LAYOUT_NODE_BIJECTION"]
+    },
+    {
+      "caseId": "requirement-cycle",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/requirements/rules/0",
+          "value": {
+            "ruleId": "rule:floor",
+            "ruleType": "ALL",
+            "title": "Cyclic floor",
+            "criticality": "MANDATORY",
+            "explanation": "This fixture creates a cycle.",
+            "accessibilityLabel": "Cyclic floor fixture.",
+            "members": [{ "memberType": "RULE", "ruleId": "rule:root" }]
+          }
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": [
+        "STRUCTURAL_REQUIREMENT_CYCLE",
+        "STRUCTURAL_REQUIREMENT_STATE_MISMATCH"
+      ]
+    },
+    {
+      "caseId": "requirement-dangling-node",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/requirements/rules/2/members/1/member/nodeId",
+          "value": "node:competency:missing"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": [
+        "STRUCTURAL_REQUIREMENT_NODE_MISSING",
+        "STRUCTURAL_REQUIREMENT_STATE_MISMATCH"
+      ]
+    },
+    {
+      "caseId": "outline-node-bijection",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/outline/items/0/nodeId",
+          "value": "node:competency:alpha"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": [
+        "STRUCTURAL_KEYBOARD_ORDER_INVALID",
+        "STRUCTURAL_OUTLINE_NODE_BIJECTION",
+        "STRUCTURAL_OUTLINE_NODE_LINK_MISMATCH"
+      ]
+    },
+    {
+      "caseId": "target-profile-key-mismatch",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/requirements/targetProfileVersionKey",
+          "value": "target:other-v1"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": ["STRUCTURAL_TARGET_PROFILE_MISMATCH"]
+    }
+  ]
+}

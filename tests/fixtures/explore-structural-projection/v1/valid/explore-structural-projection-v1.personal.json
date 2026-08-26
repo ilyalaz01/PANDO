@@ -1,0 +1,394 @@
+{
+  "contract": { "name": "ExploreStructuralProjectionV1", "version": "1.0.0" },
+  "projectionId": "projection:explore-structure:seed-main",
+  "workspaceScope": {
+    "workspaceId": "10000000-0000-4000-8000-000000000001",
+    "overlayRevision": "3",
+    "acceptedPersonalContentOnly": true
+  },
+  "selectedVersions": {
+    "catalogVersionKey": "catalog:seed-v1",
+    "roadmapVersionKey": "roadmap:seed-v1",
+    "targetProfileVersionKey": "target:seed-v1"
+  },
+  "calculationAvailability": "NOT_MATERIALIZED",
+  "layout": {
+    "layoutVersion": "graph-layout-v1",
+    "algorithmVersion": "dagre-layered-v1",
+    "structuralFingerprint": "744b5239d54d21c2cc528e0bbec6ff30a5fd57a9264d3776220cc720cd08be5d",
+    "coordinateSystem": "TOP_LEFT",
+    "fixedNodeSize": { "width": 240, "height": 104 },
+    "spacing": { "rank": 88, "node": 40 },
+    "positions": [
+      {
+        "nodeId": "node:activity:selected-practice",
+        "canonical": { "x": 640, "y": 144 },
+        "effective": { "x": 640, "y": 144 },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:alpha",
+        "canonical": { "x": 320, "y": 0 },
+        "effective": { "x": 320, "y": 0 },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:beta",
+        "canonical": { "x": 640, "y": 0 },
+        "effective": { "x": 640, "y": 0 },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      },
+      {
+        "nodeId": "node:competency:personal",
+        "canonical": { "x": 960, "y": 0 },
+        "effective": { "x": 984, "y": 48 },
+        "source": "WORKSPACE_OVERRIDE",
+        "overrideRevision": "3",
+        "overrideWorkspaceId": "10000000-0000-4000-8000-000000000001"
+      },
+      {
+        "nodeId": "node:domain:core",
+        "canonical": { "x": 0, "y": 0 },
+        "effective": { "x": 0, "y": 0 },
+        "source": "CANONICAL_LAYOUT",
+        "overrideRevision": null
+      }
+    ]
+  },
+  "nodes": [
+    {
+      "nodeId": "node:activity:selected-practice",
+      "nodeType": "ACTIVITY",
+      "entityRef": {
+        "entityType": "ACTIVITY",
+        "entityId": "activity:selected-practice",
+        "entityVersionId": null
+      },
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "10000000-0000-4000-8000-000000000001",
+        "overlayRevision": "3",
+        "acceptance": "ACCEPTED"
+      },
+      "domainNodeId": "node:domain:core",
+      "title": "Selected practice",
+      "shortLabel": "Practice",
+      "requirementState": { "kind": "NOT_REQUIRED" },
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": ["SELECTED_ACTIVITY"],
+        "reasonCodes": ["PERSONAL_OVERLAY", "SELECTED_CONTEXT"]
+      },
+      "accessibility": {
+        "label": "Selected practice, activity",
+        "description": "Selected activity related to beta application.",
+        "statusText": "Calculation not materialized.",
+        "keyboardOrder": 4,
+        "outlineItemId": "outline:node:activity:selected-practice"
+      },
+      "inspectorRef": "inspector:node:activity:selected-practice"
+    },
+    {
+      "nodeId": "node:competency:alpha",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:alpha",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": { "kind": "CANONICAL", "sourceVersionId": "catalog:seed-v1" },
+      "domainNodeId": "node:domain:core",
+      "title": "Alpha foundations",
+      "shortLabel": "Alpha",
+      "requirementState": { "kind": "NOT_REQUIRED" },
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": ["COMPETENCY"],
+        "reasonCodes": ["STRUCTURAL_CONTEXT"]
+      },
+      "accessibility": {
+        "label": "Alpha foundations, competency",
+        "description": "Foundational capability required before beta.",
+        "statusText": "Calculation not materialized.",
+        "keyboardOrder": 2,
+        "outlineItemId": "outline:node:competency:alpha"
+      },
+      "inspectorRef": "inspector:node:competency:alpha"
+    },
+    {
+      "nodeId": "node:competency:beta",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:beta",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": { "kind": "CANONICAL", "sourceVersionId": "catalog:seed-v1" },
+      "domainNodeId": "node:domain:core",
+      "title": "Beta application",
+      "shortLabel": "Beta",
+      "requirementState": {
+        "kind": "REQUIRED_UNEVALUATED",
+        "ruleIds": ["rule:floor", "rule:weighted"]
+      },
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": ["COMPETENCY"],
+        "reasonCodes": ["REQUIRED_BY_TARGET"]
+      },
+      "accessibility": {
+        "label": "Beta application, competency",
+        "description": "Target-relevant applied capability.",
+        "statusText": "Required by target; calculation not materialized.",
+        "keyboardOrder": 3,
+        "outlineItemId": "outline:node:competency:beta"
+      },
+      "inspectorRef": "inspector:node:competency:beta"
+    },
+    {
+      "nodeId": "node:competency:personal",
+      "nodeType": "COMPETENCY",
+      "entityRef": {
+        "entityType": "COMPETENCY",
+        "entityId": "competency:personal",
+        "entityVersionId": null
+      },
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "10000000-0000-4000-8000-000000000001",
+        "overlayRevision": "3",
+        "acceptance": "ACCEPTED"
+      },
+      "domainNodeId": "node:domain:core",
+      "title": "Personal competency",
+      "shortLabel": "Personal",
+      "requirementState": {
+        "kind": "REQUIRED_UNEVALUATED",
+        "ruleIds": ["rule:weighted"]
+      },
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": ["COMPETENCY"],
+        "reasonCodes": ["PERSONAL_OVERLAY", "REQUIRED_BY_TARGET"]
+      },
+      "accessibility": {
+        "label": "Personal competency",
+        "description": "Accepted personal capability in the selected target.",
+        "statusText": "Required by target; calculation not materialized.",
+        "keyboardOrder": 5,
+        "outlineItemId": "outline:node:competency:personal"
+      },
+      "inspectorRef": "inspector:node:competency:personal"
+    },
+    {
+      "nodeId": "node:domain:core",
+      "nodeType": "DOMAIN",
+      "entityRef": {
+        "entityType": "DOMAIN",
+        "entityId": "domain:core",
+        "entityVersionId": "catalog:seed-v1"
+      },
+      "origin": { "kind": "CANONICAL", "sourceVersionId": "catalog:seed-v1" },
+      "domainNodeId": null,
+      "title": "Core",
+      "shortLabel": "Core",
+      "requirementState": { "kind": "NOT_REQUIRED" },
+      "visibilityHint": {
+        "defaultVisible": true,
+        "availableAtDetailLevels": ["DOMAIN"],
+        "reasonCodes": ["STRUCTURAL_CONTEXT"]
+      },
+      "accessibility": {
+        "label": "Core domain",
+        "description": "Core technical capabilities.",
+        "statusText": "Calculation not materialized.",
+        "keyboardOrder": 1,
+        "outlineItemId": "outline:node:domain:core"
+      },
+      "inspectorRef": "inspector:node:domain:core"
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "edge:activity:selected-practice:beta",
+      "edgeType": "ACTIVITY_EVIDENCES",
+      "sourceNodeId": "node:activity:selected-practice",
+      "targetNodeId": "node:competency:beta",
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "10000000-0000-4000-8000-000000000001",
+        "overlayRevision": "3",
+        "acceptance": "ACCEPTED"
+      },
+      "blocking": false,
+      "rationale": "The selected activity can produce beta evidence after Phase 2.",
+      "accessibilityLabel": "Selected practice can evidence beta application.",
+      "visibilityHint": { "defaultVisible": true, "reasonCode": "PERSONAL_CONTEXT" }
+    },
+    {
+      "edgeId": "edge:prerequisite:alpha:beta",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceNodeId": "node:competency:alpha",
+      "targetNodeId": "node:competency:beta",
+      "origin": { "kind": "CANONICAL", "sourceVersionId": "catalog:seed-v1" },
+      "blocking": true,
+      "rationale": "Alpha foundations are needed before beta application.",
+      "accessibilityLabel": "Alpha foundations are a prerequisite of beta application.",
+      "visibilityHint": { "defaultVisible": true, "reasonCode": "ACTIVE_PREREQUISITE" }
+    },
+    {
+      "edgeId": "edge:user:beta:personal",
+      "edgeType": "USER_ADDED",
+      "sourceNodeId": "node:competency:beta",
+      "targetNodeId": "node:competency:personal",
+      "origin": {
+        "kind": "WORKSPACE_OVERLAY",
+        "workspaceId": "10000000-0000-4000-8000-000000000001",
+        "overlayRevision": "3",
+        "acceptance": "ACCEPTED"
+      },
+      "blocking": false,
+      "rationale": "Accepted personal context relates beta to the personal competency.",
+      "accessibilityLabel": "Beta application is related to the personal competency.",
+      "visibilityHint": { "defaultVisible": true, "reasonCode": "PERSONAL_CONTEXT" }
+    }
+  ],
+  "requirements": {
+    "targetProfileVersionKey": "target:seed-v1",
+    "rootRuleId": "rule:root",
+    "rules": [
+      {
+        "ruleId": "rule:floor",
+        "ruleType": "MANDATORY_FLOOR",
+        "title": "Beta application floor",
+        "criticality": "MANDATORY",
+        "explanation": "Beta application must eventually be verified.",
+        "accessibilityLabel": "Mandatory beta application floor.",
+        "member": {
+          "memberType": "NODE",
+          "nodeId": "node:competency:beta",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED"
+        }
+      },
+      {
+        "ruleId": "rule:root",
+        "ruleType": "ALL",
+        "title": "Root requirements",
+        "criticality": "MANDATORY",
+        "explanation": "Every root requirement definition applies.",
+        "accessibilityLabel": "All target requirement definitions.",
+        "members": [
+          { "memberType": "RULE", "ruleId": "rule:floor" },
+          { "memberType": "RULE", "ruleId": "rule:weighted" }
+        ]
+      },
+      {
+        "ruleId": "rule:weighted",
+        "ruleType": "WEIGHTED_THRESHOLD",
+        "title": "Weighted requirements",
+        "criticality": "MANDATORY",
+        "explanation": "Beta and personal competencies define the target weighting.",
+        "accessibilityLabel": "Weighted target requirement definitions.",
+        "threshold": 0.8,
+        "members": [
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:beta",
+              "dimension": "APPLICATION",
+              "requiredLevel": "VERIFIED"
+            },
+            "weight": 1
+          },
+          {
+            "member": {
+              "memberType": "NODE",
+              "nodeId": "node:competency:personal",
+              "dimension": "KNOWLEDGE",
+              "requiredLevel": "COMPLETED"
+            },
+            "weight": 0.5
+          }
+        ]
+      }
+    ]
+  },
+  "visibilityHints": {
+    "completeTargetGraph": true,
+    "defaultVisibleNodeIds": [
+      "node:activity:selected-practice",
+      "node:competency:alpha",
+      "node:competency:beta",
+      "node:competency:personal",
+      "node:domain:core"
+    ],
+    "defaultVisibleEdgeIds": [
+      "edge:activity:selected-practice:beta",
+      "edge:prerequisite:alpha:beta",
+      "edge:user:beta:personal"
+    ],
+    "totalNodeCount": 5,
+    "totalEdgeCount": 3,
+    "maximumRenderedNodes": 150,
+    "maximumRenderedEdges": 300
+  },
+  "outline": {
+    "projectionId": "projection:explore-structure:seed-main",
+    "rootItemIds": ["outline:node:domain:core"],
+    "items": [
+      {
+        "outlineItemId": "outline:node:activity:selected-practice",
+        "nodeId": "node:activity:selected-practice",
+        "parentItemId": "outline:node:competency:beta",
+        "depth": 2,
+        "sortKey": "0001:selected-practice",
+        "childItemIds": [],
+        "accessibilityLabel": "Selected practice, activity"
+      },
+      {
+        "outlineItemId": "outline:node:competency:alpha",
+        "nodeId": "node:competency:alpha",
+        "parentItemId": "outline:node:domain:core",
+        "depth": 1,
+        "sortKey": "0001:alpha",
+        "childItemIds": [],
+        "accessibilityLabel": "Alpha foundations, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:beta",
+        "nodeId": "node:competency:beta",
+        "parentItemId": "outline:node:domain:core",
+        "depth": 1,
+        "sortKey": "0002:beta",
+        "childItemIds": ["outline:node:activity:selected-practice"],
+        "accessibilityLabel": "Beta application, competency"
+      },
+      {
+        "outlineItemId": "outline:node:competency:personal",
+        "nodeId": "node:competency:personal",
+        "parentItemId": "outline:node:domain:core",
+        "depth": 1,
+        "sortKey": "0003:personal",
+        "childItemIds": [],
+        "accessibilityLabel": "Personal competency"
+      },
+      {
+        "outlineItemId": "outline:node:domain:core",
+        "nodeId": "node:domain:core",
+        "parentItemId": null,
+        "depth": 0,
+        "sortKey": "0001:core",
+        "childItemIds": [
+          "outline:node:competency:alpha",
+          "outline:node:competency:beta",
+          "outline:node:competency:personal"
+        ],
+        "accessibilityLabel": "Core domain"
+      }
+    ]
+  }
+}

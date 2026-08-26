@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 
 const graphTraversal = /Graph traversal, competency/;
 
+async function waitForExploreReady(page: import("@playwright/test").Page) {
+  await expect(page.locator('[data-explore-interactive="true"]')).toBeVisible();
+}
+
 async function mapPositions(page: import("@playwright/test").Page) {
   return page.locator('[data-explore-view="map"]').evaluateAll((elements) =>
     elements
@@ -18,7 +22,8 @@ async function mapPositions(page: import("@playwright/test").Page) {
 test("renders the representative payload and preserves selection/focus between Map and Outline", async ({
   page,
 }) => {
-  await page.goto("/explore");
+  await page.goto("/dev/explore-fixture");
+  await waitForExploreReady(page);
 
   await expect(page.getByText(/Representative Phase 0 fixture: 25 nodes/)).toBeVisible();
   await expect(page.locator('[data-explore-view="map"]')).toHaveCount(25);
@@ -43,7 +48,8 @@ test("renders the representative payload and preserves selection/focus between M
 });
 
 test("supports bypass navigation and reload-stable server positions", async ({ page }) => {
-  await page.goto("/explore");
+  await page.goto("/dev/explore-fixture");
+  await waitForExploreReady(page);
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "Skip to competency explorer" });
   await expect(skipLink).toBeFocused();
@@ -53,13 +59,15 @@ test("supports bypass navigation and reload-stable server positions", async ({ p
   const before = await mapPositions(page);
   expect(before).toHaveLength(25);
   await page.reload();
+  await waitForExploreReady(page);
   await expect(page.locator('[data-explore-view="map"]')).toHaveCount(25);
   expect(await mapPositions(page)).toEqual(before);
 });
 
 test("uses the compact fallback on mobile without horizontal overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/explore");
+  await page.goto("/dev/explore-fixture");
+  await waitForExploreReady(page);
 
   await expect(page.getByTestId("mobile-map-fallback")).toBeVisible();
   await expect(page.getByTestId("explore-map")).toBeHidden();
@@ -76,7 +84,8 @@ test("uses the compact fallback on mobile without horizontal overflow", async ({
 
 test("honors reduced motion and forced-colors focus/selection", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce", forcedColors: "active" });
-  await page.goto("/explore");
+  await page.goto("/dev/explore-fixture");
+  await waitForExploreReady(page);
 
   const node = page.getByRole("button", { name: /Algorithms, domain summary/ });
   await node.focus();
@@ -95,7 +104,8 @@ test("honors reduced motion and forced-colors focus/selection", async ({ page })
 });
 
 test("has no automatically detectable WCAG A or AA violations", async ({ page }) => {
-  await page.goto("/explore");
+  await page.goto("/dev/explore-fixture");
+  await waitForExploreReady(page);
   const mapResults = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
@@ -111,7 +121,8 @@ test("has no automatically detectable WCAG A or AA violations", async ({ page })
 
 test("keeps representative map zoom p95 and long-task budgets", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/explore");
+  await page.goto("/dev/explore-fixture");
+  await waitForExploreReady(page);
   await expect(page.locator('[data-explore-view="map"]')).toHaveCount(25);
 
   const result = await page.evaluate(async () => {

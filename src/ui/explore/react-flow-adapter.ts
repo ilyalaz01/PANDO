@@ -1,6 +1,6 @@
 import type { Edge, Node } from "@xyflow/react";
 
-import type { ExploreGraphProjectionView, ExploreNode } from "./types";
+import type { ExploreNode, ExploreWorkspaceProjectionView } from "./types";
 
 export interface ExploreFlowNodeData extends Record<string, unknown> {
   projectionNode: ExploreNode;
@@ -10,7 +10,7 @@ export interface ExploreFlowNodeData extends Record<string, unknown> {
 
 export type ExploreFlowNode = Node<ExploreFlowNodeData, "explore">;
 
-export function buildReactFlowElements(projection: ExploreGraphProjectionView): {
+export function buildReactFlowElements(projection: ExploreWorkspaceProjectionView): {
   nodes: ExploreFlowNode[];
   edges: Edge[];
 } {
@@ -24,7 +24,7 @@ export function buildReactFlowElements(projection: ExploreGraphProjectionView): 
     .filter((node) => visibleNodeIds.has(node.nodeId))
     .map((node): ExploreFlowNode => {
       const position = positions.get(node.nodeId);
-      if (!position) throw new Error(`GraphProjectionV1 has no position for ${node.nodeId}`);
+      if (!position) throw new Error(`Explore projection has no position for ${node.nodeId}`);
       return {
         id: node.nodeId,
         type: "explore",

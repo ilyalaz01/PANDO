@@ -7,9 +7,9 @@ import styles from "./explore.module.css";
 import { ExploreMapNode, nodeTypeLabel, type ExploreNodeInteraction } from "./explore-map-node";
 import { buildReactFlowElements } from "./react-flow-adapter";
 import type {
-  ExploreGraphProjectionView,
   ExploreOutlineItem,
   ExploreProjectionCalculationState,
+  ExploreWorkspaceProjectionView,
 } from "./types";
 
 const nodeTypes: NodeTypes = { explore: ExploreMapNode };
@@ -21,6 +21,7 @@ const projectionStateLabels: Record<ExploreProjectionCalculationState, string> =
   STALE: "Stale",
   REBUILDING: "Rebuilding",
   ERROR: "Error",
+  NOT_MATERIALIZED: "Not materialized",
 };
 
 function nextNodeId(
@@ -57,8 +58,8 @@ function percentage(value: number): string {
 }
 
 function sortByKeyboardOrder(
-  nodes: ExploreGraphProjectionView["nodes"],
-): ExploreGraphProjectionView["nodes"] {
+  nodes: ExploreWorkspaceProjectionView["nodes"],
+): ExploreWorkspaceProjectionView["nodes"] {
   return [...nodes].sort(
     (a, b) =>
       a.accessibility.keyboardOrder - b.accessibility.keyboardOrder ||
@@ -69,7 +70,7 @@ function sortByKeyboardOrder(
 interface OutlineBranchProps {
   item: ExploreOutlineItem;
   itemById: ReadonlyMap<string, ExploreOutlineItem>;
-  nodeById: ReadonlyMap<string, ExploreGraphProjectionView["nodes"][number]>;
+  nodeById: ReadonlyMap<string, ExploreWorkspaceProjectionView["nodes"][number]>;
   interaction: ExploreNodeInteraction;
 }
 
@@ -121,7 +122,7 @@ function OutlineBranch({ item, itemById, nodeById, interaction }: OutlineBranchP
   );
 }
 
-export function ExploreWorkspace({ projection }: { projection: ExploreGraphProjectionView }) {
+export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceProjectionView }) {
   const orderedNodes = useMemo(() => sortByKeyboardOrder(projection.nodes), [projection.nodes]);
   const orderedNodeIds = useMemo(() => orderedNodes.map((node) => node.nodeId), [orderedNodes]);
   const nodeById = useMemo(
@@ -147,6 +148,11 @@ export function ExploreWorkspace({ projection }: { projection: ExploreGraphProje
   );
   const [outlineFocusedNodeId, setOutlineFocusedNodeId] = useState(initialSelectedNodeId);
   const restoreFocusRef = useRef(false);
+  const workspaceRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    workspaceRef.current?.setAttribute("data-explore-interactive", "true");
+  }, []);
 
   const outlineById = useMemo(
     () => new Map(projection.outline.items.map((item) => [item.outlineItemId, item])),
@@ -245,9 +251,11 @@ export function ExploreWorkspace({ projection }: { projection: ExploreGraphProje
   );
   const selectedHiddenFromMap = !visibleNodeIdSet.has(selectedNode.nodeId);
   const calculationState = projection.projectionState.calculationState;
-  const readinessNotApplicable = projection.readiness.status === "NOT_APPLICABLE";
-  const showCurrentMetrics = calculationState === "CURRENT" && !readinessNotApplicable;
-  const showStaleMetrics = calculationState === "STALE" && !readinessNotApplicable;
+  const readinessNotApplicable = projection.readiness?.status === "NOT_APPLICABLE";
+  const showCurrentMetrics =
+    calculationState === "CURRENT" && projection.readiness !== null && !readinessNotApplicable;
+  const showStaleMetrics =
+    calculationState === "STALE" && projection.readiness !== null && !readinessNotApplicable;
 
   const changeView = (nextView: ExploreView) => {
     if (nextView === view) return;
@@ -265,19 +273,21 @@ export function ExploreWorkspace({ projection }: { projection: ExploreGraphProje
   };
 
   return (
-    <div className={styles.workspace}>
+    <div ref={workspaceRef} className={styles.workspace} data-explore-interactive="false">
       <section className={styles.readiness} aria-labelledby="readiness-title">
         <div>
           <p className={styles.eyebrow}>
             Projection state · {projectionStateLabels[calculationState]}
           </p>
           <h2 id="readiness-title">
-            {readinessNotApplicable
-              ? "Choose a target to calculate readiness"
-              : projection.readiness.status.replaceAll("_", " ")}
+            {calculationState === "NOT_MATERIALIZED"
+              ? "Mastery and readiness are not calculated yet"
+              : readinessNotApplicable
+                ? "Choose a target to calculate readiness"
+                : projection.readiness?.status.replaceAll("_", " ")}
           </h2>
           {showCurrentMetrics || showStaleMetrics ? (
-            <p>{projection.readiness.displayLabel}</p>
+            <p>{projection.readiness?.displayLabel}</p>
           ) : null}
           <p className={styles.projectionExplanation}>{projection.projectionState.explanation}</p>
         </div>
@@ -289,26 +299,28 @@ export function ExploreWorkspace({ projection }: { projection: ExploreGraphProje
             <div>
               <dt>{showStaleMetrics ? "Last interval" : "Interval"}</dt>
               <dd>
-                {percentage(projection.readiness.estimate.lower)}–
-                {percentage(projection.readiness.estimate.upper)}
+                {percentage(projection.readiness?.estimate.lower ?? 0)}–
+                {percentage(projection.readiness?.estimate.upper ?? 0)}
               </dd>
             </div>
             <div>
               <dt>{showStaleMetrics ? "Last coverage" : "Coverage"}</dt>
-              <dd>{percentage(projection.readiness.coverage)}</dd>
+              <dd>{percentage(projection.readiness?.coverage ?? 0)}</dd>
             </div>
             <div>
               <dt>{showStaleMetrics ? "Last confidence" : "Confidence"}</dt>
-              <dd>{projection.readiness.confidence}</dd>
+              <dd>{projection.readiness?.confidence}</dd>
             </div>
           </dl>
         ) : (
           <p className={styles.projectionNotice}>
-            {readinessNotApplicable
-              ? "Start by choosing a target. Readiness is not calculated without one."
-              : calculationState === "REBUILDING"
-                ? "Readiness is being rebuilt. No result is presented as current."
-                : "Readiness could not be calculated. No result is presented as current."}
+            {calculationState === "NOT_MATERIALIZED"
+              ? "The live target structure is available. Evidence-derived states will appear after the calculation boundary is materialized."
+              : readinessNotApplicable
+                ? "Start by choosing a target. Readiness is not calculated without one."
+                : calculationState === "REBUILDING"
+                  ? "Readiness is being rebuilt. No result is presented as current."
+                  : "Readiness could not be calculated. No result is presented as current."}
           </p>
         )}
       </section>
@@ -453,12 +465,12 @@ export function ExploreWorkspace({ projection }: { projection: ExploreGraphProje
               </ul>
             </div>
           ) : null}
-          {projection.readiness.unknownNodeIds.includes(selectedNode.nodeId) ? (
+          {projection.readiness?.unknownNodeIds.includes(selectedNode.nodeId) ? (
             <p className={styles.notice}>
               Evidence is unknown; the server projection does not treat unknown as zero.
             </p>
           ) : null}
-          {projection.readiness.staleNodeIds.includes(selectedNode.nodeId) ? (
+          {projection.readiness?.staleNodeIds.includes(selectedNode.nodeId) ? (
             <p className={styles.notice}>This estimate is marked stale by the server projection.</p>
           ) : null}
         </aside>

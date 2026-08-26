@@ -1,0 +1,679 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pando.dev/explore-structural-projection/v1/explore-structural-projection.schema.json",
+  "title": "ExploreStructuralProjectionV1",
+  "description": "Strict server-internal Map and Outline structure for a selected persisted target before Mastery and readiness have been materialized.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "projectionId",
+    "workspaceScope",
+    "selectedVersions",
+    "calculationAvailability",
+    "layout",
+    "nodes",
+    "edges",
+    "requirements",
+    "visibilityHints",
+    "outline"
+  ],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "ExploreStructuralProjectionV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "projectionId": { "$ref": "#/$defs/stableId" },
+    "workspaceScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workspaceId", "overlayRevision", "acceptedPersonalContentOnly"],
+      "properties": {
+        "workspaceId": { "type": "string", "format": "uuid" },
+        "overlayRevision": { "$ref": "#/$defs/nonNegativeBigint" },
+        "acceptedPersonalContentOnly": { "const": true }
+      }
+    },
+    "selectedVersions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "catalogVersionKey",
+        "roadmapVersionKey",
+        "targetProfileVersionKey"
+      ],
+      "properties": {
+        "catalogVersionKey": { "$ref": "#/$defs/stableId" },
+        "roadmapVersionKey": {
+          "oneOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }]
+        },
+        "targetProfileVersionKey": { "$ref": "#/$defs/stableId" }
+      }
+    },
+    "calculationAvailability": { "const": "NOT_MATERIALIZED" },
+    "layout": { "$ref": "#/$defs/layout" },
+    "nodes": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "$ref": "#/$defs/node" }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 5000,
+      "items": { "$ref": "#/$defs/edge" }
+    },
+    "requirements": { "$ref": "#/$defs/requirementSet" },
+    "visibilityHints": { "$ref": "#/$defs/visibilityHints" },
+    "outline": { "$ref": "#/$defs/outline" }
+  },
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 200,
+      "pattern": "^[a-z][a-z0-9]*(?::[a-z0-9][a-z0-9-]*)+$"
+    },
+    "versionString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9._-]*$"
+    },
+    "nonNegativeBigint": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]{0,18})$"
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "safeText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^[^<>]+$"
+    },
+    "origin": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "sourceVersionId"],
+          "properties": {
+            "kind": { "const": "CANONICAL" },
+            "sourceVersionId": { "$ref": "#/$defs/stableId" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "workspaceId", "overlayRevision", "acceptance"],
+          "properties": {
+            "kind": { "const": "WORKSPACE_OVERLAY" },
+            "workspaceId": { "type": "string", "format": "uuid" },
+            "overlayRevision": { "$ref": "#/$defs/nonNegativeBigint" },
+            "acceptance": { "const": "ACCEPTED" }
+          }
+        }
+      ]
+    },
+    "entityRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["entityType", "entityId", "entityVersionId"],
+      "properties": {
+        "entityType": { "enum": ["ACTIVITY", "COMPETENCY", "DOMAIN"] },
+        "entityId": { "$ref": "#/$defs/stableId" },
+        "entityVersionId": {
+          "oneOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }]
+        }
+      }
+    },
+    "requirementState": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": { "kind": { "const": "NOT_REQUIRED" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "ruleIds"],
+          "properties": {
+            "kind": { "const": "REQUIRED_UNEVALUATED" },
+            "ruleIds": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2000,
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/stableId" }
+            }
+          }
+        }
+      ]
+    },
+    "nodeVisibilityHint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultVisible", "availableAtDetailLevels", "reasonCodes"],
+      "properties": {
+        "defaultVisible": { "type": "boolean" },
+        "availableAtDetailLevels": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["DOMAIN", "COMPETENCY", "SELECTED_ACTIVITY"] }
+        },
+        "reasonCodes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "PERSONAL_OVERLAY",
+              "REQUIRED_BY_TARGET",
+              "SELECTED_CONTEXT",
+              "STRUCTURAL_CONTEXT"
+            ]
+          }
+        }
+      }
+    },
+    "accessibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "description", "statusText", "keyboardOrder", "outlineItemId"],
+      "properties": {
+        "label": { "$ref": "#/$defs/safeText" },
+        "description": { "$ref": "#/$defs/safeText" },
+        "statusText": { "$ref": "#/$defs/safeText" },
+        "keyboardOrder": { "type": "integer", "minimum": 1, "maximum": 10000 },
+        "outlineItemId": { "$ref": "#/$defs/stableId" }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeId",
+        "nodeType",
+        "entityRef",
+        "origin",
+        "domainNodeId",
+        "title",
+        "shortLabel",
+        "requirementState",
+        "visibilityHint",
+        "accessibility",
+        "inspectorRef"
+      ],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/stableId" },
+        "nodeType": { "enum": ["ACTIVITY", "COMPETENCY", "DOMAIN"] },
+        "entityRef": { "$ref": "#/$defs/entityRef" },
+        "origin": { "$ref": "#/$defs/origin" },
+        "domainNodeId": {
+          "oneOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }]
+        },
+        "title": { "$ref": "#/$defs/safeText" },
+        "shortLabel": { "$ref": "#/$defs/safeText" },
+        "requirementState": { "$ref": "#/$defs/requirementState" },
+        "visibilityHint": { "$ref": "#/$defs/nodeVisibilityHint" },
+        "accessibility": { "$ref": "#/$defs/accessibility" },
+        "inspectorRef": { "$ref": "#/$defs/stableId" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "nodeType": { "const": "DOMAIN" } }, "required": ["nodeType"] },
+          "then": {
+            "properties": {
+              "entityRef": {
+                "type": "object",
+                "properties": { "entityType": { "const": "DOMAIN" } }
+              },
+              "domainNodeId": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "nodeType": { "const": "COMPETENCY" } }, "required": ["nodeType"] },
+          "then": {
+            "properties": {
+              "entityRef": {
+                "type": "object",
+                "properties": { "entityType": { "const": "COMPETENCY" } }
+              },
+              "domainNodeId": { "$ref": "#/$defs/stableId" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "nodeType": { "const": "ACTIVITY" } }, "required": ["nodeType"] },
+          "then": {
+            "properties": {
+              "entityRef": {
+                "type": "object",
+                "properties": { "entityType": { "const": "ACTIVITY" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "edgeVisibilityHint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["defaultVisible", "reasonCode"],
+      "properties": {
+        "defaultVisible": { "type": "boolean" },
+        "reasonCode": {
+          "enum": [
+            "ACTIVE_PREREQUISITE",
+            "NAVIGATION_ONLY",
+            "PERSONAL_CONTEXT",
+            "SEMANTIC_CONTEXT"
+          ]
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeId",
+        "edgeType",
+        "sourceNodeId",
+        "targetNodeId",
+        "origin",
+        "blocking",
+        "rationale",
+        "accessibilityLabel",
+        "visibilityHint"
+      ],
+      "properties": {
+        "edgeId": { "$ref": "#/$defs/stableId" },
+        "edgeType": {
+          "enum": [
+            "ACTIVITY_EVIDENCES",
+            "PART_OF",
+            "PREREQUISITE_OF",
+            "RELATED_TO",
+            "USER_ADDED"
+          ]
+        },
+        "sourceNodeId": { "$ref": "#/$defs/stableId" },
+        "targetNodeId": { "$ref": "#/$defs/stableId" },
+        "origin": { "$ref": "#/$defs/origin" },
+        "blocking": { "type": "boolean" },
+        "rationale": { "$ref": "#/$defs/safeText" },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" },
+        "visibilityHint": { "$ref": "#/$defs/edgeVisibilityHint" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "edgeType": { "not": { "const": "PREREQUISITE_OF" } } },
+            "required": ["edgeType"]
+          },
+          "then": { "properties": { "blocking": { "const": false } } }
+        },
+        {
+          "if": { "properties": { "edgeType": { "const": "USER_ADDED" } }, "required": ["edgeType"] },
+          "then": {
+            "properties": {
+              "origin": {
+                "type": "object",
+                "properties": { "kind": { "const": "WORKSPACE_OVERLAY" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "nodeRequirementMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memberType", "nodeId", "dimension", "requiredLevel"],
+      "properties": {
+        "memberType": { "const": "NODE" },
+        "nodeId": { "$ref": "#/$defs/stableId" },
+        "dimension": {
+          "enum": ["APPLICATION", "INTERVIEW_EXECUTION", "KNOWLEDGE", "RECALL"]
+        },
+        "requiredLevel": { "enum": ["COMPLETED", "MASTERED", "VERIFIED"] }
+      }
+    },
+    "ruleRequirementMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["memberType", "ruleId"],
+      "properties": {
+        "memberType": { "const": "RULE" },
+        "ruleId": { "$ref": "#/$defs/stableId" }
+      }
+    },
+    "requirementMember": {
+      "oneOf": [
+        { "$ref": "#/$defs/nodeRequirementMember" },
+        { "$ref": "#/$defs/ruleRequirementMember" }
+      ]
+    },
+    "weightedRequirementMember": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["member", "weight"],
+      "properties": {
+        "member": { "$ref": "#/$defs/requirementMember" },
+        "weight": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 }
+      }
+    },
+    "ruleCommonProperties": {
+      "type": "object",
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/stableId" },
+        "title": { "$ref": "#/$defs/safeText" },
+        "criticality": { "enum": ["DIFFERENTIATING", "MANDATORY", "PREFERRED"] },
+        "explanation": { "$ref": "#/$defs/safeText" },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" }
+      }
+    },
+    "allOrAnyRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "ruleType",
+        "title",
+        "criticality",
+        "explanation",
+        "accessibilityLabel",
+        "members"
+      ],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/stableId" },
+        "ruleType": { "enum": ["ALL", "ANY"] },
+        "title": { "$ref": "#/$defs/safeText" },
+        "criticality": { "enum": ["DIFFERENTIATING", "MANDATORY", "PREFERRED"] },
+        "explanation": { "$ref": "#/$defs/safeText" },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/requirementMember" }
+        }
+      }
+    },
+    "kOfNRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "ruleType",
+        "title",
+        "criticality",
+        "explanation",
+        "accessibilityLabel",
+        "requiredCount",
+        "members"
+      ],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/stableId" },
+        "ruleType": { "const": "K_OF_N" },
+        "title": { "$ref": "#/$defs/safeText" },
+        "criticality": { "enum": ["DIFFERENTIATING", "MANDATORY", "PREFERRED"] },
+        "explanation": { "$ref": "#/$defs/safeText" },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" },
+        "requiredCount": { "type": "integer", "minimum": 1 },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/requirementMember" }
+        }
+      }
+    },
+    "weightedThresholdRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "ruleType",
+        "title",
+        "criticality",
+        "explanation",
+        "accessibilityLabel",
+        "threshold",
+        "members"
+      ],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/stableId" },
+        "ruleType": { "const": "WEIGHTED_THRESHOLD" },
+        "title": { "$ref": "#/$defs/safeText" },
+        "criticality": { "enum": ["DIFFERENTIATING", "MANDATORY", "PREFERRED"] },
+        "explanation": { "$ref": "#/$defs/safeText" },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" },
+        "threshold": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "members": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/weightedRequirementMember" }
+        }
+      }
+    },
+    "mandatoryFloorRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "ruleType",
+        "title",
+        "criticality",
+        "explanation",
+        "accessibilityLabel",
+        "member"
+      ],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/stableId" },
+        "ruleType": { "const": "MANDATORY_FLOOR" },
+        "title": { "$ref": "#/$defs/safeText" },
+        "criticality": { "const": "MANDATORY" },
+        "explanation": { "$ref": "#/$defs/safeText" },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" },
+        "member": { "$ref": "#/$defs/nodeRequirementMember" }
+      }
+    },
+    "requirementRule": {
+      "oneOf": [
+        { "$ref": "#/$defs/allOrAnyRule" },
+        { "$ref": "#/$defs/kOfNRule" },
+        { "$ref": "#/$defs/weightedThresholdRule" },
+        { "$ref": "#/$defs/mandatoryFloorRule" }
+      ]
+    },
+    "requirementSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetProfileVersionKey", "rootRuleId", "rules"],
+      "properties": {
+        "targetProfileVersionKey": { "$ref": "#/$defs/stableId" },
+        "rootRuleId": { "$ref": "#/$defs/stableId" },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2000,
+          "items": { "$ref": "#/$defs/requirementRule" }
+        }
+      }
+    },
+    "point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y"],
+      "properties": {
+        "x": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "y": { "type": "number", "minimum": -1000000, "maximum": 1000000 }
+      }
+    },
+    "layoutPosition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "canonical", "effective", "source", "overrideRevision"],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/stableId" },
+        "canonical": { "$ref": "#/$defs/point" },
+        "effective": { "$ref": "#/$defs/point" },
+        "source": { "enum": ["CANONICAL_LAYOUT", "WORKSPACE_OVERRIDE"] },
+        "overrideRevision": {
+          "oneOf": [{ "$ref": "#/$defs/nonNegativeBigint" }, { "type": "null" }]
+        },
+        "overrideWorkspaceId": { "type": "string", "format": "uuid" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "source": { "const": "WORKSPACE_OVERRIDE" } }, "required": ["source"] },
+          "then": {
+            "required": ["overrideWorkspaceId"],
+            "properties": {
+              "overrideRevision": { "$ref": "#/$defs/nonNegativeBigint" },
+              "overrideWorkspaceId": { "type": "string", "format": "uuid" }
+            }
+          },
+          "else": {
+            "properties": { "overrideRevision": { "type": "null" } },
+            "not": { "required": ["overrideWorkspaceId"] }
+          }
+        }
+      ]
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "layoutVersion",
+        "algorithmVersion",
+        "structuralFingerprint",
+        "coordinateSystem",
+        "fixedNodeSize",
+        "spacing",
+        "positions"
+      ],
+      "properties": {
+        "layoutVersion": { "$ref": "#/$defs/versionString" },
+        "algorithmVersion": { "$ref": "#/$defs/versionString" },
+        "structuralFingerprint": { "$ref": "#/$defs/sha256" },
+        "coordinateSystem": { "const": "TOP_LEFT" },
+        "fixedNodeSize": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 1, "maximum": 1000 },
+            "height": { "type": "integer", "minimum": 1, "maximum": 1000 }
+          }
+        },
+        "spacing": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["rank", "node"],
+          "properties": {
+            "rank": { "type": "integer", "minimum": 0, "maximum": 2000 },
+            "node": { "type": "integer", "minimum": 0, "maximum": 2000 }
+          }
+        },
+        "positions": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "#/$defs/layoutPosition" }
+        }
+      }
+    },
+    "visibilityHints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completeTargetGraph",
+        "defaultVisibleNodeIds",
+        "defaultVisibleEdgeIds",
+        "totalNodeCount",
+        "totalEdgeCount",
+        "maximumRenderedNodes",
+        "maximumRenderedEdges"
+      ],
+      "properties": {
+        "completeTargetGraph": { "const": true },
+        "defaultVisibleNodeIds": {
+          "type": "array",
+          "maxItems": 150,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/stableId" }
+        },
+        "defaultVisibleEdgeIds": {
+          "type": "array",
+          "maxItems": 300,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/stableId" }
+        },
+        "totalNodeCount": { "type": "integer", "minimum": 0, "maximum": 500 },
+        "totalEdgeCount": { "type": "integer", "minimum": 0, "maximum": 5000 },
+        "maximumRenderedNodes": { "const": 150 },
+        "maximumRenderedEdges": { "const": 300 }
+      }
+    },
+    "outlineItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outlineItemId",
+        "nodeId",
+        "parentItemId",
+        "depth",
+        "sortKey",
+        "childItemIds",
+        "accessibilityLabel"
+      ],
+      "properties": {
+        "outlineItemId": { "$ref": "#/$defs/stableId" },
+        "nodeId": { "$ref": "#/$defs/stableId" },
+        "parentItemId": {
+          "oneOf": [{ "$ref": "#/$defs/stableId" }, { "type": "null" }]
+        },
+        "depth": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "sortKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "pattern": "^[0-9]{2,6}:[a-z0-9][a-z0-9-]*$"
+        },
+        "childItemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/stableId" }
+        },
+        "accessibilityLabel": { "$ref": "#/$defs/safeText" }
+      }
+    },
+    "outline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectionId", "rootItemIds", "items"],
+      "properties": {
+        "projectionId": { "$ref": "#/$defs/stableId" },
+        "rootItemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/stableId" }
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 500,
+          "items": { "$ref": "#/$defs/outlineItem" }
+        }
+      }
+    }
+  }
+}

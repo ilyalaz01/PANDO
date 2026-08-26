@@ -7,12 +7,13 @@ by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribut
 PANDO has completed its Phase 0 technical foundation and is entering Phase 1. The repository
 contains the executable Next.js modular monolith, strict contract/runtime validators, deterministic
 mastery/readiness/review engines, the Identity/RLS/outbox database boundary, an encrypted
-clean-restore proof, and a representative accessible `/explore` vertical slice. It also contains
+clean-restore proof, and an accessible Explore Map/Outline vertical slice. It also contains
 invite-only Supabase email/password sign-in, idempotent personal-workspace onboarding, and
-persisted Target Profile selection into an exact Readiness Goal. The Explore adapter remains
-fixture-backed, but its authenticated exact target-requirement and roadmap/prerequisite-closure
-context is now available as a strict server-only contract. Authenticated Mastery/readiness
-projections and the remaining product command/persistence paths are not yet implemented.
+persisted Target Profile selection into an exact Readiness Goal. `/explore` now loads the selected
+goal's authorized live structure through a zero-workspace server boundary and renders the bounded
+target closure without inventing Mastery or readiness values. The representative 25-node graph is
+retained only by the explicitly enabled test harness. Authenticated Mastery/readiness projections
+and the remaining product command/persistence paths are not yet implemented.
 
 ## Prerequisites
 
@@ -37,8 +38,9 @@ One command starts the development application:
 pnpm dev
 ```
 
-Open <http://localhost:3000>. The representative 25-node accessible graph slice is available at
-<http://localhost:3000/explore>.
+Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/start`, then follow
+`Explore this target`. The live `/explore?goal=...` route requires the configured authenticated
+Supabase boundary; it never substitutes demo data after a failed or unauthorized read.
 
 To use the authenticated `/start` journey, configure the two public Supabase values from
 [`.env.example`](.env.example) in an untracked `.env.local` and provision the invite-only owner by

@@ -58,14 +58,14 @@ select throws_ok(
   'readiness-goal idempotency key rejects a changed request'
 );
 insert into phase1_results select 'alice-profiles',api.get_available_target_profiles(workspace_id) from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'alice-explore-initial',api.get_explore_source_v1(workspace_id,'goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'alice-explore-initial',api.get_current_explore_source_v1('goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
 reset role;
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000002','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
 set local role authenticated;
 insert into phase1_results select 'bob-goal',api.create_readiness_goal(workspace_id,'goal:bob-main','Bob canonical readiness','target:nvidia-python-verification-base-v1','bob-goal') from phase1_workspaces where name='bob-bootstrap';
 insert into phase1_results select 'bob-profiles',api.get_available_target_profiles(workspace_id) from phase1_workspaces where name='bob-bootstrap';
-insert into phase1_results select 'bob-explore',api.get_explore_source_v1(workspace_id,'goal:bob-main',null) from phase1_workspaces where name='bob-bootstrap';
-select throws_ok(format('select api.get_explore_source_v1(%L::uuid,%L,null)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:alice-main'),'42501','workspace is not accessible','Bob cannot read Alice Explore source through the purpose-specific query');
+insert into phase1_results select 'bob-explore',api.get_current_explore_source_v1('goal:bob-main',null) from phase1_workspaces where name='bob-bootstrap';
+select throws_ok($$select api.get_current_explore_source_v1('goal:alice-main')$$,'42501','readiness goal is not accessible','Bob cannot read Alice Explore source through the current-personal query');
 select throws_ok(format('select targets.get_explore_selection_impl(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:alice-main'),'42501','workspace is not accessible','Targets Explore owner query repeats foreign-workspace authorization');
 select throws_ok(format('select overlay.get_explore_overlay_source_impl(%L::uuid,%L::uuid,%L::uuid,null,array[]::text[])',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'c1010000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000003'),'42501','workspace is not accessible','Overlay Explore owner query repeats foreign-workspace authorization');
 select throws_ok(format('select targets.get_profile_impl(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1'),'42501','workspace is not accessible','direct private implementation repeats foreign-workspace authorization');
@@ -122,8 +122,8 @@ select throws_ok(
   '22023','idempotency key reused with a different request',
   'custom-activity idempotency key rejects a changed request'
 );
-insert into phase1_results select 'alice-explore-default-after-activity',api.get_explore_source_v1(workspace_id,'goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'alice-explore-selected',api.get_explore_source_v1(workspace_id,'goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'alice-explore-default-after-activity',api.get_current_explore_source_v1('goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'alice-explore-selected',api.get_current_explore_source_v1('goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
 reset role;
 select is((select count(*) from overlay.custom_activities where activity_key='activity:unsafe-control-title'),0::bigint,'unsafe activity title leaves no domain row');
 select is((select count(*) from overlay.custom_activities where activity_key='activity:unsafe-markup-title'),0::bigint,'unsafe markup title leaves no domain row');
@@ -142,7 +142,7 @@ select ok(position('rain-forest-42' in (select response::text from phase1_result
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000002','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
 set local role authenticated;
 select throws_ok(format('select api.get_overlay_note(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'competency:linux-log-triage'),'42501','workspace is not accessible','Bob cannot read Alice note through the purpose-specific query');
-select throws_ok(format('select api.get_explore_source_v1(%L::uuid,%L,%L)',(select workspace_id from phase1_workspaces where name='bob-bootstrap'),'goal:bob-main','activity:linux-log-triage-lab'),'42501','activity is not accessible','Bob cannot select Alice custom activity in his canonical graph');
+select throws_ok($$select api.get_current_explore_source_v1('goal:bob-main','activity:linux-log-triage-lab')$$,'42501','activity is not accessible','Bob cannot select Alice custom activity in his canonical graph');
 select throws_ok(format('select api.create_readiness_goal(%L::uuid,%L,%L,%L,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:bob-foreign','Foreign goal','target:nvidia-python-verification-v1','bob-foreign-goal'),'42501','workspace is not accessible','Bob cannot create a readiness goal in Alice workspace');
 select throws_ok(format('select api.save_overlay_note(%L::uuid,%L,%L,2,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'competency:linux-log-triage','Foreign note','bob-foreign-note'),'42501','workspace is not accessible','Bob cannot save a note in Alice workspace');
 select throws_ok(format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,2,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:bob-foreign','Foreign activity','MANUAL_CODING','competency:linux-log-triage','bob-foreign-activity'),'42501','workspace is not accessible','Bob cannot add an activity in Alice workspace');
@@ -165,8 +165,8 @@ select throws_ok(
   '22023','idempotency key reused with a different request',
   'set-position idempotency key rejects changed coordinates'
 );
-insert into phase1_results select 'explore-main-positioned',api.get_explore_source_v1(workspace_id,'goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'explore-alt-positioned',api.get_explore_source_v1(workspace_id,'goal:alice-alt',null) from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'explore-main-positioned',api.get_current_explore_source_v1('goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'explore-alt-positioned',api.get_current_explore_source_v1('goal:alice-alt',null) from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'position-main-reset',api.reset_overlay_position(workspace_id,'goal:alice-main','competency:linux-log-triage',4,'alice-position-main-reset') from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'position-main-reset-replay',api.reset_overlay_position(workspace_id,'goal:alice-main','competency:linux-log-triage',4,'alice-position-main-reset') from phase1_workspaces where name='alice-bootstrap';
 select throws_ok(
@@ -174,11 +174,11 @@ select throws_ok(
   '22023','idempotency key reused with a different request',
   'reset-position idempotency key rejects a changed node'
 );
-insert into phase1_results select 'explore-main-reset',api.get_explore_source_v1(workspace_id,'goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'explore-alt-after-main-reset',api.get_explore_source_v1(workspace_id,'goal:alice-alt',null) from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'explore-main-reset',api.get_current_explore_source_v1('goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'explore-alt-after-main-reset',api.get_current_explore_source_v1('goal:alice-alt',null) from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'note-replay-late',api.save_overlay_note(workspace_id,'competency:linux-log-triage','Private note sentinel: rain-forest-42',0,'alice-note-1') from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'persisted-read-a',api.get_explore_source_v1(workspace_id,'goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'persisted-read-b',api.get_explore_source_v1(workspace_id,'goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'persisted-read-a',api.get_current_explore_source_v1('goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results select 'persisted-read-b',api.get_current_explore_source_v1('goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
 reset role;
 
 select is(jsonb_array_length((select response->'positions' from phase1_results where name='explore-main-positioned')),1,'main readiness goal exposes exactly its own position');

@@ -87,7 +87,7 @@ from (values
   ('api.get_available_target_profiles(uuid)'),
   ('api.get_target_profile(uuid,text)'),
   ('api.get_overlay_note(uuid,text)'),
-  ('api.get_explore_source_v1(uuid,text,text)'),
+  ('api.get_current_explore_source_v1(text,text)'),
   ('api.get_explore_target_context_v1(text)'),
   ('api.save_overlay_note(uuid,text,text,bigint,text)'),
   ('api.add_custom_activity(uuid,text,text,text,text,text,bigint,text)'),
@@ -107,7 +107,7 @@ cross join (values
   ('api.get_available_target_profiles(uuid)'),
   ('api.get_target_profile(uuid,text)'),
   ('api.get_overlay_note(uuid,text)'),
-  ('api.get_explore_source_v1(uuid,text,text)'),
+  ('api.get_current_explore_source_v1(text,text)'),
   ('api.get_explore_target_context_v1(text)'),
   ('api.save_overlay_note(uuid,text,text,bigint,text)'),
   ('api.add_custom_activity(uuid,text,text,text,text,text,bigint,text)'),
@@ -203,12 +203,28 @@ join pg_catalog.pg_namespace as namespace on namespace.oid = procedure.pronamesp
 where namespace.nspname = 'api'
   and procedure.proname in (
     'get_available_target_profiles', 'get_target_profile', 'get_overlay_note',
-    'get_explore_source_v1', 'get_explore_target_context_v1',
+    'get_current_explore_source_v1', 'get_explore_target_context_v1',
     'save_overlay_note', 'add_custom_activity',
     'set_overlay_position', 'create_readiness_goal', 'get_readiness_goal',
     'reset_overlay_position', 'get_target_selection_source_v1'
   )
 order by procedure.proname;
+
+select ok(
+  not coalesce(
+    pg_catalog.has_function_privilege(
+      'authenticated',
+      pg_catalog.to_regprocedure('api.get_explore_source_v1(uuid,text,text)'),
+      'EXECUTE'
+    ),
+    false
+  ),
+  'authenticated cannot execute the removed caller-selected Explore transport'
+);
+select ok(
+  pg_catalog.to_regprocedure('api.get_explore_source_v1(uuid,text,text)') is null,
+  'the caller-selected Explore transport is not exposed through the api schema'
+);
 
 select ok(
   procedure.prosecdef

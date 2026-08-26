@@ -1,5 +1,6 @@
 export type ExploreNodeType = "DOMAIN" | "GROUP" | "COMPETENCY" | "ACTIVITY";
-export type ExploreProjectionCalculationState = "CURRENT" | "STALE" | "REBUILDING" | "ERROR";
+export type ExploreProjectionCalculationState =
+  "CURRENT" | "STALE" | "REBUILDING" | "ERROR" | "NOT_MATERIALIZED";
 export type ExploreReadinessStatus =
   "NOT_APPLICABLE" | "NOT_READY" | "INSUFFICIENT_EVIDENCE" | "DEVELOPING" | "READY";
 
@@ -23,6 +24,11 @@ export interface ExploreSemanticNodeState {
   summaryText: string;
 }
 
+export interface ExploreUnavailableNodeState {
+  kind: "UNAVAILABLE";
+  summaryText: string;
+}
+
 export interface ExploreActivityNodeState {
   kind: "ACTIVITY";
   lifecycleStatus: "AVAILABLE" | "IN_PROGRESS" | "COMPLETED" | "UNAVAILABLE";
@@ -36,7 +42,7 @@ interface ExploreNodeBase {
   title: string;
   shortLabel: string;
   requirementState: {
-    kind: "NOT_REQUIRED" | "REQUIRED_UNKNOWN" | "REQUIRED_KNOWN";
+    kind: "NOT_REQUIRED" | "REQUIRED_UNEVALUATED" | "REQUIRED_UNKNOWN" | "REQUIRED_KNOWN";
     floorStatus?: "NOT_APPLICABLE" | "UNKNOWN" | "BELOW" | "MET";
   };
   explanations: Array<{ code: string; message: string }>;
@@ -52,11 +58,11 @@ interface ExploreNodeBase {
 export type ExploreNode =
   | (ExploreNodeBase & {
       nodeType: "DOMAIN" | "GROUP" | "COMPETENCY";
-      state: ExploreSemanticNodeState;
+      state: ExploreSemanticNodeState | ExploreUnavailableNodeState;
     })
   | (ExploreNodeBase & {
       nodeType: "ACTIVITY";
-      state: ExploreActivityNodeState;
+      state: ExploreActivityNodeState | ExploreUnavailableNodeState;
     });
 
 export interface ExploreEdge {
@@ -129,3 +135,19 @@ export interface ExploreGraphProjectionView {
   };
   outline: { rootItemIds: string[]; items: ExploreOutlineItem[] };
 }
+
+export interface ExploreStructuralProjectionView extends Omit<
+  ExploreGraphProjectionView,
+  "contract" | "projectionState" | "readiness"
+> {
+  contract: { name: "ExploreStructuralProjectionV1"; version: "1.0.0" };
+  projectionState: {
+    calculationState: "NOT_MATERIALIZED";
+    staleReason: null;
+    explanation: string;
+  };
+  readiness: null;
+}
+
+export type ExploreWorkspaceProjectionView =
+  ExploreGraphProjectionView | ExploreStructuralProjectionView;

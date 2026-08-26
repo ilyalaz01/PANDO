@@ -11,7 +11,9 @@ This contract is deliberately separate from `ExploreSourceV1`. It adds the missi
 requirement semantics without changing the existing structural snapshot. It is still **not** a
 complete `GraphProjectionV1` input: live Explore must additionally receive versioned Mastery
 projections, a Targets-owned readiness result with the same watermark, and an explicit clock.
-Until those owners exist, `/explore` remains the clearly labelled representative fixture.
+Until those owners exist, `/explore` correlates both owner DTOs into the strict
+[`ExploreStructuralProjectionV1`](../../explore-structural-projection/v1/README.md). That response
+contains exact structure and requirement definitions but no fabricated Mastery/readiness state.
 
 ## Deterministic closure
 

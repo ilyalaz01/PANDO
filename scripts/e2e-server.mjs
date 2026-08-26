@@ -16,7 +16,10 @@ rmSync(stopFile, { force: true });
 const server = spawn(
   process.execPath,
   [nextCli, "start", "--hostname", "127.0.0.1", "--port", port],
-  { stdio: "inherit" },
+  {
+    stdio: "inherit",
+    env: { ...process.env, PANDO_ENABLE_EXPLORE_FIXTURE: "true" },
+  },
 );
 
 let stopping = false;

@@ -49,6 +49,7 @@ export function ExploreMapNode({ data }: NodeProps<ExploreFlowNode>) {
         onClick={() => interaction.onSelectNode(node.nodeId)}
         onFocus={() => interaction.onFocusNode(node.nodeId)}
         onKeyDown={(event) => interaction.onKeyDown(event, node.nodeId)}
+        onPointerDown={() => interaction.onSelectNode(node.nodeId)}
       >
         <span className={styles.nodeType}>{nodeTypeLabel(node.nodeType)}</span>
         <strong>{node.shortLabel}</strong>

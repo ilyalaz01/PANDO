@@ -1,22 +1,26 @@
 # ExploreSourceV1 server query contract
 
-`ExploreSourceV1` is the strict, versioned DTO returned by the authenticated
-`api.get_explore_source_v1` read RPC and consumed only by PANDO's server-side Explore data-access
-layer. It contains the authorized Catalog, Targets selection, accepted User Overlay structure, and
-goal-scoped absolute position overrides required as one input to the Explore composer.
+`ExploreSourceV1` is the strict, versioned DTO returned by the authenticated Explore read boundary
+and consumed only by PANDO's server-side Explore data-access layer. The production DAL calls
+`api.get_current_explore_source_v1(goal, optional_activity)`, whose public signature contains no
+workspace selector; Identity derives the current personal workspace before composing the owner
+queries. The DTO contains the authorized Catalog, Targets selection, accepted User Overlay
+structure, and goal-scoped absolute position overrides required as one Explore input.
 
 It is **not** `GraphProjectionV1` and is not a source of Mastery or readiness truth. A production
 materializer must also receive purpose-specific target requirements, versioned Mastery projections,
 a Targets-owned readiness snapshot, semantic watermarks, and an explicit clock before it can emit a
-complete `GraphProjectionV1`. Until those inputs exist, `/explore` keeps its explicitly labelled
-representative fixture and must not silently substitute it after an authentication, authorization,
-RPC, or contract failure.
+complete `GraphProjectionV1`. Until those inputs exist, `/explore` correlates this DTO with
+`ExploreTargetContextV1` into the calculation-free `ExploreStructuralProjectionV1`;
+authentication, authorization, RPC, contract, or correlation failures produce a safe unavailable
+state with no fixture fallback.
 
 ## Boundary and security invariants
 
 - The browser never calls this domain read directly. A `server-only` DAL passes an authenticated
   user-scoped Supabase client; service-role credentials are forbidden for ordinary reads.
-- The public API is a pinned security-invoker composer. It calls separate least-privilege Targets,
+- The public current-workspace API is a pinned security-invoker composer. It calls separate
+  least-privilege Targets,
   Catalog, and Overlay owner queries; Targets and Overlay repeat authenticated-subject and
   workspace-membership checks. The server decoder then binds every returned overlay edge and
   position to the selected root scope and fails closed on any correlation mismatch.

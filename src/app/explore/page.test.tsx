@@ -1,32 +1,130 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("server-only", () => ({}));
+const mocks = vi.hoisted(() => ({
+  createClient: vi.fn(),
+  verifySession: vi.fn(),
+  loadTargetContext: vi.fn(),
+  loadSource: vi.fn(),
+  materialize: vi.fn(),
+  toView: vi.fn(),
+}));
+
+vi.mock("../../shared/supabase/server", () => ({
+  createPandoServerComponentClient: mocks.createClient,
+}));
+vi.mock("../../shared/supabase/session", () => ({
+  AuthenticatedSessionRequiredError: class AuthenticatedSessionRequiredError extends Error {},
+  verifyPandoSession: mocks.verifySession,
+}));
+vi.mock("../../ui/explore/server/database-current-explore-source", () => ({
+  loadCurrentDatabaseExploreSourceV1: mocks.loadSource,
+}));
+vi.mock("../../ui/explore/server/database-explore-target-context", () => ({
+  loadDatabaseExploreTargetContextV1: mocks.loadTargetContext,
+}));
+vi.mock("../../ui/explore/server/materialize-live-explore-structure", () => ({
+  materializeLiveExploreStructure: mocks.materialize,
+}));
+vi.mock("../../ui/explore/server/structural-projection-view", () => ({
+  toExploreStructuralProjectionView: mocks.toView,
+}));
 vi.mock("../../ui/explore/explore-workspace", () => ({
   ExploreWorkspace: ({ projection }: { projection: { nodes: unknown[] } }) => (
-    <div data-testid="projection-consumer" data-node-count={projection.nodes.length} />
+    <div data-testid="explore-workspace">{projection.nodes.length} live nodes</div>
   ),
 }));
 
 import ExploreLayout from "./layout";
 import ExplorePage, { metadata } from "./page";
 
-describe("Explore route", () => {
-  it("passes the validated representative projection through the server route", () => {
-    render(<ExplorePage />);
+describe("live Explore page", () => {
+  const client = { rpc: vi.fn() };
+  const targetContext = { kind: "target-context" };
+  const source = { kind: "source" };
+  const structuralProjection = { kind: "structural-projection" };
+  const view = { nodes: [{}, {}] };
 
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("See the roots");
-    expect(screen.getByTestId("projection-consumer")).toHaveAttribute("data-node-count", "25");
-    expect(screen.getByText(/not production database state/)).toBeInTheDocument();
-    expect(metadata.title).toContain("Explore competency map");
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.createClient.mockResolvedValue(client);
+    mocks.verifySession.mockResolvedValue({ client, subject: "authorized-user" });
+    mocks.loadTargetContext.mockResolvedValue(targetContext);
+    mocks.loadSource.mockResolvedValue(source);
+    mocks.materialize.mockReturnValue(structuralProjection);
+    mocks.toView.mockReturnValue(view);
   });
 
-  it("keeps the route layout transparent around its content", () => {
+  it("loads one authorized target through zero-workspace server boundaries", async () => {
     render(
-      <ExploreLayout>
-        <span>Route child</span>
-      </ExploreLayout>,
+      await ExplorePage({
+        searchParams: Promise.resolve({ goal: "goal:personal-main" }),
+      }),
     );
-    expect(screen.getByText("Route child")).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("heading", { name: "See the roots beneath your next move." }),
+    ).toBeVisible();
+    expect(screen.getByTestId("explore-workspace")).toHaveTextContent("2 live nodes");
+    expect(mocks.loadTargetContext).toHaveBeenCalledWith(client, {
+      readinessGoalKey: "goal:personal-main",
+    });
+    expect(mocks.loadSource).toHaveBeenCalledWith(client, {
+      readinessGoalKey: "goal:personal-main",
+      selectedActivityKey: null,
+    });
+    expect(mocks.loadSource.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
+    expect(mocks.materialize).toHaveBeenCalledWith({
+      source,
+      targetContext,
+      selectedActivityKey: null,
+    });
+    expect(screen.queryByText(/Representative Phase 0 fixture/iu)).not.toBeInTheDocument();
+  });
+
+  it("requires an explicit selected target before accessing either live source", async () => {
+    render(await ExplorePage({ searchParams: Promise.resolve({}) }));
+
+    expect(
+      screen.getByRole("heading", { name: "Give the map a goal to grow around." }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Choose a target" })).toHaveAttribute("href", "/start");
+    expect(mocks.loadTargetContext).not.toHaveBeenCalled();
+    expect(mocks.loadSource).not.toHaveBeenCalled();
+  });
+
+  it("fails closed on ambiguous selectors without substituting a fixture", async () => {
+    render(
+      await ExplorePage({
+        searchParams: Promise.resolve({
+          goal: ["goal:personal-main", "goal:other"],
+        }),
+      }),
+    );
+
+    expect(screen.getByRole("heading", { name: "Your saved goal was not changed." })).toBeVisible();
+    expect(mocks.loadTargetContext).not.toHaveBeenCalled();
+    expect(mocks.loadSource).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("explore-workspace")).not.toBeInTheDocument();
+  });
+
+  it("collapses owner or correlation failures into a safe unavailable state", async () => {
+    mocks.loadTargetContext.mockRejectedValueOnce(new Error("private database detail"));
+
+    render(
+      await ExplorePage({
+        searchParams: Promise.resolve({ goal: "goal:personal-main" }),
+      }),
+    );
+
+    expect(screen.getByRole("heading", { name: "Your saved goal was not changed." })).toBeVisible();
+    expect(screen.queryByText("private database detail")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("explore-workspace")).not.toBeInTheDocument();
+  });
+
+  it("keeps route metadata and layout stable", () => {
+    expect(metadata.title).toMatch(/Explore competency map/iu);
+    const child = <div>Explore child</div>;
+    expect(ExploreLayout({ children: child })).toBe(child);
   });
 });

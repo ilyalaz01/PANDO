@@ -413,6 +413,36 @@ try {
     "an identical browser retry must reuse the derived readiness goal",
   );
 
+  await Promise.all([
+    page.waitForURL(/\/explore\?goal=/u),
+    page.getByRole("link", { name: "Explore this target" }).click(),
+  ]);
+  assert.equal(
+    new URL(page.url()).searchParams.get("goal"),
+    "goal:nvidia-python-verification-base-v1",
+    "live Explore must preserve the exact selected readiness goal",
+  );
+  await page.getByRole("heading", { name: "See the roots beneath your next move." }).waitFor();
+  await page.getByText("Projection state · Not materialized").waitFor();
+  assert.ok(
+    (await page.locator('[data-explore-view="map"]').count()) > 0,
+    "live Explore must render the authorized target structure",
+  );
+  assert.equal(
+    await page.getByText(/Representative Phase 0 fixture/u).count(),
+    0,
+    "production Explore must never substitute the representative fixture",
+  );
+  const exploreAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  assert.deepEqual(exploreAccessibility.violations, [], "authenticated /explore must pass axe");
+
+  await page.goto(
+    `${baseUrl}/start?goal=${encodeURIComponent("goal:nvidia-python-verification-base-v1")}`,
+  );
+  await page.getByText("Selected readiness goal").waitFor();
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const dimensions = await page.evaluate(() => ({
@@ -474,6 +504,16 @@ try {
     source.data?.readinessGoals?.map((goal) => goal.readinessGoalKey),
     ["goal:nvidia-python-verification-base-v1"],
   );
+  const liveExploreSource = await verifier.rpc("get_current_explore_source_v1", {
+    p_readiness_goal_key: "goal:nvidia-python-verification-base-v1",
+  });
+  assert.equal(liveExploreSource.error, null, "zero-workspace Explore source must load");
+  assert.equal(liveExploreSource.data?.contract?.name, "ExploreSourceV1");
+  const liveTargetContext = await verifier.rpc("get_explore_target_context_v1", {
+    p_readiness_goal_key: "goal:nvidia-python-verification-base-v1",
+  });
+  assert.equal(liveTargetContext.error, null, "zero-workspace target context must load");
+  assert.equal(liveTargetContext.data?.contract?.name, "ExploreTargetContextV1");
 
   await Promise.all([
     page.waitForURL(/\/sign-in$/u),

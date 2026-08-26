@@ -2,7 +2,7 @@ import "server-only";
 
 import dagre from "@dagrejs/dagre";
 
-import type { ExploreGraphProjectionView, ExploreLayoutPosition } from "../types";
+import type { ExploreLayoutPosition } from "../types";
 
 export const dagreLayoutAdapterVersion = "dagre-layered-v1";
 
@@ -10,8 +10,24 @@ const roundCoordinate = (value: number): number => Math.round(value * 1000) / 10
 const stableIdCompare = (left: string, right: string): number =>
   left < right ? -1 : left > right ? 1 : 0;
 
+export interface DagreLayoutProjectionInput {
+  readonly layout: {
+    readonly algorithmVersion: string;
+    readonly fixedNodeSize: { readonly width: number; readonly height: number };
+    readonly spacing: { readonly rank: number; readonly node: number };
+    readonly positions: readonly ExploreLayoutPosition[];
+  };
+  readonly nodes: readonly { readonly nodeId: string }[];
+  readonly edges: readonly {
+    readonly edgeId: string;
+    readonly edgeType: string;
+    readonly sourceNodeId: string;
+    readonly targetNodeId: string;
+  }[];
+}
+
 export function computeDagrePositions(
-  projection: ExploreGraphProjectionView,
+  projection: DagreLayoutProjectionInput,
 ): ExploreLayoutPosition[] {
   if (projection.layout.algorithmVersion !== dagreLayoutAdapterVersion) {
     throw new Error("Unsupported graph layout algorithm: " + projection.layout.algorithmVersion);

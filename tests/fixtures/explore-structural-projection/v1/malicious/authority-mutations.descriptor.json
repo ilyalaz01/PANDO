@@ -1,0 +1,79 @@
+{
+  "cases": [
+    {
+      "caseId": "readiness-injection",
+      "patch": [
+        {
+          "op": "add",
+          "path": "/readiness",
+          "value": { "status": "READY", "score": 1, "confidence": "HIGH" }
+        }
+      ],
+      "expectedSchemaValid": false,
+      "expectedViolations": ["SCHEMA_UNKNOWN_FIELD"]
+    },
+    {
+      "caseId": "mastery-injection",
+      "patch": [
+        {
+          "op": "add",
+          "path": "/nodes/1/state",
+          "value": {
+            "achievementLevel": "MASTERED",
+            "estimate": { "availability": "KNOWN", "confidence": "HIGH" }
+          }
+        }
+      ],
+      "expectedSchemaValid": false,
+      "expectedViolations": ["SCHEMA_UNKNOWN_FIELD"]
+    },
+    {
+      "caseId": "foreign-overlay-node",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/nodes/3/origin/workspaceId",
+          "value": "20000000-0000-4000-8000-000000000002"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": ["STRUCTURAL_FOREIGN_OVERLAY_ORIGIN"]
+    },
+    {
+      "caseId": "foreign-position-override",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/layout/positions/3/overrideWorkspaceId",
+          "value": "20000000-0000-4000-8000-000000000002"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": ["STRUCTURAL_FOREIGN_POSITION_OVERRIDE"]
+    },
+    {
+      "caseId": "canonical-version-race",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/nodes/1/origin/sourceVersionId",
+          "value": "catalog:stale-v1"
+        }
+      ],
+      "expectedSchemaValid": true,
+      "expectedViolations": ["STRUCTURAL_CATALOG_VERSION_MISMATCH"]
+    },
+    {
+      "caseId": "canonical-edge-smuggles-overlay",
+      "patch": [
+        {
+          "op": "replace",
+          "path": "/edges/2/origin",
+          "value": { "kind": "CANONICAL", "sourceVersionId": "catalog:seed-v1" }
+        }
+      ],
+      "expectedSchemaValid": false,
+      "expectedViolations": ["SCHEMA_CONST", "SCHEMA_IF"]
+    }
+  ]
+}

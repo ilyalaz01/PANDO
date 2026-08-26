@@ -1,0 +1,15 @@
+{
+  "contract": "ExploreStructuralProjectionV1",
+  "version": "1.0.0",
+  "base": "valid/explore-structural-projection-v1.personal.json",
+  "validCases": [
+    {
+      "caseId": "personal-overlay-and-selected-activity",
+      "path": "valid/explore-structural-projection-v1.personal.json"
+    }
+  ],
+  "descriptors": [
+    "invalid/semantic-mutations.descriptor.json",
+    "malicious/authority-mutations.descriptor.json"
+  ]
+}

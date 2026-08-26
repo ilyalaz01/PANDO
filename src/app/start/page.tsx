@@ -138,13 +138,13 @@ export default async function StartPage({
                 </p>
                 <Link
                   className="mt-5 inline-flex min-h-11 items-center font-bold underline"
-                  href="/explore"
+                  href={`/explore?goal=${encodeURIComponent(selectedGoal.readinessGoalKey)}`}
                 >
-                  View the Explore interaction fixture
+                  Explore this target
                 </Link>
                 <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
-                  Explore is still representative, not your live readiness map. The live projection
-                  will connect only after Mastery and readiness materialization are complete.
+                  Explore shows the live target structure now. Mastery and readiness stay hidden
+                  until their versioned projections are materialized from evidence.
                 </p>
               </section>
             )}
