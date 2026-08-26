@@ -1,273 +1,270 @@
-# Graph Report - PANDO  (2026-08-25)
+# Graph Report - PANDO  (2026-08-26)
 
 ## Corpus Check
-- 131 files · ~77,674 words
+- 190 files · ~117,491 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2495 nodes · 2856 edges · 244 communities (227 shown, 17 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.88)
+- 3027 nodes · 4047 edges · 238 communities (229 shown, 9 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 51 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `87fb08f8`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- PANDO Product Architecture
-- Competency Node State Semantics
-- Change Set Lifecycle Contract
-- Change Set Operations
-- Requirement Rule Variants
-- Graph Requirement Version Context
-- TypeScript Compiler Configuration
-- Plan Evidence and Exclusions
-- Identity and Outbox Tables
-- Change Impact Kinds
-- Graph Projection Shared Definitions
-- Graph Accessibility Metadata
-- Competency Reference Variants
-- Control Context Required Fields
-- Target Component Required Fields
-- Preparation Plan Root Schema
-- Growth Plan Control Context
-- Database Command Architecture
-- Plan Component Requirements
-- Pack Fingerprints and Digests
-- Target Profile Required Fields
-- Manifest File Descriptors
-- Planning Capacity Constraints
-- Bounded Context Ownership
-- Minimal Pack Manifest Fixture
-- Development Tool Dependencies
-- Identity and Outbox RPCs
-- Manifest Target Variant
-- Growth Plan Manifest Fixture
-- Manifest Component Descriptors
-- Mastery and Review Policies
-- Today Action Context
-- Mock Checkpoint Schema
-- Control Context Blockers
-- Preparation Context Root
-- Preparation Plan Phases
-- Sourced Claim Schema
-- Campaign Control Context
-- Projection Node Properties
-- Target Profile Schema Definitions
-- Manifest Root Schema
-- Graph Node Dimensions
-- Attainment Interval Bounds
-- Activity Effort Range
-- Requirement Member Variants
-- Graph Layout Spacing
-- Preparation Availability Context
-- Control Context Root Properties
-- Control Context Shared Definitions
-- Graph Projection Edges
-- Preparation Common Identifiers
-- Pack Generator Metadata
-- Preparation Growth Plan Context
-- External Agent Control Architecture
-- Package Verification Scripts
-- Graph Workspace Scope
-- Projection Node Contract
-- Requirement Rule Required Fields
-- Control Action Required Fields
-- Graph Node and Visibility Types
-- Control Context Type Enums
-- Plan Target Profile Reference
-- Preparation Catalog and Tracks
-- Track Control Context
-- Proposed Activity Schema
-- Target Requirement Schema
-- Requirement Group Schema
-- Graph Projection Architecture
-- Preparation Pack Ingestion
-- Change Preview Confirmation
-- Graph Projection Root Fields
-- Competency Summary Context
-- Graph Entity References
-- Workspace Control Context
-- Deterministic Graph Layout
-- Pack Manifest Fields
-- Plan Collection Fields
-- Target Profile Metadata
-- Proposed Competency Schema
-- Control Context Required Root
-- Structured Graph Explanations
-- Preparation Catalog Context
-- Competency Dimension Summaries
-- Plan Source Provenance
-- Plan Milestone Schema
-- Prerequisite Proposal Schema
-- Interview Stage Schema
-- Foundation UI Primitives
-- Proposed Activity Schema
-- Graph Layout Contract
-- Agent Control Capabilities
-- ChangeSet Core Contract
-- Manifest File Descriptors
-- Manifest Input Context
-- Plan Kind Assertions
-- Weighted Requirement Members
-- Graph Contract Identity
-- Target Profile Assertions
-- ChangeSet Preview Contract
-- Graph Node Collections
-- Graph Projection Root
-- Context Dimensions Availability
-- Preparation Plan Root
-- Profile Source Provenance
-- Agent Control Contracts
-- Package Runtime Metadata
-- Edge Visibility Hints
-- Preparation Context Root
-- K-of-N Requirement Rule
-- Dimension Summary Variants
-- Plan Phase Milestones
-- ChangeSet Confirmation Proof
-- Control Goals and Today
-- Projection State Metadata
-- Plan Path Impact Definitions
-- Weighted Threshold Rule
-- Runtime Hosting Toolchain
-- Agent Lifecycle Statuses
-- Node Visibility Hints
-- Projection State Requirements
-- Activity Type Catalog
-- Expected Evidence Types
-- Projection Edge Contract
-- Known Estimate Requirements
-- ChangeSet Application Result
-- ChangeSet Identifier Definitions
-- ChangeSet Operation Arguments
-- Agent Detail References
-- Projection Calculation States
-- Mandatory Floor Rule
-- ChangeSet Warnings and Unknowns
-- Estimate Availability Fields
-- Context Goal Dimension Definitions
-- Activity Path Schema
-- All Requirements Rule
-- Web Runtime Dependencies
-- Projection Edge Types
-- ChangeSet Result Schema
-- Objective Mastery Levels
-- Graph Projection Schema Root
-- Node Visibility Reasons
-- Source Reference Lists
-- Growth Plan Manifest Files
-- Interview Campaign Manifest Files
-- Preparation Context Schema
-- Preparation Context Constraints
-- Target Profile Source Schema
-- Requirement Criticality Levels
-- ChangeSet Schema Root
-- Control Context Schema Root
-- Preparation Confidence Levels
-- Preparation Condition States
-- Milestone Identifier Lists
-- Any Requirement Rule
-- Profile Assumptions and Members
-- Requirement Category Levels
-- End-to-End Server Lifecycle
-- Command Outbox Rollback Tests
-- Prettier Formatting Configuration
-- Competency Dimension Types
-- Agent Goal Kinds
-- Graph Detail Levels
-- Projection Confidence Levels
-- Safe Graph Text
-- Graph Projection Versions
-- Preparation UTC Timestamps
-- Preparation Plan Milestones
-- Preparation Plan Paths
-- Preparation Plan Phases
-- Preparation Plan Sources
-- Target Requirement Groups
-- Target Profile Requirements
-- Target Profile Sources
-- Practical Python Growth Plan
-- Minimal Preparation Pack
-- Probe Consumer Receipt Atomicity
-- Allocation Minutes Constraint
-- Availability Minutes Constraint
-- Weekly Cadence Constraint
-- Lifecycle Reason Field
-- Priority Constraint
-- Protected Minimum Minutes
-- Change Set Title
-- Weekly Capacity Minutes
-- Control Context Blockers
-- Requirement Criticality Values
-- Graph Projection Edge
-- Projection Explanations Collection
-- Weighted Rule Threshold
-- Preparation Common Schema
-- Preparation Activity IDs
-- Canonical Competency IDs
-- Preparation Context IDs
-- Preparation Date Format
-- Preparation Pack IDs
-- Preparation Phase IDs
-- Preparation Plan IDs
-- Proposed Competency IDs
-- Requirement Group IDs
-- Requirement IDs
-- Semantic Version Format
-- Preparation Slug Format
-- Competency Summary Collection
-- Initial Review Collection
-- Mock Checkpoint Collection
-- Preparation Plan Unknowns
-- Target Company Field
-- Interview Stage Collection
-- Prerequisite Proposal Collection
-- Proposed Competency Collection
-- Target Role Field
-- Target Profile Unknowns
-- Vacancy Reference Field
-- Change Set Date
-- Change Set Deadline
-- Control Detail References
-- Control Context ETag
-- Mandatory Floor Rule
-- Unknown Estimate Schema
-- Next Root Layout
-- UI Application Boundary
-- Playwright Accessibility Testing
-- ESLint Dependency
-- ESLint Configuration
-- JSDOM Dependency
-- Next.js Configuration
-- PostCSS Dependency
-- Jest DOM Testing
-- React Testing Library
-- React Type Definitions
-- TypeScript Dependency
-- Vitest Dependency
-- PostCSS Configuration
-- Infrastructure Domain Interfaces
-- Claimed Outbox Deliveries
-- Domain Layer
+- Nine-file canonical documentation set
+- activityState
+- properties
+- enum
+- properties
+- required
+- compilerOptions
+- source_refs
+- 20260825000200_identity_commands_outbox_tables.sql
+- enum
+- $defs
+- properties
+- canonicalCompetencyRef
+- required
+- required
+- required
+- properties
+- Authentication, data access, and tenancy decision
+- required
+- contextFingerprint
+- required
+- properties
+- confidence
+- Bounded contexts
+- minimal/manifest.json
+- devDependencies
+- 20260825000300_identity_commands_outbox_rpcs.sql
+- target
+- growth-plan-minimal/manifest.json
+- $defs
+- Mastery and readiness policy v0.1
+- properties
+- properties
+- properties
+- properties
+- properties
+- claim
+- properties
+- properties
+- target-profile.schema.json
+- manifest.schema.json
+- fixedNodeSize
+- attainmentInterval
+- effortRange
+- ruleId
+- spacing
+- properties
+- properties
+- $defs
+- properties
+- milestoneId
+- generator
+- growthPlan
+- Agent Control Plane decision
+- scripts
+- workspaceScope
+- required
+- required
+- required
+- enum
+- enum
+- targetProfileRef
+- properties
+- properties
+- properties
+- properties
+- title
+- Graph-projection v1 schema documentation
+- Preparation Pack ingestion decision
+- required
+- required
+- competencySummary
+- entityRef
+- workspace
+- properties
+- properties
+- $ref
+- properties
+- properties
+- required
+- structuredExplanation
+- catalog
+- properties
+- properties
+- preparation-pack.ts
+- properties
+- properties
+- projection-view.ts
+- calculate-competency-state.ts
+- required
+- calculate-target-readiness.ts
+- verify-database-core.mjs
+- required
+- schema_version
+- enum
+- weightedRequirementMember
+- contract
+- enum
+- properties
+- $ref
+- properties
+- dimensions
+- properties
+- properties
+- Agent Control Plane implementation design
+- package.json
+- edgeVisibilityHint
+- required
+- kOfNRule
+- required
+- PANDO module topology and reading routes
+- preview_digest
+- pando-backup.mjs
+- properties
+- $defs
+- weightedThresholdRule
+- Runtime, hosting, and toolchain decision
+- enum
+- nodeVisibilityHint
+- graph-stress-materializer.ts
+- enum
+- enum
+- backup.integration.mjs
+- enum
+- properties
+- $defs
+- properties
+- version
+- impact
+- mandatoryFloorRule
+- items
+- operations
+- $defs
+- properties
+- kind
+- dependencies
+- PANDO commercial licensing information
+- result
+- enum
+- graph-projection.schema.json
+- properties
+- sourceRefs
+- growthPlanFiles
+- interviewCampaignFiles
+- preparation-context.schema.json
+- constraints
+- source
+- enum
+- properties
+- properties
+- enum
+- enum
+- required
+- kind
+- $ref
+- properties
+- e2e-server.mjs
+- 002_identity_command_rls.test.sql
+- .prettierrc.json
+- enum
+- enum
+- availableAtDetailLevels
+- $defs
+- properties
+- required
+- utcTimestamp
+- milestones
+- paths
+- phases
+- sources
+- requirement_groups
+- requirements
+- sources
+- Practical Python Growth Plan proposal
+- Minimum Preparation Pack path
+- 004_phase0_probe_effect_atomicity.test.sql
+- allocation_minutes
+- available_minutes
+- cadence_per_week
+- lifecycle_reason
+- priority
+- protected_minimum_minutes
+- title
+- weekly_capacity_minutes
+- Encrypted logical backup and clean-restore gate
+- confirmation
+- r2-plan.mjs
+- impacts
+- profileId
+- common.schema.json
+- activityId
+- canonicalCompetencyId
+- contextId
+- date
+- packId
+- phaseId
+- planId
+- proposedCompetencyId
+- $defs
+- sourceId
+- excluded_items
+- slug
+- competency_summaries
+- initial_reviews
+- mock_checkpoints
+- unknowns
+- company
+- interview_stages
+- prerequisite_proposals
+- proposed_competencies
+- role
+- unknowns
+- vacancy_reference
+- date
+- deadline
+- proposed_activities
+- fake-supabase-cli.mjs
+- Phase 0 gate 9 - deterministic engine status
+- repository
+- app/layout.tsx
+- UI
+- preparationPlanDescriptor
+- eslint.config.mjs
+- next.config.ts
+- postcss.config.mjs
+- Domain-owned interfaces
+- 003_outbox_delivery_lifecycle.test.sql
+- Domain layer
 
 ## God Nodes (most connected - your core abstractions)
 1. `$defs` - 31 edges
 2. `$defs` - 27 edges
-3. `enum` - 21 edges
-4. `compilerOptions` - 19 edges
-5. `required` - 18 edges
-6. `enum` - 16 edges
-7. `scripts` - 14 edges
-8. `required` - 14 edges
-9. `required` - 14 edges
-10. `$ref` - 14 edges
+3. `scripts` - 23 edges
+4. `enum` - 21 edges
+5. `asJsonObject()` - 21 edges
+6. `validatePreparationPackSemantics()` - 20 edges
+7. `isJsonObject()` - 19 edges
+8. `compilerOptions` - 19 edges
+9. `required` - 18 edges
+10. `validateGraphProjectionSemantics()` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Preparation Pack contract v1` --semantically_similar_to--> `Preparation Pack v1`  [INFERRED] [semantically similar]
-  schemas/preparation-pack/v1/README.md → docs/adr/0005-preparation-pack-ingestion.md
 - `Evidence` --semantically_similar_to--> `Evidence`  [INFERRED] [semantically similar]
   tests/fixtures/preparation-pack/valid/minimal/rationale.md → src/modules/evidence/README.md
-- `Preview-confirm-apply workflow` --semantically_similar_to--> `Conversational control interaction flow`  [INFERRED] [semantically similar]
-  .agents/skills/pando-control/SKILL.md → docs/02_PRODUCT_AND_UX_SPEC.md
+- `Preparation Pack contract v1` --semantically_similar_to--> `Preparation Pack v1`  [INFERRED] [semantically similar]
+  schemas/preparation-pack/v1/README.md → docs/adr/0005-preparation-pack-ingestion.md
 - `Agent execution contract` --semantically_similar_to--> `PANDO agent instructions`  [INFERRED] [semantically similar]
   SOFTWARE_PROJECT_GUIDELINES.md → AGENTS.md
+- `Preview-confirm-apply workflow` --semantically_similar_to--> `Conversational control interaction flow`  [INFERRED] [semantically similar]
+  .agents/skills/pando-control/SKILL.md → docs/02_PRODUCT_AND_UX_SPEC.md
 - `Unknown is not zero` --semantically_similar_to--> `Correctness and evidence`  [INFERRED] [semantically similar]
   docs/00_PRODUCT_CONSTITUTION.md → SOFTWARE_PROJECT_GUIDELINES.md
 
@@ -275,911 +272,911 @@
 - None detected.
 
 ## Hyperedges (group relationships)
-- **Canonical product and architecture baseline** — docs_readme_documentation_index, docs_00_product_constitution_product_constitution, docs_01_domain_model_domain_model, docs_02_product_and_ux_spec_product_and_ux_specification, docs_03_system_architecture_system_architecture, docs_04_mvp_delivery_plan_mvp_delivery_plan, docs_05_external_ai_preparation_pack_external_ai_preparation_pack, docs_06_prompt_library_ux_prompt_library_ux, software_project_guidelines_normative_guideline [EXTRACTED 1.00]
-- **Evidence-to-daily projection pipeline** — docs_00_product_constitution_evidence_before_status, docs_01_domain_model_evidence_ledger, docs_01_domain_model_competency_state, docs_01_domain_model_readiness_projection, docs_02_product_and_ux_spec_today [EXTRACTED 1.00]
 - **Safe external agent control plane** — agents_skills_pando_control_skill_preview_confirm_apply, docs_01_domain_model_agent_control_context_v1, docs_01_domain_model_plan_change_set, docs_01_domain_model_apply_plan_change_set, docs_03_system_architecture_live_control_plane [EXTRACTED 1.00]
 - **Zero-cost hosting stack** — docs_adr_0001_runtime_hosting_and_toolchain_vercel_hobby, docs_adr_0001_runtime_hosting_and_toolchain_supabase_free, docs_adr_0001_runtime_hosting_and_toolchain_cloudflare_r2_backup_storage [EXTRACTED 1.00]
 - **Agent change application flow** — docs_adr_0008_agent_control_plane_agent_control_context_v1, docs_adr_0008_agent_control_plane_plan_change_set, docs_design_agent_control_plane_preview_plan_change_service, docs_design_agent_control_plane_apply_plan_change_set_command, docs_adr_0003_commands_outbox_and_jobs_transactional_outbox [EXTRACTED 1.00]
+- **Canonical product and architecture baseline** — docs_readme_documentation_index, docs_00_product_constitution_product_constitution, docs_01_domain_model_domain_model, docs_02_product_and_ux_spec_product_and_ux_specification, docs_03_system_architecture_system_architecture, docs_04_mvp_delivery_plan_mvp_delivery_plan, docs_05_external_ai_preparation_pack_external_ai_preparation_pack, docs_06_prompt_library_ux_prompt_library_ux, software_project_guidelines_normative_guideline [EXTRACTED 1.00]
+- **Evidence-to-daily projection pipeline** — docs_00_product_constitution_evidence_before_status, docs_01_domain_model_evidence_ledger, docs_01_domain_model_competency_state, docs_01_domain_model_readiness_projection, docs_02_product_and_ux_spec_today [EXTRACTED 1.00]
 - **Module internal layers** — src_modules_readme_domain_layer, src_modules_readme_application_layer, src_modules_readme_infrastructure_layer [EXTRACTED 1.00]
 - **PANDO deterministic responsibilities** — tests_fixtures_preparation_pack_valid_minimal_rationale_daily_planning, tests_fixtures_preparation_pack_valid_minimal_rationale_evidence, tests_fixtures_preparation_pack_valid_minimal_rationale_readiness [EXTRACTED 1.00]
 
-## Communities (244 total, 17 thin omitted)
+## Communities (238 total, 9 thin omitted)
 
-### Community 0 - "PANDO Product Architecture"
+### Community 0 - "Nine-file canonical documentation set"
 Cohesion: 0.05
 Nodes (54): PANDO agent instructions, Product control safety rules, Graphify agent interface, Graphify for PANDO skill, Repository knowledge graph, PANDO Control agent interface, PANDO Control skill, Preview-confirm-apply workflow (+46 more)
 
-### Community 1 - "Competency Node State Semantics"
+### Community 1 - "activityState"
 Cohesion: 0.04
 Nodes (48): achievementLevel, AVAILABLE, estimate, evidenceExpectation, EXPECTED, IN_PROGRESS, INTERVIEW_EXECUTION, lifecycleStatus (+40 more)
 
-### Community 2 - "Change Set Lifecycle Contract"
+### Community 2 - "properties"
 Cohesion: 0.04
-Nodes (47): api, applied, chatgpt_work, codex, expired, previewed, rejected, web (+39 more)
+Nodes (47): api, applied, base_projection_watermark, change_set_id, chatgpt_work, codex, confirmation, expired (+39 more)
 
-### Community 3 - "Change Set Operations"
-Cohesion: 0.05
-Nodes (40): accept_staged_personal_content, aggregate_ref, archive_growth_plan, archive_track, arguments, cancel_campaign, change_campaign_deadline, change_campaign_target (+32 more)
-
-### Community 4 - "Requirement Rule Variants"
+### Community 3 - "enum"
 Cohesion: 0.10
-Nodes (35): $ref, additionalProperties, properties, type, additionalProperties, properties, type, const (+27 more)
+Nodes (21): accept_staged_personal_content, archive_growth_plan, archive_track, cancel_campaign, change_campaign_deadline, change_campaign_target, complete_track, create_goal (+13 more)
 
-### Community 5 - "Graph Requirement Version Context"
+### Community 4 - "properties"
 Cohesion: 0.06
-Nodes (32): catalogVersionId, masteryPolicyVersion, readinessPolicyVersion, roadmapTemplateVersionId, rootRuleId, rules, targetProfileVersionId, $ref (+24 more)
+Nodes (45): $ref, additionalProperties, properties, type, additionalProperties, properties, type, const (+37 more)
 
-### Community 6 - "TypeScript Compiler Configuration"
+### Community 5 - "required"
+Cohesion: 0.13
+Nodes (15): catalogVersionId, masteryPolicyVersion, readinessPolicyVersion, roadmapTemplateVersionId, rootRuleId, rules, targetProfileVersionId, requirementSet (+7 more)
+
+### Community 6 - "compilerOptions"
 Cohesion: 0.07
 Nodes (29): dom, dom.iterable, esnext, .next/dev/types/**/*.ts, .next/types/**/*.ts, node_modules, **/*.ts, **/*.tsx (+21 more)
 
-### Community 7 - "Plan Evidence and Exclusions"
-Cohesion: 0.09
-Nodes (27): $ref, properties, $ref, excludedItem, additionalProperties, properties, type, exclusiveMinimum (+19 more)
+### Community 7 - "source_refs"
+Cohesion: 0.10
+Nodes (21): excludedItem, initialReview, additionalProperties, properties, type, additionalProperties, properties, type (+13 more)
 
-### Community 8 - "Identity and Outbox Tables"
+### Community 8 - "20260825000200_identity_commands_outbox_tables.sql"
 Cohesion: 0.13
 Nodes (19): auth.users, identity, outbox, outbox.protect_completed_command_receipt, outbox.reject_consumer_receipt_mutation, outbox.reject_event_mutation, outbox.reject_phase0_probe_effect_mutation, completed_command_receipts_are_immutable (+11 more)
 
-### Community 9 - "Change Impact Kinds"
-Cohesion: 0.08
-Nodes (24): archive, cancel, change, complete, create, end, pause, replan (+16 more)
+### Community 9 - "enum"
+Cohesion: 0.17
+Nodes (12): archive, cancel, change, complete, create, end, pause, replan (+4 more)
 
-### Community 10 - "Graph Projection Shared Definitions"
-Cohesion: 0.09
-Nodes (23): format, type, $defs, dateTime, kOfNRule, origin, requirementMember, requirementRule (+15 more)
+### Community 10 - "$defs"
+Cohesion: 0.07
+Nodes (30): format, type, $defs, dateTime, origin, requirementMember, requirementRule, requirementState (+22 more)
 
-### Community 11 - "Graph Accessibility Metadata"
+### Community 11 - "properties"
 Cohesion: 0.09
 Nodes (22): keyboardOrder, outlineItemId, statusText, additionalProperties, properties, required, type, accessibility (+14 more)
 
-### Community 12 - "Competency Reference Variants"
+### Community 12 - "canonicalCompetencyRef"
 Cohesion: 0.10
 Nodes (22): additionalProperties, properties, required, type, $ref, $ref, canonicalCompetencyRef, proposedCompetencyRef (+14 more)
 
-### Community 13 - "Control Context Required Fields"
+### Community 13 - "required"
 Cohesion: 0.13
-Nodes (21): campaign_id, deadline, entity_id, goal_id, growth_plan_id, protected_minimum_minutes, readiness_goal_id, ref (+13 more)
+Nodes (22): campaign_id, deadline, entity_id, goal_id, growth_plan_id, protected_minimum_minutes, readiness_goal_id, ref (+14 more)
 
-### Community 14 - "Target Component Required Fields"
+### Community 14 - "required"
 Cohesion: 0.11
 Nodes (21): category, from, member_requirement_ids, minimum_level, relationship, requirement_group_id, requirement_id, rule (+13 more)
 
-### Community 15 - "Preparation Plan Root Schema"
+### Community 15 - "required"
 Cohesion: 0.10
 Nodes (20): excluded_items, initial_reviews, milestones, mock_checkpoints, paths, phases, plan_id, proposed_activities (+12 more)
 
-### Community 16 - "Growth Plan Control Context"
-Cohesion: 0.10
-Nodes (21): $ref, properties, $ref, properties, goal_id, growth_plan_id, status, title (+13 more)
+### Community 16 - "properties"
+Cohesion: 0.11
+Nodes (18): growthPlan, $ref, additionalProperties, properties, type, growth_plan_id, title, tracks (+10 more)
 
-### Community 17 - "Database Command Architecture"
+### Community 17 - "Authentication, data access, and tenancy decision"
 Cohesion: 0.16
 Nodes (20): Authentication, data access, and tenancy decision, Private api schema, Purpose-specific Postgres RPC, Postgres row-level security, SQL migrations as the schema source, Supabase Auth, Workspace membership tenancy, Commands, outbox, and jobs decision (+12 more)
 
-### Community 18 - "Plan Component Requirements"
-Cohesion: 0.14
-Nodes (20): activity_ids, impact, milestone_ids, not_before, protected_growth_minutes, required, required, required (+12 more)
+### Community 18 - "required"
+Cohesion: 0.08
+Nodes (35): activity_id, activity_ids, activity_type, competency_impacts, effort, expected_evidence, impact, milestone_ids (+27 more)
 
-### Community 19 - "Pack Fingerprints and Digests"
+### Community 19 - "contextFingerprint"
 Cohesion: 0.12
 Nodes (20): algorithm, canonicalization, digest, const, const, additionalProperties, properties, required (+12 more)
 
-### Community 20 - "Target Profile Required Fields"
+### Community 20 - "required"
+Cohesion: 0.13
+Nodes (15): interview_stages, metadata_confidence, metadata_source_refs, prerequisite_proposals, proposed_competencies, requirement_groups, role, sources (+7 more)
+
+### Community 21 - "properties"
+Cohesion: 0.20
+Nodes (18): maximum, minimum, type, $ref, const, const, const, properties (+10 more)
+
+### Community 22 - "confidence"
 Cohesion: 0.11
-Nodes (20): interview_stages, metadata_confidence, metadata_source_refs, prerequisite_proposals, proposed_competencies, requirement_groups, role, sources (+12 more)
+Nodes (19): properties, $ref, items, maxItems, type, uniqueItems, maxLength, minLength (+11 more)
 
-### Community 21 - "Manifest File Descriptors"
-Cohesion: 0.17
-Nodes (20): maximum, minimum, type, $ref, const, const, const, properties (+12 more)
-
-### Community 22 - "Planning Capacity Constraints"
-Cohesion: 0.10
-Nodes (20): additionalProperties, properties, type, items, maxItems, type, uniqueItems, capacity (+12 more)
-
-### Community 23 - "Bounded Context Ownership"
+### Community 23 - "Bounded contexts"
 Cohesion: 0.13
 Nodes (20): Canonical competency DAG, Catalog, Evidence, Immutable normalized evidence ledger, Identity and Workspace, Integrations, Normalized provider observations, Mastery (+12 more)
 
-### Community 24 - "Minimal Pack Manifest Fixture"
+### Community 24 - "minimal/manifest.json"
 Cohesion: 0.10
 Nodes (19): files, algorithm, canonicalization, digest, generated_at, generator, label, prompt_id (+11 more)
 
-### Community 25 - "Development Tool Dependencies"
-Cohesion: 0.11
-Nodes (19): eslint-config-next, fast-check, devDependencies, eslint-config-next, fast-check, @playwright/test, prettier, tailwindcss (+11 more)
+### Community 25 - "devDependencies"
+Cohesion: 0.05
+Nodes (39): @axe-core/playwright, eslint, eslint-config-next, fast-check, jsdom, devDependencies, @axe-core/playwright, eslint (+31 more)
 
-### Community 26 - "Identity and Outbox RPCs"
+### Community 26 - "20260825000300_identity_commands_outbox_rpcs.sql"
 Cohesion: 0.13
 Nodes (7): identity.users, identity.workspace_memberships, identity.workspaces, identity.can_bootstrap_owner_membership(), identity.current_user_id(), identity.is_workspace_member(), identity.personal_workspace_id_for_current_user()
 
-### Community 27 - "Manifest Target Variant"
+### Community 27 - "target"
 Cohesion: 0.11
 Nodes (19): interview_campaign, $ref, target, growth_plan, kind, title, enum, type (+11 more)
 
-### Community 28 - "Growth Plan Manifest Fixture"
+### Community 28 - "growth-plan-minimal/manifest.json"
 Cohesion: 0.11
 Nodes (18): files, algorithm, canonicalization, digest, generated_at, generator, label, prompt_id (+10 more)
 
-### Community 29 - "Manifest Component Descriptors"
-Cohesion: 0.11
-Nodes (18): $defs, generator, preparationPlanDescriptor, rationaleDescriptor, sourcesDescriptor, targetProfileDescriptor, additionalProperties, required (+10 more)
+### Community 29 - "$defs"
+Cohesion: 0.12
+Nodes (16): fingerprint, $defs, inputContext, rationaleDescriptor, sourcesDescriptor, targetProfileDescriptor, additionalProperties, required (+8 more)
 
-### Community 30 - "Mastery and Review Policies"
+### Community 30 - "Mastery and readiness policy v0.1"
 Cohesion: 0.17
 Nodes (17): Calculation and review engines decision, Fixed MVP review engine, Pure deterministic calculation engines, Versioned projection snapshots, Achievement level, Mastery and readiness policy v0.1, Mastery-driven review triggers, Unknown mastery state (+9 more)
 
-### Community 31 - "Today Action Context"
-Cohesion: 0.12
-Nodes (17): campaign, manual, review, $ref, properties, maximum, minimum, type (+9 more)
+### Community 31 - "properties"
+Cohesion: 0.17
+Nodes (12): $ref, properties, maximum, minimum, type, action_id, duration_minutes, reason (+4 more)
 
-### Community 32 - "Mock Checkpoint Schema"
+### Community 32 - "properties"
 Cohesion: 0.12
 Nodes (17): competency_refs, milestone_id, scheduled_on, items, maxItems, minItems, type, mockCheckpoint (+9 more)
 
-### Community 33 - "Control Context Blockers"
-Cohesion: 0.12
-Nodes (17): critical, info, warning, additionalProperties, $ref, properties, type, blocker (+9 more)
+### Community 33 - "properties"
+Cohesion: 0.14
+Nodes (14): critical, info, warning, $ref, properties, anyOf, maxLength, minLength (+6 more)
 
-### Community 34 - "Preparation Context Root"
+### Community 34 - "properties"
 Cohesion: 0.12
 Nodes (17): $ref, $ref, $ref, $ref, $ref, $ref, $ref, properties (+9 more)
 
-### Community 35 - "Preparation Plan Phases"
-Cohesion: 0.12
-Nodes (17): $ref, maxLength, minLength, type, maximum, minimum, type, properties (+9 more)
+### Community 35 - "properties"
+Cohesion: 0.07
+Nodes (29): milestone, $ref, $ref, additionalProperties, properties, type, maxLength, minLength (+21 more)
 
-### Community 36 - "Sourced Claim Schema"
+### Community 36 - "claim"
 Cohesion: 0.12
 Nodes (16): text, additionalProperties, properties, required, type, $ref, claim, confidence (+8 more)
 
-### Community 37 - "Campaign Control Context"
+### Community 37 - "properties"
 Cohesion: 0.12
 Nodes (16): additionalProperties, $ref, properties, type, anyOf, format, type, campaign (+8 more)
 
-### Community 38 - "Projection Node Properties"
-Cohesion: 0.12
-Nodes (16): $ref, oneOf, $ref, $ref, properties, accessibility, domainNodeId, entityRef (+8 more)
+### Community 38 - "properties"
+Cohesion: 0.09
+Nodes (22): $ref, projectionNode, oneOf, $ref, $ref, additionalProperties, allOf, properties (+14 more)
 
-### Community 39 - "Target Profile Schema Definitions"
-Cohesion: 0.12
-Nodes (15): additionalProperties, $defs, proposedCompetency, requirementGroup, requirementRule, description, $id, additionalProperties (+7 more)
+### Community 39 - "target-profile.schema.json"
+Cohesion: 0.29
+Nodes (6): additionalProperties, description, $id, $schema, title, type
 
-### Community 40 - "Manifest Root Schema"
+### Community 40 - "manifest.schema.json"
 Cohesion: 0.13
 Nodes (14): files, generator, input_context, pack_id, additionalProperties, allOf, description, $id (+6 more)
 
-### Community 41 - "Graph Node Dimensions"
+### Community 41 - "fixedNodeSize"
 Cohesion: 0.13
 Nodes (15): height, width, additionalProperties, properties, required, type, maximum, minimum (+7 more)
 
-### Community 42 - "Attainment Interval Bounds"
+### Community 42 - "attainmentInterval"
 Cohesion: 0.13
 Nodes (15): lower, upper, additionalProperties, properties, required, type, attainmentInterval, maximum (+7 more)
 
-### Community 43 - "Activity Effort Range"
+### Community 43 - "effortRange"
 Cohesion: 0.13
 Nodes (15): maximum_minutes, minimum_minutes, effortRange, additionalProperties, properties, required, type, maximum (+7 more)
 
-### Community 44 - "Requirement Member Variants"
-Cohesion: 0.13
-Nodes (15): memberType, nodeId, requiredLevel, nodeRequirementMember, ruleRequirementMember, dimension, const, additionalProperties (+7 more)
+### Community 44 - "ruleId"
+Cohesion: 0.12
+Nodes (17): memberType, nodeId, requiredLevel, nodeRequirementMember, ruleRequirementMember, dimension, const, additionalProperties (+9 more)
 
-### Community 45 - "Graph Layout Spacing"
+### Community 45 - "spacing"
 Cohesion: 0.13
 Nodes (15): node, rank, maximum, minimum, type, node, rank, spacing (+7 more)
 
-### Community 46 - "Preparation Availability Context"
+### Community 46 - "properties"
 Cohesion: 0.13
 Nodes (15): timezone, additionalProperties, properties, required, type, availability, weekly_minutes, timezone (+7 more)
 
-### Community 47 - "Control Context Root Properties"
-Cohesion: 0.13
-Nodes (15): anyOf, const, format, type, anyOf, minimum, type, properties (+7 more)
+### Community 47 - "properties"
+Cohesion: 0.05
+Nodes (46): apply_change_set, preview_change_goal, preview_change_set, preview_close_goal, preview_create_goal, read, anyOf, items (+38 more)
 
-### Community 48 - "Control Context Shared Definitions"
+### Community 48 - "$defs"
 Cohesion: 0.13
-Nodes (15): $defs, goal, growthPlan, id, version, additionalProperties, type, additionalProperties (+7 more)
+Nodes (14): additionalProperties, $defs, id, version, $id, maxLength, minLength, pattern (+6 more)
 
-### Community 49 - "Graph Projection Edges"
-Cohesion: 0.13
-Nodes (15): type, $ref, $ref, properties, blocking, edgeId, origin, rationale (+7 more)
+### Community 49 - "properties"
+Cohesion: 0.08
+Nodes (24): ACTIVITY_EVIDENCES, PART_OF, PREREQUISITE_OF, RELATED_TO, USER_ADDED, type, projectionEdge, $ref (+16 more)
 
-### Community 50 - "Preparation Common Identifiers"
-Cohesion: 0.13
-Nodes (15): oneOf, $defs, competencyRef, milestoneId, profileId, sourceId, maxLength, pattern (+7 more)
+### Community 50 - "milestoneId"
+Cohesion: 0.50
+Nodes (4): milestoneId, maxLength, pattern, type
 
-### Community 51 - "Pack Generator Metadata"
-Cohesion: 0.13
-Nodes (15): properties, maxLength, minLength, type, maxLength, minLength, type, maxLength (+7 more)
+### Community 51 - "generator"
+Cohesion: 0.10
+Nodes (20): generator, additionalProperties, properties, required, type, label, maxLength, minLength (+12 more)
 
-### Community 52 - "Preparation Growth Plan Context"
+### Community 52 - "growthPlan"
 Cohesion: 0.13
 Nodes (15): growthPlan, additionalProperties, properties, required, type, title, tracks, title (+7 more)
 
-### Community 53 - "External Agent Control Architecture"
+### Community 53 - "Agent Control Plane decision"
 Cohesion: 0.16
 Nodes (14): AI and PyPrep boundaries decision, External agent control allowed, No embedded AI in Phase 0, PyPrep contract boundary, Agent Control Plane decision, External Agent Control Plane, Focused agent tool surface, Graphify GitHub repository (+6 more)
 
-### Community 54 - "Package Verification Scripts"
-Cohesion: 0.14
-Nodes (14): scripts, build, dev, format, format:check, lint, start, test:e2e (+6 more)
+### Community 54 - "scripts"
+Cohesion: 0.09
+Nodes (23): scripts, backup:open, backup:r2-plan, backup:seal, build, dev, format, format:check (+15 more)
 
-### Community 55 - "Graph Workspace Scope"
+### Community 55 - "workspaceScope"
 Cohesion: 0.14
 Nodes (14): acceptedPersonalContentOnly, overlayRevision, workspaceId, const, $ref, acceptedPersonalContentOnly, overlayRevision, workspaceId (+6 more)
 
-### Community 56 - "Projection Node Contract"
-Cohesion: 0.14
-Nodes (14): accessibility, domainNodeId, entityRef, explanations, inspectorRef, nodeType, requirementState, shortLabel (+6 more)
+### Community 56 - "required"
+Cohesion: 0.11
+Nodes (19): accessibility, domainNodeId, edgeId, edgeType, entityRef, explanations, inspectorRef, nodeType (+11 more)
 
-### Community 57 - "Requirement Rule Required Fields"
+### Community 57 - "required"
 Cohesion: 0.40
 Nodes (14): accessibilityLabel, members, requiredCount, ruleId, ruleType, required, required, criticality (+6 more)
 
-### Community 58 - "Control Action Required Fields"
-Cohesion: 0.14
-Nodes (14): action_id, blocker_id, detail_ref, duration_minutes, severity, source, additionalProperties, required (+6 more)
+### Community 58 - "required"
+Cohesion: 0.12
+Nodes (16): action_id, blocker_id, detail_ref, duration_minutes, severity, source, additionalProperties, required (+8 more)
 
-### Community 59 - "Graph Node and Visibility Types"
+### Community 59 - "enum"
 Cohesion: 0.20
 Nodes (14): ACTIVITY, COMPETENCY, CRITICAL_PATH, DOMAIN, GROUP, MANDATORY_BLOCKER, PERSONAL_OVERLAY, REQUIRED_BY_TARGET (+6 more)
 
-### Community 60 - "Control Context Type Enums"
+### Community 60 - "enum"
 Cohesion: 0.14
 Nodes (14): constraint, evidence_summary, mandatory_floor, today_explanation, track, unknown, capacity, goal (+6 more)
 
-### Community 61 - "Plan Target Profile Reference"
+### Community 61 - "targetProfileRef"
 Cohesion: 0.14
 Nodes (14): file, targetProfileRef, const, profile_id, profile_version, $ref, $ref, file (+6 more)
 
-### Community 62 - "Preparation Catalog and Tracks"
+### Community 62 - "properties"
 Cohesion: 0.18
 Nodes (14): protected_weekly_minutes, additionalProperties, properties, required, type, competency_id, priority, track_id (+6 more)
 
-### Community 63 - "Track Control Context"
+### Community 63 - "properties"
 Cohesion: 0.14
 Nodes (14): track, maximum, minimum, type, priority, protected_minimum_minutes, track_id, maximum (+6 more)
 
-### Community 64 - "Proposed Activity Schema"
-Cohesion: 0.14
-Nodes (14): $ref, items, maxItems, minItems, type, $ref, const, activity_id (+6 more)
+### Community 64 - "properties"
+Cohesion: 0.12
+Nodes (17): $ref, items, maxItems, minItems, type, proposedActivity, $ref, const (+9 more)
 
-### Community 65 - "Target Requirement Schema"
-Cohesion: 0.14
-Nodes (14): requirement, $ref, minimum_level, requirement_id, subject_ref, weight, additionalProperties, $ref (+6 more)
+### Community 65 - "properties"
+Cohesion: 0.12
+Nodes (17): enum, type, differentiating, mandatory, preferred, $ref, category, minimum_level (+9 more)
 
-### Community 66 - "Requirement Group Schema"
+### Community 66 - "title"
 Cohesion: 0.14
 Nodes (14): maxItems, minItems, type, uniqueItems, member_requirement_ids, requirement_group_id, rule, title (+6 more)
 
-### Community 67 - "Graph Projection Architecture"
+### Community 67 - "Graph-projection v1 schema documentation"
 Cohesion: 0.24
 Nodes (13): Accessible graph outline fallback, Deterministic Dagre layout, Graph layout and query boundary decision, GraphProjectionV1, Server and client graph ownership split, Graphify repository orientation graph, Four graph and contract separation, GraphProjectionV1 contract (+5 more)
 
-### Community 68 - "Preparation Pack Ingestion"
+### Community 68 - "Preparation Pack ingestion decision"
 Cohesion: 0.22
 Nodes (13): Bounded in-memory ZIP ingestion, Content-addressed object storage, Preparation Pack ingestion decision, Preparation Pack v1, Retention quota and cleanup policy, Structural and semantic validation, Provider-neutral Preparation Pack, Preparation Pack bulk import versus ChangeSet operations (+5 more)
 
-### Community 69 - "Change Preview Confirmation"
-Cohesion: 0.15
-Nodes (13): confirmed_at, expires_at, impacts, material_unknowns, preview_digest, preview_token, requires_confirmation, warnings (+5 more)
+### Community 69 - "required"
+Cohesion: 0.20
+Nodes (10): expires_at, impacts, material_unknowns, preview_token, requires_confirmation, warnings, preview, additionalProperties (+2 more)
 
-### Community 70 - "Graph Projection Root Fields"
+### Community 70 - "required"
 Cohesion: 0.15
 Nodes (13): contract, edges, layout, nodes, outline, projectionId, projectionState, selectedVersions (+5 more)
 
-### Community 71 - "Competency Summary Context"
+### Community 71 - "competencySummary"
 Cohesion: 0.15
 Nodes (13): dimensions, $ref, additionalProperties, properties, required, type, competencySummary, competency_ref (+5 more)
 
-### Community 72 - "Graph Entity References"
+### Community 72 - "entityRef"
 Cohesion: 0.15
 Nodes (13): entityId, entityType, entityVersionId, entityRef, $ref, additionalProperties, properties, required (+5 more)
 
-### Community 73 - "Workspace Control Context"
+### Community 73 - "workspace"
 Cohesion: 0.15
 Nodes (13): time_zone, workspace_id, workspace, time_zone, workspace_id, maxLength, minLength, type (+5 more)
 
-### Community 74 - "Deterministic Graph Layout"
+### Community 74 - "properties"
 Cohesion: 0.15
 Nodes (13): $ref, const, properties, $ref, items, maxItems, type, algorithmVersion (+5 more)
 
-### Community 75 - "Pack Manifest Fields"
+### Community 75 - "properties"
 Cohesion: 0.15
 Nodes (13): oneOf, $ref, $ref, $ref, $ref, properties, files, generated_at (+5 more)
 
-### Community 76 - "Plan Collection Fields"
-Cohesion: 0.15
-Nodes (13): items, maxItems, type, items, maxItems, type, $ref, assumptions (+5 more)
+### Community 76 - "$ref"
+Cohesion: 0.40
+Nodes (5): items, maxItems, type, $ref, assumptions
 
-### Community 77 - "Target Profile Metadata"
+### Community 77 - "properties"
 Cohesion: 0.15
 Nodes (13): $ref, $ref, $ref, $ref, $ref, properties, deadline, metadata_confidence (+5 more)
 
-### Community 78 - "Proposed Competency Schema"
+### Community 78 - "properties"
 Cohesion: 0.15
-Nodes (13): maxLength, minLength, type, const, description, lifecycle, proposed_competency_id, scope (+5 more)
+Nodes (13): $ref, maxLength, minLength, type, const, confidence, description, lifecycle (+5 more)
 
-### Community 79 - "Control Context Required Root"
-Cohesion: 0.17
-Nodes (12): active_campaign, blockers, capabilities, detail_refs, etag, goals, projection_watermark, today (+4 more)
+### Community 79 - "required"
+Cohesion: 0.12
+Nodes (17): active_campaign, blockers, campaign, capabilities, detail_refs, etag, goals, manual (+9 more)
 
-### Community 80 - "Structured Graph Explanations"
+### Community 80 - "structuredExplanation"
 Cohesion: 0.17
 Nodes (12): code, message, relatedNodeIds, relatedRuleIds, $ref, structuredExplanation, code, message (+4 more)
 
-### Community 81 - "Preparation Catalog Context"
+### Community 81 - "catalog"
 Cohesion: 0.17
 Nodes (12): supported_competencies, additionalProperties, properties, required, type, $ref, catalog, catalog_version (+4 more)
 
-### Community 82 - "Competency Dimension Summaries"
+### Community 82 - "properties"
 Cohesion: 0.20
 Nodes (12): const, $ref, type, properties, $ref, confidence, dimension, last_meaningful_evidence_at (+4 more)
 
-### Community 83 - "Plan Source Provenance"
-Cohesion: 0.17
-Nodes (12): type, source, maxLength, pattern, type, assertion_status, locator, source_id (+4 more)
+### Community 83 - "properties"
+Cohesion: 0.20
+Nodes (10): source, maxLength, pattern, type, locator, source_id, additionalProperties, $ref (+2 more)
 
-### Community 84 - "Plan Milestone Schema"
-Cohesion: 0.17
-Nodes (12): milestone, $ref, additionalProperties, properties, type, $ref, due_on, phase_id (+4 more)
+### Community 84 - "preparation-pack.ts"
+Cohesion: 0.06
+Nodes (93): add(), AgentChangeSetValidationOptions, AgentControlContextValidationOptions, objects(), OperationContract, operationContracts, validateAgentChangeSet(), validateAgentChangeSetSemantics() (+85 more)
 
-### Community 85 - "Prerequisite Proposal Schema"
+### Community 85 - "properties"
 Cohesion: 0.17
-Nodes (12): $ref, prerequisiteProposal, $ref, additionalProperties, properties, type, confidence, from (+4 more)
+Nodes (12): prerequisiteProposal, $ref, additionalProperties, properties, type, from, relationship, source_refs (+4 more)
 
-### Community 86 - "Interview Stage Schema"
+### Community 86 - "properties"
 Cohesion: 0.17
 Nodes (12): interviewStage, additionalProperties, properties, type, maximum, minimum, type, order (+4 more)
 
-### Community 87 - "Foundation UI Primitives"
-Cohesion: 0.24
-Nodes (7): foundationCapabilities, FoundationPage(), initialMotionMode(), MotionMode, motionModes, SkipLink(), SkipLinkProps
+### Community 87 - "projection-view.ts"
+Cohesion: 0.05
+Nodes (66): ExploreLayout(), ExplorePage(), metadata, FoundationPage(), phase0Capabilities, initialMotionMode(), MotionMode, motionModes (+58 more)
 
-### Community 88 - "Proposed Activity Schema"
-Cohesion: 0.18
-Nodes (11): activity_id, activity_type, competency_impacts, effort, expected_evidence, proposedActivity, lifecycle, scope (+3 more)
+### Community 88 - "calculate-competency-state.ts"
+Cohesion: 0.05
+Nodes (76): achievementLevel(), calculateCompetencyState(), calculateDimension(), estimateConfidence(), EvaluatedEvidence, EVIDENCE_ENGAGEMENTS, EVIDENCE_OUTCOMES, evidenceFingerprint() (+68 more)
 
-### Community 89 - "Graph Layout Contract"
+### Community 89 - "required"
 Cohesion: 0.18
 Nodes (11): algorithmVersion, coordinateSystem, fixedNodeSize, layoutVersion, positions, spacing, structuralFingerprint, additionalProperties (+3 more)
 
-### Community 90 - "Agent Control Capabilities"
-Cohesion: 0.18
-Nodes (11): apply_change_set, preview_change_goal, preview_change_set, preview_close_goal, preview_create_goal, read, items, type (+3 more)
+### Community 90 - "calculate-target-readiness.ts"
+Cohesion: 0.06
+Nodes (61): ACHIEVEMENT_LEVELS, asRuleMemberInterval(), average(), calculateTargetReadiness(), evaluateMember(), evaluateRule(), compareDecisionWitnesses(), confidenceRank() (+53 more)
 
-### Community 91 - "ChangeSet Core Contract"
-Cohesion: 0.18
-Nodes (11): base_projection_watermark, change_set_id, confirmation, operations, preview, result, source_client, contract_version (+3 more)
+### Community 91 - "verify-database-core.mjs"
+Cohesion: 0.09
+Nodes (29): assertSafeScratch(), closesWithin(), combineErrors(), copyValidatedDirectory(), copyValidatedFile(), copyValidatedSupabaseInputs(), createOnceAsync(), createSupabaseRunner() (+21 more)
 
-### Community 92 - "Manifest File Descriptors"
+### Community 92 - "required"
 Cohesion: 0.44
 Nodes (11): byte_length, checksum, encoding, media_type, path, schema_id, schema_version, required (+3 more)
 
-### Community 93 - "Manifest Input Context"
-Cohesion: 0.18
-Nodes (11): fingerprint, $ref, inputContext, $ref, additionalProperties, properties, required, type (+3 more)
+### Community 93 - "schema_version"
+Cohesion: 0.29
+Nodes (7): $ref, $ref, properties, context_id, fingerprint, schema_version, const
 
-### Community 94 - "Plan Kind Assertions"
-Cohesion: 0.18
-Nodes (11): growth_plan_change, interview_campaign_change, minimum, stretch, enum, research, sourced, unconfirmed (+3 more)
+### Community 94 - "enum"
+Cohesion: 0.15
+Nodes (13): growth_plan_change, interview_campaign_change, minimum, stretch, enum, type, research, sourced (+5 more)
 
-### Community 95 - "Weighted Requirement Members"
+### Community 95 - "weightedRequirementMember"
 Cohesion: 0.18
 Nodes (11): member, weightedRequirementMember, weight, weight, exclusiveMinimum, maximum, type, additionalProperties (+3 more)
 
-### Community 96 - "Graph Contract Identity"
+### Community 96 - "contract"
 Cohesion: 0.18
 Nodes (11): name, additionalProperties, properties, required, type, version, const, contract (+3 more)
 
-### Community 97 - "Target Profile Assertions"
+### Community 97 - "enum"
 Cohesion: 0.18
 Nodes (11): recruiter, vacancy, enum, type, research, sourced, unconfirmed, user_provided (+3 more)
 
-### Community 98 - "ChangeSet Preview Contract"
+### Community 98 - "properties"
 Cohesion: 0.18
 Nodes (11): format, type, maxItems, type, properties, $ref, expires_at, material_unknowns (+3 more)
 
-### Community 99 - "Graph Node Collections"
-Cohesion: 0.18
-Nodes (11): items, maxItems, type, items, $ref, items, items, maxItems (+3 more)
+### Community 99 - "$ref"
+Cohesion: 0.13
+Nodes (15): items, maxItems, type, items, maxItems, minItems, type, $ref (+7 more)
 
-### Community 100 - "Graph Projection Root"
+### Community 100 - "properties"
 Cohesion: 0.18
 Nodes (11): $ref, $ref, properties, outline, projectionId, readiness, requirements, visibilityHints (+3 more)
 
-### Community 101 - "Context Dimensions Availability"
+### Community 101 - "dimensions"
 Cohesion: 0.18
 Nodes (11): items, maxItems, minItems, type, $ref, dimensions, unavailable_dates, items (+3 more)
 
-### Community 102 - "Preparation Plan Root"
+### Community 102 - "properties"
 Cohesion: 0.18
 Nodes (11): $ref, $ref, $ref, properties, capacity, deadline, plan_id, schema_version (+3 more)
 
-### Community 103 - "Profile Source Provenance"
+### Community 103 - "properties"
 Cohesion: 0.18
 Nodes (11): maxLength, minLength, type, maxLength, pattern, type, label, locator (+3 more)
 
-### Community 104 - "Agent Control Contracts"
+### Community 104 - "Agent Control Plane implementation design"
 Cohesion: 0.29
 Nodes (10): AgentControlContextV1, PlanChangeSet, Agent Control Plane implementation design, PreviewPlanChange service, Read, preview, and apply flow, Root context 12 KiB budget, AgentControlContextV1 JSON Schema, Agent-control v1 schema documentation (+2 more)
 
-### Community 105 - "Package Runtime Metadata"
-Cohesion: 0.20
-Nodes (9): description, engines, node, pnpm, name, packageManager, private, type (+1 more)
+### Community 105 - "package.json"
+Cohesion: 0.17
+Nodes (11): description, engines, node, pnpm, homepage, license, name, packageManager (+3 more)
 
-### Community 106 - "Edge Visibility Hints"
+### Community 106 - "edgeVisibilityHint"
 Cohesion: 0.20
 Nodes (10): ACTIVE_PREREQUISITE, NAVIGATION_ONLY, PERSONAL_CONTEXT, SEMANTIC_CONTEXT, edgeVisibilityHint, additionalProperties, properties, type (+2 more)
 
-### Community 107 - "Preparation Context Root"
+### Community 107 - "required"
 Cohesion: 0.20
 Nodes (10): catalog, competency_summaries, context_fingerprint, exported_at, availability, context_id, goal, growth_plan (+2 more)
 
-### Community 108 - "K-of-N Requirement Rule"
+### Community 108 - "kOfNRule"
 Cohesion: 0.20
 Nodes (10): k, kOfNRule, maximum, minimum, type, additionalProperties, properties, required (+2 more)
 
-### Community 109 - "Dimension Summary Variants"
+### Community 109 - "required"
 Cohesion: 0.24
 Nodes (10): last_meaningful_evidence_at, knownDimensionSummary, condition, confidence, dimension, state, additionalProperties, required (+2 more)
 
-### Community 110 - "Plan Phase Milestones"
-Cohesion: 0.22
-Nodes (10): objective, phase_id, success_criteria, phase, order, title, required, additionalProperties (+2 more)
+### Community 110 - "PANDO module topology and reading routes"
+Cohesion: 0.09
+Nodes (19): ADR-0009 — Module topology and derived projection ownership, Alternatives considered, Consequences, Context, Decision, Migration and rollback, Security and privacy, 1. Purpose (+11 more)
 
-### Community 111 - "ChangeSet Confirmation Proof"
+### Community 111 - "preview_digest"
+Cohesion: 0.29
+Nodes (7): properties, format, type, pattern, type, confirmed_at, preview_digest
+
+### Community 112 - "pando-backup.mjs"
+Cohesion: 0.13
+Nodes (15): a, BM, command, decoded(), decrypt(), encrypt(), envelope(), json() (+7 more)
+
+### Community 113 - "properties"
+Cohesion: 0.10
+Nodes (21): calculationState, generatedAt, inputWatermark, semanticRevision, staleReason, $ref, $ref, $ref (+13 more)
+
+### Community 114 - "$defs"
 Cohesion: 0.20
-Nodes (10): additionalProperties, properties, type, format, type, confirmation, pattern, type (+2 more)
+Nodes (10): additionalProperties, type, $defs, capacity, path, phase, additionalProperties, type (+2 more)
 
-### Community 112 - "Control Goals and Today"
-Cohesion: 0.20
-Nodes (10): items, items, maxItems, type, $ref, goals, today, items (+2 more)
-
-### Community 113 - "Projection State Metadata"
-Cohesion: 0.20
-Nodes (10): $ref, $ref, properties, calculationState, generatedAt, inputWatermark, semanticRevision, staleReason (+2 more)
-
-### Community 114 - "Plan Path Impact Definitions"
-Cohesion: 0.20
-Nodes (10): additionalProperties, type, $defs, competencyImpact, initialReview, path, additionalProperties, type (+2 more)
-
-### Community 115 - "Weighted Threshold Rule"
+### Community 115 - "weightedThresholdRule"
 Cohesion: 0.20
 Nodes (10): weightedThresholdRule, threshold, threshold, exclusiveMinimum, maximum, type, additionalProperties, properties (+2 more)
 
-### Community 116 - "Runtime Hosting Toolchain"
+### Community 116 - "Runtime, hosting, and toolchain decision"
 Cohesion: 0.22
 Nodes (9): Cloudflare R2 backup storage, Modular monolith, Next.js 16, React 19, TypeScript, Node 24, and pnpm 11 toolchain, Portable Node runtime boundary, Runtime, hosting, and toolchain decision, Supabase Free managed platform, Vercel Hobby web hosting, pnpm workspace configuration (+1 more)
 
-### Community 117 - "Agent Lifecycle Statuses"
-Cohesion: 0.22
-Nodes (9): active, archived, cancelled, ended, paused, superseded, completed, draft (+1 more)
+### Community 117 - "enum"
+Cohesion: 0.12
+Nodes (16): active, archived, cancelled, ended, paused, superseded, goal, additionalProperties (+8 more)
 
-### Community 118 - "Node Visibility Hints"
+### Community 118 - "nodeVisibilityHint"
 Cohesion: 0.22
 Nodes (9): availableAtDetailLevels, defaultVisible, reasonCode, reasonCodes, nodeVisibilityHint, required, additionalProperties, required (+1 more)
 
-### Community 119 - "Projection State Requirements"
-Cohesion: 0.22
-Nodes (9): calculationState, generatedAt, inputWatermark, semanticRevision, staleReason, additionalProperties, required, type (+1 more)
+### Community 119 - "graph-stress-materializer.ts"
+Cohesion: 0.28
+Nodes (20): baseRule(), canonicalOrigin(), competencyNodeId(), constants, directMember(), directRuleMap(), domainNodeId(), edge() (+12 more)
 
-### Community 120 - "Activity Type Catalog"
+### Community 120 - "enum"
 Cohesion: 0.22
 Nodes (9): coding, mock_interview, project, reading, enum, type, explanation, recall (+1 more)
 
-### Community 121 - "Expected Evidence Types"
+### Community 121 - "enum"
 Cohesion: 0.22
 Nodes (9): CodingAttemptAccepted, EvidenceSelfReportAdded, ExplanationAssessed, MockInterviewAssessed, ProjectArtifactVerified, ReviewGraded, enum, type (+1 more)
 
-### Community 122 - "Projection Edge Contract"
-Cohesion: 0.22
-Nodes (9): edgeId, edgeType, origin, rationale, sourceNodeId, targetNodeId, visibilityHint, blocking (+1 more)
+### Community 122 - "backup.integration.mjs"
+Cohesion: 0.16
+Nodes (17): archive, BACKUP_MAGIC, BUNDLE_MAGIC, cli, encodedLength(), encryptMalformedFixture(), expectInvalidBundle(), expectInvalidStorage() (+9 more)
 
-### Community 123 - "Known Estimate Requirements"
-Cohesion: 0.25
-Nodes (9): lastMeaningfulEvidenceAt, knownEstimate, availability, condition, confidence, additionalProperties, required, type (+1 more)
+### Community 123 - "enum"
+Cohesion: 0.07
+Nodes (33): CURRENT, ERROR, lastMeaningfulEvidenceAt, REBUILDING, const, enum, enum, enum (+25 more)
 
-### Community 124 - "ChangeSet Application Result"
+### Community 124 - "properties"
 Cohesion: 0.22
 Nodes (9): format, type, $ref, applied_at, plan_revision_id, resulting_projection_watermark, properties, minimum (+1 more)
 
-### Community 125 - "ChangeSet Identifier Definitions"
+### Community 125 - "$defs"
 Cohesion: 0.22
 Nodes (9): additionalProperties, type, $defs, arguments, id, maxLength, minLength, pattern (+1 more)
 
-### Community 126 - "ChangeSet Operation Arguments"
+### Community 126 - "properties"
 Cohesion: 0.22
 Nodes (9): properties, $ref, $ref, campaign_id, goal_id, target_profile_version_id, track_id, $ref (+1 more)
 
-### Community 127 - "Agent Detail References"
-Cohesion: 0.22
-Nodes (9): detailRef, additionalProperties, properties, type, $ref, entity_id, kind, ref (+1 more)
+### Community 127 - "version"
+Cohesion: 0.18
+Nodes (11): detailRef, additionalProperties, properties, type, $ref, entity_id, kind, ref (+3 more)
 
-### Community 128 - "Projection Calculation States"
-Cohesion: 0.25
-Nodes (8): CURRENT, ERROR, REBUILDING, enum, enum, STALE, STRONG, WEAK
+### Community 128 - "impact"
+Cohesion: 0.17
+Nodes (12): summary, impact, additionalProperties, properties, required, type, kind, kind (+4 more)
 
-### Community 129 - "Mandatory Floor Rule"
+### Community 129 - "mandatoryFloorRule"
 Cohesion: 0.25
 Nodes (8): floor, mandatoryFloorRule, $ref, additionalProperties, properties, required, type, floor
 
-### Community 130 - "ChangeSet Warnings and Unknowns"
+### Community 130 - "items"
 Cohesion: 0.32
 Nodes (8): maxLength, minLength, type, items, warnings, items, maxItems, type
 
-### Community 131 - "Estimate Availability Fields"
-Cohesion: 0.29
-Nodes (8): const, properties, $ref, type, availability, condition, lastMeaningfulEvidenceAt, properties
+### Community 131 - "operations"
+Cohesion: 0.17
+Nodes (12): items, $ref, items, maxItems, minItems, type, operations, staged_item_ids (+4 more)
 
-### Community 132 - "Context Goal Dimension Definitions"
+### Community 132 - "$defs"
 Cohesion: 0.25
 Nodes (8): $defs, dimensionSummary, goal, unknownDimensionSummary, oneOf, oneOf, additionalProperties, type
 
-### Community 133 - "Activity Path Schema"
-Cohesion: 0.25
-Nodes (8): items, maxItems, type, uniqueItems, type, properties, activity_ids, kind
+### Community 133 - "properties"
+Cohesion: 0.14
+Nodes (14): items, maxItems, type, uniqueItems, type, items, maxItems, minItems (+6 more)
 
-### Community 134 - "All Requirements Rule"
+### Community 134 - "kind"
 Cohesion: 0.25
 Nodes (8): additionalProperties, properties, required, type, allRule, const, type, kind
 
-### Community 135 - "Web Runtime Dependencies"
-Cohesion: 0.29
-Nodes (7): next, dependencies, next, react, react-dom, react, react-dom
+### Community 135 - "dependencies"
+Cohesion: 0.12
+Nodes (17): ajv, ajv-formats, @dagrejs/dagre, json-canonicalize, next, dependencies, ajv, ajv-formats (+9 more)
 
-### Community 136 - "Projection Edge Types"
-Cohesion: 0.29
-Nodes (7): ACTIVITY_EVIDENCES, PART_OF, PREREQUISITE_OF, RELATED_TO, USER_ADDED, enum, edgeType
+### Community 136 - "PANDO commercial licensing information"
+Cohesion: 0.20
+Nodes (8): Information required for an actual agreement, Legal disclaimer, No commercial license is granted here, Non-binding starting terms, PANDO commercial licensing information, Contributing to PANDO, Current contribution status, Why a CLA is required
 
-### Community 137 - "ChangeSet Result Schema"
+### Community 137 - "result"
 Cohesion: 0.29
 Nodes (7): applied_at, plan_revision_id, resulting_projection_watermark, result, additionalProperties, required, type
 
-### Community 138 - "Objective Mastery Levels"
+### Community 138 - "enum"
 Cohesion: 0.29
 Nodes (7): NOT_STARTED, objectiveLevel, COMPLETED, MASTERED, VERIFIED, enum, type
 
-### Community 139 - "Graph Projection Schema Root"
+### Community 139 - "graph-projection.schema.json"
 Cohesion: 0.29
 Nodes (6): additionalProperties, description, $id, $schema, title, type
 
-### Community 140 - "Node Visibility Reasons"
+### Community 140 - "properties"
 Cohesion: 0.29
 Nodes (7): type, properties, defaultVisible, reasonCodes, items, type, uniqueItems
 
-### Community 141 - "Source Reference Lists"
+### Community 141 - "sourceRefs"
 Cohesion: 0.29
 Nodes (7): sourceRefs, $ref, items, maxItems, minItems, type, uniqueItems
 
-### Community 142 - "Growth Plan Manifest Files"
+### Community 142 - "growthPlanFiles"
 Cohesion: 0.29
 Nodes (7): growthPlanFiles, description, items, maxItems, minItems, prefixItems, type
 
-### Community 143 - "Interview Campaign Manifest Files"
+### Community 143 - "interviewCampaignFiles"
 Cohesion: 0.29
 Nodes (7): interviewCampaignFiles, description, items, maxItems, minItems, prefixItems, type
 
-### Community 144 - "Preparation Context Schema"
+### Community 144 - "preparation-context.schema.json"
 Cohesion: 0.29
 Nodes (6): additionalProperties, description, $id, $schema, title, type
 
-### Community 145 - "Preparation Context Constraints"
+### Community 145 - "constraints"
 Cohesion: 0.29
 Nodes (7): items, maxItems, type, uniqueItems, maxLength, minLength, constraints
 
-### Community 146 - "Target Profile Source Schema"
+### Community 146 - "source"
 Cohesion: 0.29
 Nodes (7): source, assertion_status, label, source_id, additionalProperties, required, type
 
-### Community 147 - "Requirement Criticality Levels"
+### Community 147 - "enum"
 Cohesion: 0.33
 Nodes (6): important, supporting, enum, type, blocking, criticality
 
-### Community 148 - "ChangeSet Schema Root"
-Cohesion: 0.33
-Nodes (5): additionalProperties, $id, $schema, title, type
+### Community 148 - "properties"
+Cohesion: 0.20
+Nodes (10): anyOf, $ref, anyOf, $ref, properties, aggregate_ref, arguments, expected_version (+2 more)
 
-### Community 149 - "Control Context Schema Root"
-Cohesion: 0.33
-Nodes (5): additionalProperties, $id, $schema, title, type
+### Community 149 - "properties"
+Cohesion: 0.20
+Nodes (10): $ref, additionalProperties, properties, type, competencyImpact, exclusiveMinimum, maximum, type (+2 more)
 
-### Community 150 - "Preparation Confidence Levels"
+### Community 150 - "enum"
 Cohesion: 0.33
 Nodes (6): enum, type, confidence, high, low, medium
 
-### Community 151 - "Preparation Condition States"
+### Community 151 - "enum"
 Cohesion: 0.33
 Nodes (6): enum, type, Stale, Strong, Weak, condition
 
-### Community 152 - "Milestone Identifier Lists"
-Cohesion: 0.33
-Nodes (6): items, maxItems, minItems, type, uniqueItems, milestone_ids
+### Community 152 - "required"
+Cohesion: 0.22
+Nodes (9): aggregate_ref, arguments, expected_version, operation_id, operation_type, operation, additionalProperties, required (+1 more)
 
-### Community 153 - "Any Requirement Rule"
+### Community 153 - "kind"
 Cohesion: 0.33
 Nodes (6): additionalProperties, properties, required, type, anyRule, kind
 
-### Community 154 - "Profile Assumptions and Members"
+### Community 154 - "$ref"
 Cohesion: 0.33
 Nodes (6): items, maxItems, type, $ref, items, assumptions
 
-### Community 155 - "Requirement Category Levels"
-Cohesion: 0.33
-Nodes (6): enum, type, differentiating, mandatory, preferred, category
+### Community 155 - "properties"
+Cohesion: 0.22
+Nodes (9): $ref, $ref, catalogVersionId, masteryPolicyVersion, readinessPolicyVersion, roadmapTemplateVersionId, $ref, oneOf (+1 more)
 
-### Community 156 - "End-to-End Server Lifecycle"
+### Community 156 - "e2e-server.mjs"
 Cohesion: 0.40
 Nodes (5): nextCli, server, stopFile, stopServer(), stopWatcher
 
-### Community 157 - "Command Outbox Rollback Tests"
+### Community 157 - "002_identity_command_rls.test.sql"
 Cohesion: 0.40
 Nodes (3): pg_temp.reject_outbox_event, command_results, pgtap_reject_outbox_event
 
-### Community 158 - "Prettier Formatting Configuration"
+### Community 158 - ".prettierrc.json"
 Cohesion: 0.40
 Nodes (4): printWidth, semi, singleQuote, trailingComma
 
-### Community 159 - "Competency Dimension Types"
+### Community 159 - "enum"
 Cohesion: 0.40
 Nodes (5): InterviewExecution, enum, Application, Knowledge, Recall
 
-### Community 160 - "Agent Goal Kinds"
+### Community 160 - "enum"
 Cohesion: 0.40
 Nodes (5): enum, growth, outcome, readiness, goal_kind
 
-### Community 161 - "Graph Detail Levels"
+### Community 161 - "availableAtDetailLevels"
 Cohesion: 0.40
 Nodes (5): items, minItems, type, uniqueItems, availableAtDetailLevels
 
-### Community 162 - "Projection Confidence Levels"
-Cohesion: 0.40
-Nodes (5): enum, HIGH, LOW, MEDIUM, confidence
+### Community 162 - "$defs"
+Cohesion: 0.22
+Nodes (9): $defs, requirement, requirementGroup, requirementRule, additionalProperties, type, additionalProperties, type (+1 more)
 
-### Community 163 - "Safe Graph Text"
-Cohesion: 0.40
-Nodes (5): safeText, maxLength, minLength, pattern, type
+### Community 163 - "properties"
+Cohesion: 0.25
+Nodes (8): rootRuleId, rules, targetProfileVersionId, properties, oneOf, items, type, oneOf
 
-### Community 164 - "Graph Projection Versions"
-Cohesion: 0.40
-Nodes (5): versionString, maxLength, minLength, pattern, type
+### Community 164 - "required"
+Cohesion: 0.25
+Nodes (8): proposedCompetency, description, lifecycle, proposed_competency_id, scope, additionalProperties, required, type
 
-### Community 165 - "Preparation UTC Timestamps"
+### Community 165 - "utcTimestamp"
 Cohesion: 0.40
 Nodes (5): utcTimestamp, format, maxLength, pattern, type
 
-### Community 166 - "Preparation Plan Milestones"
+### Community 166 - "milestones"
 Cohesion: 0.40
 Nodes (5): items, maxItems, minItems, type, milestones
 
-### Community 167 - "Preparation Plan Paths"
+### Community 167 - "paths"
 Cohesion: 0.40
 Nodes (5): items, maxItems, minItems, type, paths
 
-### Community 168 - "Preparation Plan Phases"
+### Community 168 - "phases"
 Cohesion: 0.40
 Nodes (5): items, maxItems, minItems, type, phases
 
-### Community 169 - "Preparation Plan Sources"
+### Community 169 - "sources"
 Cohesion: 0.40
 Nodes (5): sources, items, maxItems, minItems, type
 
-### Community 170 - "Target Requirement Groups"
+### Community 170 - "requirement_groups"
 Cohesion: 0.40
 Nodes (5): requirement_groups, items, maxItems, minItems, type
 
-### Community 171 - "Target Profile Requirements"
+### Community 171 - "requirements"
 Cohesion: 0.40
 Nodes (5): requirements, items, maxItems, minItems, type
 
-### Community 172 - "Target Profile Sources"
+### Community 172 - "sources"
 Cohesion: 0.40
 Nodes (5): sources, items, maxItems, minItems, type
 
-### Community 173 - "Practical Python Growth Plan"
+### Community 173 - "Practical Python Growth Plan proposal"
 Cohesion: 0.40
 Nodes (5): Growth Plan, Practical Python Growth Plan proposal, Practical Python work, source:unconfirmed, source:user-goal
 
-### Community 174 - "Minimal Preparation Pack"
+### Community 174 - "Minimum Preparation Pack path"
 Cohesion: 0.40
 Nodes (5): Minimum Preparation Pack path, Python parsing, Workspace-scoped proposed competency, source:unconfirmed, source:vacancy
 
-### Community 176 - "Allocation Minutes Constraint"
+### Community 176 - "allocation_minutes"
 Cohesion: 0.50
 Nodes (4): maximum, minimum, type, allocation_minutes
 
-### Community 177 - "Availability Minutes Constraint"
+### Community 177 - "available_minutes"
 Cohesion: 0.50
 Nodes (4): maximum, minimum, type, available_minutes
 
-### Community 178 - "Weekly Cadence Constraint"
+### Community 178 - "cadence_per_week"
 Cohesion: 0.50
 Nodes (4): maximum, minimum, type, cadence_per_week
 
-### Community 179 - "Lifecycle Reason Field"
+### Community 179 - "lifecycle_reason"
 Cohesion: 0.50
 Nodes (4): maxLength, minLength, type, lifecycle_reason
 
-### Community 180 - "Priority Constraint"
+### Community 180 - "priority"
 Cohesion: 0.50
 Nodes (4): maximum, minimum, type, priority
 
-### Community 181 - "Protected Minimum Minutes"
+### Community 181 - "protected_minimum_minutes"
 Cohesion: 0.50
 Nodes (4): protected_minimum_minutes, maximum, minimum, type
 
-### Community 182 - "Change Set Title"
+### Community 182 - "title"
 Cohesion: 0.50
 Nodes (4): title, maxLength, minLength, type
 
-### Community 183 - "Weekly Capacity Minutes"
+### Community 183 - "weekly_capacity_minutes"
 Cohesion: 0.50
 Nodes (4): weekly_capacity_minutes, maximum, minimum, type
 
-### Community 184 - "Control Context Blockers"
-Cohesion: 0.50
-Nodes (4): items, maxItems, type, blockers
+### Community 184 - "Encrypted logical backup and clean-restore gate"
+Cohesion: 0.29
+Nodes (6): Boundary and status, Create, Encrypted logical backup and clean-restore gate, Restore, Retention and off-site boundary, Secret handling and cryptography
 
-### Community 185 - "Requirement Criticality Values"
-Cohesion: 0.50
-Nodes (4): enum, DIFFERENTIATING, MANDATORY, PREFERRED
+### Community 185 - "confirmation"
+Cohesion: 0.33
+Nodes (6): confirmed_at, preview_digest, additionalProperties, required, type, confirmation
 
-### Community 186 - "Graph Projection Edge"
-Cohesion: 0.50
-Nodes (4): projectionEdge, additionalProperties, allOf, type
+### Community 186 - "r2-plan.mjs"
+Cohesion: 0.33
+Nodes (5): input, MAGIC, nonce, salt, values
 
-### Community 187 - "Projection Explanations Collection"
+### Community 187 - "impacts"
 Cohesion: 0.50
-Nodes (4): maxItems, minItems, type, explanations
+Nodes (4): maxItems, minItems, type, impacts
 
-### Community 188 - "Weighted Rule Threshold"
+### Community 188 - "profileId"
 Cohesion: 0.50
-Nodes (4): threshold, exclusiveMinimum, maximum, type
+Nodes (4): profileId, maxLength, pattern, type
 
-### Community 189 - "Preparation Common Schema"
+### Community 189 - "common.schema.json"
 Cohesion: 0.50
 Nodes (3): $id, $schema, title
 
-### Community 190 - "Preparation Activity IDs"
+### Community 190 - "activityId"
 Cohesion: 0.50
 Nodes (4): maxLength, pattern, type, activityId
 
-### Community 191 - "Canonical Competency IDs"
+### Community 191 - "canonicalCompetencyId"
 Cohesion: 0.50
 Nodes (4): maxLength, pattern, type, canonicalCompetencyId
 
-### Community 192 - "Preparation Context IDs"
+### Community 192 - "contextId"
 Cohesion: 0.50
 Nodes (4): maxLength, pattern, type, contextId
 
-### Community 193 - "Preparation Date Format"
+### Community 193 - "date"
 Cohesion: 0.50
 Nodes (4): format, pattern, type, date
 
-### Community 194 - "Preparation Pack IDs"
+### Community 194 - "packId"
 Cohesion: 0.50
 Nodes (4): packId, maxLength, pattern, type
 
-### Community 195 - "Preparation Phase IDs"
+### Community 195 - "phaseId"
 Cohesion: 0.50
 Nodes (4): phaseId, maxLength, pattern, type
 
-### Community 196 - "Preparation Plan IDs"
+### Community 196 - "planId"
 Cohesion: 0.50
 Nodes (4): planId, maxLength, pattern, type
 
-### Community 197 - "Proposed Competency IDs"
+### Community 197 - "proposedCompetencyId"
 Cohesion: 0.50
 Nodes (4): proposedCompetencyId, maxLength, pattern, type
 
-### Community 198 - "Requirement Group IDs"
-Cohesion: 0.50
-Nodes (4): requirementGroupId, maxLength, pattern, type
+### Community 198 - "$defs"
+Cohesion: 0.13
+Nodes (15): oneOf, $defs, competencyRef, requirementGroupId, requirementId, semver, maxLength, pattern (+7 more)
 
-### Community 199 - "Requirement IDs"
+### Community 199 - "sourceId"
 Cohesion: 0.50
-Nodes (4): requirementId, maxLength, pattern, type
+Nodes (4): sourceId, maxLength, pattern, type
 
-### Community 200 - "Semantic Version Format"
+### Community 200 - "excluded_items"
 Cohesion: 0.50
-Nodes (4): semver, maxLength, pattern, type
+Nodes (4): items, maxItems, type, excluded_items
 
-### Community 201 - "Preparation Slug Format"
+### Community 201 - "slug"
 Cohesion: 0.50
 Nodes (4): slug, maxLength, pattern, type
 
-### Community 202 - "Competency Summary Collection"
+### Community 202 - "competency_summaries"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, competency_summaries
 
-### Community 203 - "Initial Review Collection"
+### Community 203 - "initial_reviews"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, initial_reviews
 
-### Community 204 - "Mock Checkpoint Collection"
+### Community 204 - "mock_checkpoints"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, mock_checkpoints
 
-### Community 205 - "Preparation Plan Unknowns"
+### Community 205 - "unknowns"
 Cohesion: 0.50
 Nodes (4): unknowns, items, maxItems, type
 
-### Community 206 - "Target Company Field"
+### Community 206 - "company"
 Cohesion: 0.50
 Nodes (4): maxLength, minLength, type, company
 
-### Community 207 - "Interview Stage Collection"
+### Community 207 - "interview_stages"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, interview_stages
 
-### Community 208 - "Prerequisite Proposal Collection"
+### Community 208 - "prerequisite_proposals"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, prerequisite_proposals
 
-### Community 209 - "Proposed Competency Collection"
+### Community 209 - "proposed_competencies"
 Cohesion: 0.50
 Nodes (4): proposed_competencies, items, maxItems, type
 
-### Community 210 - "Target Role Field"
+### Community 210 - "role"
 Cohesion: 0.50
 Nodes (4): role, maxLength, minLength, type
 
-### Community 211 - "Target Profile Unknowns"
+### Community 211 - "unknowns"
 Cohesion: 0.50
 Nodes (4): unknowns, items, maxItems, type
 
-### Community 212 - "Vacancy Reference Field"
+### Community 212 - "vacancy_reference"
 Cohesion: 0.50
 Nodes (4): vacancy_reference, maxLength, pattern, type
 
-### Community 213 - "Change Set Date"
+### Community 213 - "date"
 Cohesion: 0.67
 Nodes (3): format, type, date
 
-### Community 214 - "Change Set Deadline"
+### Community 214 - "deadline"
 Cohesion: 0.67
 Nodes (3): format, type, deadline
 
-### Community 215 - "Control Detail References"
-Cohesion: 0.67
-Nodes (3): maxItems, type, detail_refs
+### Community 215 - "proposed_activities"
+Cohesion: 0.50
+Nodes (4): proposed_activities, items, maxItems, type
 
-### Community 216 - "Control Context ETag"
-Cohesion: 0.67
-Nodes (3): pattern, type, etag
+### Community 216 - "fake-supabase-cli.mjs"
+Cohesion: 0.50
+Nodes (3): command, rawArguments, workdirIndex
 
-### Community 217 - "Mandatory Floor Rule"
+### Community 218 - "repository"
 Cohesion: 0.67
-Nodes (3): mandatoryFloorRule, additionalProperties, type
+Nodes (3): repository, type, url
 
-### Community 218 - "Unknown Estimate Schema"
-Cohesion: 0.67
-Nodes (3): unknownEstimate, additionalProperties, type
-
-### Community 220 - "UI Application Boundary"
+### Community 220 - "UI"
 Cohesion: 0.67
 Nodes (3): Application layer, UI, UI projections
 
+### Community 221 - "preparationPlanDescriptor"
+Cohesion: 0.67
+Nodes (3): preparationPlanDescriptor, additionalProperties, type
+
 ## Knowledge Gaps
-- **1420 isolated node(s):** `printWidth`, `semi`, `singleQuote`, `trailingComma`, `eslintConfig` (+1415 more)
+- **1548 isolated node(s):** `printWidth`, `semi`, `singleQuote`, `trailingComma`, `eslintConfig` (+1543 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `$defs` connect `Graph Projection Shared Definitions` to `Competency Node State Semantics`, `Requirement Rule Variants`, `Graph Requirement Version Context`, `Graph Accessibility Metadata`, `Graph Projection Schema Root`, `Safe Graph Text`, `Graph Projection Versions`, `Attainment Interval Bounds`, `Requirement Member Variants`, `Projection Node Contract`, `Graph Projection Edge`, `Graph Entity References`, `Structured Graph Explanations`, `Mandatory Floor Rule`, `Unknown Estimate Schema`, `Weighted Requirement Members`, `Edge Visibility Hints`, `Node Visibility Hints`, `Known Estimate Requirements`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **Why does `properties` connect `Graph Projection Root` to `Graph Contract Identity`, `Graph Node Collections`, `Graph Requirement Version Context`, `Graph Projection Schema Root`, `Graph Workspace Scope`, `Projection State Requirements`, `Graph Layout Contract`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Why does `properties` connect `Projection Node Properties` to `Competency Node State Semantics`, `Requirement Rule Variants`, `Graph Projection Edges`, `Projection Node Contract`, `Projection Explanations Collection`?**
-  _High betweenness centrality (0.012) - this node is a cross-community bridge._
+- **Why does `$defs` connect `$defs` to `activityState`, `properties`, `required`, `properties`, `entityRef`, `attainmentInterval`, `properties`, `graph-projection.schema.json`, `edgeVisibilityHint`, `ruleId`, `structuredExplanation`, `properties`, `nodeVisibilityHint`, `enum`, `weightedRequirementMember`?**
+  _High betweenness centrality (0.204) - this node is a cross-community bridge._
+- **Why does `$defs` connect `$defs` to `impact`, `properties`, `required`, `result`, `required`, `confirmation`?**
+  _High betweenness centrality (0.086) - this node is a cross-community bridge._
+- **Why does `$defs` connect `$defs` to `properties`, `properties`, `properties`, `source_refs`, `required`, `properties`, `properties`, `targetProfileRef`?**
+  _High betweenness centrality (0.084) - this node is a cross-community bridge._
 - **What connects `printWidth`, `semi`, `singleQuote` to the rest of the system?**
-  _1420 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `PANDO Product Architecture` be split into smaller, more focused modules?**
+  _1548 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Nine-file canonical documentation set` be split into smaller, more focused modules?**
   _Cohesion score 0.05101327742837177 - nodes in this community are weakly interconnected._
-- **Should `Competency Node State Semantics` be split into smaller, more focused modules?**
+- **Should `activityState` be split into smaller, more focused modules?**
   _Cohesion score 0.0425531914893617 - nodes in this community are weakly interconnected._
-- **Should `Change Set Lifecycle Contract` be split into smaller, more focused modules?**
-  _Cohesion score 0.0425531914893617 - nodes in this community are weakly interconnected._
+- **Should `properties` be split into smaller, more focused modules?**
+  _Cohesion score 0.041666666666666664 - nodes in this community are weakly interconnected._
