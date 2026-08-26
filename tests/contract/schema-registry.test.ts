@@ -44,6 +44,10 @@ describe("strict Draft 2020-12 schema registry", () => {
     ["agent-control-context", "agent-control/v1/valid/control-context.minimal.json"],
     ["agent-change-set", "agent-control/v1/valid/change-set.cancel-campaign.previewed.json"],
     ["explore-source", "explore-source/v1/valid/explore-source-v1.personal.json"],
+    [
+      "explore-target-context",
+      "explore-target-context/v1/valid/explore-target-context-v1.canonical.json",
+    ],
     ["target-selection-source", "target-selection/v1/valid/target-selection-source-v1.seeded.json"],
     ["graph-projection", "graph/v1/valid/graph-projection-v1.boundary-minimal.json"],
     ["graph-projection", "graph/v1/valid/graph-projection-v1.representative.json"],

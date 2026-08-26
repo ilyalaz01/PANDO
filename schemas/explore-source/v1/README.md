@@ -44,6 +44,9 @@ it textual prevents JavaScript precision loss. `roadmapVersionKey` is nullable b
 Target Profile may intentionally omit a roadmap template.
 
 The v1 Catalog owner query intentionally returns the complete active exact-version catalog as a
-wide structural input. The future `GraphProjectionV1` materializer must also consume a bounded
-roadmap-membership/target-requirement closure query before deciding which nodes are target-visible;
-the presence of `roadmapVersionKey` alone does not claim that filtering has already happened.
+wide structural input. The separate strict
+[`ExploreTargetContextV1`](../../explore-target-context/v1/README.md) now supplies exact target
+requirements and the bounded roadmap/required/prerequisite/domain closure. A future
+`GraphProjectionV1` materializer must correlate both contracts, then add real versioned Mastery,
+Targets readiness, watermarks, and clock input before deciding which nodes and states are current;
+the presence of `roadmapVersionKey` alone does not claim that filtering already happened.

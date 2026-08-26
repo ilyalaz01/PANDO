@@ -10,8 +10,9 @@ mastery/readiness/review engines, the Identity/RLS/outbox database boundary, an 
 clean-restore proof, and a representative accessible `/explore` vertical slice. It also contains
 invite-only Supabase email/password sign-in, idempotent personal-workspace onboarding, and
 persisted Target Profile selection into an exact Readiness Goal. The Explore adapter remains
-fixture-backed; authenticated Mastery/readiness projections and the remaining product
-command/persistence paths are not yet implemented.
+fixture-backed, but its authenticated exact target-requirement and roadmap/prerequisite-closure
+context is now available as a strict server-only contract. Authenticated Mastery/readiness
+projections and the remaining product command/persistence paths are not yet implemented.
 
 ## Prerequisites
 

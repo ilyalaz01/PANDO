@@ -87,6 +87,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_explore_target_context_v1: {
+        Args: { p_readiness_goal_key: string }
+        Returns: Json
+      }
       get_overlay_note: {
         Args: { p_subject_ref: string; p_workspace_id: string }
         Returns: Json

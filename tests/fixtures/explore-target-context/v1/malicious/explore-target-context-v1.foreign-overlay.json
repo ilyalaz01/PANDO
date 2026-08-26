@@ -1,0 +1,67 @@
+{
+  "contract": { "name": "ExploreTargetContextV1", "version": "1.0.0" },
+  "workspaceId": "10000000-0000-4000-8000-000000000001",
+  "readinessGoal": {
+    "readinessGoalId": "30000000-0000-4000-8000-000000000003",
+    "readinessGoalKey": "goal:foreign-overlay",
+    "lifecycle": "active",
+    "aggregateVersion": "1"
+  },
+  "targetProfile": {
+    "profileVersionId": "40000000-0000-4000-8000-000000000004",
+    "profileVersionKey": "target:foreign-overlay-v1",
+    "catalogVersionKey": "catalog:seed-v1",
+    "roadmapVersionKey": null,
+    "rootRuleKey": "rule:personal-floor",
+    "readinessThreshold": 0.8
+  },
+  "overlayVersion": "4",
+  "requirementRules": [
+    {
+      "ruleKey": "rule:personal-floor",
+      "ruleType": "MANDATORY_FLOOR",
+      "title": "Personal floor",
+      "criticality": "MANDATORY",
+      "explanation": "The personal competency must be completed.",
+      "accessibilityLabel": "Mandatory personal competency floor.",
+      "requiredCount": null,
+      "threshold": null,
+      "members": [
+        {
+          "memberType": "NODE",
+          "nodeScope": "workspace_overlay",
+          "nodeType": "COMPETENCY",
+          "nodeRef": "competency:personal-linux",
+          "dimension": "APPLICATION",
+          "requiredLevel": "COMPLETED",
+          "weight": null
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "requiredCanonicalNodeRefs": [],
+    "requiredOverlayNodeRefs": ["competency:personal-linux"],
+    "roadmapNodeRefs": [],
+    "prerequisiteClosureNodeRefs": [],
+    "canonicalNodes": [
+      {
+        "nodeRef": "domain:linux",
+        "nodeType": "DOMAIN",
+        "title": "Linux",
+        "description": "Linux systems capabilities.",
+        "domainRef": null
+      }
+    ],
+    "canonicalEdges": [],
+    "requiredOverlayNodes": [
+      {
+        "nodeRef": "competency:personal-linux",
+        "nodeType": "COMPETENCY",
+        "title": "Foreign personal competency",
+        "domainRef": "domain:linux",
+        "workspaceId": "20000000-0000-4000-8000-000000000002"
+      }
+    ]
+  }
+}

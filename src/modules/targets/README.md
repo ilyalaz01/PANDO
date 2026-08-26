@@ -55,3 +55,16 @@ Not implemented here: Mastery queries, readiness snapshot persistence/applicatio
 outbox materialization, best-action ranking, or target lifecycle UI beyond initial selection.
 Cross-context interaction continues to follow the
 [module topology](../../../docs/design/MODULE_TOPOLOGY.md).
+
+## Implemented Explore target-context boundary
+
+The authenticated `targets.get_explore_target_requirements_impl(workspace, goal)` owner query
+resolves a persisted Readiness Goal to its exact published or retired Target Profile and complete
+immutable requirement tree. Rule UUID relationships are serialized as stable rule keys; rules,
+members, and direct canonical/workspace-overlay requirement references use deterministic ordering.
+The zero-workspace `api.get_explore_target_context_v1(goal)` composer combines this DTO with
+Catalog closure and accepted required Overlay nodes as strict
+[`ExploreTargetContextV1`](../../../schemas/explore-target-context/v1/README.md).
+
+This boundary contains no Mastery or readiness values. It cannot yet replace the representative
+Explore fixture and does not persist a readiness snapshot as a side effect of a read.

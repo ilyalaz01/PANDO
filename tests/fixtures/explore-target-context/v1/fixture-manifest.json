@@ -1,0 +1,33 @@
+{
+  "contract": { "name": "ExploreTargetContextV1", "version": "1.0.0" },
+  "cases": [
+    {
+      "caseId": "canonical-valid",
+      "path": "valid/explore-target-context-v1.canonical.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "overlay-null-roadmap-boundary",
+      "path": "boundary/explore-target-context-v1.overlay-null-roadmap.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "requirement-declaration-mismatch",
+      "path": "invalid/explore-target-context-v1.requirement-mismatch.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["EXPLORE_TARGET_CANONICAL_REQUIREMENTS_MISMATCH"]
+    },
+    {
+      "caseId": "foreign-overlay-workspace",
+      "path": "malicious/explore-target-context-v1.foreign-overlay.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["EXPLORE_TARGET_FOREIGN_OVERLAY_NODE"]
+    }
+  ]
+}

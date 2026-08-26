@@ -1,0 +1,59 @@
+{
+  "contract": { "name": "ExploreTargetContextV1", "version": "1.0.0" },
+  "workspaceId": "10000000-0000-4000-8000-000000000001",
+  "readinessGoal": {
+    "readinessGoalId": "30000000-0000-4000-8000-000000000003",
+    "readinessGoalKey": "goal:mismatch",
+    "lifecycle": "active",
+    "aggregateVersion": "1"
+  },
+  "targetProfile": {
+    "profileVersionId": "40000000-0000-4000-8000-000000000004",
+    "profileVersionKey": "target:mismatch-v1",
+    "catalogVersionKey": "catalog:seed-v1",
+    "roadmapVersionKey": null,
+    "rootRuleKey": "rule:floor",
+    "readinessThreshold": 0.8
+  },
+  "overlayVersion": "0",
+  "requirementRules": [
+    {
+      "ruleKey": "rule:floor",
+      "ruleType": "MANDATORY_FLOOR",
+      "title": "Required alpha",
+      "criticality": "MANDATORY",
+      "explanation": "Alpha must be completed.",
+      "accessibilityLabel": "Mandatory alpha floor.",
+      "requiredCount": null,
+      "threshold": null,
+      "members": [
+        {
+          "memberType": "NODE",
+          "nodeScope": "canonical",
+          "nodeType": "COMPETENCY",
+          "nodeRef": "competency:alpha",
+          "dimension": "APPLICATION",
+          "requiredLevel": "COMPLETED",
+          "weight": null
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "requiredCanonicalNodeRefs": [],
+    "requiredOverlayNodeRefs": [],
+    "roadmapNodeRefs": ["domain:core"],
+    "prerequisiteClosureNodeRefs": [],
+    "canonicalNodes": [
+      {
+        "nodeRef": "domain:core",
+        "nodeType": "DOMAIN",
+        "title": "Core",
+        "description": "Core capabilities.",
+        "domainRef": null
+      }
+    ],
+    "canonicalEdges": [],
+    "requiredOverlayNodes": []
+  }
+}

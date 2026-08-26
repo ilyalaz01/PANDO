@@ -1,0 +1,117 @@
+{
+  "contract": { "name": "ExploreTargetContextV1", "version": "1.0.0" },
+  "workspaceId": "10000000-0000-4000-8000-000000000001",
+  "readinessGoal": {
+    "readinessGoalId": "30000000-0000-4000-8000-000000000003",
+    "readinessGoalKey": "goal:canonical-main",
+    "lifecycle": "active",
+    "aggregateVersion": "1"
+  },
+  "targetProfile": {
+    "profileVersionId": "40000000-0000-4000-8000-000000000004",
+    "profileVersionKey": "target:canonical-main-v1",
+    "catalogVersionKey": "catalog:seed-v1",
+    "roadmapVersionKey": "roadmap:seed-v1",
+    "rootRuleKey": "rule:root",
+    "readinessThreshold": 0.8
+  },
+  "overlayVersion": "0",
+  "requirementRules": [
+    {
+      "ruleKey": "rule:floor",
+      "ruleType": "MANDATORY_FLOOR",
+      "title": "Beta application floor",
+      "criticality": "MANDATORY",
+      "explanation": "Beta application must be verified.",
+      "accessibilityLabel": "Mandatory verified beta application floor.",
+      "requiredCount": null,
+      "threshold": null,
+      "members": [
+        {
+          "memberType": "NODE",
+          "nodeScope": "canonical",
+          "nodeType": "COMPETENCY",
+          "nodeRef": "competency:beta",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED",
+          "weight": null
+        }
+      ]
+    },
+    {
+      "ruleKey": "rule:root",
+      "ruleType": "ALL",
+      "title": "Root requirements",
+      "criticality": "MANDATORY",
+      "explanation": "Every root requirement must qualify.",
+      "accessibilityLabel": "All target requirements.",
+      "requiredCount": null,
+      "threshold": null,
+      "members": [
+        { "memberType": "RULE", "ruleKey": "rule:floor", "weight": null },
+        { "memberType": "RULE", "ruleKey": "rule:weighted", "weight": null }
+      ]
+    },
+    {
+      "ruleKey": "rule:weighted",
+      "ruleType": "WEIGHTED_THRESHOLD",
+      "title": "Weighted readiness",
+      "criticality": "MANDATORY",
+      "explanation": "Beta carries the complete initial weight.",
+      "accessibilityLabel": "Weighted readiness threshold of eighty percent.",
+      "requiredCount": null,
+      "threshold": 0.8,
+      "members": [
+        {
+          "memberType": "NODE",
+          "nodeScope": "canonical",
+          "nodeType": "COMPETENCY",
+          "nodeRef": "competency:beta",
+          "dimension": "APPLICATION",
+          "requiredLevel": "VERIFIED",
+          "weight": 1
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "requiredCanonicalNodeRefs": ["competency:beta"],
+    "requiredOverlayNodeRefs": [],
+    "roadmapNodeRefs": ["competency:beta", "domain:core"],
+    "prerequisiteClosureNodeRefs": ["competency:alpha"],
+    "canonicalNodes": [
+      {
+        "nodeRef": "competency:alpha",
+        "nodeType": "COMPETENCY",
+        "title": "Alpha foundations",
+        "description": "Foundational capability required before beta.",
+        "domainRef": "domain:core"
+      },
+      {
+        "nodeRef": "competency:beta",
+        "nodeType": "COMPETENCY",
+        "title": "Beta application",
+        "description": "Target-relevant applied capability.",
+        "domainRef": "domain:core"
+      },
+      {
+        "nodeRef": "domain:core",
+        "nodeType": "DOMAIN",
+        "title": "Core",
+        "description": "Core technical capabilities.",
+        "domainRef": null
+      }
+    ],
+    "canonicalEdges": [
+      {
+        "edgeKey": "edge:prerequisite:alpha:beta",
+        "edgeType": "PREREQUISITE_OF",
+        "sourceRef": "competency:alpha",
+        "targetRef": "competency:beta",
+        "blocking": true,
+        "rationale": "Alpha foundations are needed before beta application."
+      }
+    ],
+    "requiredOverlayNodes": []
+  }
+}
