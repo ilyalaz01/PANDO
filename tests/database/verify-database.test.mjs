@@ -214,6 +214,11 @@ test("a fake successful gate runs the complete exact argv set and stops once", a
     "supabase/tests/database/002_identity_command_rls.test.sql",
     "supabase/tests/database/003_outbox_delivery_lifecycle.test.sql",
     "supabase/tests/database/004_phase0_probe_effect_atomicity.test.sql",
+    "supabase/tests/database/005_catalog_targets_overlay_schema_seed.test.sql",
+    "supabase/tests/database/006_catalog_targets_overlay_behavior.test.sql",
+    "supabase/tests/database/007_catalog_targets_overlay_atomic_concurrency.test.sql",
+    "supabase/tests/database/008_catalog_targets_overlay_integrity.test.sql",
+    "supabase/tests/database/009_catalog_publication_concurrency.test.sql",
     "--local",
   ]);
   assert.deepEqual(commands[3], [
