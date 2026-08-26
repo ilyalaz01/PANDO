@@ -123,8 +123,10 @@ from (values
   ('targets.get_profile_impl(uuid,text)'),
   ('targets.create_readiness_goal_impl(uuid,text,text,text,text)'),
   ('targets.get_readiness_goal_impl(uuid,text)'),
+  ('targets.get_explore_selection_impl(uuid,text)'),
+  ('catalog.get_explore_catalog_source_impl(uuid,uuid)'),
   ('overlay.get_note_impl(uuid,text)'),
-  ('overlay.get_explore_source_impl(uuid,text,text)'),
+  ('overlay.get_explore_overlay_source_impl(uuid,uuid,uuid,text,text[])'),
   ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
   ('overlay.add_custom_activity_impl(uuid,text,text,text,text,text,bigint,text)'),
   ('overlay.set_position_impl(uuid,text,text,numeric,numeric,bigint,text)'),
@@ -141,13 +143,20 @@ cross join (values
   ('targets.get_profile_impl(uuid,text)'),
   ('targets.create_readiness_goal_impl(uuid,text,text,text,text)'),
   ('targets.get_readiness_goal_impl(uuid,text)'),
+  ('targets.get_explore_selection_impl(uuid,text)'),
+  ('catalog.get_explore_catalog_source_impl(uuid,uuid)'),
   ('overlay.get_note_impl(uuid,text)'),
-  ('overlay.get_explore_source_impl(uuid,text,text)'),
+  ('overlay.get_explore_overlay_source_impl(uuid,uuid,uuid,text,text[])'),
   ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
   ('overlay.add_custom_activity_impl(uuid,text,text,text,text,text,bigint,text)'),
   ('overlay.set_position_impl(uuid,text,text,numeric,numeric,bigint,text)'),
   ('overlay.reset_position_impl(uuid,text,text,bigint,text)')
 ) as implementation(signature);
+
+select ok(
+  pg_catalog.to_regprocedure('overlay.get_explore_source_impl(uuid,text,text)') is null,
+  'the retired cross-context Overlay Explore shortcut is absent'
+);
 
 select ok(
   not procedure.prosecdef
@@ -178,10 +187,12 @@ select ok(
 from pg_catalog.pg_proc as procedure
 join pg_catalog.pg_namespace as namespace on namespace.oid = procedure.pronamespace
 join pg_catalog.pg_roles as owner on owner.oid = procedure.proowner
-where namespace.nspname in ('targets', 'overlay')
+where namespace.nspname in ('catalog', 'targets', 'overlay')
   and procedure.proname in (
     'get_available_profiles_impl', 'get_profile_impl', 'create_readiness_goal_impl',
-    'get_readiness_goal_impl', 'get_note_impl', 'get_explore_source_impl',
+    'get_readiness_goal_impl', 'get_explore_selection_impl',
+    'get_explore_catalog_source_impl', 'get_note_impl',
+    'get_explore_overlay_source_impl',
     'save_note_impl', 'add_custom_activity_impl', 'set_position_impl',
     'reset_position_impl'
   )

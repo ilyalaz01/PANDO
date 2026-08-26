@@ -1,0 +1,74 @@
+{
+  "contract": { "name": "ExploreSourceV1", "version": "1.0.0" },
+  "workspaceId": "10000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:prerequisite-cycle",
+  "readinessGoalId": "30000000-0000-4000-8000-000000000003",
+  "targetProfileVersionId": "40000000-0000-4000-8000-000000000004",
+  "overlayVersion": "0",
+  "catalogVersionKey": "catalog:seed-v1",
+  "roadmapVersionKey": "roadmap:seed-v1",
+  "targetProfileVersionKey": "target:seed-v1",
+  "nodes": [
+    {
+      "nodeRef": "competency:linux-debugging",
+      "nodeType": "COMPETENCY",
+      "title": "Linux debugging",
+      "domainRef": "domain:linux",
+      "origin": "CANONICAL",
+      "sourceVersionKey": "catalog:seed-v1"
+    },
+    {
+      "nodeRef": "competency:linux-observability",
+      "nodeType": "COMPETENCY",
+      "title": "Linux observability",
+      "domainRef": "domain:linux",
+      "origin": "CANONICAL",
+      "sourceVersionKey": "catalog:seed-v1"
+    },
+    {
+      "nodeRef": "domain:linux",
+      "nodeType": "DOMAIN",
+      "title": "Linux",
+      "domainRef": null,
+      "origin": "CANONICAL",
+      "sourceVersionKey": "catalog:seed-v1"
+    }
+  ],
+  "edges": [
+    {
+      "edgeKey": "edge:part-of:linux-debugging",
+      "edgeType": "PART_OF",
+      "sourceRef": "competency:linux-debugging",
+      "targetRef": "domain:linux",
+      "blocking": false,
+      "origin": "CANONICAL"
+    },
+    {
+      "edgeKey": "edge:part-of:linux-observability",
+      "edgeType": "PART_OF",
+      "sourceRef": "competency:linux-observability",
+      "targetRef": "domain:linux",
+      "blocking": false,
+      "origin": "CANONICAL"
+    },
+    {
+      "edgeKey": "edge:prerequisite:debugging:observability",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceRef": "competency:linux-debugging",
+      "targetRef": "competency:linux-observability",
+      "blocking": true,
+      "origin": "CANONICAL"
+    },
+    {
+      "edgeKey": "edge:prerequisite:observability:debugging",
+      "edgeType": "PREREQUISITE_OF",
+      "sourceRef": "competency:linux-observability",
+      "targetRef": "competency:linux-debugging",
+      "blocking": true,
+      "origin": "CANONICAL"
+    }
+  ],
+  "positions": [],
+  "nodeCount": 3,
+  "edgeCount": 4
+}

@@ -43,6 +43,7 @@ describe("strict Draft 2020-12 schema registry", () => {
     ["preparation-plan", "preparation-pack/valid/growth-plan-minimal/preparation-plan.json"],
     ["agent-control-context", "agent-control/v1/valid/control-context.minimal.json"],
     ["agent-change-set", "agent-control/v1/valid/change-set.cancel-campaign.previewed.json"],
+    ["explore-source", "explore-source/v1/valid/explore-source-v1.personal.json"],
     ["graph-projection", "graph/v1/valid/graph-projection-v1.boundary-minimal.json"],
     ["graph-projection", "graph/v1/valid/graph-projection-v1.representative.json"],
     ["graph-projection", "graph/v1/valid/graph-projection-v1.typed-variants.json"],

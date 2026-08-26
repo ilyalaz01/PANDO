@@ -1,0 +1,66 @@
+{
+  "fixtureManifestVersion": "1.0.0",
+  "contract": { "name": "ExploreSourceV1", "version": "1.0.0" },
+  "schemaPath": "../../../../schemas/explore-source/v1/explore-source.schema.json",
+  "cases": [
+    {
+      "caseId": "valid-personal-overlay",
+      "path": "valid/explore-source-v1.personal.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "boundary-canonical-minimal",
+      "path": "boundary/explore-source-v1.canonical-minimal.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "invalid-dangling-edge",
+      "path": "invalid/explore-source-v1.dangling-edge.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["EXPLORE_SOURCE_EDGE_SOURCE_MISSING", "EXPLORE_SOURCE_PART_OF_ENDPOINT_TYPE"]
+    },
+    {
+      "caseId": "invalid-activity-without-evidence",
+      "path": "invalid/explore-source-v1.activity-without-evidence.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["EXPLORE_SOURCE_ACTIVITY_EVIDENCE_CARDINALITY"]
+    },
+    {
+      "caseId": "invalid-prerequisite-cycle",
+      "path": "invalid/explore-source-v1.prerequisite-cycle.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["EXPLORE_SOURCE_PREREQUISITE_CYCLE"]
+    },
+    {
+      "caseId": "malicious-foreign-overlay",
+      "path": "malicious/explore-source-v1.foreign-overlay.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": [
+        "EXPLORE_SOURCE_FOREIGN_OVERLAY_EDGE",
+        "EXPLORE_SOURCE_FOREIGN_OVERLAY_NODE"
+      ]
+    },
+    {
+      "caseId": "malicious-foreign-position-scope",
+      "path": "malicious/explore-source-v1.foreign-position-scope.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["EXPLORE_SOURCE_FOREIGN_POSITION_SCOPE"]
+    },
+    {
+      "caseId": "malicious-note-injection",
+      "path": "malicious/explore-source-v1.note-injection.json",
+      "expectedSchemaValid": false,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["SCHEMA_UNKNOWN_FIELD"]
+    }
+  ]
+}

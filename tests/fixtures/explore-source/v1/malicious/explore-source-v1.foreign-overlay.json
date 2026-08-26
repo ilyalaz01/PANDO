@@ -1,0 +1,43 @@
+{
+  "contract": { "name": "ExploreSourceV1", "version": "1.0.0" },
+  "workspaceId": "10000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:foreign-overlay",
+  "readinessGoalId": "30000000-0000-4000-8000-000000000003",
+  "targetProfileVersionId": "40000000-0000-4000-8000-000000000004",
+  "overlayVersion": "1",
+  "catalogVersionKey": "catalog:seed-v1",
+  "roadmapVersionKey": "roadmap:seed-v1",
+  "targetProfileVersionKey": "target:seed-v1",
+  "nodes": [
+    {
+      "nodeRef": "competency:linux-log-triage",
+      "nodeType": "COMPETENCY",
+      "title": "Foreign Linux log triage",
+      "domainRef": "domain:linux",
+      "origin": "WORKSPACE_OVERLAY",
+      "workspaceId": "20000000-0000-4000-8000-000000000002"
+    },
+    {
+      "nodeRef": "domain:linux",
+      "nodeType": "DOMAIN",
+      "title": "Linux",
+      "domainRef": null,
+      "origin": "CANONICAL",
+      "sourceVersionKey": "catalog:seed-v1"
+    }
+  ],
+  "edges": [
+    {
+      "edgeKey": "edge:part-of:linux-log-triage",
+      "edgeType": "PART_OF",
+      "sourceRef": "competency:linux-log-triage",
+      "targetRef": "domain:linux",
+      "blocking": false,
+      "origin": "WORKSPACE_OVERLAY",
+      "workspaceId": "20000000-0000-4000-8000-000000000002"
+    }
+  ],
+  "positions": [],
+  "nodeCount": 2,
+  "edgeCount": 1
+}

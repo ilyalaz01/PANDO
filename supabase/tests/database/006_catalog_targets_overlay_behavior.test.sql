@@ -65,6 +65,9 @@ set local role authenticated;
 insert into phase1_results select 'bob-goal',api.create_readiness_goal(workspace_id,'goal:bob-main','Bob canonical readiness','target:nvidia-python-verification-base-v1','bob-goal') from phase1_workspaces where name='bob-bootstrap';
 insert into phase1_results select 'bob-profiles',api.get_available_target_profiles(workspace_id) from phase1_workspaces where name='bob-bootstrap';
 insert into phase1_results select 'bob-explore',api.get_explore_source_v1(workspace_id,'goal:bob-main',null) from phase1_workspaces where name='bob-bootstrap';
+select throws_ok(format('select api.get_explore_source_v1(%L::uuid,%L,null)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:alice-main'),'42501','workspace is not accessible','Bob cannot read Alice Explore source through the purpose-specific query');
+select throws_ok(format('select targets.get_explore_selection_impl(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:alice-main'),'42501','workspace is not accessible','Targets Explore owner query repeats foreign-workspace authorization');
+select throws_ok(format('select overlay.get_explore_overlay_source_impl(%L::uuid,%L::uuid,%L::uuid,null,array[]::text[])',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'c1010000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000003'),'42501','workspace is not accessible','Overlay Explore owner query repeats foreign-workspace authorization');
 select throws_ok(format('select targets.get_profile_impl(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1'),'42501','workspace is not accessible','direct private implementation repeats foreign-workspace authorization');
 select throws_ok(format('select api.get_target_profile(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='bob-bootstrap'),'target:nvidia-python-verification-v1'),'42501','target profile is not accessible','Bob cannot infer Alice workspace profile through his workspace');
 reset role;
@@ -75,6 +78,10 @@ select is(jsonb_array_length((select response->'profiles' from phase1_results wh
 select ok(not ((select response->'profiles' from phase1_results where name='bob-profiles') @> '[{"profileVersionKey":"target:nvidia-python-verification-v1"}]'::jsonb),'Bob profile list contains no Alice workspace profile');
 select is(((select response from phase1_results where name='alice-explore-initial')->>'nodeCount')::int,25,'Alice default Explore has exactly 25 nodes');
 select is(((select response from phase1_results where name='alice-explore-initial')->>'edgeCount')::int,35,'Alice default Explore has exactly 35 edges');
+select is((select response->'contract'->>'name' from phase1_results where name='alice-explore-initial'),'ExploreSourceV1','Explore source declares its versioned contract name');
+select is((select response->'contract'->>'version' from phase1_results where name='alice-explore-initial'),'1.0.0','Explore source declares its exact contract version');
+select is((select response->>'readinessGoalId' from phase1_results where name='alice-explore-initial'),(select readiness_goal_id::text from targets.readiness_goals where readiness_goal_key='goal:alice-main'),'Explore source carries the exact selected readiness-goal identity');
+select is((select response->>'targetProfileVersionId' from phase1_results where name='alice-explore-initial'),'c1010000-0000-4000-8000-000000000001','Explore source carries the exact immutable target-profile identity');
 select is(((select response from phase1_results where name='bob-explore')->>'nodeCount')::int,24,'Bob canonical Explore has exactly 24 nodes');
 select is(((select response from phase1_results where name='bob-explore')->>'edgeCount')::int,33,'Bob canonical Explore has exactly 33 edges');
 select ok((select response->'nodes' from phase1_results where name='alice-explore-initial') @> '[{"nodeRef":"competency:linux-log-triage","origin":"WORKSPACE_OVERLAY"}]'::jsonb,'Alice Explore contains accepted personal Linux competency');
@@ -98,6 +105,16 @@ select ok(not exists(select 1 from outbox.command_receipts where command_type='o
 
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000001','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
 set local role authenticated;
+select throws_ok(
+  format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,1,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:unsafe-control-title',E'Unsafe\nactivity title','MANUAL_CODING','competency:linux-log-triage','alice-activity-unsafe-title'),
+  '23514','new row for relation "custom_activities" violates check constraint "custom_activities_title_safe_text_check"',
+  'custom activity title cannot persist control characters that violate ExploreSourceV1'
+);
+select throws_ok(
+  format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,1,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:unsafe-markup-title','Unsafe <activity> title','MANUAL_CODING','competency:linux-log-triage','alice-activity-unsafe-markup'),
+  '23514','new row for relation "custom_activities" violates check constraint "custom_activities_title_safe_text_check"',
+  'custom activity title cannot persist markup delimiters forbidden by GraphProjectionV1'
+);
 insert into phase1_results select 'activity-add',api.add_custom_activity(workspace_id,'target:nvidia-python-verification-v1','activity:linux-log-triage-lab','Linux log triage lab','MANUAL_CODING','competency:linux-log-triage',1,'alice-activity-1') from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'activity-add-replay',api.add_custom_activity(workspace_id,'target:nvidia-python-verification-v1','activity:linux-log-triage-lab','Linux log triage lab','MANUAL_CODING','competency:linux-log-triage',1,'alice-activity-1') from phase1_workspaces where name='alice-bootstrap';
 select throws_ok(
@@ -108,6 +125,10 @@ select throws_ok(
 insert into phase1_results select 'alice-explore-default-after-activity',api.get_explore_source_v1(workspace_id,'goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'alice-explore-selected',api.get_explore_source_v1(workspace_id,'goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
 reset role;
+select is((select count(*) from overlay.custom_activities where activity_key='activity:unsafe-control-title'),0::bigint,'unsafe activity title leaves no domain row');
+select is((select count(*) from overlay.custom_activities where activity_key='activity:unsafe-markup-title'),0::bigint,'unsafe markup title leaves no domain row');
+select is((select count(*) from outbox.command_receipts where idempotency_key='alice-activity-unsafe-title'),0::bigint,'unsafe activity title leaves no command receipt');
+select is((select count(*) from outbox.command_receipts where idempotency_key='alice-activity-unsafe-markup'),0::bigint,'unsafe markup title leaves no command receipt');
 select is(((select response from phase1_results where name='alice-explore-default-after-activity')->>'nodeCount')::int,25,'unselected custom activity is absent from default Explore nodes');
 select is((select response from phase1_results where name='activity-add-replay'),(select response from phase1_results where name='activity-add'),'custom-activity retry returns its stored response byte-for-byte');
 select is(((select response from phase1_results where name='alice-explore-default-after-activity')->>'edgeCount')::int,35,'unselected custom activity edge is absent from default Explore');
@@ -115,6 +136,7 @@ select is(((select response from phase1_results where name='alice-explore-select
 select is(((select response from phase1_results where name='alice-explore-selected')->>'edgeCount')::int,36,'selected custom activity adds exactly one ACTIVITY_EVIDENCES edge');
 select ok((select response->'nodes' from phase1_results where name='alice-explore-selected') @> '[{"nodeRef":"activity:linux-log-triage-lab","targetCompetencyRef":"competency:linux-log-triage"}]'::jsonb,'selected activity points to the accepted personal competency');
 select ok((select response->'edges' from phase1_results where name='alice-explore-selected') @> '[{"edgeType":"ACTIVITY_EVIDENCES","sourceRef":"activity:linux-log-triage-lab","targetRef":"competency:linux-log-triage"}]'::jsonb,'selected activity projection has one explicit evidence mapping');
+select ok((select response->'edges' from phase1_results where name='alice-explore-selected') @> jsonb_build_array(jsonb_build_object('edgeType','ACTIVITY_EVIDENCES','workspaceId',(select workspace_id from phase1_workspaces where name='alice-bootstrap'))),'selected activity edge proves its workspace provenance');
 select ok(position('rain-forest-42' in (select response::text from phase1_results where name='alice-explore-selected'))=0,'Explore source never contains free-form note bodies');
 
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000002','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
@@ -163,6 +185,9 @@ select is(jsonb_array_length((select response->'positions' from phase1_results w
 select is((select response from phase1_results where name='position-main-replay'),(select response from phase1_results where name='position-main'),'set-position retry returns its stored response byte-for-byte');
 select is(jsonb_array_length((select response->'positions' from phase1_results where name='explore-alt-positioned')),1,'alternate readiness goal exposes exactly its own position');
 select is((((select response->'positions'->0 from phase1_results where name='explore-main-positioned')->>'x')::numeric),10::numeric,'main goal keeps its own x coordinate');
+select is((select response->'positions'->0->>'workspaceId' from phase1_results where name='explore-main-positioned'),(select workspace_id::text from phase1_workspaces where name='alice-bootstrap'),'position proves its workspace scope');
+select is((select response->'positions'->0->>'readinessGoalId' from phase1_results where name='explore-main-positioned'),(select readiness_goal_id::text from targets.readiness_goals where readiness_goal_key='goal:alice-main'),'position proves its exact readiness-goal scope');
+select is((select response->'positions'->0->>'targetProfileVersionId' from phase1_results where name='explore-main-positioned'),'c1010000-0000-4000-8000-000000000001','position proves its exact target-profile scope');
 select is((((select response->'positions'->0 from phase1_results where name='explore-alt-positioned')->>'x')::numeric),30::numeric,'alternate goal keeps an independent x coordinate for the same profile/node');
 select is(jsonb_array_length((select response->'positions' from phase1_results where name='explore-main-reset')),0,'reset returns the selected main-goal node to canonical layout');
 select is(jsonb_array_length((select response->'positions' from phase1_results where name='explore-alt-after-main-reset')),1,'resetting main goal preserves alternate-goal position');

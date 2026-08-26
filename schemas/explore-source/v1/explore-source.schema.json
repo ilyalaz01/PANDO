@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pando.dev/explore-source/v1/explore-source.schema.json",
+  "title": "ExploreSourceV1",
+  "description": "Authorized Catalog, Targets, and User Overlay source DTO consumed by the server-side Explore projection composer. It is not GraphProjectionV1 and contains no Mastery or readiness truth.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "workspaceId",
+    "readinessGoalKey",
+    "readinessGoalId",
+    "targetProfileVersionId",
+    "overlayVersion",
+    "catalogVersionKey",
+    "roadmapVersionKey",
+    "targetProfileVersionKey",
+    "nodes",
+    "edges",
+    "positions",
+    "nodeCount",
+    "edgeCount"
+  ],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "ExploreSourceV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "workspaceId": { "type": "string", "format": "uuid" },
+    "readinessGoalKey": { "$ref": "#/$defs/goalKey" },
+    "readinessGoalId": { "type": "string", "format": "uuid" },
+    "targetProfileVersionId": { "type": "string", "format": "uuid" },
+    "overlayVersion": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$" },
+    "catalogVersionKey": { "$ref": "#/$defs/catalogVersionKey" },
+    "roadmapVersionKey": {
+      "oneOf": [{ "$ref": "#/$defs/roadmapVersionKey" }, { "type": "null" }]
+    },
+    "targetProfileVersionKey": { "$ref": "#/$defs/targetProfileVersionKey" },
+    "nodes": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/canonicalNode" },
+          { "$ref": "#/$defs/overlayCompetencyNode" },
+          { "$ref": "#/$defs/overlayActivityNode" }
+        ]
+      }
+    },
+    "edges": {
+      "type": "array",
+      "maxItems": 2000,
+      "items": {
+        "oneOf": [{ "$ref": "#/$defs/canonicalEdge" }, { "$ref": "#/$defs/overlayEdge" }]
+      }
+    },
+    "positions": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "$ref": "#/$defs/position" }
+    },
+    "nodeCount": { "type": "integer", "minimum": 0, "maximum": 500 },
+    "edgeCount": { "type": "integer", "minimum": 0, "maximum": 2000 }
+  },
+  "$defs": {
+    "nodeRef": {
+      "type": "string",
+      "pattern": "^(domain|competency|activity):[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "domainRef": {
+      "oneOf": [
+        { "type": "string", "pattern": "^domain:[a-z0-9][a-z0-9-]{1,100}$" },
+        { "type": "null" }
+      ]
+    },
+    "edgeKey": {
+      "type": "string",
+      "pattern": "^edge:[a-z0-9][a-z0-9:-]{1,240}$"
+    },
+    "goalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "catalogVersionKey": {
+      "type": "string",
+      "pattern": "^catalog:[a-z0-9][a-z0-9:-]{1,160}$"
+    },
+    "roadmapVersionKey": {
+      "type": "string",
+      "pattern": "^roadmap:[a-z0-9][a-z0-9:-]{1,160}$"
+    },
+    "targetProfileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9:-]{1,160}$"
+    },
+    "safeText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[^\\u0000-\\u001F\\u007F<>]+$"
+    },
+    "canonicalNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeRef",
+        "nodeType",
+        "title",
+        "domainRef",
+        "origin",
+        "sourceVersionKey"
+      ],
+      "properties": {
+        "nodeRef": { "$ref": "#/$defs/nodeRef" },
+        "nodeType": { "enum": ["DOMAIN", "COMPETENCY"] },
+        "title": { "$ref": "#/$defs/safeText" },
+        "domainRef": { "$ref": "#/$defs/domainRef" },
+        "origin": { "const": "CANONICAL" },
+        "sourceVersionKey": { "$ref": "#/$defs/catalogVersionKey" }
+      }
+    },
+    "overlayCompetencyNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeRef", "nodeType", "title", "domainRef", "origin", "workspaceId"],
+      "properties": {
+        "nodeRef": { "$ref": "#/$defs/nodeRef" },
+        "nodeType": { "const": "COMPETENCY" },
+        "title": { "$ref": "#/$defs/safeText" },
+        "domainRef": { "$ref": "#/$defs/domainRef" },
+        "origin": { "const": "WORKSPACE_OVERLAY" },
+        "workspaceId": { "type": "string", "format": "uuid" }
+      }
+    },
+    "overlayActivityNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeRef",
+        "nodeType",
+        "title",
+        "domainRef",
+        "origin",
+        "workspaceId",
+        "activityType",
+        "targetCompetencyRef"
+      ],
+      "properties": {
+        "nodeRef": { "$ref": "#/$defs/nodeRef" },
+        "nodeType": { "const": "ACTIVITY" },
+        "title": { "$ref": "#/$defs/safeText" },
+        "domainRef": { "type": "null" },
+        "origin": { "const": "WORKSPACE_OVERLAY" },
+        "workspaceId": { "type": "string", "format": "uuid" },
+        "activityType": {
+          "enum": ["MANUAL_CODING", "READING", "EXPLANATION", "MOCK", "PROJECT"]
+        },
+        "targetCompetencyRef": {
+          "type": "string",
+          "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+        }
+      }
+    },
+    "canonicalEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeKey",
+        "edgeType",
+        "sourceRef",
+        "targetRef",
+        "blocking",
+        "origin"
+      ],
+      "properties": {
+        "edgeKey": { "$ref": "#/$defs/edgeKey" },
+        "edgeType": {
+          "enum": [
+            "PREREQUISITE_OF",
+            "PART_OF",
+            "ACTIVITY_EVIDENCES",
+            "USER_ADDED",
+            "RELATED_TO"
+          ]
+        },
+        "sourceRef": { "$ref": "#/$defs/nodeRef" },
+        "targetRef": { "$ref": "#/$defs/nodeRef" },
+        "blocking": { "type": "boolean" },
+        "origin": { "const": "CANONICAL" }
+      }
+    },
+    "overlayEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "edgeKey",
+        "edgeType",
+        "sourceRef",
+        "targetRef",
+        "blocking",
+        "origin",
+        "workspaceId"
+      ],
+      "properties": {
+        "edgeKey": { "$ref": "#/$defs/edgeKey" },
+        "edgeType": {
+          "enum": [
+            "PREREQUISITE_OF",
+            "PART_OF",
+            "ACTIVITY_EVIDENCES",
+            "USER_ADDED",
+            "RELATED_TO"
+          ]
+        },
+        "sourceRef": { "$ref": "#/$defs/nodeRef" },
+        "targetRef": { "$ref": "#/$defs/nodeRef" },
+        "blocking": { "type": "boolean" },
+        "origin": { "const": "WORKSPACE_OVERLAY" },
+        "workspaceId": { "type": "string", "format": "uuid" }
+      }
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeRef",
+        "x",
+        "y",
+        "workspaceId",
+        "readinessGoalId",
+        "targetProfileVersionId"
+      ],
+      "properties": {
+        "nodeRef": { "$ref": "#/$defs/nodeRef" },
+        "x": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "y": { "type": "number", "minimum": -1000000, "maximum": 1000000 },
+        "workspaceId": { "type": "string", "format": "uuid" },
+        "readinessGoalId": { "type": "string", "format": "uuid" },
+        "targetProfileVersionId": { "type": "string", "format": "uuid" }
+      }
+    }
+  }
+}

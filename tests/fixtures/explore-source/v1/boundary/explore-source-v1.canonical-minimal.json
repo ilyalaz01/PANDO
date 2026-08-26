@@ -1,0 +1,25 @@
+{
+  "contract": { "name": "ExploreSourceV1", "version": "1.0.0" },
+  "workspaceId": "10000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:canonical-minimal",
+  "readinessGoalId": "30000000-0000-4000-8000-000000000003",
+  "targetProfileVersionId": "40000000-0000-4000-8000-000000000004",
+  "overlayVersion": "0",
+  "catalogVersionKey": "catalog:seed-v1",
+  "roadmapVersionKey": null,
+  "targetProfileVersionKey": "target:seed-v1",
+  "nodes": [
+    {
+      "nodeRef": "domain:python",
+      "nodeType": "DOMAIN",
+      "title": "Python",
+      "domainRef": null,
+      "origin": "CANONICAL",
+      "sourceVersionKey": "catalog:seed-v1"
+    }
+  ],
+  "edges": [],
+  "positions": [],
+  "nodeCount": 1,
+  "edgeCount": 0
+}
