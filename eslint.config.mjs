@@ -72,6 +72,7 @@ const eslintConfig = defineConfig([
     },
   },
   globalIgnores([
+    ".codex-worktrees/**",
     ".next/**",
     "coverage/**",
     "out/**",
