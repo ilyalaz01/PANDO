@@ -226,6 +226,15 @@ select ok(
 );
 
 select ok(
+  pg_catalog.has_function_privilege(
+    'authenticated',
+    'api.get_target_selection_source_v1()',
+    'EXECUTE'
+  ),
+  'authenticated can execute the zero-argument target-selection query'
+);
+
+select ok(
   not pg_catalog.has_function_privilege(
     'authenticated',
     'api.claim_phase0_probe_deliveries()',

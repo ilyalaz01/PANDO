@@ -93,7 +93,8 @@ from (values
   ('api.set_overlay_position(uuid,text,text,numeric,numeric,bigint,text)'),
   ('api.create_readiness_goal(uuid,text,text,text,text)'),
   ('api.get_readiness_goal(uuid,text)'),
-  ('api.reset_overlay_position(uuid,text,text,bigint,text)')
+  ('api.reset_overlay_position(uuid,text,text,bigint,text)'),
+  ('api.get_target_selection_source_v1()')
 ) as rpc(signature);
 
 select ok(
@@ -111,7 +112,8 @@ cross join (values
   ('api.set_overlay_position(uuid,text,text,numeric,numeric,bigint,text)'),
   ('api.create_readiness_goal(uuid,text,text,text,text)'),
   ('api.get_readiness_goal(uuid,text)'),
-  ('api.reset_overlay_position(uuid,text,text,bigint,text)')
+  ('api.reset_overlay_position(uuid,text,text,bigint,text)'),
+  ('api.get_target_selection_source_v1()')
 ) as rpc(signature);
 
 select ok(
@@ -124,7 +126,9 @@ from (values
   ('targets.create_readiness_goal_impl(uuid,text,text,text,text)'),
   ('targets.get_readiness_goal_impl(uuid,text)'),
   ('targets.get_explore_selection_impl(uuid,text)'),
+  ('targets.get_target_selection_options_impl(uuid)'),
   ('catalog.get_explore_catalog_source_impl(uuid,uuid)'),
+  ('catalog.get_target_selection_version_keys_impl(uuid[],uuid[])'),
   ('overlay.get_note_impl(uuid,text)'),
   ('overlay.get_explore_overlay_source_impl(uuid,uuid,uuid,text,text[])'),
   ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
@@ -144,7 +148,9 @@ cross join (values
   ('targets.create_readiness_goal_impl(uuid,text,text,text,text)'),
   ('targets.get_readiness_goal_impl(uuid,text)'),
   ('targets.get_explore_selection_impl(uuid,text)'),
+  ('targets.get_target_selection_options_impl(uuid)'),
   ('catalog.get_explore_catalog_source_impl(uuid,uuid)'),
+  ('catalog.get_target_selection_version_keys_impl(uuid[],uuid[])'),
   ('overlay.get_note_impl(uuid,text)'),
   ('overlay.get_explore_overlay_source_impl(uuid,uuid,uuid,text,text[])'),
   ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
@@ -159,6 +165,27 @@ select ok(
 );
 
 select ok(
+  pg_catalog.pg_get_functiondef(
+    'targets.get_target_selection_options_impl(uuid)'::pg_catalog.regprocedure
+  ) !~ '(^|[^[:alnum:]_])catalog\.',
+  'the Targets target-selection owner query reads no private Catalog table or function'
+);
+
+select ok(
+  pg_catalog.pg_get_functiondef(
+    'api.get_target_selection_source_v1()'::pg_catalog.regprocedure
+  ) like '%catalog.get_target_selection_version_keys_impl%',
+  'the api target-selection composer crosses into Catalog through its owner query'
+);
+
+select ok(
+  pg_catalog.pg_get_functiondef(
+    'catalog.get_target_selection_version_keys_impl(uuid[],uuid[])'::pg_catalog.regprocedure
+  ) !~ 'targets\.',
+  'the Catalog target-selection owner query reads no private Targets table or function'
+);
+
+select ok(
   not procedure.prosecdef
     and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[])),
   format('Phase 1 api function %s is a pinned SECURITY INVOKER wrapper', procedure.oid::regprocedure)
@@ -170,7 +197,7 @@ where namespace.nspname = 'api'
     'get_available_target_profiles', 'get_target_profile', 'get_overlay_note',
     'get_explore_source_v1', 'save_overlay_note', 'add_custom_activity',
     'set_overlay_position', 'create_readiness_goal', 'get_readiness_goal',
-    'reset_overlay_position'
+    'reset_overlay_position', 'get_target_selection_source_v1'
   )
 order by procedure.proname;
 
@@ -191,7 +218,8 @@ where namespace.nspname in ('catalog', 'targets', 'overlay')
   and procedure.proname in (
     'get_available_profiles_impl', 'get_profile_impl', 'create_readiness_goal_impl',
     'get_readiness_goal_impl', 'get_explore_selection_impl',
-    'get_explore_catalog_source_impl', 'get_note_impl',
+    'get_target_selection_options_impl',
+    'get_explore_catalog_source_impl', 'get_target_selection_version_keys_impl', 'get_note_impl',
     'get_explore_overlay_source_impl',
     'save_note_impl', 'add_custom_activity_impl', 'set_position_impl',
     'reset_position_impl'

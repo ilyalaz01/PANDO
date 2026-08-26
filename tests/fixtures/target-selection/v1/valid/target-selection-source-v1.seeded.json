@@ -1,0 +1,35 @@
+{
+  "contract": { "name": "TargetSelectionSourceV1", "version": "1.0.0" },
+  "workspace": {
+    "workspaceId": "20000000-0000-4000-8000-000000000001",
+    "workspaceKind": "personal",
+    "displayName": "Personal workspace",
+    "membershipRole": "owner"
+  },
+  "profiles": [
+    {
+      "profileVersionKey": "target:nvidia-python-verification-base-v1",
+      "profileSeriesKey": "target-series:nvidia-python-verification-base",
+      "scope": "canonical",
+      "roleTitle": "Python and Verification Interview Readiness",
+      "companyName": "NVIDIA",
+      "versionNumber": 1,
+      "baseProfileVersionKey": null,
+      "catalogVersionKey": "catalog:seed-v1",
+      "roadmapVersionKey": "roadmap:nvidia-python-verification-v1",
+      "sourceSummary": "Initial product fixture assumptions; production weights require separate sourcing and curator review.",
+      "freshnessStatus": "initial_curated_assumption",
+      "reviewedAt": "2026-08-26"
+    }
+  ],
+  "readinessGoals": [
+    {
+      "readinessGoalKey": "goal:nvidia-python-verification-base-v1",
+      "title": "Python and Verification Interview Readiness",
+      "profileVersionKey": "target:nvidia-python-verification-base-v1",
+      "profileRoleTitle": "Python and Verification Interview Readiness",
+      "lifecycle": "active",
+      "aggregateVersion": "1"
+    }
+  ]
+}

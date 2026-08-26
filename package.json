@@ -37,11 +37,14 @@
     "backup:seal": "node scripts/backup/pando-backup.mjs --command seal",
     "backup:open": "node scripts/backup/pando-backup.mjs --command open",
     "verify:backup": "node scripts/backup/backup.integration.mjs",
-    "verify:phase0": "pnpm verify && pnpm verify:db && pnpm verify:backup",
+    "verify:auth": "node scripts/auth/verify-auth-target-selection.mjs",
+    "verify:phase0": "pnpm verify && pnpm verify:db && pnpm verify:backup && pnpm verify:auth",
     "backup:r2-plan": "node scripts/backup/r2-plan.mjs"
   },
   "dependencies": {
     "@dagrejs/dagre": "3.1.1",
+    "@supabase/ssr": "0.12.5",
+    "@supabase/supabase-js": "2.112.4",
     "@xyflow/react": "12.11.3",
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",

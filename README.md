@@ -4,12 +4,14 @@ PANDO is **source-available**, not OSI-approved open-source software. Noncommerc
 by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribution in
 [NOTICE](NOTICE). This public license does not grant commercial rights; see
 [COMMERCIAL.md](COMMERCIAL.md) for non-binding information about requesting a separate agreement.
-PANDO is currently in Phase 0 implementation. The repository contains the executable Next.js
-modular monolith, strict contract/runtime validators, deterministic mastery/readiness/review
-engines, the Identity/RLS/outbox database boundary, an encrypted clean-restore proof, and a
-representative accessible `/explore` vertical slice. The Explore adapter is fixture-backed;
-authenticated production projections and the remaining product command/persistence paths are not
-yet implemented.
+PANDO has completed its Phase 0 technical foundation and is entering Phase 1. The repository
+contains the executable Next.js modular monolith, strict contract/runtime validators, deterministic
+mastery/readiness/review engines, the Identity/RLS/outbox database boundary, an encrypted
+clean-restore proof, and a representative accessible `/explore` vertical slice. It also contains
+invite-only Supabase email/password sign-in, idempotent personal-workspace onboarding, and
+persisted Target Profile selection into an exact Readiness Goal. The Explore adapter remains
+fixture-backed; authenticated Mastery/readiness projections and the remaining product
+command/persistence paths are not yet implemented.
 
 ## Prerequisites
 
@@ -37,6 +39,11 @@ pnpm dev
 Open <http://localhost:3000>. The representative 25-node accessible graph slice is available at
 <http://localhost:3000/explore>.
 
+To use the authenticated `/start` journey, configure the two public Supabase values from
+[`.env.example`](.env.example) in an untracked `.env.local` and provision the invite-only owner by
+following the [owner provisioning runbook](docs/runbooks/auth/owner-provisioning.md). Never use a
+secret or service-role key in a `NEXT_PUBLIC_` variable.
+
 ## Verify locally
 
 The ordinary application gate does not require Docker:
@@ -56,9 +63,12 @@ and encrypted clean restore in separate randomly named local Supabase stacks:
 pnpm verify:phase0
 ```
 
-Use `pnpm verify:db` or `pnpm verify:backup` for an individual Docker-backed gate. These commands
-copy the required Supabase files to OS-created temporary directories and stop only their own random
-project IDs, so they do not reset or remove an ordinary local development stack. CI runs the three
+Use `pnpm verify:db`, `pnpm verify:backup`, or `pnpm verify:auth` for an individual Docker-backed
+gate. These commands copy the required Supabase files to OS-created temporary directories and stop
+only their own random project IDs, so they do not reset or remove an ordinary local development
+stack. The auth gate creates one synthetic owner inside its disposable stack, exercises sign-in,
+workspace bootstrap, target selection, reload, responsive accessibility, and sign-out through a
+real browser, and checks that generated `api` schema types have not drifted. CI runs the four
 expensive suites as separate jobs from the same frozen lockfile and combines their results in a
 cheap `phase0` status; it does not rerun them in the aggregate job. Committed history is scanned for
 secrets.
@@ -85,13 +95,16 @@ projection composition.
 
 ## Dependency policy
 
-Production dependencies are Next.js, React, and React DOM; the contract-boundary libraries required
-by ADR-0005 (Ajv Draft 2020-12, `ajv-formats`, and RFC 8785 JSON canonicalization); and the exact
+Production dependencies are Next.js, React, and React DOM; the request-scoped Supabase Auth/Data
+API clients `@supabase/ssr` and `@supabase/supabase-js`; the contract-boundary libraries required by
+ADR-0005 (Ajv Draft 2020-12, `ajv-formats`, and RFC 8785 JSON canonicalization); and the exact
 ADR-0004 graph adapter pins `@xyflow/react@12.11.3` and `@dagrejs/dagre@3.1.1`. Tailwind CSS and the
 lint, format, type, unit, accessibility, and E2E tools remain development-only. There is no ORM,
-monorepo tooling, global state library, or runtime provider SDK. `pnpm-workspace.yaml` is pnpm 11's
+monorepo tooling, global state library, or privileged runtime provider SDK. `pnpm-workspace.yaml` is pnpm 11's
 required project-settings file; because it declares no `packages`, the repository remains a single
-package.
+package. `src/shared/supabase/database.generated.ts` is generated from the migrated exposed `api`
+schema; the authenticated journey gate fails when the committed type surface drifts from the live
+temporary database.
 
 ## Licensing and contributions
 

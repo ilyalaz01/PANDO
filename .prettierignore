@@ -2,6 +2,7 @@
 coverage/
 node_modules/
 .codex-worktrees/
+src/shared/supabase/database.generated.ts
 playwright-report/
 test-results/
 docs/

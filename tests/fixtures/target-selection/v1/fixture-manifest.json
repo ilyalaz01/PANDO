@@ -1,0 +1,47 @@
+{
+  "contract": { "name": "TargetSelectionSourceV1", "version": "1.0.0" },
+  "cases": [
+    {
+      "caseId": "seeded-valid",
+      "path": "valid/target-selection-source-v1.seeded.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "unbootstrapped-boundary",
+      "path": "boundary/target-selection-source-v1.unbootstrapped.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": true,
+      "expectedViolations": []
+    },
+    {
+      "caseId": "unbootstrapped-with-profile",
+      "path": "invalid/target-selection-source-v1.unbootstrapped-with-profile.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["TARGET_SELECTION_MISSING_WORKSPACE_STATE"]
+    },
+    {
+      "caseId": "duplicate-profile",
+      "path": "invalid/target-selection-source-v1.duplicate-profile.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["TARGET_SELECTION_PROFILE_DUPLICATE"]
+    },
+    {
+      "caseId": "duplicate-goal",
+      "path": "invalid/target-selection-source-v1.duplicate-goal.json",
+      "expectedSchemaValid": true,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["TARGET_SELECTION_GOAL_DUPLICATE"]
+    },
+    {
+      "caseId": "private-note-injection",
+      "path": "malicious/target-selection-source-v1.private-note.json",
+      "expectedSchemaValid": false,
+      "expectedSemanticValid": false,
+      "expectedViolations": ["SCHEMA_UNKNOWN_FIELD"]
+    }
+  ]
+}

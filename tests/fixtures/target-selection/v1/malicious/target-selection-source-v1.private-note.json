@@ -1,0 +1,12 @@
+{
+  "contract": { "name": "TargetSelectionSourceV1", "version": "1.0.0" },
+  "workspace": {
+    "workspaceId": "20000000-0000-4000-8000-000000000001",
+    "workspaceKind": "personal",
+    "displayName": "Personal workspace",
+    "membershipRole": "owner"
+  },
+  "profiles": [],
+  "readinessGoals": [],
+  "privateNote": "never-return-this-private-value"
+}

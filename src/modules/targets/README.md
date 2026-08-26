@@ -36,6 +36,22 @@ nested witness leaf keys are deduplicated in stable order.
 Outputs include interval, coverage, status, confidence, blockers, per-rule evaluations,
 stable witness member keys, profile/policy/engine versions, input watermark, and explanation codes.
 
-Not implemented here: profile persistence, Mastery queries, snapshot persistence/application,
-outbox publication, best-action ranking, UI, or lifecycle commands. Cross-context interaction
-continues to follow the [module topology](../../../docs/design/MODULE_TOPOLOGY.md).
+## Implemented target-selection boundary
+
+Published Target Profile versions and Readiness Goals are persisted by Targets. The authenticated
+zero-argument `api.get_target_selection_source_v1()` composer obtains the current personal
+workspace from Identity, profile and goal facts from
+`targets.get_target_selection_options_impl(uuid)`, and exact catalog/roadmap version keys from
+`catalog.get_target_selection_version_keys_impl(uuid[],uuid[])`. No owner query reads another
+bounded context's private tables; the `api` layer performs the read-only composition. The strict
+[TargetSelectionSourceV1](../../../schemas/target-selection/v1/README.md) contract exposes exact
+immutable profile/catalog/roadmap provenance and current goals in stable order. The browser submits
+only a published `profileVersionKey`; server code derives the goal key, title, workspace, and
+idempotency key before calling the owning `api.create_readiness_goal` command. Replay reuses only
+the active Readiness Goal with that exact derived key and immutable profile version; it never
+silently substitutes another goal or reactivates an archived lifecycle.
+
+Not implemented here: Mastery queries, readiness snapshot persistence/application, readiness
+outbox materialization, best-action ranking, or target lifecycle UI beyond initial selection.
+Cross-context interaction continues to follow the
+[module topology](../../../docs/design/MODULE_TOPOLOGY.md).

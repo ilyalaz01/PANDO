@@ -27,6 +27,15 @@ function readStringArray(sectionLines, key) {
   return value;
 }
 
+function readBoolean(sectionLines, key) {
+  const matches = sectionLines.flatMap((line) => {
+    const match = line.match(new RegExp(`^\\s*${key}\\s*=\\s*(true|false)\\s*$`));
+    return match ? [match[1] === "true"] : [];
+  });
+  assert.equal(matches.length, 1, `${key} must occur exactly once`);
+  return matches[0];
+}
+
 test("Supabase Data API exposes only the purpose-specific api schema", async () => {
   const source = await readFile(resolve(root, "supabase/config.toml"), "utf8");
   const api = readSection(source, "api");
@@ -34,4 +43,16 @@ test("Supabase Data API exposes only the purpose-specific api schema", async () 
   assert.ok(api.some((line) => /^\s*enabled\s*=\s*true\s*$/.test(line)));
   assert.deepEqual(readStringArray(api, "schemas"), ["api"]);
   assert.deepEqual(readStringArray(api, "extra_search_path"), ["extensions"]);
+});
+
+test("Supabase Auth is invite-only while the email/password provider remains usable", async () => {
+  const source = await readFile(resolve(root, "supabase/config.toml"), "utf8");
+  const auth = readSection(source, "auth");
+  const email = readSection(source, "auth.email");
+
+  assert.equal(readBoolean(auth, "enabled"), true);
+  assert.equal(readBoolean(auth, "enable_signup"), false);
+  assert.equal(readBoolean(auth, "enable_anonymous_sign_ins"), false);
+  assert.equal(readBoolean(email, "enable_signup"), true);
+  assert.equal(readBoolean(email, "enable_confirmations"), true);
 });

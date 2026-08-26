@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.pando.dev/target-selection/v1/target-selection-source.schema.json",
+  "title": "TargetSelectionSourceV1",
+  "description": "Authenticated server-only DTO for the current personal workspace, available exact target profile versions, and persisted readiness goals.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "workspace", "profiles", "readinessGoals"],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "TargetSelectionSourceV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "workspace": {
+      "oneOf": [{ "$ref": "#/$defs/workspace" }, { "type": "null" }]
+    },
+    "profiles": {
+      "type": "array",
+      "maxItems": 500,
+      "items": { "$ref": "#/$defs/profile" }
+    },
+    "readinessGoals": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": { "$ref": "#/$defs/readinessGoal" }
+    }
+  },
+  "$defs": {
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workspaceId", "workspaceKind", "displayName", "membershipRole"],
+      "properties": {
+        "workspaceId": { "type": "string", "format": "uuid" },
+        "workspaceKind": { "const": "personal" },
+        "displayName": { "$ref": "#/$defs/workspaceText" },
+        "membershipRole": { "enum": ["owner", "member"] }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profileVersionKey",
+        "profileSeriesKey",
+        "scope",
+        "roleTitle",
+        "companyName",
+        "versionNumber",
+        "baseProfileVersionKey",
+        "catalogVersionKey",
+        "roadmapVersionKey",
+        "sourceSummary",
+        "freshnessStatus",
+        "reviewedAt"
+      ],
+      "properties": {
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "profileSeriesKey": { "$ref": "#/$defs/profileSeriesKey" },
+        "scope": { "enum": ["canonical", "workspace"] },
+        "roleTitle": { "$ref": "#/$defs/roleText" },
+        "companyName": {
+          "oneOf": [{ "$ref": "#/$defs/roleText" }, { "type": "null" }]
+        },
+        "versionNumber": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "baseProfileVersionKey": {
+          "oneOf": [{ "$ref": "#/$defs/profileVersionKey" }, { "type": "null" }]
+        },
+        "catalogVersionKey": { "$ref": "#/$defs/catalogVersionKey" },
+        "roadmapVersionKey": {
+          "oneOf": [{ "$ref": "#/$defs/roadmapVersionKey" }, { "type": "null" }]
+        },
+        "sourceSummary": { "$ref": "#/$defs/sourceText" },
+        "freshnessStatus": {
+          "enum": ["initial_curated_assumption", "reviewed", "stale"]
+        },
+        "reviewedAt": { "type": "string", "format": "date" }
+      }
+    },
+    "readinessGoal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoalKey",
+        "title",
+        "profileVersionKey",
+        "profileRoleTitle",
+        "lifecycle",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "title": { "$ref": "#/$defs/goalText" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "profileRoleTitle": { "$ref": "#/$defs/roleText" },
+        "lifecycle": { "enum": ["active", "paused", "completed", "archived"] },
+        "aggregateVersion": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" }
+      }
+    },
+    "profileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "profileSeriesKey": {
+      "type": "string",
+      "pattern": "^target-series:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "readinessGoalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "catalogVersionKey": {
+      "type": "string",
+      "pattern": "^catalog:[a-z0-9][a-z0-9:-]{1,160}$"
+    },
+    "roadmapVersionKey": {
+      "type": "string",
+      "pattern": "^roadmap:[a-z0-9][a-z0-9:-]{1,160}$"
+    },
+    "workspaceText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[^\\u0000-\\u001F\\u007F<>]+$"
+    },
+    "roleText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^\\u0000-\\u001F\\u007F<>]+$"
+    },
+    "goalText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[^\\u0000-\\u001F\\u007F<>]+$"
+    },
+    "sourceText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^[^\\u0000-\\u001F\\u007F<>]+$"
+    }
+  }
+}

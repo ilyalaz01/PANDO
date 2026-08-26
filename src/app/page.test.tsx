@@ -14,11 +14,11 @@ describe("FoundationPage", () => {
       "href",
       "#main-content",
     );
-    expect(
-      screen.getByText(
-        /Authenticated product workflows and live projections are still being built/i,
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Invite-only target onboarding is now persisted/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign in to PANDO" })).toHaveAttribute(
+      "href",
+      "/sign-in",
+    );
     expect(screen.getByLabelText("Motion accessibility contract")).toHaveTextContent(
       "full · reduced · off",
     );

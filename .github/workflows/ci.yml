@@ -129,6 +129,35 @@ jobs:
       - name: Prove migrations, pgTAP, and database lint
         run: pnpm verify:db
 
+  authenticated-journey:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 11.19.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browser
+        run: pnpm test:e2e:install:ci
+
+      - name: Prove the real invite-only owner journey
+        run: pnpm verify:auth
+
   phase0:
     if: ${{ always() }}
     needs:
@@ -136,6 +165,7 @@ jobs:
       - verify
       - database
       - backup-restore
+      - authenticated-journey
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -146,8 +176,10 @@ jobs:
           VERIFY_RESULT: ${{ needs.verify.result }}
           DATABASE_RESULT: ${{ needs.database.result }}
           BACKUP_RESULT: ${{ needs['backup-restore'].result }}
+          AUTH_RESULT: ${{ needs['authenticated-journey'].result }}
         run: |
           test "$SECRETS_RESULT" = "success"
           test "$VERIFY_RESULT" = "success"
           test "$DATABASE_RESULT" = "success"
           test "$BACKUP_RESULT" = "success"
+          test "$AUTH_RESULT" = "success"

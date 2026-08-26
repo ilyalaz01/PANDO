@@ -10,6 +10,7 @@ import preparationContextSchema from "../../../schemas/preparation-pack/v1/prepa
 import preparationManifestSchema from "../../../schemas/preparation-pack/v1/manifest.schema.json";
 import preparationPlanSchema from "../../../schemas/preparation-pack/v1/preparation-plan.schema.json";
 import targetProfileSchema from "../../../schemas/preparation-pack/v1/target-profile.schema.json";
+import targetSelectionSourceSchema from "../../../schemas/target-selection/v1/target-selection-source.schema.json";
 
 import { type ContractViolation, type ValidationResult, validationResult } from "./result";
 
@@ -21,6 +22,7 @@ export const schemaNames = [
   "preparation-manifest",
   "preparation-plan",
   "target-profile",
+  "target-selection-source",
   "graph-projection",
 ] as const;
 
@@ -36,6 +38,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "preparation-manifest": preparationManifestSchema,
   "preparation-plan": preparationPlanSchema,
   "target-profile": targetProfileSchema,
+  "target-selection-source": targetSelectionSourceSchema,
   "graph-projection": graphProjectionSchema,
 };
 

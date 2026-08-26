@@ -1,0 +1,6 @@
+{
+  "contract": { "name": "TargetSelectionSourceV1", "version": "1.0.0" },
+  "workspace": null,
+  "profiles": [],
+  "readinessGoals": []
+}

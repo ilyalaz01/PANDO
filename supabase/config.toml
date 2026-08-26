@@ -8,11 +8,14 @@ extra_search_path = ["extensions"]
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:3000"
+# Global signup remains off; only administrators can create/invite accounts.
 enable_signup = false
 enable_anonymous_sign_ins = false
 
 [auth.email]
-enable_signup = false
+# In Supabase CLI this flag enables the email/password provider itself. The global flag above is
+# the invite-only signup boundary.
+enable_signup = true
 enable_confirmations = true
 
 [db.seed]

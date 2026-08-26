@@ -1,5 +1,6 @@
 import { motionModes } from "../ui/design-system/motion";
 import { SkipLink } from "../ui/primitives/skip-link";
+import Link from "next/link";
 
 const phase0Capabilities = [
   {
@@ -47,8 +48,9 @@ export default function FoundationPage() {
             </h1>
             <p className="mt-6 max-w-[var(--measure-prose)] text-lg leading-8 text-[var(--color-text-muted)]">
               Contracts, deterministic calculations, database invariants, encrypted restore, and an
-              accessible Explore fixture are executable. Authenticated product workflows and live
-              projections are still being built.
+              accessible Explore fixture are executable. Invite-only target onboarding is now
+              persisted; the remaining live projections and planning workflows are still being
+              built.
             </p>
           </section>
 
@@ -69,6 +71,22 @@ export default function FoundationPage() {
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section className="rounded-[var(--radius-panel)] border border-[var(--color-border-strong)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-panel)] sm:flex sm:items-center sm:justify-between sm:gap-6">
+            <div>
+              <h2 className="text-xl font-black">Phase 1 target onboarding is ready.</h2>
+              <p className="mt-2 max-w-[var(--measure-prose)] leading-7 text-[var(--color-text-muted)]">
+                Sign in with the invite-only owner account, create the personal workspace once, and
+                select an exact seeded Target Profile.
+              </p>
+            </div>
+            <Link
+              className="mt-5 inline-flex min-h-12 shrink-0 items-center rounded-[var(--radius-control)] bg-[var(--color-accent)] px-5 font-extrabold text-white sm:mt-0"
+              href="/sign-in"
+            >
+              Sign in to PANDO
+            </Link>
           </section>
 
           <aside
