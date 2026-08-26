@@ -8,7 +8,6 @@ import {
 import { constants as fsConstants, createReadStream, createWriteStream } from "node:fs";
 import {
   appendFile,
-  cp,
   link,
   lstat,
   mkdir,
@@ -24,6 +23,7 @@ import { tmpdir } from "node:os";
 import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { promisify } from "node:util";
+import { publishExtractedMembers, stageBackupMember } from "./backup-files.mjs";
 const scrypt = promisify(scryptCb);
 const BM = Buffer.from("PANDO-BACKUP-V1\n"),
   PM = Buffer.from("PANDO-BUNDLE-V1\n");
@@ -87,17 +87,12 @@ async function secret() {
     await handle.close();
   }
 }
-async function hash(p) {
-  const h = createHash("sha256");
-  for await (const c of createReadStream(p)) h.update(c);
-  return h.digest("hex");
-}
+
 async function pack(path, members, meta) {
   const indexed = [];
   for (const m of members) {
     if (!/^[a-z0-9][a-z0-9._-]*$/.test(m.name)) throw Error("Unsafe member");
-    const i = await stat(m.path);
-    indexed.push({ name: m.name, bytes: i.size, sha256: await hash(m.path) });
+    indexed.push({ name: m.name, bytes: m.bytes, sha256: m.sha256 });
   }
   const body = json({ format: "pando.logical-backup-bundle.v1", ...meta, members: indexed });
   await writeFile(path, Buffer.concat([PM, len(body.length), body]), { flag: "wx", mode: 0o600 });
@@ -331,7 +326,21 @@ try {
       auth = resolve(need(a, "auth-data")),
       data = resolve(need(a, "data")),
       storage = resolve(need(a, "storage-manifest"));
-    const sm = JSON.parse(await readFile(storage, "utf8"));
+    const stagedDirectory = join(scratch, "staged");
+    await mkdir(stagedDirectory, { mode: 0o700 });
+    const members = [];
+    for (const member of [
+      { name: "database-schema.sql", path: schema },
+      { name: "auth-data.sql", path: auth },
+      { name: "database-data.sql", path: data },
+      { name: "storage-manifest.json", path: storage },
+    ]) {
+      members.push(
+        await stageBackupMember(member.path, join(stagedDirectory, member.name), member.name),
+      );
+    }
+    const stagedStorage = members.find((member) => member.name === "storage-manifest.json");
+    const sm = JSON.parse(await readFile(stagedStorage.path, "utf8"));
     if (sm?.format !== "pando.storage-manifest.v1" || !Array.isArray(sm.objects))
       throw Error("Invalid storage manifest");
     const objectKeys = new Set();
@@ -352,16 +361,7 @@ try {
     }
     const id = randomBytes(16).toString("hex"),
       packed = join(scratch, "bundle");
-    await pack(
-      packed,
-      [
-        { name: "database-schema.sql", path: schema },
-        { name: "auth-data.sql", path: auth },
-        { name: "database-data.sql", path: data },
-        { name: "storage-manifest.json", path: storage },
-      ],
-      { backup_id: id, boundary: PHASE0_BOUNDARY },
-    );
+    await pack(packed, members, { backup_id: id, boundary: PHASE0_BOUNDARY });
     const bytes = await encrypt(packed, output, {
       backup_id: id,
       created_at: new Date().toISOString(),
@@ -375,16 +375,7 @@ try {
       manifest = await unpack(packed, files);
     if (header.backup_id !== manifest.backup_id || header.boundary !== manifest.boundary)
       throw Error("Encrypted header and bundle manifest disagree");
-    await mkdir(dirname(output), { recursive: true, mode: 0o700 });
-    let claimed = false;
-    try {
-      await mkdir(output, { mode: 0o700 });
-      claimed = true;
-      await cp(files, output, { recursive: true, errorOnExist: true, force: false });
-    } catch (error) {
-      if (claimed) await rm(output, { recursive: true, force: true });
-      throw error;
-    }
+    await publishExtractedMembers(files, output, PHASE0_BUNDLE_MEMBERS);
     process.stdout.write(
       JSON.stringify({ backup_id: header.backup_id, output, members: manifest.members.length }) +
         "\n",

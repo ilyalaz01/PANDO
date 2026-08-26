@@ -25,7 +25,7 @@ pnpm exec supabase db dump --local --schema api,identity,catalog,targets,overlay
 pnpm backup:seal -- --schema <scratch>/database-schema.sql --auth-data <scratch>/auth-data.sql --data <scratch>/database-data.sql --storage-manifest <scratch>/storage-manifest.json --output <private>/pando-<UTC timestamp>.pando
 ```
 
-The seal command flushes and closes its completed temporary file before a no-clobber hard-link publish. On POSIX it then `fsync`s the parent directory so the published name is durable. Windows keeps the same flushed-file and no-clobber guarantees, but this tool cannot portably `fsync` a directory there. If POSIX parent-directory `fsync` fails after publication, the command returns failure and preserves the already-published valid archive; inspect and verify that exact archive before choosing a new output path or applying retention, rather than blindly retrying or deleting it. The Ubuntu `backup-restore` CI job exercises the directory-`fsync` path; a Windows-only local run cannot.
+Before packing, `seal` opens every input once and copies it into the private scratch directory while calculating the exact staged length and digest. The manifest and bundle are then built only from those immutable staged bytes, so later source-file changes cannot make the archive internally inconsistent. POSIX input opens use `O_NOFOLLOW`; Windows has the same non-atomic `lstat` limitation described above for the secret, so keep dump inputs in a user-only directory. The seal command flushes and closes its completed temporary file before a no-clobber hard-link publish. On POSIX it then `fsync`s the parent directory so the published name is durable. Windows keeps the same flushed-file and no-clobber guarantees, but this tool cannot portably `fsync` a directory there. If POSIX parent-directory `fsync` fails after publication, the command returns failure and preserves the already-published valid archive; inspect and verify that exact archive before choosing a new output path or applying retention, rather than blindly retrying or deleting it. The Ubuntu `backup-restore` CI job exercises the directory-`fsync` path; a Windows-only local run cannot.
 
 Delete the exact plaintext scratch directory after the archive is verified. The manifest format is:
 
@@ -44,6 +44,8 @@ pnpm exec supabase db lint --local --level warning
 ```
 
 Record the exact resolved extraction path before opening. After reset and verification, remove only that exact directory and verify that it is gone; never use a glob, repository root, shared parent, or unresolved environment variable for cleanup. The reset first recreates schema from migrations, then loads Auth before application data. Verify row counts, API/RLS isolation under at least two synthetic subjects, command/outbox contract versions, and the Storage manifest. `pnpm verify:backup` automates this against a randomly named temporary local stack and proves positive and negative restored-user isolation, the event contract, and ciphertext tamper rejection. It uses only synthetic `.test` identities and removes the stack with `pnpm exec supabase stop --no-backup`.
+
+`backup:open` atomically claims a previously absent output directory and never recursively removes that path after the claim. If copying fails, it reports the exact incomplete output path and preserves it for explicit operator inspection and cleanup. This prevents a concurrent path replacement from turning automatic error cleanup into deletion of unrelated data.
 
 ## Retention and off-site boundary
 

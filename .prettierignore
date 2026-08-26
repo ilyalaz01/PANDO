@@ -1,6 +1,7 @@
 .next/
 coverage/
 node_modules/
+.codex-worktrees/
 playwright-report/
 test-results/
 docs/

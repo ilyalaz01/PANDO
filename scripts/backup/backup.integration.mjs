@@ -45,6 +45,13 @@ const PHASE0_MEMBER_NAMES = [
   "storage-manifest.json",
 ];
 const EMPTY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+function settledSummary(results) {
+  return results
+    .map((result) =>
+      result.status === "fulfilled" ? "fulfilled" : `rejected: ${String(result.reason)}`,
+    )
+    .join("; ");
+}
 function encodedLength(value) {
   const bytes = Buffer.alloc(4);
   bytes.writeUInt32BE(value);
@@ -255,8 +262,8 @@ try {
   ]);
   const sealSuccesses = sealRace.filter((result) => result.status === "fulfilled");
   const sealFailures = sealRace.filter((result) => result.status === "rejected");
-  assert.equal(sealSuccesses.length, 1);
-  assert.equal(sealFailures.length, 1);
+  assert.equal(sealSuccesses.length, 1, settledSummary(sealRace));
+  assert.equal(sealFailures.length, 1, settledSummary(sealRace));
   assert.match(String(sealFailures[0].reason), /Refusing to overwrite existing backup/);
   const sealResult = JSON.parse(sealSuccesses[0].value);
 
@@ -289,8 +296,8 @@ try {
   ]);
   const openSuccesses = openRace.filter((result) => result.status === "fulfilled");
   const openFailures = openRace.filter((result) => result.status === "rejected");
-  assert.equal(openSuccesses.length, 1);
-  assert.equal(openFailures.length, 1);
+  assert.equal(openSuccesses.length, 1, settledSummary(openRace));
+  assert.equal(openFailures.length, 1, settledSummary(openRace));
   assert.match(String(openFailures[0].reason), /EEXIST/);
 
   const foreignOpen = join(scratch, "foreign-open");
