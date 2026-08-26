@@ -1589,7 +1589,7 @@
       "file_type": "code",
       "norm_label": "exploreview",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L17"
+      "source_location": "L18"
     },
     {
       "id": "src_ui_explore_explore_workspace_outlinebranchprops",
@@ -1602,7 +1602,7 @@
       "file_type": "code",
       "norm_label": "outlinebranchprops",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L70"
+      "source_location": "L71"
     },
     {
       "id": "src_ui_explore_explore_workspace_test_mockflownode",
@@ -5746,7 +5746,7 @@
       "file_type": "code",
       "norm_label": "chooseviewfocus()",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L46"
+      "source_location": "L47"
     },
     {
       "id": "src_ui_explore_explore_workspace_exploreworkspace",
@@ -5758,7 +5758,7 @@
       "file_type": "code",
       "norm_label": "exploreworkspace()",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L125"
+      "source_location": "L126"
     },
     {
       "id": "src_ui_explore_explore_workspace_nextnodeid",
@@ -5770,7 +5770,7 @@
       "file_type": "code",
       "norm_label": "nextnodeid()",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L27"
+      "source_location": "L28"
     },
     {
       "id": "src_ui_explore_explore_workspace_outlinebranch",
@@ -5782,7 +5782,7 @@
       "file_type": "code",
       "norm_label": "outlinebranch()",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L77"
+      "source_location": "L78"
     },
     {
       "id": "src_ui_explore_explore_workspace_percentage",
@@ -5794,7 +5794,7 @@
       "file_type": "code",
       "norm_label": "percentage()",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L56"
+      "source_location": "L57"
     },
     {
       "id": "src_ui_explore_explore_workspace_sortbykeyboardorder",
@@ -5806,7 +5806,7 @@
       "file_type": "code",
       "norm_label": "sortbykeyboardorder()",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L60"
+      "source_location": "L61"
     },
     {
       "id": "src_ui_explore_explore_workspace_test_withoutnode",
@@ -7967,6 +7967,28 @@
       "source_location": "L1014"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_anyrule_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1113"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_anyrule_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1112"
+    },
+    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_datetime_format",
       "label": "format",
       "_origin": "ast",
@@ -7998,6 +8020,17 @@
       "norm_label": "$defs",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L249"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_defs_anyrule",
+      "label": "anyRule",
+      "_origin": "ast",
+      "community": 10,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "anyrule",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1111"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_defs_datetime",
@@ -12675,28 +12708,6 @@
       "source_location": "L225"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_canonicalnode_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L109"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_canonicalnode_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L108"
-    },
-    {
       "id": "schemas_explore_source_v1_explore_source_schema_catalogversionkey_pattern",
       "label": "pattern",
       "_origin": "ast",
@@ -12728,17 +12739,6 @@
       "norm_label": "$defs",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L70"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_defs_canonicalnode",
-      "label": "canonicalNode",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "canonicalnode",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L107"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_defs_catalogversionkey",
@@ -12794,28 +12794,6 @@
       "norm_label": "noderef",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L71"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_defs_overlayactivitynode",
-      "label": "overlayActivityNode",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "overlayactivitynode",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L140"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_defs_overlaycompetencynode",
-      "label": "overlayCompetencyNode",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "overlaycompetencynode",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L127"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_defs_roadmapversionkey",
@@ -12926,50 +12904,6 @@
       "norm_label": "type",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L72"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_overlayactivitynode_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L142"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_overlayactivitynode_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L141"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_overlaycompetencynode_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L129"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_overlaycompetencynode_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 127,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L128"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_roadmapversionkey_pattern",
@@ -13267,17 +13201,6 @@
       "norm_label": "const",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L484"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_criticality_enum",
-      "label": "enum",
-      "_origin": "ast",
-      "community": 129,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "enum",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L378"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_alloranyrule",
@@ -13641,39 +13564,6 @@
       "norm_label": "any",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L397"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_differentiating",
-      "label": "DIFFERENTIATING",
-      "_origin": "ast",
-      "community": 129,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "differentiating",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L378"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_mandatory",
-      "label": "MANDATORY",
-      "_origin": "ast",
-      "community": 129,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "mandatory",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L378"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_preferred",
-      "label": "PREFERRED",
-      "_origin": "ast",
-      "community": 129,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "preferred",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L378"
     },
     {
       "id": "schemas_agent_control_v1_control_context_schema_campaign_required",
@@ -15248,6 +15138,17 @@
       "source_location": "L15"
     },
     {
+      "id": "schemas_explore_source_v1_explore_source_schema_canonicalnode_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 137,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L109"
+    },
+    {
       "id": "schemas_explore_source_v1_explore_source_schema_canonicalnode_properties",
       "label": "properties",
       "_origin": "ast",
@@ -15257,6 +15158,39 @@
       "norm_label": "properties",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L118"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_canonicalnode_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 137,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L108"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_defs_canonicalnode",
+      "label": "canonicalNode",
+      "_origin": "ast",
+      "community": 137,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "canonicalnode",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L107"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_defs_overlaycompetencynode",
+      "label": "overlayCompetencyNode",
+      "_origin": "ast",
+      "community": 137,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "overlaycompetencynode",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L127"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_domainref_ref",
@@ -15314,26 +15248,15 @@
       "source_location": "L120"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_origin_const",
-      "label": "const",
+      "id": "schemas_explore_source_v1_explore_source_schema_overlaycompetencynode_additionalproperties",
+      "label": "additionalProperties",
       "_origin": "ast",
       "community": 137,
       "community_name": "properties",
       "file_type": "code",
-      "norm_label": "const",
+      "norm_label": "additionalproperties",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L123"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_overlayactivitynode_properties",
-      "label": "properties",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "properties",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L153"
+      "source_location": "L129"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_overlaycompetencynode_properties",
@@ -15347,15 +15270,15 @@
       "source_location": "L131"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_properties_activitytype",
-      "label": "activityType",
+      "id": "schemas_explore_source_v1_explore_source_schema_overlaycompetencynode_type",
+      "label": "type",
       "_origin": "ast",
       "community": 137,
       "community_name": "properties",
       "file_type": "code",
-      "norm_label": "activitytype",
+      "norm_label": "type",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L160"
+      "source_location": "L128"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_properties_domainref",
@@ -15391,17 +15314,6 @@
       "source_location": "L120"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_properties_origin",
-      "label": "origin",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "origin",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L123"
-    },
-    {
       "id": "schemas_explore_source_v1_explore_source_schema_properties_sourceversionkey",
       "label": "sourceVersionKey",
       "_origin": "ast",
@@ -15411,17 +15323,6 @@
       "norm_label": "sourceversionkey",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L124"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_properties_targetcompetencyref",
-      "label": "targetCompetencyRef",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "targetcompetencyref",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L163"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_properties_title",
@@ -15435,17 +15336,6 @@
       "source_location": "L121"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_properties_workspaceid",
-      "label": "workspaceId",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "workspaceid",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L34"
-    },
-    {
       "id": "schemas_explore_source_v1_explore_source_schema_sourceversionkey_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -15457,28 +15347,6 @@
       "source_location": "L124"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_targetcompetencyref_pattern",
-      "label": "pattern",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "pattern",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L165"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_targetcompetencyref_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L164"
-    },
-    {
       "id": "schemas_explore_source_v1_explore_source_schema_title_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -15488,28 +15356,6 @@
       "norm_label": "$ref",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L121"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_workspaceid_format",
-      "label": "format",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "format",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L34"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_workspaceid_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 137,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L34"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_json_ref_competency",
@@ -16205,17 +16051,6 @@
       "source_location": "L46"
     },
     {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requiredlevel_enum",
-      "label": "enum",
-      "_origin": "ast",
-      "community": 142,
-      "community_name": "readinessGoal",
-      "file_type": "code",
-      "norm_label": "enum",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L136"
-    },
-    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_active",
       "label": "active",
       "_origin": "ast",
@@ -16249,17 +16084,6 @@
       "source_location": "L47"
     },
     {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_completed",
-      "label": "completed",
-      "_origin": "ast",
-      "community": 142,
-      "community_name": "readinessGoal",
-      "file_type": "concept",
-      "norm_label": "completed",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L47"
-    },
-    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_lifecycle",
       "label": "lifecycle",
       "_origin": "ast",
@@ -16269,17 +16093,6 @@
       "norm_label": "lifecycle",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L43"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_mastered",
-      "label": "MASTERED",
-      "_origin": "ast",
-      "community": 142,
-      "community_name": "readinessGoal",
-      "file_type": "concept",
-      "norm_label": "mastered",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L136"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_paused",
@@ -16313,17 +16126,6 @@
       "norm_label": "readinessgoalkey",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L43"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_verified",
-      "label": "VERIFIED",
-      "_origin": "ast",
-      "community": 142,
-      "community_name": "readinessGoal",
-      "file_type": "concept",
-      "norm_label": "verified",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L136"
     },
     {
       "id": "schemas_preparation_pack_v1_preparation_plan_schema_defs_excludeditem",
@@ -16700,15 +16502,15 @@
       "source_location": "L181"
     },
     {
-      "id": "schemas_explore_source_v1_explore_source_schema_edgetype_enum",
-      "label": "enum",
+      "id": "schemas_explore_source_v1_explore_source_schema_origin_const",
+      "label": "const",
       "_origin": "ast",
       "community": 146,
       "community_name": "properties",
       "file_type": "code",
-      "norm_label": "enum",
+      "norm_label": "const",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L183"
+      "source_location": "L123"
     },
     {
       "id": "schemas_explore_source_v1_explore_source_schema_overlayedge_additionalproperties",
@@ -16777,6 +16579,17 @@
       "source_location": "L182"
     },
     {
+      "id": "schemas_explore_source_v1_explore_source_schema_properties_origin",
+      "label": "origin",
+      "_origin": "ast",
+      "community": 146,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "origin",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L123"
+    },
+    {
       "id": "schemas_explore_source_v1_explore_source_schema_properties_sourceref",
       "label": "sourceRef",
       "_origin": "ast",
@@ -16819,61 +16632,6 @@
       "norm_label": "$ref",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L192"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_activity_evidences",
-      "label": "ACTIVITY_EVIDENCES",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "activity_evidences",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L183"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_part_of",
-      "label": "PART_OF",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "part_of",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L183"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_prerequisite_of",
-      "label": "PREREQUISITE_OF",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "prerequisite_of",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L183"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_related_to",
-      "label": "RELATED_TO",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "related_to",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L183"
-    },
-    {
-      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_user_added",
-      "label": "USER_ADDED",
-      "_origin": "ast",
-      "community": 146,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "user_added",
-      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
-      "source_location": "L183"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs",
@@ -18394,6 +18152,17 @@
       "source_location": "L121"
     },
     {
+      "id": "schemas_target_selection_v1_target_selection_source_schema_defs_roletext",
+      "label": "roleText",
+      "_origin": "ast",
+      "community": 154,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "roletext",
+      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
+      "source_location": "L131"
+    },
+    {
       "id": "schemas_target_selection_v1_target_selection_source_schema_goaltext_maxlength",
       "label": "maxLength",
       "_origin": "ast",
@@ -18524,6 +18293,50 @@
       "norm_label": "type",
       "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
       "source_location": "L122"
+    },
+    {
+      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_maxlength",
+      "label": "maxLength",
+      "_origin": "ast",
+      "community": 154,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "maxlength",
+      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
+      "source_location": "L134"
+    },
+    {
+      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_minlength",
+      "label": "minLength",
+      "_origin": "ast",
+      "community": 154,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "minlength",
+      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
+      "source_location": "L133"
+    },
+    {
+      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_pattern",
+      "label": "pattern",
+      "_origin": "ast",
+      "community": 154,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "pattern",
+      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
+      "source_location": "L135"
+    },
+    {
+      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 154,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
+      "source_location": "L132"
     },
     {
       "id": "schemas_target_selection_v1_target_selection_source_schema_displayname_ref",
@@ -24759,6 +24572,39 @@
       "source_location": "L65"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicaledges_items",
+      "label": "items",
+      "_origin": "ast",
+      "community": 203,
+      "community_name": "$ref",
+      "file_type": "code",
+      "norm_label": "items",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L179"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicaledges_maxitems",
+      "label": "maxItems",
+      "_origin": "ast",
+      "community": 203,
+      "community_name": "$ref",
+      "file_type": "code",
+      "norm_label": "maxitems",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L178"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicaledges_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 203,
+      "community_name": "$ref",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L177"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicalnodes_items",
       "label": "items",
       "_origin": "ast",
@@ -24891,6 +24737,17 @@
       "source_location": "L231"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_canonicaledges",
+      "label": "canonicalEdges",
+      "_origin": "ast",
+      "community": 203,
+      "community_name": "$ref",
+      "file_type": "code",
+      "norm_label": "canonicaledges",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L176"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_canonicalnodes",
       "label": "canonicalNodes",
       "_origin": "ast",
@@ -24911,17 +24768,6 @@
       "norm_label": "requiredoverlaynodes",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L181"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_requirementrules",
-      "label": "requirementRules",
-      "_origin": "ast",
-      "community": 203,
-      "community_name": "$ref",
-      "file_type": "code",
-      "norm_label": "requirementrules",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L31"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_requiredoverlaynodes_items",
@@ -24966,39 +24812,6 @@
       "norm_label": "items",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L35"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requirementrules_maxitems",
-      "label": "maxItems",
-      "_origin": "ast",
-      "community": 203,
-      "community_name": "$ref",
-      "file_type": "code",
-      "norm_label": "maxitems",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L34"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requirementrules_minitems",
-      "label": "minItems",
-      "_origin": "ast",
-      "community": 203,
-      "community_name": "$ref",
-      "file_type": "code",
-      "norm_label": "minitems",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L33"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requirementrules_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 203,
-      "community_name": "$ref",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L32"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_completetargetgraph_const",
@@ -25507,6 +25320,17 @@
       "source_location": "L28"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_requirementrules",
+      "label": "requirementRules",
+      "_origin": "ast",
+      "community": 206,
+      "community_name": "explore-target-context.schema.json",
+      "file_type": "code",
+      "norm_label": "requirementrules",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L31"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_scope",
       "label": "scope",
       "_origin": "ast",
@@ -25549,6 +25373,39 @@
       "norm_label": "$ref",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L28"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requirementrules_maxitems",
+      "label": "maxItems",
+      "_origin": "ast",
+      "community": 206,
+      "community_name": "explore-target-context.schema.json",
+      "file_type": "code",
+      "norm_label": "maxitems",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L34"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requirementrules_minitems",
+      "label": "minItems",
+      "_origin": "ast",
+      "community": 206,
+      "community_name": "explore-target-context.schema.json",
+      "file_type": "code",
+      "norm_label": "minitems",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L33"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requirementrules_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 206,
+      "community_name": "explore-target-context.schema.json",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L32"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_schema",
@@ -26442,81 +26299,191 @@
       "source_location": "L39"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_defs_growthplanfiles",
-      "label": "growthPlanFiles",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_additionalproperties",
+      "label": "additionalProperties",
       "_origin": "ast",
       "community": 213,
-      "community_name": "growthPlanFiles",
+      "community_name": "required",
       "file_type": "code",
-      "norm_label": "growthplanfiles",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L111"
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L187"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_description",
-      "label": "description",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_required",
+      "label": "required",
       "_origin": "ast",
       "community": 213,
-      "community_name": "growthPlanFiles",
+      "community_name": "required",
       "file_type": "code",
-      "norm_label": "description",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L113"
+      "norm_label": "required",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L188"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_items",
-      "label": "items",
-      "_origin": "ast",
-      "community": 213,
-      "community_name": "growthPlanFiles",
-      "file_type": "code",
-      "norm_label": "items",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L119"
-    },
-    {
-      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_maxitems",
-      "label": "maxItems",
-      "_origin": "ast",
-      "community": 213,
-      "community_name": "growthPlanFiles",
-      "file_type": "code",
-      "norm_label": "maxitems",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L121"
-    },
-    {
-      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_minitems",
-      "label": "minItems",
-      "_origin": "ast",
-      "community": 213,
-      "community_name": "growthPlanFiles",
-      "file_type": "code",
-      "norm_label": "minitems",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L120"
-    },
-    {
-      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_prefixitems",
-      "label": "prefixItems",
-      "_origin": "ast",
-      "community": 213,
-      "community_name": "growthPlanFiles",
-      "file_type": "code",
-      "norm_label": "prefixitems",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L114"
-    },
-    {
-      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_type",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_type",
       "label": "type",
       "_origin": "ast",
       "community": 213,
-      "community_name": "growthPlanFiles",
+      "community_name": "required",
       "file_type": "code",
       "norm_label": "type",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L112"
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L186"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_accessibility",
+      "label": "accessibility",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "accessibility",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L185"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_outlineitem",
+      "label": "outlineItem",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "outlineitem",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L627"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L629"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_required",
+      "label": "required",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "required",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L630"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L628"
+    },
+    {
+      "id": "ref_childitemids",
+      "label": "childItemIds",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "childitemids",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L630"
+    },
+    {
+      "id": "ref_depth",
+      "label": "depth",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "depth",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L630"
+    },
+    {
+      "id": "ref_parentitemid",
+      "label": "parentItemId",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "parentitemid",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L630"
+    },
+    {
+      "id": "ref_sortkey",
+      "label": "sortKey",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "sortkey",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L630"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_description",
+      "label": "description",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "description",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L188"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_keyboardorder",
+      "label": "keyboardOrder",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "keyboardorder",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L188"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_label",
+      "label": "label",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "label",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L188"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_outlineitemid",
+      "label": "outlineItemId",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "outlineitemid",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L188"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_statustext",
+      "label": "statusText",
+      "_origin": "ast",
+      "community": 213,
+      "community_name": "required",
+      "file_type": "concept",
+      "norm_label": "statustext",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L188"
     },
     {
       "id": "src_ui_explore_server_explore_target_context_v1",
@@ -26801,18 +26768,139 @@
       "label": "enum",
       "_origin": "ast",
       "community": 218,
-      "community_name": "enum",
+      "community_name": "properties",
       "file_type": "code",
       "norm_label": "enum",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
       "source_location": "L161"
     },
     {
+      "id": "schemas_explore_source_v1_explore_source_schema_defs_overlayactivitynode",
+      "label": "overlayActivityNode",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "overlayactivitynode",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L140"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_overlayactivitynode_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L142"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_overlayactivitynode_properties",
+      "label": "properties",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "properties",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L153"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_overlayactivitynode_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L141"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_properties_activitytype",
+      "label": "activityType",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "activitytype",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L160"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_properties_targetcompetencyref",
+      "label": "targetCompetencyRef",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "targetcompetencyref",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L163"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_properties_workspaceid",
+      "label": "workspaceId",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "workspaceid",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L34"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_targetcompetencyref_pattern",
+      "label": "pattern",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "pattern",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L165"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_targetcompetencyref_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L164"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_workspaceid_format",
+      "label": "format",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "format",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L34"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_workspaceid_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 218,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L34"
+    },
+    {
       "id": "ref_manual_coding",
       "label": "MANUAL_CODING",
       "_origin": "ast",
       "community": 218,
-      "community_name": "enum",
+      "community_name": "properties",
       "file_type": "concept",
       "norm_label": "manual_coding",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
@@ -26823,7 +26911,7 @@
       "label": "MOCK",
       "_origin": "ast",
       "community": 218,
-      "community_name": "enum",
+      "community_name": "properties",
       "file_type": "concept",
       "norm_label": "mock",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
@@ -26834,7 +26922,7 @@
       "label": "EXPLANATION",
       "_origin": "ast",
       "community": 218,
-      "community_name": "enum",
+      "community_name": "properties",
       "file_type": "concept",
       "norm_label": "explanation",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
@@ -26845,7 +26933,7 @@
       "label": "PROJECT",
       "_origin": "ast",
       "community": 218,
-      "community_name": "enum",
+      "community_name": "properties",
       "file_type": "concept",
       "norm_label": "project",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
@@ -26856,7 +26944,7 @@
       "label": "READING",
       "_origin": "ast",
       "community": 218,
-      "community_name": "enum",
+      "community_name": "properties",
       "file_type": "concept",
       "norm_label": "reading",
       "source_file": "schemas/explore-source/v1/explore-source.schema.json",
@@ -28260,116 +28348,6 @@
       "source_location": "L1"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_requirementset",
-      "label": "requirementSet",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "code",
-      "norm_label": "requirementset",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L498"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L500"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_required",
-      "label": "required",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "code",
-      "norm_label": "required",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L501"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L499"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_selectedversions_required",
-      "label": "required",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "code",
-      "norm_label": "required",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L45"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_catalogversionkey",
-      "label": "catalogVersionKey",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "concept",
-      "norm_label": "catalogversionkey",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L45"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_roadmapversionkey",
-      "label": "roadmapVersionKey",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "concept",
-      "norm_label": "roadmapversionkey",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L45"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_rootruleid",
-      "label": "rootRuleId",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "concept",
-      "norm_label": "rootruleid",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L501"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_rules",
-      "label": "rules",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "concept",
-      "norm_label": "rules",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L501"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_targetprofileversionkey",
-      "label": "targetProfileVersionKey",
-      "_origin": "ast",
-      "community": 244,
-      "community_name": "requirementSet",
-      "file_type": "concept",
-      "norm_label": "targetprofileversionkey",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L45"
-    },
-    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_blocking_const",
       "label": "const",
       "_origin": "ast",
@@ -28634,6 +28612,17 @@
       "source_location": "L205"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_defs_rulerequirementmember",
+      "label": "ruleRequirementMember",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "rulerequirementmember",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L142"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_dimension_enum",
       "label": "enum",
       "_origin": "ast",
@@ -28744,6 +28733,17 @@
       "source_location": "L137"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_requiredlevel_enum",
+      "label": "enum",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "enum",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L136"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulekey_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -28755,6 +28755,17 @@
       "source_location": "L88"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulerequirementmember_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L144"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulerequirementmember_properties",
       "label": "properties",
       "_origin": "ast",
@@ -28764,6 +28775,17 @@
       "norm_label": "properties",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L146"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulerequirementmember_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L143"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_weight_oneof",
@@ -28810,6 +28832,17 @@
       "source_location": "L132"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_completed",
+      "label": "completed",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "concept",
+      "norm_label": "completed",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L47"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_interview_execution",
       "label": "INTERVIEW_EXECUTION",
       "_origin": "ast",
@@ -28832,6 +28865,17 @@
       "source_location": "L135"
     },
     {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_mastered",
+      "label": "MASTERED",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "concept",
+      "norm_label": "mastered",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L136"
+    },
+    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_recall",
       "label": "RECALL",
       "_origin": "ast",
@@ -28841,6 +28885,17 @@
       "norm_label": "recall",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L135"
+    },
+    {
+      "id": "schemas_explore_target_context_v1_explore_target_context_schema_json_ref_verified",
+      "label": "VERIFIED",
+      "_origin": "ast",
+      "community": 246,
+      "community_name": "properties",
+      "file_type": "concept",
+      "norm_label": "verified",
+      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
+      "source_location": "L136"
     },
     {
       "id": "supabase_tests_database_009_catalog_publication_concurrency_test",
@@ -28920,180 +28975,81 @@
       "source_location": "L10"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_campaign_additionalproperties",
-      "label": "additionalProperties",
+      "id": "schemas_preparation_pack_v1_manifest_schema_defs_interviewcampaignfiles",
+      "label": "interviewCampaignFiles",
       "_origin": "ast",
       "community": 249,
-      "community_name": "properties",
+      "community_name": "interviewCampaignFiles",
       "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L275"
+      "norm_label": "interviewcampaignfiles",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L123"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_campaign_id_ref",
-      "label": "$ref",
+      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_description",
+      "label": "description",
       "_origin": "ast",
       "community": 249,
-      "community_name": "properties",
+      "community_name": "interviewCampaignFiles",
       "file_type": "code",
-      "norm_label": "$ref",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L287"
+      "norm_label": "description",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L125"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_campaign_properties",
-      "label": "properties",
+      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_items",
+      "label": "items",
       "_origin": "ast",
       "community": 249,
-      "community_name": "properties",
+      "community_name": "interviewCampaignFiles",
       "file_type": "code",
-      "norm_label": "properties",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L285"
+      "norm_label": "items",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L132"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_campaign_type",
+      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_maxitems",
+      "label": "maxItems",
+      "_origin": "ast",
+      "community": 249,
+      "community_name": "interviewCampaignFiles",
+      "file_type": "code",
+      "norm_label": "maxitems",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L134"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_minitems",
+      "label": "minItems",
+      "_origin": "ast",
+      "community": 249,
+      "community_name": "interviewCampaignFiles",
+      "file_type": "code",
+      "norm_label": "minitems",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L133"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_prefixitems",
+      "label": "prefixItems",
+      "_origin": "ast",
+      "community": 249,
+      "community_name": "interviewCampaignFiles",
+      "file_type": "code",
+      "norm_label": "prefixitems",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L126"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_type",
       "label": "type",
       "_origin": "ast",
       "community": 249,
-      "community_name": "properties",
+      "community_name": "interviewCampaignFiles",
       "file_type": "code",
       "norm_label": "type",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L274"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_deadline_anyof",
-      "label": "anyOf",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "anyof",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L174"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_deadline_format",
-      "label": "format",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "format",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L310"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_deadline_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L309"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_defs_campaign",
-      "label": "campaign",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "campaign",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L273"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_properties_campaign_id",
-      "label": "campaign_id",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "campaign_id",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L286"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_properties_deadline",
-      "label": "deadline",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "deadline",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L173"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_properties_readiness_goal_id",
-      "label": "readiness_goal_id",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "readiness_goal_id",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L305"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_properties_temporary_allocation_minutes",
-      "label": "temporary_allocation_minutes",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "temporary_allocation_minutes",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L312"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_readiness_goal_id_ref",
-      "label": "$ref",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "$ref",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L306"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_temporary_allocation_minutes_maximum",
-      "label": "maximum",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "maximum",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L315"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_temporary_allocation_minutes_minimum",
-      "label": "minimum",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "minimum",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L314"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_temporary_allocation_minutes_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 249,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L313"
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L124"
     },
     {
       "id": "package_devdependencies",
@@ -30616,17 +30572,6 @@
       "source_location": "L126"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_entitytype_enum",
-      "label": "enum",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "enum",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L127"
-    },
-    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_entityversionid_oneof",
       "label": "oneOf",
       "_origin": "ast",
@@ -30636,17 +30581,6 @@
       "norm_label": "oneof",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L130"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_nodetype_enum",
-      "label": "enum",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "enum",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L215"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_entityid",
@@ -30682,50 +30616,6 @@
       "source_location": "L129"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_nodetype",
-      "label": "nodeType",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "nodetype",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L215"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_activity",
-      "label": "ACTIVITY",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "activity",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L127"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_competency",
-      "label": "COMPETENCY",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "competency",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L127"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_domain",
-      "label": "DOMAIN",
-      "_origin": "ast",
-      "community": 262,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "domain",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L127"
-    },
-    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_defs_noderequirementmember",
       "label": "nodeRequirementMember",
       "_origin": "ast",
@@ -30735,17 +30625,6 @@
       "norm_label": "noderequirementmember",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L118"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_defs_rulerequirementmember",
-      "label": "ruleRequirementMember",
-      "_origin": "ast",
-      "community": 263,
-      "community_name": "required",
-      "file_type": "code",
-      "norm_label": "rulerequirementmember",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L142"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_noderequirementmember_additionalproperties",
@@ -30781,17 +30660,6 @@
       "source_location": "L119"
     },
     {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulerequirementmember_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 263,
-      "community_name": "required",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L144"
-    },
-    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulerequirementmember_required",
       "label": "required",
       "_origin": "ast",
@@ -30801,17 +30669,6 @@
       "norm_label": "required",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L145"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_rulerequirementmember_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 263,
-      "community_name": "required",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L143"
     },
     {
       "id": "ref_nodescope",
@@ -30880,39 +30737,6 @@
       "source_location": "L121"
     },
     {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicaledges_items",
-      "label": "items",
-      "_origin": "ast",
-      "community": 264,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "items",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L179"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicaledges_maxitems",
-      "label": "maxItems",
-      "_origin": "ast",
-      "community": 264,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "maxitems",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L178"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_canonicaledges_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 264,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L177"
-    },
-    {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_defs_scope",
       "label": "scope",
       "_origin": "ast",
@@ -30933,17 +30757,6 @@
       "norm_label": "$ref",
       "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
       "source_location": "L170"
-    },
-    {
-      "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_canonicaledges",
-      "label": "canonicalEdges",
-      "_origin": "ast",
-      "community": 264,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "canonicaledges",
-      "source_file": "schemas/explore-target-context/v1/explore-target-context.schema.json",
-      "source_location": "L176"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_properties_prerequisiteclosurenoderefs",
@@ -31144,17 +30957,6 @@
       "source_location": "L157"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L187"
-    },
-    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_properties",
       "label": "properties",
       "_origin": "ast",
@@ -31164,39 +30966,6 @@
       "norm_label": "properties",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L189"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_required",
-      "label": "required",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "required",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L188"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_accessibility_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L186"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_accessibility",
-      "label": "accessibility",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "accessibility",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L185"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_description_ref",
@@ -31331,61 +31100,6 @@
       "source_location": "L192"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_description",
-      "label": "description",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "description",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L188"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_keyboardorder",
-      "label": "keyboardOrder",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "keyboardorder",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L188"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_label",
-      "label": "label",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "label",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L188"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_outlineitemid",
-      "label": "outlineItemId",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "outlineitemid",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L188"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_statustext",
-      "label": "statusText",
-      "_origin": "ast",
-      "community": 265,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "statustext",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L188"
-    },
-    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_childitemids_items",
       "label": "items",
       "_origin": "ast",
@@ -31417,17 +31131,6 @@
       "norm_label": "uniqueitems",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L654"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_outlineitem",
-      "label": "outlineItem",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "outlineitem",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L627"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_depth_maximum",
@@ -31463,17 +31166,6 @@
       "source_location": "L645"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L629"
-    },
-    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_properties",
       "label": "properties",
       "_origin": "ast",
@@ -31483,28 +31175,6 @@
       "norm_label": "properties",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L639"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_required",
-      "label": "required",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "required",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L630"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_outlineitem_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L628"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_parentitemid_oneof",
@@ -31604,50 +31274,6 @@
       "norm_label": "type",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L647"
-    },
-    {
-      "id": "ref_childitemids",
-      "label": "childItemIds",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "childitemids",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L630"
-    },
-    {
-      "id": "ref_depth",
-      "label": "depth",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "depth",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L630"
-    },
-    {
-      "id": "ref_parentitemid",
-      "label": "parentItemId",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "parentitemid",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L630"
-    },
-    {
-      "id": "ref_sortkey",
-      "label": "sortKey",
-      "_origin": "ast",
-      "community": 266,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "sortkey",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L630"
     },
     {
       "id": "schemas_explore_target_context_v1_explore_target_context_schema_contract_additionalproperties",
@@ -32909,6 +32535,17 @@
       "source_location": "L42"
     },
     {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_targetprofileversionkey",
+      "label": "targetProfileVersionKey",
+      "_origin": "ast",
+      "community": 275,
+      "community_name": "selectedVersions",
+      "file_type": "code",
+      "norm_label": "targetprofileversionkey",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L55"
+    },
+    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_roadmapversionkey_oneof",
       "label": "oneOf",
       "_origin": "ast",
@@ -32942,6 +32579,17 @@
       "source_location": "L50"
     },
     {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_selectedversions_required",
+      "label": "required",
+      "_origin": "ast",
+      "community": 275,
+      "community_name": "selectedVersions",
+      "file_type": "code",
+      "norm_label": "required",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L45"
+    },
+    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_selectedversions_type",
       "label": "type",
       "_origin": "ast",
@@ -32951,6 +32599,50 @@
       "norm_label": "type",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L43"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_targetprofileversionkey_ref",
+      "label": "$ref",
+      "_origin": "ast",
+      "community": 275,
+      "community_name": "selectedVersions",
+      "file_type": "code",
+      "norm_label": "$ref",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L55"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_catalogversionkey",
+      "label": "catalogVersionKey",
+      "_origin": "ast",
+      "community": 275,
+      "community_name": "selectedVersions",
+      "file_type": "concept",
+      "norm_label": "catalogversionkey",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_roadmapversionkey",
+      "label": "roadmapVersionKey",
+      "_origin": "ast",
+      "community": 275,
+      "community_name": "selectedVersions",
+      "file_type": "concept",
+      "norm_label": "roadmapversionkey",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_targetprofileversionkey",
+      "label": "targetProfileVersionKey",
+      "_origin": "ast",
+      "community": 275,
+      "community_name": "selectedVersions",
+      "file_type": "concept",
+      "norm_label": "targetprofileversionkey",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L45"
     },
     {
       "id": "overlay_personal_competencies",
@@ -33921,26 +33613,26 @@
       "source_location": "L49"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_defs_inputcontext",
-      "label": "inputContext",
+      "id": "schemas_preparation_pack_v1_manifest_schema_defs_growthplanfiles",
+      "label": "growthPlanFiles",
       "_origin": "ast",
       "community": 29,
       "community_name": "$defs",
       "file_type": "code",
-      "norm_label": "inputcontext",
+      "norm_label": "growthplanfiles",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L101"
+      "source_location": "L111"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_defs_interviewcampaignfiles",
-      "label": "interviewCampaignFiles",
+      "id": "schemas_preparation_pack_v1_manifest_schema_defs_preparationplandescriptor",
+      "label": "preparationPlanDescriptor",
       "_origin": "ast",
       "community": 29,
       "community_name": "$defs",
       "file_type": "code",
-      "norm_label": "interviewcampaignfiles",
+      "norm_label": "preparationplandescriptor",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L123"
+      "source_location": "L136"
     },
     {
       "id": "schemas_preparation_pack_v1_manifest_schema_defs_rationaledescriptor",
@@ -33965,40 +33657,18 @@
       "source_location": "L162"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_additionalproperties",
-      "label": "additionalProperties",
+      "id": "schemas_preparation_pack_v1_manifest_schema_defs_targetprofiledescriptor",
+      "label": "targetProfileDescriptor",
       "_origin": "ast",
       "community": 29,
       "community_name": "$defs",
       "file_type": "code",
-      "norm_label": "additionalproperties",
+      "norm_label": "targetprofiledescriptor",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L103"
+      "source_location": "L174"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_required",
-      "label": "required",
-      "_origin": "ast",
-      "community": 29,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "required",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L104"
-    },
-    {
-      "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 29,
-      "community_name": "$defs",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L102"
-    },
-    {
-      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_description",
+      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_description",
       "label": "description",
       "_origin": "ast",
       "community": 29,
@@ -34006,10 +33676,10 @@
       "file_type": "code",
       "norm_label": "description",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L125"
+      "source_location": "L113"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_items",
+      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_items",
       "label": "items",
       "_origin": "ast",
       "community": 29,
@@ -34017,10 +33687,10 @@
       "file_type": "code",
       "norm_label": "items",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L132"
+      "source_location": "L119"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_maxitems",
+      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_maxitems",
       "label": "maxItems",
       "_origin": "ast",
       "community": 29,
@@ -34028,10 +33698,10 @@
       "file_type": "code",
       "norm_label": "maxitems",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L134"
+      "source_location": "L121"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_minitems",
+      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_minitems",
       "label": "minItems",
       "_origin": "ast",
       "community": 29,
@@ -34039,10 +33709,10 @@
       "file_type": "code",
       "norm_label": "minitems",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L133"
+      "source_location": "L120"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_prefixitems",
+      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_prefixitems",
       "label": "prefixItems",
       "_origin": "ast",
       "community": 29,
@@ -34050,10 +33720,10 @@
       "file_type": "code",
       "norm_label": "prefixitems",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L126"
+      "source_location": "L114"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_interviewcampaignfiles_type",
+      "id": "schemas_preparation_pack_v1_manifest_schema_growthplanfiles_type",
       "label": "type",
       "_origin": "ast",
       "community": 29,
@@ -34061,7 +33731,29 @@
       "file_type": "code",
       "norm_label": "type",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L124"
+      "source_location": "L112"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_preparationplandescriptor_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L138"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_preparationplandescriptor_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 29,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L137"
     },
     {
       "id": "schemas_preparation_pack_v1_manifest_schema_rationaledescriptor_additionalproperties",
@@ -34108,26 +33800,26 @@
       "source_location": "L163"
     },
     {
-      "id": "ref_fingerprint",
-      "label": "fingerprint",
+      "id": "schemas_preparation_pack_v1_manifest_schema_targetprofiledescriptor_additionalproperties",
+      "label": "additionalProperties",
       "_origin": "ast",
       "community": 29,
       "community_name": "$defs",
-      "file_type": "concept",
-      "norm_label": "fingerprint",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L104"
+      "source_location": "L176"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_json_ref_context_id",
-      "label": "context_id",
+      "id": "schemas_preparation_pack_v1_manifest_schema_targetprofiledescriptor_type",
+      "label": "type",
       "_origin": "ast",
       "community": 29,
       "community_name": "$defs",
-      "file_type": "concept",
-      "norm_label": "context_id",
+      "file_type": "code",
+      "norm_label": "type",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L104"
+      "source_location": "L175"
     },
     {
       "id": "schemas_preparation_pack_v1_common_schema_defs_sourceid",
@@ -36153,55 +35845,22 @@
       "source_location": "L568"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_edgevisibilityhint",
-      "label": "edgeVisibilityHint",
-      "_origin": "ast",
-      "community": 314,
-      "community_name": "edgeVisibilityHint",
-      "file_type": "code",
-      "norm_label": "edgevisibilityhint",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L266"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 314,
-      "community_name": "edgeVisibilityHint",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L268"
-    },
-    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_properties",
       "label": "properties",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "code",
       "norm_label": "properties",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L270"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 314,
-      "community_name": "edgeVisibilityHint",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L267"
-    },
-    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_reasoncode",
       "label": "reasonCode",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "code",
       "norm_label": "reasoncode",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36212,7 +35871,7 @@
       "label": "enum",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "code",
       "norm_label": "enum",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36223,7 +35882,7 @@
       "label": "ACTIVE_PREREQUISITE",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "concept",
       "norm_label": "active_prerequisite",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36234,7 +35893,7 @@
       "label": "NAVIGATION_ONLY",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "concept",
       "norm_label": "navigation_only",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36245,7 +35904,7 @@
       "label": "PERSONAL_CONTEXT",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "concept",
       "norm_label": "personal_context",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36256,7 +35915,7 @@
       "label": "SEMANTIC_CONTEXT",
       "_origin": "ast",
       "community": 314,
-      "community_name": "edgeVisibilityHint",
+      "community_name": "enum",
       "file_type": "concept",
       "norm_label": "semantic_context",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36362,37 +36021,70 @@
       "source_location": "L575"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_defs_targetprofiledescriptor",
-      "label": "targetProfileDescriptor",
+      "id": "schemas_explore_source_v1_explore_source_schema_edgetype_enum",
+      "label": "enum",
       "_origin": "ast",
       "community": 316,
-      "community_name": "targetProfileDescriptor",
+      "community_name": "enum",
       "file_type": "code",
-      "norm_label": "targetprofiledescriptor",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L174"
+      "norm_label": "enum",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L183"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_targetprofiledescriptor_additionalproperties",
-      "label": "additionalProperties",
+      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_activity_evidences",
+      "label": "ACTIVITY_EVIDENCES",
       "_origin": "ast",
       "community": 316,
-      "community_name": "targetProfileDescriptor",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L176"
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "activity_evidences",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L183"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_targetprofiledescriptor_type",
-      "label": "type",
+      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_part_of",
+      "label": "PART_OF",
       "_origin": "ast",
       "community": 316,
-      "community_name": "targetProfileDescriptor",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L175"
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "part_of",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L183"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_prerequisite_of",
+      "label": "PREREQUISITE_OF",
+      "_origin": "ast",
+      "community": 316,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "prerequisite_of",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L183"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_related_to",
+      "label": "RELATED_TO",
+      "_origin": "ast",
+      "community": 316,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "related_to",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L183"
+    },
+    {
+      "id": "schemas_explore_source_v1_explore_source_schema_json_ref_user_added",
+      "label": "USER_ADDED",
+      "_origin": "ast",
+      "community": 316,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "user_added",
+      "source_file": "schemas/explore-source/v1/explore-source.schema.json",
+      "source_location": "L183"
     },
     {
       "id": "schemas_preparation_pack_v1_target_profile_schema_assumptions_items",
@@ -36703,11 +36395,22 @@
       "source_location": ""
     },
     {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_requirementset",
+      "label": "requirementSet",
+      "_origin": "ast",
+      "community": 324,
+      "community_name": "requirementSet",
+      "file_type": "code",
+      "norm_label": "requirementset",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L498"
+    },
+    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_rootruleid",
       "label": "rootRuleId",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "rootruleid",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36718,40 +36421,62 @@
       "label": "rules",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "rules",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L505"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_targetprofileversionkey",
-      "label": "targetProfileVersionKey",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_additionalproperties",
+      "label": "additionalProperties",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
-      "norm_label": "targetprofileversionkey",
+      "norm_label": "additionalproperties",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L55"
+      "source_location": "L500"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_properties",
       "label": "properties",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "properties",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L502"
     },
     {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_required",
+      "label": "required",
+      "_origin": "ast",
+      "community": 324,
+      "community_name": "requirementSet",
+      "file_type": "code",
+      "norm_label": "required",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L501"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_requirementset_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 324,
+      "community_name": "requirementSet",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L499"
+    },
+    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_rootruleid_ref",
       "label": "$ref",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "$ref",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36762,7 +36487,7 @@
       "label": "maxItems",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "maxitems",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36773,7 +36498,7 @@
       "label": "minItems",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "minitems",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
@@ -36784,22 +36509,33 @@
       "label": "type",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
+      "community_name": "requirementSet",
       "file_type": "code",
       "norm_label": "type",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L506"
     },
     {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_targetprofileversionkey_ref",
-      "label": "$ref",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_rootruleid",
+      "label": "rootRuleId",
       "_origin": "ast",
       "community": 324,
-      "community_name": "rules",
-      "file_type": "code",
-      "norm_label": "$ref",
+      "community_name": "requirementSet",
+      "file_type": "concept",
+      "norm_label": "rootruleid",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L55"
+      "source_location": "L501"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_rules",
+      "label": "rules",
+      "_origin": "ast",
+      "community": 324,
+      "community_name": "requirementSet",
+      "file_type": "concept",
+      "norm_label": "rules",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L501"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_nodevisibilityhint",
@@ -36811,17 +36547,6 @@
       "norm_label": "nodevisibilityhint",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L159"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_required",
-      "label": "required",
-      "_origin": "ast",
-      "community": 325,
-      "community_name": "nodeVisibilityHint",
-      "file_type": "code",
-      "norm_label": "required",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L269"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_nodevisibilityhint_additionalproperties",
@@ -36866,28 +36591,6 @@
       "norm_label": "availableatdetaillevels",
       "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
       "source_location": "L162"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_defaultvisible",
-      "label": "defaultVisible",
-      "_origin": "ast",
-      "community": 325,
-      "community_name": "nodeVisibilityHint",
-      "file_type": "concept",
-      "norm_label": "defaultvisible",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L162"
-    },
-    {
-      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_reasoncode",
-      "label": "reasonCode",
-      "_origin": "ast",
-      "community": 325,
-      "community_name": "nodeVisibilityHint",
-      "file_type": "concept",
-      "norm_label": "reasoncode",
-      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
-      "source_location": "L269"
     },
     {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_reasoncodes",
@@ -37407,103 +37110,136 @@
       "source_location": "L164"
     },
     {
-      "id": "schemas_target_selection_v1_target_selection_source_schema_defs_roletext",
-      "label": "roleText",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_defs_edgevisibilityhint",
+      "label": "edgeVisibilityHint",
       "_origin": "ast",
       "community": 332,
-      "community_name": "roleText",
+      "community_name": "edgeVisibilityHint",
       "file_type": "code",
-      "norm_label": "roletext",
-      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
-      "source_location": "L131"
+      "norm_label": "edgevisibilityhint",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L266"
     },
     {
-      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_maxlength",
-      "label": "maxLength",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_additionalproperties",
+      "label": "additionalProperties",
       "_origin": "ast",
       "community": 332,
-      "community_name": "roleText",
+      "community_name": "edgeVisibilityHint",
       "file_type": "code",
-      "norm_label": "maxlength",
-      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
-      "source_location": "L134"
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L268"
     },
     {
-      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_minlength",
-      "label": "minLength",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_required",
+      "label": "required",
       "_origin": "ast",
       "community": 332,
-      "community_name": "roleText",
+      "community_name": "edgeVisibilityHint",
       "file_type": "code",
-      "norm_label": "minlength",
-      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
-      "source_location": "L133"
+      "norm_label": "required",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L269"
     },
     {
-      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_pattern",
-      "label": "pattern",
-      "_origin": "ast",
-      "community": 332,
-      "community_name": "roleText",
-      "file_type": "code",
-      "norm_label": "pattern",
-      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
-      "source_location": "L135"
-    },
-    {
-      "id": "schemas_target_selection_v1_target_selection_source_schema_roletext_type",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_edgevisibilityhint_type",
       "label": "type",
       "_origin": "ast",
       "community": 332,
-      "community_name": "roleText",
+      "community_name": "edgeVisibilityHint",
       "file_type": "code",
       "norm_label": "type",
-      "source_file": "schemas/target-selection/v1/target-selection-source.schema.json",
-      "source_location": "L132"
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L267"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_properties_threshold",
-      "label": "threshold",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_defaultvisible",
+      "label": "defaultVisible",
       "_origin": "ast",
-      "community": 333,
-      "community_name": "threshold",
-      "file_type": "code",
-      "norm_label": "threshold",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1242"
+      "community": 332,
+      "community_name": "edgeVisibilityHint",
+      "file_type": "concept",
+      "norm_label": "defaultvisible",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L162"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_threshold_exclusiveminimum",
-      "label": "exclusiveMinimum",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_reasoncode",
+      "label": "reasonCode",
       "_origin": "ast",
-      "community": 333,
-      "community_name": "threshold",
-      "file_type": "code",
-      "norm_label": "exclusiveminimum",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1244"
+      "community": 332,
+      "community_name": "edgeVisibilityHint",
+      "file_type": "concept",
+      "norm_label": "reasoncode",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L269"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_threshold_maximum",
-      "label": "maximum",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_entitytype_enum",
+      "label": "enum",
       "_origin": "ast",
       "community": 333,
-      "community_name": "threshold",
+      "community_name": "enum",
       "file_type": "code",
-      "norm_label": "maximum",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1245"
+      "norm_label": "enum",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L127"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_threshold_type",
-      "label": "type",
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_nodetype_enum",
+      "label": "enum",
       "_origin": "ast",
       "community": 333,
-      "community_name": "threshold",
+      "community_name": "enum",
       "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1243"
+      "norm_label": "enum",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L215"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_properties_nodetype",
+      "label": "nodeType",
+      "_origin": "ast",
+      "community": 333,
+      "community_name": "enum",
+      "file_type": "code",
+      "norm_label": "nodetype",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L215"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_activity",
+      "label": "ACTIVITY",
+      "_origin": "ast",
+      "community": 333,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "activity",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L127"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_competency",
+      "label": "COMPETENCY",
+      "_origin": "ast",
+      "community": 333,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "competency",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L127"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_domain",
+      "label": "DOMAIN",
+      "_origin": "ast",
+      "community": 333,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "domain",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L127"
     },
     {
       "id": "schemas_preparation_pack_v1_common_schema_defs_requirementgroupid",
@@ -37594,37 +37330,48 @@
       "source_location": "L12"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_defs_preparationplandescriptor",
-      "label": "preparationPlanDescriptor",
+      "id": "schemas_agent_control_v1_control_context_schema_priority_maximum",
+      "label": "maximum",
       "_origin": "ast",
       "community": 336,
-      "community_name": "preparationPlanDescriptor",
+      "community_name": "priority",
       "file_type": "code",
-      "norm_label": "preparationplandescriptor",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L136"
+      "norm_label": "maximum",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L220"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_preparationplandescriptor_additionalproperties",
-      "label": "additionalProperties",
+      "id": "schemas_agent_control_v1_control_context_schema_priority_minimum",
+      "label": "minimum",
       "_origin": "ast",
       "community": 336,
-      "community_name": "preparationPlanDescriptor",
+      "community_name": "priority",
       "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L138"
+      "norm_label": "minimum",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L219"
     },
     {
-      "id": "schemas_preparation_pack_v1_manifest_schema_preparationplandescriptor_type",
+      "id": "schemas_agent_control_v1_control_context_schema_priority_type",
       "label": "type",
       "_origin": "ast",
       "community": 336,
-      "community_name": "preparationPlanDescriptor",
+      "community_name": "priority",
       "file_type": "code",
       "norm_label": "type",
-      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
-      "source_location": "L137"
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L218"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_properties_priority",
+      "label": "priority",
+      "_origin": "ast",
+      "community": 336,
+      "community_name": "priority",
+      "file_type": "code",
+      "norm_label": "priority",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L217"
     },
     {
       "id": "schemas_preparation_pack_v1_preparation_plan_schema_mock_checkpoints_items",
@@ -37669,6 +37416,50 @@
       "norm_label": "mock_checkpoints",
       "source_file": "schemas/preparation-pack/v1/preparation-plan.schema.json",
       "source_location": "L64"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_criticality_enum",
+      "label": "enum",
+      "_origin": "ast",
+      "community": 338,
+      "community_name": "enum",
+      "file_type": "code",
+      "norm_label": "enum",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L378"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_differentiating",
+      "label": "DIFFERENTIATING",
+      "_origin": "ast",
+      "community": 338,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "differentiating",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L378"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_mandatory",
+      "label": "MANDATORY",
+      "_origin": "ast",
+      "community": 338,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "mandatory",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L378"
+    },
+    {
+      "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_json_ref_preferred",
+      "label": "PREFERRED",
+      "_origin": "ast",
+      "community": 338,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "preferred",
+      "source_file": "schemas/explore-structural-projection/v1/explore-structural-projection.schema.json",
+      "source_location": "L378"
     },
     {
       "id": "src_app_explore_error",
@@ -38705,6 +38496,50 @@
       "source_location": "L191"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_criticality_enum",
+      "label": "enum",
+      "_origin": "ast",
+      "community": 351,
+      "community_name": "enum",
+      "file_type": "code",
+      "norm_label": "enum",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1089"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_differentiating",
+      "label": "DIFFERENTIATING",
+      "_origin": "ast",
+      "community": 351,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "differentiating",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1089"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_mandatory",
+      "label": "MANDATORY",
+      "_origin": "ast",
+      "community": 351,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "mandatory",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1089"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_preferred",
+      "label": "PREFERRED",
+      "_origin": "ast",
+      "community": 351,
+      "community_name": "enum",
+      "file_type": "concept",
+      "norm_label": "preferred",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1089"
+    },
+    {
       "id": "schemas_explore_structural_projection_v1_explore_structural_projection_schema_positions_items",
       "label": "items",
       "_origin": "ast",
@@ -39255,6 +39090,61 @@
       "source_location": null
     },
     {
+      "id": "schemas_agent_control_v1_control_context_schema_campaign_id_ref",
+      "label": "$ref",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "$ref",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L287"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_campaign_properties",
+      "label": "properties",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "properties",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L285"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_deadline_anyof",
+      "label": "anyOf",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "anyof",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L174"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_deadline_format",
+      "label": "format",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "format",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L310"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_deadline_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L309"
+    },
+    {
       "id": "schemas_agent_control_v1_control_context_schema_goal_id_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -39277,37 +39167,26 @@
       "source_location": "L143"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_priority_maximum",
-      "label": "maximum",
+      "id": "schemas_agent_control_v1_control_context_schema_properties_campaign_id",
+      "label": "campaign_id",
       "_origin": "ast",
       "community": 37,
       "community_name": "properties",
       "file_type": "code",
-      "norm_label": "maximum",
+      "norm_label": "campaign_id",
       "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L220"
+      "source_location": "L286"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_priority_minimum",
-      "label": "minimum",
+      "id": "schemas_agent_control_v1_control_context_schema_properties_deadline",
+      "label": "deadline",
       "_origin": "ast",
       "community": 37,
       "community_name": "properties",
       "file_type": "code",
-      "norm_label": "minimum",
+      "norm_label": "deadline",
       "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L219"
-    },
-    {
-      "id": "schemas_agent_control_v1_control_context_schema_priority_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 37,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L218"
+      "source_location": "L173"
     },
     {
       "id": "schemas_agent_control_v1_control_context_schema_properties_goal_id",
@@ -39321,17 +39200,6 @@
       "source_location": "L144"
     },
     {
-      "id": "schemas_agent_control_v1_control_context_schema_properties_priority",
-      "label": "priority",
-      "_origin": "ast",
-      "community": 37,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "priority",
-      "source_file": "schemas/agent-control/v1/control-context.schema.json",
-      "source_location": "L217"
-    },
-    {
       "id": "schemas_agent_control_v1_control_context_schema_properties_protected_minimum_minutes",
       "label": "protected_minimum_minutes",
       "_origin": "ast",
@@ -39343,6 +39211,17 @@
       "source_location": "L222"
     },
     {
+      "id": "schemas_agent_control_v1_control_context_schema_properties_readiness_goal_id",
+      "label": "readiness_goal_id",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "readiness_goal_id",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L305"
+    },
+    {
       "id": "schemas_agent_control_v1_control_context_schema_properties_status",
       "label": "status",
       "_origin": "ast",
@@ -39352,6 +39231,17 @@
       "norm_label": "status",
       "source_file": "schemas/agent-control/v1/control-context.schema.json",
       "source_location": "L159"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_properties_temporary_allocation_minutes",
+      "label": "temporary_allocation_minutes",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "temporary_allocation_minutes",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L312"
     },
     {
       "id": "schemas_agent_control_v1_control_context_schema_properties_title",
@@ -39418,6 +39308,50 @@
       "norm_label": "type",
       "source_file": "schemas/agent-control/v1/control-context.schema.json",
       "source_location": "L223"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_readiness_goal_id_ref",
+      "label": "$ref",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "$ref",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L306"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_temporary_allocation_minutes_maximum",
+      "label": "maximum",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "maximum",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L315"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_temporary_allocation_minutes_minimum",
+      "label": "minimum",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "minimum",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L314"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_temporary_allocation_minutes_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 37,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L313"
     },
     {
       "id": "schemas_agent_control_v1_control_context_schema_title_maxlength",
@@ -39541,17 +39475,6 @@
       "source_location": "L737"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_origin_ref",
-      "label": "$ref",
-      "_origin": "ast",
-      "community": 38,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "$ref",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L691"
-    },
-    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_projectionnode_additionalproperties",
       "label": "additionalProperties",
       "_origin": "ast",
@@ -39640,17 +39563,6 @@
       "source_location": "L736"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_properties_origin",
-      "label": "origin",
-      "_origin": "ast",
-      "community": 38,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "origin",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L690"
-    },
-    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_properties_requirementstate",
       "label": "requirementState",
       "_origin": "ast",
@@ -39684,17 +39596,6 @@
       "source_location": "L709"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_properties_visibilityhint",
-      "label": "visibilityHint",
-      "_origin": "ast",
-      "community": 38,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "visibilityhint",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L730"
-    },
-    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_requirementstate_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -39726,17 +39627,6 @@
       "norm_label": "oneof",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L710"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_visibilityhint_ref",
-      "label": "$ref",
-      "_origin": "ast",
-      "community": 38,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "$ref",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L731"
     },
     {
       "id": "schemas_preparation_pack_v1_target_profile_schema",
@@ -39893,17 +39783,6 @@
       "source_location": "L1067"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_anyrule_additionalproperties",
-      "label": "additionalProperties",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "additionalproperties",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1113"
-    },
-    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_anyrule_properties",
       "label": "properties",
       "_origin": "ast",
@@ -39913,17 +39792,6 @@
       "norm_label": "properties",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L1123"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_anyrule_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1112"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_criticality_const",
@@ -39937,17 +39805,6 @@
       "source_location": "L1280"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_criticality_enum",
-      "label": "enum",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "enum",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1089"
-    },
-    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_defs_allrule",
       "label": "allRule",
       "_origin": "ast",
@@ -39957,17 +39814,6 @@
       "norm_label": "allrule",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L1066"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_defs_anyrule",
-      "label": "anyRule",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "anyrule",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1111"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_defs_mandatoryfloorrule",
@@ -40157,6 +40003,17 @@
       "source_location": "L1082"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_properties_threshold",
+      "label": "threshold",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "threshold",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1242"
+    },
+    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_properties_title",
       "label": "title",
       "_origin": "ast",
@@ -40212,6 +40069,39 @@
       "source_location": "L1083"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_threshold_exclusiveminimum",
+      "label": "exclusiveMinimum",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "exclusiveminimum",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1244"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_threshold_maximum",
+      "label": "maximum",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "maximum",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1245"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_threshold_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 4,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L1243"
+    },
+    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_title_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -40254,39 +40144,6 @@
       "norm_label": "type",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L1207"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_differentiating",
-      "label": "DIFFERENTIATING",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "differentiating",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1089"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_mandatory",
-      "label": "MANDATORY",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "mandatory",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1089"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_preferred",
-      "label": "PREFERRED",
-      "_origin": "ast",
-      "community": 4,
-      "community_name": "properties",
-      "file_type": "concept",
-      "norm_label": "preferred",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L1089"
     },
     {
       "id": "schemas_preparation_pack_v1_manifest_schema",
@@ -42104,6 +41961,28 @@
       "source_location": "L85"
     },
     {
+      "id": "schemas_agent_control_v1_control_context_schema_campaign_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L275"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_campaign_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L274"
+    },
+    {
       "id": "schemas_agent_control_v1_control_context_schema_defs",
       "label": "$defs",
       "_origin": "ast",
@@ -42113,6 +41992,17 @@
       "norm_label": "$defs",
       "source_file": "schemas/agent-control/v1/control-context.schema.json",
       "source_location": "L103"
+    },
+    {
+      "id": "schemas_agent_control_v1_control_context_schema_defs_campaign",
+      "label": "campaign",
+      "_origin": "ast",
+      "community": 48,
+      "community_name": "$defs",
+      "file_type": "code",
+      "norm_label": "campaign",
+      "source_file": "schemas/agent-control/v1/control-context.schema.json",
+      "source_location": "L273"
     },
     {
       "id": "schemas_agent_control_v1_control_context_schema_defs_goal",
@@ -42280,17 +42170,6 @@
       "source_location": "L931"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_defs_projectionedge",
-      "label": "projectionEdge",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "projectionedge",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L894"
-    },
-    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_edgeid_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -42313,26 +42192,15 @@
       "source_location": "L913"
     },
     {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_additionalproperties",
-      "label": "additionalProperties",
+      "id": "schemas_graph_projection_v1_graph_projection_schema_origin_ref",
+      "label": "$ref",
       "_origin": "ast",
       "community": 49,
       "community_name": "properties",
       "file_type": "code",
-      "norm_label": "additionalproperties",
+      "norm_label": "$ref",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L896"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_allof",
-      "label": "allOf",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "allof",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L943"
+      "source_location": "L691"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_properties",
@@ -42344,17 +42212,6 @@
       "norm_label": "properties",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L908"
-    },
-    {
-      "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_type",
-      "label": "type",
-      "_origin": "ast",
-      "community": 49,
-      "community_name": "properties",
-      "file_type": "code",
-      "norm_label": "type",
-      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
-      "source_location": "L895"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_properties_blocking",
@@ -42390,6 +42247,17 @@
       "source_location": "L912"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_properties_origin",
+      "label": "origin",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "origin",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L690"
+    },
+    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_properties_rationale",
       "label": "rationale",
       "_origin": "ast",
@@ -42423,6 +42291,17 @@
       "source_location": "L924"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_properties_visibilityhint",
+      "label": "visibilityHint",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "visibilityhint",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L730"
+    },
+    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_rationale_ref",
       "label": "$ref",
       "_origin": "ast",
@@ -42454,6 +42333,17 @@
       "norm_label": "$ref",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L925"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_visibilityhint_ref",
+      "label": "$ref",
+      "_origin": "ast",
+      "community": 49,
+      "community_name": "properties",
+      "file_type": "code",
+      "norm_label": "$ref",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L731"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_json_ref_activity_evidences",
@@ -43952,6 +43842,39 @@
       "source_location": "L45"
     },
     {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_defs_projectionedge",
+      "label": "projectionEdge",
+      "_origin": "ast",
+      "community": 56,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "projectionedge",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L894"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 56,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L896"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_allof",
+      "label": "allOf",
+      "_origin": "ast",
+      "community": 56,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "allof",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L943"
+    },
+    {
       "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_required",
       "label": "required",
       "_origin": "ast",
@@ -43961,6 +43884,17 @@
       "norm_label": "required",
       "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
       "source_location": "L897"
+    },
+    {
+      "id": "schemas_graph_projection_v1_graph_projection_schema_projectionedge_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 56,
+      "community_name": "required",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/graph-projection/v1/graph-projection.schema.json",
+      "source_location": "L895"
     },
     {
       "id": "schemas_graph_projection_v1_graph_projection_schema_projectionnode_required",
@@ -49229,7 +49163,7 @@
       "file_type": "code",
       "norm_label": "projectionstatelabels",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L19"
+      "source_location": "L20"
     },
     {
       "id": "src_ui_explore_explore_workspace_test",
@@ -50534,40 +50468,84 @@
       "label": "$ref",
       "_origin": "ast",
       "community": 93,
-      "community_name": "properties",
+      "community_name": "inputContext",
       "file_type": "code",
       "norm_label": "$ref",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
       "source_location": "L106"
     },
     {
+      "id": "schemas_preparation_pack_v1_manifest_schema_defs_inputcontext",
+      "label": "inputContext",
+      "_origin": "ast",
+      "community": 93,
+      "community_name": "inputContext",
+      "file_type": "code",
+      "norm_label": "inputcontext",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L101"
+    },
+    {
       "id": "schemas_preparation_pack_v1_manifest_schema_fingerprint_ref",
       "label": "$ref",
       "_origin": "ast",
       "community": 93,
-      "community_name": "properties",
+      "community_name": "inputContext",
       "file_type": "code",
       "norm_label": "$ref",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
       "source_location": "L108"
     },
     {
+      "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_additionalproperties",
+      "label": "additionalProperties",
+      "_origin": "ast",
+      "community": 93,
+      "community_name": "inputContext",
+      "file_type": "code",
+      "norm_label": "additionalproperties",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L103"
+    },
+    {
       "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_properties",
       "label": "properties",
       "_origin": "ast",
       "community": 93,
-      "community_name": "properties",
+      "community_name": "inputContext",
       "file_type": "code",
       "norm_label": "properties",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
       "source_location": "L105"
     },
     {
+      "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_required",
+      "label": "required",
+      "_origin": "ast",
+      "community": 93,
+      "community_name": "inputContext",
+      "file_type": "code",
+      "norm_label": "required",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L104"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_inputcontext_type",
+      "label": "type",
+      "_origin": "ast",
+      "community": 93,
+      "community_name": "inputContext",
+      "file_type": "code",
+      "norm_label": "type",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L102"
+    },
+    {
       "id": "schemas_preparation_pack_v1_manifest_schema_properties_context_id",
       "label": "context_id",
       "_origin": "ast",
       "community": 93,
-      "community_name": "properties",
+      "community_name": "inputContext",
       "file_type": "code",
       "norm_label": "context_id",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
@@ -50578,11 +50556,33 @@
       "label": "fingerprint",
       "_origin": "ast",
       "community": 93,
-      "community_name": "properties",
+      "community_name": "inputContext",
       "file_type": "code",
       "norm_label": "fingerprint",
       "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
       "source_location": "L108"
+    },
+    {
+      "id": "ref_fingerprint",
+      "label": "fingerprint",
+      "_origin": "ast",
+      "community": 93,
+      "community_name": "inputContext",
+      "file_type": "concept",
+      "norm_label": "fingerprint",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L104"
+    },
+    {
+      "id": "schemas_preparation_pack_v1_manifest_schema_json_ref_context_id",
+      "label": "context_id",
+      "_origin": "ast",
+      "community": 93,
+      "community_name": "inputContext",
+      "file_type": "concept",
+      "norm_label": "context_id",
+      "source_file": "schemas/preparation-pack/v1/manifest.schema.json",
+      "source_location": "L104"
     },
     {
       "id": "schemas_preparation_pack_v1_preparation_plan_schema_assertion_status_enum",
@@ -52417,62 +52417,17 @@
       "source_url": null
     },
     {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_supabase_auth",
-      "label": "Supabase Auth",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "supabase auth",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_workspace_membership_tenancy",
-      "label": "Workspace membership tenancy",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "workspace membership tenancy",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
       "id": "docs_adr_0003_commands_outbox_and_jobs_domain_event_envelope_v1",
       "label": "Domain event envelope v1",
       "_origin": "semantic",
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "concept",
       "norm_label": "domain event envelope v1",
       "source_file": "docs/adr/0003-commands-outbox-and-jobs.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_design_agent_control_plane_apply_plan_change_set_command",
-      "label": "ApplyPlanChangeSet command",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "concept",
-      "norm_label": "applyplanchangeset command",
-      "source_file": "docs/design/AGENT_CONTROL_PLANE.md",
       "source_location": null,
       "source_url": null
     },
@@ -52483,7 +52438,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "concept",
       "norm_label": "consumer receipt idempotency key",
@@ -52498,86 +52453,11 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "document",
       "norm_label": "phase 0 database and outbox runbook",
       "source_file": "docs/runbooks/database/phase-0-database-outbox.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_auth_data_tenancy_decision",
-      "label": "Authentication, data access, and tenancy decision",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "rationale",
-      "norm_label": "authentication, data access, and tenancy decision",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_private_api_schema",
-      "label": "Private api schema",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "rationale",
-      "norm_label": "private api schema",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_purpose_specific_postgres_rpc",
-      "label": "Purpose-specific Postgres RPC",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "rationale",
-      "norm_label": "purpose-specific postgres rpc",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_row_level_security",
-      "label": "Postgres row-level security",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "rationale",
-      "norm_label": "postgres row-level security",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_adr_0002_auth_data_access_and_tenancy_sql_migrations_as_schema_source",
-      "label": "SQL migrations as the schema source",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "rationale",
-      "norm_label": "sql migrations as the schema source",
-      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
       "source_location": null,
       "source_url": null
     },
@@ -52588,7 +52468,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "commands, outbox, and jobs decision",
@@ -52603,7 +52483,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "leased outbox dispatcher",
@@ -52618,7 +52498,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "recovery wakeup",
@@ -52633,7 +52513,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "replay generation",
@@ -52648,7 +52528,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "transactional command boundary",
@@ -52663,26 +52543,11 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "transactional outbox",
       "source_file": "docs/adr/0003-commands-outbox-and-jobs.md",
-      "source_location": null,
-      "source_url": null
-    },
-    {
-      "id": "docs_runbooks_database_phase_0_database_outbox_api_command_boundary",
-      "label": "API command boundary",
-      "_origin": "semantic",
-      "author": null,
-      "captured_at": null,
-      "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
-      "contributor": null,
-      "file_type": "rationale",
-      "norm_label": "api command boundary",
-      "source_file": "docs/runbooks/database/phase-0-database-outbox.md",
       "source_location": null,
       "source_url": null
     },
@@ -52693,7 +52558,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "atomic probe consumer effect",
@@ -52708,7 +52573,7 @@
       "author": null,
       "captured_at": null,
       "community": 17,
-      "community_name": "Authentication, data access, and tenancy decision",
+      "community_name": "Commands, outbox, and jobs decision",
       "contributor": null,
       "file_type": "rationale",
       "norm_label": "outbox retry and dead-letter operations",
@@ -53253,6 +53118,141 @@
       "file_type": "concept",
       "norm_label": "domain layer",
       "source_file": "src/modules/README.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_supabase_auth",
+      "label": "Supabase Auth",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "supabase auth",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_workspace_membership_tenancy",
+      "label": "Workspace membership tenancy",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "workspace membership tenancy",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_design_agent_control_plane_apply_plan_change_set_command",
+      "label": "ApplyPlanChangeSet command",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "concept",
+      "norm_label": "applyplanchangeset command",
+      "source_file": "docs/design/AGENT_CONTROL_PLANE.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_auth_data_tenancy_decision",
+      "label": "Authentication, data access, and tenancy decision",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "rationale",
+      "norm_label": "authentication, data access, and tenancy decision",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_private_api_schema",
+      "label": "Private api schema",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "rationale",
+      "norm_label": "private api schema",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_purpose_specific_postgres_rpc",
+      "label": "Purpose-specific Postgres RPC",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "rationale",
+      "norm_label": "purpose-specific postgres rpc",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_row_level_security",
+      "label": "Postgres row-level security",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "rationale",
+      "norm_label": "postgres row-level security",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_adr_0002_auth_data_access_and_tenancy_sql_migrations_as_schema_source",
+      "label": "SQL migrations as the schema source",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "rationale",
+      "norm_label": "sql migrations as the schema source",
+      "source_file": "docs/adr/0002-auth-data-access-and-tenancy.md",
+      "source_location": null,
+      "source_url": null
+    },
+    {
+      "id": "docs_runbooks_database_phase_0_database_outbox_api_command_boundary",
+      "label": "API command boundary",
+      "_origin": "semantic",
+      "author": null,
+      "captured_at": null,
+      "community": 244,
+      "community_name": "Authentication, data access, and tenancy decision",
+      "contributor": null,
+      "file_type": "rationale",
+      "norm_label": "api command boundary",
+      "source_file": "docs/runbooks/database/phase-0-database-outbox.md",
       "source_location": null,
       "source_url": null
     },
@@ -58082,7 +58082,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -58094,7 +58094,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L147",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -58106,7 +58106,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L161",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -58118,7 +58118,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L188",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -58130,7 +58130,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L302",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -58142,7 +58142,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L412",
+      "source_location": "L413",
       "weight": 1.0
     },
     {
@@ -58154,7 +58154,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L100",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -61178,7 +61178,7 @@
       "confidence_score": 1.0,
       "context": "field",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L74",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -61286,7 +61286,7 @@
       "confidence_score": 1.0,
       "context": "generic_arg",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L72",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -61298,7 +61298,7 @@
       "confidence_score": 1.0,
       "context": "generic_arg",
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L73",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -117896,7 +117896,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -117918,7 +117918,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L17",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -117929,7 +117929,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -117940,7 +117940,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -117951,7 +117951,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L46",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -117962,7 +117962,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L56",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -117973,7 +117973,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L60",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -117984,7 +117984,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -117995,7 +117995,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/ui/explore/explore-workspace.tsx",
-      "source_location": "L77",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -127616,5 +127616,5 @@
       "source_file": "tests/fixtures/preparation-pack/valid/minimal/rationale.md"
     }
   ],
-  "built_at_commit": "827140d067d8666f59aeaad8b3000f7aec3b7ea9"
+  "built_at_commit": "aae98f3ae2fdab03f9d86d1e3364f1ac73e84ca1"
 }

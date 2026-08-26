@@ -1,16 +1,16 @@
 # Graph Report - PANDO  (2026-08-27)
 
 ## Corpus Check
-- 299 files · ~182,116 words
+- 299 files · ~182,120 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4763 nodes · 6463 edges · 360 communities (332 shown, 28 thin omitted)
+- 4763 nodes · 6463 edges · 362 communities (334 shown, 28 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 65 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `827140d0`
+- Built from commit: `aae98f3a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,7 +32,7 @@
 - required
 - required
 - detailRef
-- Authentication, data access, and tenancy decision
+- Commands, outbox, and jobs decision
 - confidence
 - contextFingerprint
 - required
@@ -107,7 +107,7 @@
 - calculate-target-readiness.ts
 - verify-auth-target-selection.mjs
 - required
-- properties
+- inputContext
 - enum
 - weightedRequirementMember
 - contract
@@ -227,12 +227,12 @@
 - properties
 - unknowns
 - vacancy_reference
-- growthPlanFiles
+- required
 - explore-target-context-v1.ts
 - workspaceScope
 - fake-supabase-cli.mjs
 - Phase 0 gate 9 - deterministic engine status
-- enum
+- properties
 - app/layout.tsx
 - UI
 - 007_catalog_targets_overlay_atomic_concurrency.test.sql
@@ -248,11 +248,11 @@
 - 003_outbox_delivery_lifecycle.test.sql
 - Domain layer
 - point
-- requirementSet
+- Authentication, data access, and tenancy decision
 - properties
 - properties
 - 009_catalog_publication_concurrency.test.sql
-- properties
+- interviewCampaignFiles
 - enum
 - overlay.positions
 - overlay.positions
@@ -313,9 +313,9 @@
 - Live structural Explore before Mastery
 - 011_explore_target_context_contract.test.sql
 - properties
-- edgeVisibilityHint
+- enum
 - height
-- targetProfileDescriptor
+- enum
 - assumptions
 - company
 - prerequisite_proposals
@@ -323,7 +323,7 @@
 - role
 - catalog.competency_edges
 - catalog.items
-- rules
+- requirementSet
 - nodeVisibilityHint
 - targets.target_requirement_rules
 - nodeVisibilityHint
@@ -331,12 +331,13 @@
 - enum
 - enum
 - availableAtDetailLevels
-- roleText
-- threshold
+- edgeVisibilityHint
+- enum
 - requirementGroupId
 - slug
-- preparationPlanDescriptor
+- priority
 - mock_checkpoints
+- enum
 - impact
 - fixedNodeSize
 - spacing
@@ -347,6 +348,7 @@
 - cadence_per_week
 - lifecycle_reason
 - weekly_capacity_minutes
+- enum
 - positions
 - threshold
 - proposed_activities
@@ -393,7 +395,7 @@
 - **Module internal layers** — src_modules_readme_domain_layer, src_modules_readme_application_layer, src_modules_readme_infrastructure_layer [EXTRACTED 1.00]
 - **PANDO deterministic responsibilities** — tests_fixtures_preparation_pack_valid_minimal_rationale_daily_planning, tests_fixtures_preparation_pack_valid_minimal_rationale_evidence, tests_fixtures_preparation_pack_valid_minimal_rationale_readiness [EXTRACTED 1.00]
 
-## Communities (360 total, 28 thin omitted)
+## Communities (362 total, 28 thin omitted)
 
 ### Community 0 - "Nine-file canonical documentation set"
 Cohesion: 0.05
@@ -412,8 +414,8 @@ Cohesion: 0.05
 Nodes (40): accept_staged_personal_content, aggregate_ref, archive_growth_plan, archive_track, arguments, cancel_campaign, change_campaign_deadline, change_campaign_target (+32 more)
 
 ### Community 4 - "properties"
-Cohesion: 0.08
-Nodes (40): $ref, additionalProperties, properties, type, additionalProperties, properties, type, const (+32 more)
+Cohesion: 0.09
+Nodes (37): $ref, additionalProperties, properties, type, properties, const, allRule, mandatoryFloorRule (+29 more)
 
 ### Community 5 - "properties"
 Cohesion: 0.12
@@ -437,7 +439,7 @@ Nodes (18): archive, cancel, change, complete, create, end, pause, replan (+10 m
 
 ### Community 10 - "$defs"
 Cohesion: 0.06
-Nodes (33): format, type, $defs, dateTime, kOfNRule, origin, requirementMember, requirementRule (+25 more)
+Nodes (36): additionalProperties, type, format, type, $defs, anyRule, dateTime, kOfNRule (+28 more)
 
 ### Community 11 - "properties"
 Cohesion: 0.09
@@ -463,9 +465,9 @@ Nodes (13): excluded_items, initial_reviews, milestones, mock_checkpoints, paths
 Cohesion: 0.22
 Nodes (9): detailRef, additionalProperties, properties, type, $ref, entity_id, kind, ref (+1 more)
 
-### Community 17 - "Authentication, data access, and tenancy decision"
-Cohesion: 0.16
-Nodes (20): Authentication, data access, and tenancy decision, Private api schema, Purpose-specific Postgres RPC, Postgres row-level security, SQL migrations as the schema source, Supabase Auth, Workspace membership tenancy, Commands, outbox, and jobs decision (+12 more)
+### Community 17 - "Commands, outbox, and jobs decision"
+Cohesion: 0.31
+Nodes (11): Commands, outbox, and jobs decision, Domain event envelope v1, Leased outbox dispatcher, Recovery wakeup, Replay generation, Transactional command boundary, Transactional outbox, Atomic probe consumer effect (+3 more)
 
 ### Community 18 - "confidence"
 Cohesion: 0.14
@@ -513,7 +515,7 @@ Nodes (18): files, algorithm, canonicalization, digest, generated_at, generator,
 
 ### Community 29 - "$defs"
 Cohesion: 0.10
-Nodes (20): fingerprint, $defs, inputContext, interviewCampaignFiles, rationaleDescriptor, sourcesDescriptor, additionalProperties, required (+12 more)
+Nodes (20): $defs, growthPlanFiles, preparationPlanDescriptor, rationaleDescriptor, sourcesDescriptor, targetProfileDescriptor, description, items (+12 more)
 
 ### Community 30 - "Mastery and readiness policy v0.1"
 Cohesion: 0.17
@@ -544,12 +546,12 @@ Cohesion: 0.12
 Nodes (16): text, additionalProperties, properties, required, type, $ref, claim, confidence (+8 more)
 
 ### Community 37 - "properties"
-Cohesion: 0.10
-Nodes (21): $ref, properties, maximum, minimum, type, goal_id, priority, protected_minimum_minutes (+13 more)
+Cohesion: 0.08
+Nodes (30): $ref, properties, anyOf, format, type, $ref, properties, campaign_id (+22 more)
 
 ### Community 38 - "properties"
-Cohesion: 0.09
-Nodes (23): $ref, projectionNode, oneOf, $ref, $ref, $ref, additionalProperties, allOf (+15 more)
+Cohesion: 0.11
+Nodes (19): $ref, projectionNode, oneOf, $ref, $ref, additionalProperties, allOf, properties (+11 more)
 
 ### Community 39 - "$defs"
 Cohesion: 0.20
@@ -588,12 +590,12 @@ Cohesion: 0.05
 Nodes (46): apply_change_set, preview_change_goal, preview_change_set, preview_close_goal, preview_create_goal, read, anyOf, items (+38 more)
 
 ### Community 48 - "$defs"
-Cohesion: 0.13
-Nodes (15): $defs, goal, id, track, version, additionalProperties, type, maxLength (+7 more)
+Cohesion: 0.11
+Nodes (18): additionalProperties, type, $defs, campaign, goal, id, track, version (+10 more)
 
 ### Community 49 - "properties"
 Cohesion: 0.09
-Nodes (22): type, projectionEdge, $ref, enum, ACTIVITY_EVIDENCES, PART_OF, PREREQUISITE_OF, RELATED_TO (+14 more)
+Nodes (22): type, $ref, enum, ACTIVITY_EVIDENCES, PART_OF, PREREQUISITE_OF, RELATED_TO, USER_ADDED (+14 more)
 
 ### Community 50 - "$defs"
 Cohesion: 0.05
@@ -620,8 +622,8 @@ Cohesion: 0.14
 Nodes (14): const, acceptedPersonalContentOnly, overlayRevision, workspaceId, $ref, acceptedPersonalContentOnly, overlayRevision, workspaceId (+6 more)
 
 ### Community 56 - "required"
-Cohesion: 0.11
-Nodes (19): explanations, accessibility, blocking, domainNodeId, edgeId, edgeType, entityRef, inspectorRef (+11 more)
+Cohesion: 0.09
+Nodes (23): explanations, projectionEdge, accessibility, blocking, domainNodeId, edgeId, edgeType, entityRef (+15 more)
 
 ### Community 57 - "required"
 Cohesion: 0.40
@@ -763,9 +765,9 @@ Nodes (47): assertSafeScratch(), cleanup, closeRuntime(), cleanupAuthGate(), com
 Cohesion: 0.44
 Nodes (11): byte_length, checksum, encoding, media_type, path, schema_id, schema_version, required (+3 more)
 
-### Community 93 - "properties"
-Cohesion: 0.40
-Nodes (5): $ref, $ref, properties, context_id, fingerprint
+### Community 93 - "inputContext"
+Cohesion: 0.18
+Nodes (11): fingerprint, $ref, inputContext, $ref, additionalProperties, properties, required, type (+3 more)
 
 ### Community 94 - "enum"
 Cohesion: 0.15
@@ -900,16 +902,16 @@ Cohesion: 0.22
 Nodes (9): properties, $ref, $ref, campaign_id, goal_id, target_profile_version_id, track_id, $ref (+1 more)
 
 ### Community 127 - "$defs"
-Cohesion: 0.06
-Nodes (35): additionalProperties, type, pattern, type, $defs, canonicalNode, catalogVersionKey, domainRef (+27 more)
+Cohesion: 0.08
+Nodes (26): pattern, type, $defs, catalogVersionKey, domainRef, edgeKey, goalKey, nodeRef (+18 more)
 
 ### Community 128 - "20260826000150_profile_scoped_overlay_and_catalog_dag.sql"
 Cohesion: 0.15
 Nodes (11): catalog.catalog_versions, catalog.roadmap_template_items, catalog.roadmap_template_versions, overlay.guard_custom_activity_profile_scope, catalog.validate_roadmap_for_publication(), catalog.validate_version_for_publication(), custom_activity_profile_scope, overlay.guard_custom_activity_profile_scope() (+3 more)
 
 ### Community 129 - "properties"
-Cohesion: 0.07
-Nodes (42): $ref, additionalProperties, properties, type, const, enum, allOrAnyRule, mandatoryFloorRule (+34 more)
+Cohesion: 0.08
+Nodes (38): $ref, additionalProperties, properties, type, const, allOrAnyRule, mandatoryFloorRule, ruleCommonProperties (+30 more)
 
 ### Community 130 - "required"
 Cohesion: 0.18
@@ -941,7 +943,7 @@ Nodes (8): Information required for an actual agreement, Legal disclaimer, No co
 
 ### Community 137 - "properties"
 Cohesion: 0.10
-Nodes (26): properties, $ref, type, COMPETENCY, DOMAIN, $ref, const, enum (+18 more)
+Nodes (22): additionalProperties, properties, type, canonicalNode, overlayCompetencyNode, $ref, type, COMPETENCY (+14 more)
 
 ### Community 138 - "enum"
 Cohesion: 0.29
@@ -960,8 +962,8 @@ Cohesion: 0.29
 Nodes (7): sourceRefs, $ref, items, maxItems, minItems, type, uniqueItems
 
 ### Community 142 - "readinessGoal"
-Cohesion: 0.08
-Nodes (25): $ref, readinessGoal, active, aggregateVersion, archived, completed, lifecycle, MASTERED (+17 more)
+Cohesion: 0.10
+Nodes (21): $ref, readinessGoal, active, aggregateVersion, archived, lifecycle, paused, readinessGoalId (+13 more)
 
 ### Community 143 - "reason"
 Cohesion: 0.15
@@ -976,8 +978,8 @@ Cohesion: 0.15
 Nodes (15): config, proxy(), isAllowedPublicKey(), isLoopbackHostname(), legacyJwtRole(), readSupabasePublicConfig(), SupabaseConfigurationError, SupabasePublicConfig (+7 more)
 
 ### Community 146 - "properties"
-Cohesion: 0.10
-Nodes (23): type, additionalProperties, properties, type, canonicalEdge, overlayEdge, $ref, enum (+15 more)
+Cohesion: 0.13
+Nodes (19): type, additionalProperties, properties, type, canonicalEdge, overlayEdge, $ref, const (+11 more)
 
 ### Community 147 - "$defs"
 Cohesion: 0.07
@@ -1008,8 +1010,8 @@ Cohesion: 0.09
 Nodes (19): ExploreLayout(), dynamic, ExplorePage(), ExploreSearchParams, metadata, oneValue(), revalidate, mocks (+11 more)
 
 ### Community 154 - "$defs"
-Cohesion: 0.10
-Nodes (21): pattern, type, $defs, catalogVersionKey, goalText, profileSeriesKey, profileVersionKey, readinessGoalKey (+13 more)
+Cohesion: 0.08
+Nodes (26): pattern, type, $defs, catalogVersionKey, goalText, profileSeriesKey, profileVersionKey, readinessGoalKey (+18 more)
 
 ### Community 155 - "properties"
 Cohesion: 0.17
@@ -1201,7 +1203,7 @@ Nodes (15): requirementSet, rootRuleId, rules, targetProfileVersionId, rootRuleI
 
 ### Community 203 - "$ref"
 Cohesion: 0.09
-Nodes (22): items, maxItems, type, items, maxItems, type, competencyRefArray, nodeRefArray (+14 more)
+Nodes (22): items, maxItems, type, items, maxItems, type, items, maxItems (+14 more)
 
 ### Community 204 - "properties"
 Cohesion: 0.10
@@ -1212,8 +1214,8 @@ Cohesion: 0.11
 Nodes (17): calculationAvailability, additionalProperties, description, $id, contract, edges, layout, nodes (+9 more)
 
 ### Community 206 - "explore-target-context.schema.json"
-Cohesion: 0.11
-Nodes (18): additionalProperties, description, $id, $ref, properties, overlayVersion, readinessGoal, scope (+10 more)
+Cohesion: 0.09
+Nodes (22): additionalProperties, description, $id, $ref, properties, overlayVersion, readinessGoal, requirementRules (+14 more)
 
 ### Community 207 - "interview_stages"
 Cohesion: 0.50
@@ -1239,9 +1241,9 @@ Nodes (4): unknowns, items, maxItems, type
 Cohesion: 0.50
 Nodes (4): vacancy_reference, maxLength, pattern, type
 
-### Community 213 - "growthPlanFiles"
-Cohesion: 0.29
-Nodes (7): growthPlanFiles, description, items, maxItems, minItems, prefixItems, type
+### Community 213 - "required"
+Cohesion: 0.12
+Nodes (17): childItemIds, depth, parentItemId, sortKey, additionalProperties, required, type, accessibility (+9 more)
 
 ### Community 214 - "explore-target-context-v1.ts"
 Cohesion: 0.10
@@ -1255,9 +1257,9 @@ Nodes (15): const, acceptedPersonalContentOnly, overlayRevision, workspaceId, $r
 Cohesion: 0.50
 Nodes (3): command, rawArguments, workdirIndex
 
-### Community 218 - "enum"
-Cohesion: 0.33
-Nodes (6): MANUAL_CODING, MOCK, enum, EXPLANATION, PROJECT, READING
+### Community 218 - "properties"
+Cohesion: 0.12
+Nodes (17): MANUAL_CODING, MOCK, enum, overlayActivityNode, EXPLANATION, PROJECT, READING, additionalProperties (+9 more)
 
 ### Community 220 - "UI"
 Cohesion: 0.67
@@ -1287,21 +1289,21 @@ Nodes (11): const, $ref, $ref, properties, calculationAvailability, layout, outl
 Cohesion: 0.13
 Nodes (15): point, x, y, additionalProperties, properties, required, type, x (+7 more)
 
-### Community 244 - "requirementSet"
-Cohesion: 0.20
-Nodes (10): requirementSet, catalogVersionKey, roadmapVersionKey, rootRuleId, rules, targetProfileVersionKey, additionalProperties, required (+2 more)
+### Community 244 - "Authentication, data access, and tenancy decision"
+Cohesion: 0.28
+Nodes (9): Authentication, data access, and tenancy decision, Private api schema, Purpose-specific Postgres RPC, Postgres row-level security, SQL migrations as the schema source, Supabase Auth, Workspace membership tenancy, ApplyPlanChangeSet command (+1 more)
 
 ### Community 245 - "properties"
 Cohesion: 0.08
 Nodes (24): const, additionalProperties, properties, required, type, canonicalEdge, pattern, type (+16 more)
 
 ### Community 246 - "properties"
-Cohesion: 0.11
-Nodes (19): workspace_overlay, enum, APPLICATION, canonical, INTERVIEW_EXECUTION, KNOWLEDGE, RECALL, const (+11 more)
+Cohesion: 0.08
+Nodes (26): workspace_overlay, ruleRequirementMember, enum, APPLICATION, canonical, completed, INTERVIEW_EXECUTION, KNOWLEDGE (+18 more)
 
-### Community 249 - "properties"
-Cohesion: 0.12
-Nodes (16): additionalProperties, $ref, properties, type, anyOf, format, type, campaign (+8 more)
+### Community 249 - "interviewCampaignFiles"
+Cohesion: 0.29
+Nodes (7): interviewCampaignFiles, description, items, maxItems, minItems, prefixItems, type
 
 ### Community 250 - "enum"
 Cohesion: 0.22
@@ -1340,24 +1342,24 @@ Cohesion: 0.15
 Nodes (10): Boundary and security invariants, Compatibility, ExploreSourceV1 server query contract, Deterministic semantic invariants, ExploreStructuralProjectionV1 contract, Ownership and security, Structural fingerprint, Deterministic closure (+2 more)
 
 ### Community 262 - "properties"
-Cohesion: 0.20
-Nodes (12): $ref, properties, enum, oneOf, ACTIVITY, COMPETENCY, DOMAIN, enum (+4 more)
+Cohesion: 0.33
+Nodes (6): $ref, properties, oneOf, entityId, entityType, entityVersionId
 
 ### Community 263 - "required"
-Cohesion: 0.15
-Nodes (14): nodeScope, ruleKey, nodeRequirementMember, ruleRequirementMember, dimension, memberType, requiredLevel, weight (+6 more)
+Cohesion: 0.20
+Nodes (11): nodeScope, ruleKey, nodeRequirementMember, dimension, memberType, requiredLevel, weight, additionalProperties (+3 more)
 
 ### Community 264 - "properties"
-Cohesion: 0.08
-Nodes (24): canonicalEdges, canonicalNodes, prerequisiteClosureNodeRefs, requiredCanonicalNodeRefs, requiredOverlayNodeRefs, requiredOverlayNodes, roadmapNodeRefs, items (+16 more)
+Cohesion: 0.10
+Nodes (20): canonicalEdges, canonicalNodes, prerequisiteClosureNodeRefs, requiredCanonicalNodeRefs, requiredOverlayNodeRefs, requiredOverlayNodes, roadmapNodeRefs, scope (+12 more)
 
 ### Community 265 - "properties"
-Cohesion: 0.09
-Nodes (22): additionalProperties, properties, required, type, accessibility, $ref, description, keyboardOrder (+14 more)
+Cohesion: 0.15
+Nodes (13): properties, $ref, maximum, minimum, type, $ref, $ref, description (+5 more)
 
 ### Community 266 - "properties"
-Cohesion: 0.08
-Nodes (24): childItemIds, depth, parentItemId, sortKey, items, type, uniqueItems, outlineItem (+16 more)
+Cohesion: 0.12
+Nodes (16): items, type, uniqueItems, maximum, minimum, type, properties, oneOf (+8 more)
 
 ### Community 267 - "contract"
 Cohesion: 0.18
@@ -1392,8 +1394,8 @@ Cohesion: 0.40
 Nodes (4): Hosted deployment, Invite-only owner provisioning, Local development, Safety rules
 
 ### Community 275 - "selectedVersions"
-Cohesion: 0.25
-Nodes (8): $ref, catalogVersionKey, roadmapVersionKey, selectedVersions, oneOf, additionalProperties, properties, type
+Cohesion: 0.14
+Nodes (14): $ref, catalogVersionKey, roadmapVersionKey, targetProfileVersionKey, catalogVersionKey, roadmapVersionKey, selectedVersions, targetProfileVersionKey (+6 more)
 
 ### Community 280 - "required"
 Cohesion: 0.17
@@ -1491,17 +1493,17 @@ Nodes (3): target_context_mutation_baseline, target_context_results, target_cont
 Cohesion: 0.22
 Nodes (9): $ref, const, properties, $ref, algorithmVersion, coordinateSystem, layoutVersion, structuralFingerprint (+1 more)
 
-### Community 314 - "edgeVisibilityHint"
-Cohesion: 0.20
-Nodes (10): edgeVisibilityHint, additionalProperties, properties, type, ACTIVE_PREREQUISITE, NAVIGATION_ONLY, PERSONAL_CONTEXT, SEMANTIC_CONTEXT (+2 more)
+### Community 314 - "enum"
+Cohesion: 0.29
+Nodes (7): properties, ACTIVE_PREREQUISITE, NAVIGATION_ONLY, PERSONAL_CONTEXT, SEMANTIC_CONTEXT, reasonCode, enum
 
 ### Community 315 - "height"
 Cohesion: 0.22
 Nodes (9): properties, maximum, minimum, type, height, width, maximum, minimum (+1 more)
 
-### Community 316 - "targetProfileDescriptor"
-Cohesion: 0.67
-Nodes (3): targetProfileDescriptor, additionalProperties, type
+### Community 316 - "enum"
+Cohesion: 0.33
+Nodes (6): enum, ACTIVITY_EVIDENCES, PART_OF, PREREQUISITE_OF, RELATED_TO, USER_ADDED
 
 ### Community 317 - "assumptions"
 Cohesion: 0.50
@@ -1523,13 +1525,13 @@ Nodes (4): requirements, maxItems, minItems, type
 Cohesion: 0.50
 Nodes (4): role, maxLength, minLength, type
 
-### Community 324 - "rules"
-Cohesion: 0.22
-Nodes (9): rootRuleId, rules, targetProfileVersionKey, properties, $ref, maxItems, minItems, type (+1 more)
+### Community 324 - "requirementSet"
+Cohesion: 0.15
+Nodes (13): requirementSet, rootRuleId, rules, rootRuleId, rules, additionalProperties, properties, required (+5 more)
 
 ### Community 325 - "nodeVisibilityHint"
-Cohesion: 0.22
-Nodes (9): nodeVisibilityHint, required, availableAtDetailLevels, defaultVisible, reasonCode, reasonCodes, additionalProperties, required (+1 more)
+Cohesion: 0.33
+Nodes (6): nodeVisibilityHint, availableAtDetailLevels, reasonCodes, additionalProperties, required, type
 
 ### Community 327 - "nodeVisibilityHint"
 Cohesion: 0.33
@@ -1551,13 +1553,13 @@ Nodes (7): applied, expired, previewed, rejected, draft, status, enum
 Cohesion: 0.25
 Nodes (8): items, minItems, type, uniqueItems, type, properties, availableAtDetailLevels, defaultVisible
 
-### Community 332 - "roleText"
-Cohesion: 0.40
-Nodes (5): roleText, maxLength, minLength, pattern, type
+### Community 332 - "edgeVisibilityHint"
+Cohesion: 0.33
+Nodes (6): edgeVisibilityHint, additionalProperties, required, type, defaultVisible, reasonCode
 
-### Community 333 - "threshold"
-Cohesion: 0.50
-Nodes (4): threshold, exclusiveMinimum, maximum, type
+### Community 333 - "enum"
+Cohesion: 0.47
+Nodes (6): enum, ACTIVITY, COMPETENCY, DOMAIN, enum, nodeType
 
 ### Community 334 - "requirementGroupId"
 Cohesion: 0.50
@@ -1567,13 +1569,17 @@ Nodes (4): requirementGroupId, maxLength, pattern, type
 Cohesion: 0.50
 Nodes (4): slug, maxLength, pattern, type
 
-### Community 336 - "preparationPlanDescriptor"
-Cohesion: 0.67
-Nodes (3): preparationPlanDescriptor, additionalProperties, type
+### Community 336 - "priority"
+Cohesion: 0.50
+Nodes (4): maximum, minimum, type, priority
 
 ### Community 337 - "mock_checkpoints"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, mock_checkpoints
+
+### Community 338 - "enum"
+Cohesion: 0.50
+Nodes (4): enum, DIFFERENTIATING, MANDATORY, PREFERRED
 
 ### Community 341 - "impact"
 Cohesion: 0.33
@@ -1615,6 +1621,10 @@ Nodes (4): maxLength, minLength, type, lifecycle_reason
 Cohesion: 0.50
 Nodes (4): weekly_capacity_minutes, maximum, minimum, type
 
+### Community 351 - "enum"
+Cohesion: 0.50
+Nodes (4): enum, DIFFERENTIATING, MANDATORY, PREFERRED
+
 ### Community 352 - "positions"
 Cohesion: 0.50
 Nodes (4): items, maxItems, type, positions
@@ -1655,9 +1665,9 @@ Nodes (3): format, type, deadline
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `$defs` connect `$defs` to `activityState`, `properties`, `properties`, `nodeVisibilityHint`, `entityRef`, `attainmentInterval`, `properties`, `graph-projection.schema.json`, `nodeRequirementMember`, `requirementSet`, `structuredExplanation`, `knownEstimate`, `properties`, `edgeVisibilityHint`, `weightedRequirementMember`?**
+- **Why does `$defs` connect `$defs` to `activityState`, `properties`, `properties`, `nodeVisibilityHint`, `entityRef`, `attainmentInterval`, `properties`, `graph-projection.schema.json`, `nodeRequirementMember`, `requirementSet`, `structuredExplanation`, `knownEstimate`, `edgeVisibilityHint`, `required`, `weightedRequirementMember`?**
   _High betweenness centrality (0.153) - this node is a cross-community bridge._
-- **Why does `$defs` connect `$defs` to `properties`, `outline`, `required`, `required`, `nodeVisibilityHint`, `properties`, `nodeRequirementMember`, `properties`, `required`, `weightedRequirementMember`, `point`, `properties`, `required`, `requirementSet`, `properties`, `entityRef`, `edgeVisibilityHint`, `properties`?**
+- **Why does `$defs` connect `$defs` to `properties`, `outline`, `required`, `required`, `nodeVisibilityHint`, `requirementSet`, `nodeRequirementMember`, `edgeVisibilityHint`, `required`, `weightedRequirementMember`, `point`, `properties`, `required`, `required`, `properties`, `entityRef`, `properties`?**
   _High betweenness centrality (0.119) - this node is a cross-community bridge._
 - **Why does `$defs` connect `$defs` to `enum`, `canonicalCompetencyRef`, `sourceRefs`, `contextFingerprint`, `enum`, `proposedCompetencyId`, `sourceId`, `claim`, `utcTimestamp`, `effortRange`, `milestoneId`, `profileId`, `activityId`, `common.schema.json`, `canonicalCompetencyId`, `date`, `packId`, `requirementGroupId`, `slug`, `semver`, `phaseId`?**
   _High betweenness centrality (0.082) - this node is a cross-community bridge._
