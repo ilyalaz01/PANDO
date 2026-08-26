@@ -13,6 +13,7 @@ import type {
 } from "./types";
 
 const nodeTypes: NodeTypes = { explore: ExploreMapNode };
+const EXPLORE_INTERACTIVE_DATA_ATTRIBUTE = "data-explore-interactive";
 
 type ExploreView = "map" | "outline";
 
@@ -151,7 +152,7 @@ export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceP
   const workspaceRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    workspaceRef.current?.setAttribute("data-explore-interactive", "true");
+    workspaceRef.current?.setAttribute(EXPLORE_INTERACTIVE_DATA_ATTRIBUTE, "true");
   }, []);
 
   const outlineById = useMemo(
