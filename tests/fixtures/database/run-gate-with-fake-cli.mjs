@@ -12,8 +12,12 @@ process.on("message", (message) => {
   if (process.connected) process.disconnect();
 });
 
-process.exitCode = await runDatabaseGateCli({
-  root,
-  supabaseCli,
-  terminateGraceMilliseconds: 250,
-});
+try {
+  process.exitCode = await runDatabaseGateCli({
+    root,
+    supabaseCli,
+    terminateGraceMilliseconds: 250,
+  });
+} finally {
+  if (process.connected) process.disconnect();
+}

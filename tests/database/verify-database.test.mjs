@@ -397,7 +397,7 @@ test("SIGTERM terminates the active child, cleans once, and exits conventionally
 
 test(
   "an OS SIGTERM terminates the active child and leaves no simulated resource",
-  { skip: process.platform === "win32" },
+  { skip: process.platform === "win32", timeout: 10_000 },
   async (t) => {
     await assertSignalCleanup(t, (child) => {
       assert.equal(child.kill("SIGTERM"), true);
