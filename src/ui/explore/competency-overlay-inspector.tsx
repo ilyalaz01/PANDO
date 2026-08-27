@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 
 import { addCompetencyActivityAction, saveCompetencyNoteAction } from "../../app/explore/actions";
@@ -254,6 +255,16 @@ export function CompetencyOverlayInspector({
                 <span>
                   {activityTypeLabels.find(([type]) => type === activity.activityType)?.[1]}
                 </span>
+                <Link
+                  className={styles.focusLink}
+                  href={`/focus?${new URLSearchParams({
+                    goal: readinessGoalKey,
+                    activity: activity.activityKey,
+                  }).toString()}`}
+                  prefetch={false}
+                >
+                  Start focus session
+                </Link>
               </li>
             ))}
           </ul>

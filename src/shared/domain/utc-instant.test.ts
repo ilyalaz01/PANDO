@@ -9,6 +9,12 @@ describe("UTC instant primitives", () => {
     expect(utcDateKey(epoch)).toBe("2024-03-10");
   });
 
+  it("accepts PostgreSQL microsecond precision and canonicalizes to JavaScript milliseconds", () => {
+    const epoch = parseInstant("2026-08-27T13:45:10.123456+00:00", "database instant");
+
+    expect(toCanonicalInstant(epoch)).toBe("2026-08-27T13:45:10.123Z");
+  });
+
   it("rejects local timestamps and impossible calendar instants", () => {
     expect(() => parseInstant("2024-03-10T09:30:00", "instant")).toThrow(/explicit offset/u);
     expect(() => parseInstant("2024-99-99T09:30:00Z", "instant")).toThrow(/calendar instant/u);

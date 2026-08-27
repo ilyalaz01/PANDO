@@ -271,6 +271,26 @@ describe("ExploreWorkspace", () => {
     expect(screen.getByRole("heading", { level: 2, name: activity!.title })).toBeVisible();
   });
 
+  it("offers Focus directly from a selected personal activity", () => {
+    const typedProjection = structuredClone(composeExploreProjection(typedVariantsFixture));
+    const activity = typedProjection.nodes.find((node) => node.nodeType === "ACTIVITY");
+    expect(activity).toBeDefined();
+    activity!.entityRef.entityId = "activity:custom-0123456789abcdef0123456789abcdef";
+
+    render(
+      <ExploreWorkspace
+        projection={typedProjection}
+        readinessGoalKey="goal:test-fixture"
+        initialSelectedNodeId={activity!.nodeId}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "Start focus session" })).toHaveAttribute(
+      "href",
+      "/focus?goal=goal%3Atest-fixture&activity=activity%3Acustom-0123456789abcdef0123456789abcdef",
+    );
+  });
+
   it("requires an explicit discard before leaving an inspector with a dirty draft", () => {
     render(<ExploreWorkspace projection={projection} readinessGoalKey="goal:test-fixture" />);
     const firstCompetency = screen.getByRole("button", {

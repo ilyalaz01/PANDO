@@ -31,6 +31,21 @@ export type Database = {
         Args: { p_idempotency_key: string; p_workspace_name?: string }
         Returns: Json
       }
+      claim_mastery_evidence_projection_v1: {
+        Args: never
+        Returns: {
+          attempt_count: number
+          delivery_id: string
+          event_id: string
+          event_name: string
+          event_position: number
+          event_schema_version: number
+          lease_expires_at: string
+          lease_token: string
+          payload: Json
+          workspace_id: string
+        }[]
+      }
       claim_phase0_probe_deliveries: {
         Args: never
         Returns: {
@@ -46,6 +61,16 @@ export type Database = {
           payload: Json
           workspace_id: string
         }[]
+      }
+      complete_mastery_evidence_projection_v1: {
+        Args: {
+          p_delivery_id: string
+          p_expected_event_position: number
+          p_expected_input_watermark: number
+          p_lease_token: string
+          p_state: Json
+        }
+        Returns: boolean
       }
       complete_phase0_probe_delivery: {
         Args: {
@@ -65,6 +90,15 @@ export type Database = {
         }
         Returns: Json
       }
+      fail_mastery_evidence_projection_v1: {
+        Args: {
+          p_delivery_id: string
+          p_error_code: string
+          p_failure_class: string
+          p_lease_token: string
+        }
+        Returns: string
+      }
       fail_phase0_probe_delivery: {
         Args: {
           p_delivery_id: string
@@ -73,6 +107,17 @@ export type Database = {
           p_lease_token: string
         }
         Returns: string
+      }
+      finish_focus_activity_v1: {
+        Args: {
+          p_expected_version: number
+          p_focus_session_id: string
+          p_idempotency_key: string
+          p_result_kind: string
+          p_terminal_action: string
+          p_used_hint: boolean
+        }
+        Returns: Json
       }
       get_available_target_profiles: {
         Args: { p_workspace_id: string }
@@ -90,6 +135,11 @@ export type Database = {
         Args: { p_readiness_goal_key: string }
         Returns: Json
       }
+      get_focus_workspace_v1: {
+        Args: { p_activity_key?: string; p_readiness_goal_key: string }
+        Returns: Json
+      }
+      get_mastery_projection_health_v1: { Args: never; Returns: Json }
       get_readiness_goal: {
         Args: { p_readiness_goal_key: string; p_workspace_id: string }
         Returns: Json
@@ -100,6 +150,18 @@ export type Database = {
       }
       get_target_selection_source_v1: { Args: never; Returns: Json }
       get_workspace: { Args: { p_workspace_id: string }; Returns: Json }
+      invalidate_evidence_v1: {
+        Args: {
+          p_evidence_id: string
+          p_idempotency_key: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      load_mastery_evidence_projection_v1: {
+        Args: { p_delivery_id: string; p_lease_token: string }
+        Returns: Json
+      }
       reset_overlay_position: {
         Args: {
           p_expected_overlay_version: number
@@ -129,6 +191,15 @@ export type Database = {
           p_workspace_id: string
           p_x: number
           p_y: number
+        }
+        Returns: Json
+      }
+      start_focus_activity_v1: {
+        Args: {
+          p_activity_key: string
+          p_idempotency_key: string
+          p_planned_minutes: number
+          p_readiness_goal_key: string
         }
         Returns: Json
       }

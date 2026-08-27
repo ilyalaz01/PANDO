@@ -1,0 +1,10 @@
+{
+  "event_name": "evidence.observation_appended",
+  "event_schema_version": 2,
+  "workspace_id": "10000000-0000-4000-8000-000000000001",
+  "payload": {
+    "evidence_id": "not-a-uuid",
+    "competency_ref": "competency:python-typing",
+    "ledger_watermark": "1"
+  }
+}

@@ -1,0 +1,388 @@
+.page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--color-canvas);
+}
+
+.header {
+  border-bottom: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+}
+
+.header > div,
+.main {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.header > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4rem;
+}
+
+.header span {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.brand,
+.eyebrow {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.main {
+  padding-block: 2rem 5rem;
+  outline: none;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(17rem, 0.75fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.backLink {
+  grid-column: 1 / -1;
+  width: fit-content;
+  color: var(--color-accent-strong);
+  font-weight: 750;
+}
+
+.activityCard,
+.activeCard,
+.emptyCard,
+.projectionCard,
+.history,
+.fallback {
+  min-width: 0;
+  padding: clamp(1.15rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.activityCard,
+.activeCard,
+.emptyCard {
+  grid-column: 1;
+}
+
+.projectionCard {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.history {
+  grid-column: 1 / -1;
+}
+
+.activityCard h1,
+.activeCard h1,
+.emptyCard h1,
+.projectionCard h2,
+.history h2,
+.fallback h1 {
+  margin: 0.35rem 0 1rem;
+  letter-spacing: -0.025em;
+}
+
+.activityCard h1,
+.activeCard h1,
+.emptyCard h1,
+.fallback h1 {
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.activeGuidance {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1rem 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+}
+
+.activeGuidance p {
+  margin: 0.35rem 0 0;
+  line-height: 1.5;
+}
+
+.activityCard dl {
+  display: grid;
+  gap: 0.9rem;
+  margin-block: 1.5rem;
+}
+
+.activityCard dl div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.activityCard dt {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.activityCard dd {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.form,
+.stopForm,
+.correctionForm {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.form label,
+.activeCard > label,
+.correctionForm label {
+  font-weight: 750;
+}
+
+.form input[type="text"],
+.form select,
+.form textarea,
+.activeCard textarea,
+.correctionForm textarea {
+  width: 100%;
+  min-height: var(--size-control-min);
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.activeCard > textarea {
+  margin-top: 0.5rem;
+  resize: vertical;
+}
+
+.hint,
+.status,
+.history li p,
+.projectionCard p,
+.fallback p {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.hint,
+.status {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.cardHeading,
+.historyHeader,
+.inlineActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.timer {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 9rem;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+  text-align: right;
+}
+
+.timer time {
+  font-weight: 850;
+}
+
+.timer span {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.form fieldset {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.form legend {
+  padding-inline: 0.35rem;
+  font-weight: 800;
+}
+
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-height: var(--size-control-min);
+  padding-block: 0.55rem;
+  cursor: pointer;
+}
+
+.choice input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.1rem;
+  accent-color: var(--color-accent);
+}
+
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.textButton {
+  min-height: var(--size-control-min);
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: white;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.dangerButton {
+  border: 1px solid var(--color-graph-blocker);
+  background: var(--color-graph-blocker);
+  color: white;
+}
+
+.textButton {
+  padding-inline: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.masteryLevel {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  text-transform: capitalize;
+}
+
+.history ol {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history li {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.history li p {
+  margin: 0.45rem 0;
+}
+
+.historyHeader span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.validEvidence {
+  color: var(--color-accent-strong) !important;
+  font-weight: 750;
+}
+
+.invalidEvidence {
+  color: var(--color-graph-blocker) !important;
+  font-weight: 750;
+}
+
+.fallback {
+  width: min(100% - 2rem, 52rem);
+  margin: 4rem auto;
+}
+
+@media (max-width: 48rem) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .activityCard,
+  .activeCard,
+  .emptyCard,
+  .projectionCard,
+  .history {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .cardHeading,
+  .historyHeader,
+  .inlineActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .timer {
+    text-align: left;
+  }
+
+  .inlineActions > * {
+    width: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton,
+  .activityCard,
+  .activeCard,
+  .emptyCard,
+  .projectionCard,
+  .history {
+    border: 1px solid CanvasText;
+  }
+}

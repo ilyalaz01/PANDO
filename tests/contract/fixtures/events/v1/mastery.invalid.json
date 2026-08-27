@@ -1,0 +1,6 @@
+{
+  "event_name": "mastery.competency_state_changed",
+  "event_schema_version": 2,
+  "workspace_id": "not-a-workspace",
+  "payload": {}
+}

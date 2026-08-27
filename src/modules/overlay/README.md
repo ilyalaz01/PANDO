@@ -38,3 +38,11 @@ API coordinators are pinned `SECURITY DEFINER` functions owned by the `NOLOGIN/N
 Phase 1 role; authenticated callers cannot execute their Overlay bridges directly. JWT-backed
 membership and forced RLS therefore remain in force while caller-selected profile identities
 cannot bypass the exact target-closure check.
+
+## Implemented personal evidence mapping
+
+Each personal activity now carries an owner-derived accepted mapping snapshot: objective evidence
+dimension, fixed mapping confidence, expected-evidence guidance, and an optional HTTPS resource.
+The activity type deterministically derives the dimension and guidance on insert, including for
+pre-existing rows. Focus reads that mapping through its authorized target/profile route; the browser
+cannot raise confidence or redirect evidence to another competency.

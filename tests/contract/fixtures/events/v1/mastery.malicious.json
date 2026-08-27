@@ -1,0 +1,16 @@
+{
+  "event_name": "mastery.competency_state_changed",
+  "event_schema_version": 1,
+  "workspace_id": "10000000-0000-4000-8000-000000000001",
+  "payload": {
+    "competency_ref": "competency:python-typing",
+    "snapshot_id": "20000000-0000-4000-8000-000000000001",
+    "projection_generation": "live-v1",
+    "input_watermark": "1",
+    "achievement_level": "COMPLETED",
+    "engine_version": "mastery-engine/0.1.0",
+    "policy_version": "mastery-readiness-policy/0.1",
+    "calculated_as_of": "2026-08-27T09:00:00.000Z",
+    "supportingEvidenceIds": ["30000000-0000-4000-8000-000000000001"]
+  }
+}

@@ -453,6 +453,20 @@
   background: var(--color-accent-soft);
 }
 
+.focusLink {
+  width: fit-content;
+  min-height: var(--size-control-min);
+  margin-top: 0.45rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-accent-strong);
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
 .draftWarning {
   display: grid;
   gap: 0.65rem;

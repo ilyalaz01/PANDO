@@ -36,33 +36,33 @@ another module's tables.
 
 ## 3. Bounded-context topology
 
-| Context | Authoritative responsibility | Consumes through contracts | Publishes or exposes |
-|---|---|---|---|
-| [Identity & Workspace](../../src/modules/identity/README.md) | users, workspaces, membership, roles, preferences | authentication subject | membership/authorization queries and membership events |
-| [Catalog](../../src/modules/catalog/README.md) | canonical competencies, DAG, activities, resources, roadmap template versions | curator commands | exact-version catalog queries and catalog/template events |
-| [Targets](../../src/modules/targets/README.md) | outcome/readiness goals, campaigns, target profiles/requirements, target-specific readiness snapshots | Catalog references and Mastery state projections | goal/profile/campaign commands, readiness queries, lifecycle/readiness events |
-| [User Overlay](../../src/modules/overlay/README.md) | workspace-scoped competencies, activities, mappings, edges, notes, exclusions, positions | exact Catalog/Targets references | personal-content commands, overlay queries, overlay-version events |
-| [Sessions](../../src/modules/sessions/README.md) | focus-session and activity-attempt lifecycle, time capture | Catalog activity references and plan action references | session commands and operational lifecycle events; never evidence facts |
-| [Integrations](../../src/modules/integrations/README.md) | provider accounts/cursors/inbox, raw Preparation Packs, validation/import audit | provider payloads and module validation interfaces | normalized observation commands to Evidence; import status and activation coordination |
-| [Evidence](../../src/modules/evidence/README.md) | attempts plus immutable normalized evidence and corrections | Catalog activity-to-competency mappings and normalized observations | evidence commands, ledger queries, append/correction/invalidation events |
-| [Mastery](../../src/modules/mastery/README.md) | derived competency states, dimensions, freshness, estimate confidence | Evidence events and versioned policy | competency-state projections and change events |
-| [Review](../../src/modules/review/README.md) | review items, reasons, scheduling lifecycle and deduplication | Evidence/Mastery changes and Targets deadlines | review commands, due-queue queries, review-item events |
-| [Planning](../../src/modules/planning/README.md) | Growth Plan, Learning Tracks, capacity/availability, campaign allocation overrides, ranking, `PlanSnapshot` and Today explanation | Catalog candidates, Targets readiness/campaign state, Mastery, Review and Overlay read models | plan/track/capacity commands, Today/plan queries, plan events |
-| [Agent Control](../../src/modules/agent-control/README.md) | compact control context, ChangeSets, confirmations, plan revisions and purpose-specific cross-module coordination | authorized Targets, Planning, Review and readiness queries | `AgentControlContextV1`, deterministic preview, `ApplyPlanChangeSet`; no domain truth |
+| Context                                                      | Authoritative responsibility                                                                                                      | Consumes through contracts                                                                    | Publishes or exposes                                                                   |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [Identity & Workspace](../../src/modules/identity/README.md) | users, workspaces, membership, roles, preferences                                                                                 | authentication subject                                                                        | membership/authorization queries and membership events                                 |
+| [Catalog](../../src/modules/catalog/README.md)               | canonical competencies, DAG, activities, resources, roadmap template versions                                                     | curator commands                                                                              | exact-version catalog queries and catalog/template events                              |
+| [Targets](../../src/modules/targets/README.md)               | outcome/readiness goals, campaigns, target profiles/requirements, target-specific readiness snapshots                             | Catalog references and Mastery state projections                                              | goal/profile/campaign commands, readiness queries, lifecycle/readiness events          |
+| [User Overlay](../../src/modules/overlay/README.md)          | workspace-scoped competencies, activities, mappings, edges, notes, exclusions, positions                                          | exact Catalog/Targets references                                                              | personal-content commands, overlay queries, overlay-version events                     |
+| [Sessions](../../src/modules/sessions/README.md)             | focus-session lifecycle and time capture                                                                                          | Catalog or User Overlay activity references and plan action references                        | session commands and operational lifecycle events; never attempts or evidence facts    |
+| [Integrations](../../src/modules/integrations/README.md)     | provider accounts/cursors/inbox, raw Preparation Packs, validation/import audit                                                   | provider payloads and module validation interfaces                                            | normalized observation commands to Evidence; import status and activation coordination |
+| [Evidence](../../src/modules/evidence/README.md)             | attempts plus immutable normalized evidence and corrections                                                                       | Catalog activity-to-competency mappings and normalized observations                           | evidence commands, ledger queries, append/correction/invalidation events               |
+| [Mastery](../../src/modules/mastery/README.md)               | derived competency states, dimensions, freshness, estimate confidence                                                             | Evidence events and versioned policy                                                          | competency-state projections and change events                                         |
+| [Review](../../src/modules/review/README.md)                 | review items, reasons, scheduling lifecycle and deduplication                                                                     | Evidence/Mastery changes and Targets deadlines                                                | review commands, due-queue queries, review-item events                                 |
+| [Planning](../../src/modules/planning/README.md)             | Growth Plan, Learning Tracks, capacity/availability, campaign allocation overrides, ranking, `PlanSnapshot` and Today explanation | Catalog candidates, Targets readiness/campaign state, Mastery, Review and Overlay read models | plan/track/capacity commands, Today/plan queries, plan events                          |
+| [Agent Control](../../src/modules/agent-control/README.md)   | compact control context, ChangeSets, confirmations, plan revisions and purpose-specific cross-module coordination                 | authorized Targets, Planning, Review and readiness queries                                    | `AgentControlContextV1`, deterministic preview, `ApplyPlanChangeSet`; no domain truth  |
 
 ## 4. Derived contract ownership
 
 Derived outputs need an explicit contract owner even though they are rebuildable:
 
-| Contract or output | Contract owner | Source owners | Authority rule |
-|---|---|---|---|
-| `CompetencyState` | [Mastery](../../src/modules/mastery/README.md) | Evidence, Catalog policy references | cannot append or correct evidence |
-| target readiness snapshot | [Targets](../../src/modules/targets/README.md) | immutable Target Profile plus Mastery states | cannot mutate Mastery or complete an Outcome Goal |
-| `ReviewItem` queue | [Review](../../src/modules/review/README.md) | Evidence, Mastery, Targets deadline events | scheduling is not mastery truth |
-| `PlanSnapshot` and Today explanation | [Planning](../../src/modules/planning/README.md) | Targets readiness, Review, Catalog, Mastery, Overlay, capacity | ranking cannot invent evidence or requirements |
-| `GraphProjectionV1` | server-side Explore read-projection composer | Catalog, Targets, Overlay, Mastery, Review | UI contract only; owns no domain rows |
-| `AgentControlContextV1` and `PlanChangeSet` | [Agent Control](../../src/modules/agent-control/README.md) | minimized authorized queries from owning modules | context is read-only; apply delegates to owning commands |
-| Preparation Pack validation/preview | [Integrations](../../src/modules/integrations/README.md) | pack schemas plus Targets, Overlay and Planning validation | imported output is untrusted until confirmed owning commands run |
+| Contract or output                          | Contract owner                                             | Source owners                                                  | Authority rule                                                   |
+| ------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `CompetencyState`                           | [Mastery](../../src/modules/mastery/README.md)             | Evidence, Catalog policy references                            | cannot append or correct evidence                                |
+| target readiness snapshot                   | [Targets](../../src/modules/targets/README.md)             | immutable Target Profile plus Mastery states                   | cannot mutate Mastery or complete an Outcome Goal                |
+| `ReviewItem` queue                          | [Review](../../src/modules/review/README.md)               | Evidence, Mastery, Targets deadline events                     | scheduling is not mastery truth                                  |
+| `PlanSnapshot` and Today explanation        | [Planning](../../src/modules/planning/README.md)           | Targets readiness, Review, Catalog, Mastery, Overlay, capacity | ranking cannot invent evidence or requirements                   |
+| `GraphProjectionV1`                         | server-side Explore read-projection composer               | Catalog, Targets, Overlay, Mastery, Review                     | UI contract only; owns no domain rows                            |
+| `AgentControlContextV1` and `PlanChangeSet` | [Agent Control](../../src/modules/agent-control/README.md) | minimized authorized queries from owning modules               | context is read-only; apply delegates to owning commands         |
+| Preparation Pack validation/preview         | [Integrations](../../src/modules/integrations/README.md)   | pack schemas plus Targets, Overlay and Planning validation     | imported output is untrusted until confirmed owning commands run |
 
 The Explore composer is a read-only application projection, not a twelfth bounded context. Agent
 Control is a bounded context because it owns persisted proposal, confirmation, revision, and
@@ -75,7 +75,7 @@ coordination lifecycle; it still owns none of the goals or plans it coordinates.
 ```mermaid
 flowchart LR
     I[Integrations] -->|normalized observation command| E[Evidence]
-    S[Sessions] -->|attempt reference only| E
+    S[Sessions] -->|focus-session reference only| E
     E -->|ledger event| M[Mastery]
     M -->|state event/query| T[Targets readiness]
     E -->|event| R[Review]
@@ -122,16 +122,16 @@ Always start with [the canonical index](../README.md) and the
 [Phase 0 Technical Baseline](../PHASE_0_TECHNICAL_BASELINE.md). Then use the smallest route that
 covers the outcome:
 
-| Outcome | Owning route |
-|---|---|
-| evidence, attempts, mastery or corrections | [Domain Model](../01_DOMAIN_MODEL.md) → [ADR-0003](../adr/0003-commands-outbox-and-jobs.md) → [ADR-0006](../adr/0006-calculation-and-review-engines.md) → [Evidence](../../src/modules/evidence/README.md) and [Mastery](../../src/modules/mastery/README.md) |
-| readiness, target profile or campaign | [Domain Model](../01_DOMAIN_MODEL.md) → [System Architecture](../03_SYSTEM_ARCHITECTURE.md) module contracts → [ADR-0006](../adr/0006-calculation-and-review-engines.md) → [Targets](../../src/modules/targets/README.md) |
-| review queue or scheduling | [Domain Model](../01_DOMAIN_MODEL.md) → [UX Review Center](../02_PRODUCT_AND_UX_SPEC.md) → [review policy](../policies/REVIEW_POLICY_V0.1.md) → [Review](../../src/modules/review/README.md) |
-| Growth Plan, tracks, capacity, Today or ranking | [Domain Model](../01_DOMAIN_MODEL.md) planning contract → [UX Today](../02_PRODUCT_AND_UX_SPEC.md) → [Planning](../../src/modules/planning/README.md) |
-| Map, Outline or graph performance | [UX Explore](../02_PRODUCT_AND_UX_SPEC.md) → [ADR-0004](../adr/0004-graph-layout-and-query-boundary.md) → [GraphProjectionV1 schema](../../schemas/graph-projection/v1/README.md) |
-| short text/voice plan control | [Constitution P17](../00_PRODUCT_CONSTITUTION.md) → [Domain Model Agent Control](../01_DOMAIN_MODEL.md) → [ADR-0008](../adr/0008-agent-control-plane.md) → [Agent Control design](AGENT_CONTROL_PLANE.md) and [schemas](../../schemas/agent-control/v1/README.md) |
-| Preparation Pack or Prompt Library | [Domain Model import semantics](../01_DOMAIN_MODEL.md) → [Preparation Pack](../05_EXTERNAL_AI_PREPARATION_PACK.md) → [Prompt Library](../06_PROMPT_LIBRARY_UX.md) → [ADR-0005](../adr/0005-preparation-pack-ingestion.md) |
-| tenancy, RPC, outbox or jobs | [System Architecture](../03_SYSTEM_ARCHITECTURE.md) security/contracts → [ADR-0002](../adr/0002-auth-data-access-and-tenancy.md) → [ADR-0003](../adr/0003-commands-outbox-and-jobs.md) → migrations and database tests |
+| Outcome                                         | Owning route                                                                                                                                                                                                                                                      |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| evidence, attempts, mastery or corrections      | [Domain Model](../01_DOMAIN_MODEL.md) → [ADR-0003](../adr/0003-commands-outbox-and-jobs.md) → [ADR-0006](../adr/0006-calculation-and-review-engines.md) → [Evidence](../../src/modules/evidence/README.md) and [Mastery](../../src/modules/mastery/README.md)     |
+| readiness, target profile or campaign           | [Domain Model](../01_DOMAIN_MODEL.md) → [System Architecture](../03_SYSTEM_ARCHITECTURE.md) module contracts → [ADR-0006](../adr/0006-calculation-and-review-engines.md) → [Targets](../../src/modules/targets/README.md)                                         |
+| review queue or scheduling                      | [Domain Model](../01_DOMAIN_MODEL.md) → [UX Review Center](../02_PRODUCT_AND_UX_SPEC.md) → [review policy](../policies/REVIEW_POLICY_V0.1.md) → [Review](../../src/modules/review/README.md)                                                                      |
+| Growth Plan, tracks, capacity, Today or ranking | [Domain Model](../01_DOMAIN_MODEL.md) planning contract → [UX Today](../02_PRODUCT_AND_UX_SPEC.md) → [Planning](../../src/modules/planning/README.md)                                                                                                             |
+| Map, Outline or graph performance               | [UX Explore](../02_PRODUCT_AND_UX_SPEC.md) → [ADR-0004](../adr/0004-graph-layout-and-query-boundary.md) → [GraphProjectionV1 schema](../../schemas/graph-projection/v1/README.md)                                                                                 |
+| short text/voice plan control                   | [Constitution P17](../00_PRODUCT_CONSTITUTION.md) → [Domain Model Agent Control](../01_DOMAIN_MODEL.md) → [ADR-0008](../adr/0008-agent-control-plane.md) → [Agent Control design](AGENT_CONTROL_PLANE.md) and [schemas](../../schemas/agent-control/v1/README.md) |
+| Preparation Pack or Prompt Library              | [Domain Model import semantics](../01_DOMAIN_MODEL.md) → [Preparation Pack](../05_EXTERNAL_AI_PREPARATION_PACK.md) → [Prompt Library](../06_PROMPT_LIBRARY_UX.md) → [ADR-0005](../adr/0005-preparation-pack-ingestion.md)                                         |
+| tenancy, RPC, outbox or jobs                    | [System Architecture](../03_SYSTEM_ARCHITECTURE.md) security/contracts → [ADR-0002](../adr/0002-auth-data-access-and-tenancy.md) → [ADR-0003](../adr/0003-commands-outbox-and-jobs.md) → migrations and database tests                                            |
 
 Read all nine canonical documents in their declared order when the requested change can alter
 product semantics, bounded-context ownership, a cross-context workflow, or more than one route.

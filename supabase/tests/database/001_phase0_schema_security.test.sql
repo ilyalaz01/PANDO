@@ -272,7 +272,11 @@ where namespace.nspname = 'api'
   and procedure.proname not in (
     'get_current_competency_overlay_v1',
     'save_current_overlay_note_v1',
-    'add_current_custom_activity_v1'
+    'add_current_custom_activity_v1',
+    'start_focus_activity_v1',
+    'finish_focus_activity_v1',
+    'invalidate_evidence_v1',
+    'get_focus_workspace_v1'
   )
 order by procedure.proname;
 
@@ -301,7 +305,33 @@ order by procedure.proname;
 select ok(
   procedure.prosecdef
   and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
-  and owner.rolname in ('pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker')
+  and owner.rolname = 'pando_phase2_api'
+  and not owner.rolcanlogin
+  and not owner.rolinherit
+  and not owner.rolbypassrls,
+  format('scoped api definer %s is pinned and owned by the Phase 2 NOLOGIN role', procedure.proname)
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner
+  on owner.oid = procedure.proowner
+where namespace.nspname = 'api'
+  and procedure.proname in (
+    'start_focus_activity_v1',
+    'finish_focus_activity_v1',
+    'invalidate_evidence_v1',
+    'get_focus_workspace_v1'
+  )
+order by procedure.proname;
+
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname in (
+    'pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker',
+    'pando_mastery_worker', 'pando_mastery_scheduler'
+  )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
 )
@@ -328,7 +358,10 @@ select ok(
   format('%s is NOLOGIN/NOINHERIT/NOBYPASSRLS', role.rolname)
 )
 from pg_catalog.pg_roles as role
-where role.rolname in ('pando_identity_api', 'pando_outbox_worker')
+where role.rolname in (
+  'pando_identity_api', 'pando_outbox_worker', 'pando_mastery_worker',
+  'pando_mastery_scheduler'
+)
 order by role.rolname;
 
 select ok(

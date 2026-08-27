@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/events/v1/mastery-event.schema.json",
+  "title": "PANDO Mastery Event V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+  "properties": {
+    "event_name": { "const": "mastery.competency_state_changed" },
+    "event_schema_version": { "const": 1 },
+    "workspace_id": { "type": "string", "format": "uuid" },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "competency_ref",
+        "snapshot_id",
+        "projection_generation",
+        "input_watermark",
+        "achievement_level",
+        "engine_version",
+        "policy_version",
+        "calculated_as_of"
+      ],
+      "properties": {
+        "competency_ref": {
+          "type": "string",
+          "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+        },
+        "snapshot_id": { "type": "string", "format": "uuid" },
+        "projection_generation": { "const": "live-v1" },
+        "input_watermark": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" },
+        "achievement_level": {
+          "enum": ["NOT_STARTED", "COMPLETED", "VERIFIED", "MASTERED"]
+        },
+        "engine_version": { "const": "mastery-engine/0.1.0" },
+        "policy_version": { "const": "mastery-readiness-policy/0.1" },
+        "calculated_as_of": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

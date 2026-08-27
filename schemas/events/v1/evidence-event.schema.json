@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/events/v1/evidence-event.schema.json",
+  "title": "PANDO Evidence Event V1",
+  "oneOf": [
+    { "$ref": "#/$defs/observationAppended" },
+    { "$ref": "#/$defs/observationInvalidated" }
+  ],
+  "$defs": {
+    "competencyRef": {
+      "type": "string",
+      "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "ledgerWatermark": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]{0,18}$"
+    },
+    "observationAppended": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "evidence.observation_appended" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "type": "string", "format": "uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evidence_id", "competency_ref", "ledger_watermark"],
+          "properties": {
+            "evidence_id": { "type": "string", "format": "uuid" },
+            "competency_ref": { "$ref": "#/$defs/competencyRef" },
+            "ledger_watermark": { "$ref": "#/$defs/ledgerWatermark" }
+          }
+        }
+      }
+    },
+    "observationInvalidated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "evidence.observation_invalidated" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "type": "string", "format": "uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["correction_id", "evidence_id", "competency_ref", "ledger_watermark"],
+          "properties": {
+            "correction_id": { "type": "string", "format": "uuid" },
+            "evidence_id": { "type": "string", "format": "uuid" },
+            "competency_ref": { "$ref": "#/$defs/competencyRef" },
+            "ledger_watermark": { "$ref": "#/$defs/ledgerWatermark" }
+          }
+        }
+      }
+    }
+  }
+}

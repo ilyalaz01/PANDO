@@ -18,7 +18,11 @@ const server = spawn(
   [nextCli, "start", "--hostname", "127.0.0.1", "--port", port],
   {
     stdio: "inherit",
-    env: { ...process.env, PANDO_ENABLE_EXPLORE_FIXTURE: "true" },
+    env: {
+      ...process.env,
+      PANDO_ENABLE_EXPLORE_FIXTURE: "true",
+      PANDO_ENABLE_FOCUS_FIXTURE: "true",
+    },
   },
 );
 

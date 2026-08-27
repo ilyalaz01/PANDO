@@ -1,6 +1,7 @@
 "use client";
 
 import { Background, Controls, ReactFlow, type NodeTypes } from "@xyflow/react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import styles from "./explore.module.css";
@@ -529,6 +530,20 @@ export function ExploreWorkspace({
           ) : null}
           {projection.readiness?.staleNodeIds.includes(selectedNode.nodeId) ? (
             <p className={styles.notice}>This estimate is marked stale by the server projection.</p>
+          ) : null}
+          {selectedNode.nodeType === "ACTIVITY" &&
+          selectedNode.entityRef.entityType === "ACTIVITY" &&
+          selectedNode.entityRef.entityId.startsWith("activity:custom-") ? (
+            <Link
+              className={styles.focusLink}
+              href={`/focus?${new URLSearchParams({
+                goal: readinessGoalKey,
+                activity: selectedNode.entityRef.entityId,
+              }).toString()}`}
+              prefetch={false}
+            >
+              Start focus session
+            </Link>
           ) : null}
           {pendingSelection !== null ? (
             <section

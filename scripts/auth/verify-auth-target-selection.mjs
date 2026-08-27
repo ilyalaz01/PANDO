@@ -313,12 +313,15 @@ try {
   );
   await authProbe.auth.signOut({ scope: "local" });
 
+  const internalDispatchSecret = `auth-gate-${randomBytes(24).toString("base64url")}`;
   const appEnvironment = {
     ...process.env,
     NODE_ENV: "production",
     NEXT_TELEMETRY_DISABLED: "1",
     NEXT_PUBLIC_SUPABASE_URL: apiUrl,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publishableKey,
+    SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+    PANDO_INTERNAL_DISPATCH_SECRET: internalDispatchSecret,
   };
   await runCapture(process.execPath, [nextCli, "build"], {
     cwd: root,
@@ -454,15 +457,16 @@ try {
     "the note must survive a browser reload",
   );
 
-  const activityTitle = "Explain Python failure modes aloud";
+  const activityTitle = "Implement Python failure handling";
   await page.getByLabel("New activity").fill(activityTitle);
-  await page.getByLabel("Activity type").selectOption("EXPLANATION");
+  await page.getByLabel("Activity type").selectOption("MANUAL_CODING");
   await Promise.all([
     page.waitForURL(/\/explore\?goal=.*&activity=activity%3Acustom-/u),
     page.getByRole("button", { name: "Add activity" }).click(),
   ]);
+  const activityKey = new URL(page.url()).searchParams.get("activity") ?? "";
   assert.match(
-    new URL(page.url()).searchParams.get("activity") ?? "",
+    activityKey,
     /^activity:custom-[0-9a-f]{32}$/u,
     "a browser command must navigate to its server-accepted custom activity",
   );
@@ -470,6 +474,107 @@ try {
   await page.reload();
   await page.getByRole("heading", { level: 2, name: activityTitle }).waitFor();
 
+  const focusLink = page.getByRole("link", { name: "Start focus session" });
+  const focusHref = await focusLink.getAttribute("href");
+  assert.ok(focusHref?.startsWith("/focus?"), "Explore must expose a real Focus route");
+  assert.equal(new URL(focusHref, page.url()).searchParams.get("activity"), activityKey);
+  await Promise.all([
+    page.waitForURL(/\/focus\?goal=.*&activity=/u).catch((error) => {
+      throw new Error(`Explore did not navigate to Focus; current URL: ${page.url()}`, {
+        cause: error,
+      });
+    }),
+    focusLink.click(),
+  ]);
+  assert.equal(new URL(page.url()).searchParams.get("activity"), activityKey);
+  await page.getByRole("heading", { level: 1, name: activityTitle }).waitFor();
+  await page.getByText(/Produce a working result/iu).waitFor();
+  await page.getByRole("button", { name: "Start focus session" }).click();
+  await page.getByText("Focus is active").waitFor();
+  await page.getByRole("heading", { level: 1, name: activityTitle }).waitFor();
+  await page.getByText(/Produce a working result/iu).waitFor();
+  await page.getByRole("button", { name: "Complete and save result" }).click();
+  await page.getByText("observed success", { exact: false }).waitFor();
+
+  const phase2Verifier = createClient(apiUrl, publishableKey, {
+    db: { schema: "api" },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const phase2VerifierSignIn = await phase2Verifier.auth.signInWithPassword({
+    email: ownerEmail,
+    password: ownerPassword,
+  });
+  assert.equal(phase2VerifierSignIn.error, null, "Phase 2 verifier login must succeed");
+  let focusAfterCompletion = await phase2Verifier.rpc("get_focus_workspace_v1", {
+    p_readiness_goal_key: "goal:nvidia-python-verification-base-v1",
+    p_activity_key: activityKey,
+  });
+  assert.equal(focusAfterCompletion.error, null, "completed Focus workspace must load");
+  if (focusAfterCompletion.data?.projectionState === "pending") {
+    await new Promise((resolveWait) => setTimeout(resolveWait, 6_000));
+    const recoveryResponse = await fetch(`${baseUrl}/api/internal/mastery-projection`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${internalDispatchSecret}` },
+    });
+    assert.equal(recoveryResponse.status, 200, "authorized Mastery recovery wake-up must succeed");
+    focusAfterCompletion = await phase2Verifier.rpc("get_focus_workspace_v1", {
+      p_readiness_goal_key: "goal:nvidia-python-verification-base-v1",
+      p_activity_key: activityKey,
+    });
+    assert.equal(focusAfterCompletion.error, null, "recovered Focus workspace must load");
+  }
+  if (focusAfterCompletion.data?.projectionState !== "current") {
+    const workerAdmin = createClient(apiUrl, serviceRoleKey, {
+      db: { schema: "api" },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const health = await workerAdmin.rpc("get_mastery_projection_health_v1");
+    assert.fail(
+      `Mastery projection did not become current; health=${JSON.stringify(health.data)} error=${health.error?.code ?? "none"}`,
+    );
+  }
+  assert.equal(focusAfterCompletion.data?.masteryState?.achievementLevel, "COMPLETED");
+  assert.equal(focusAfterCompletion.data?.history?.[0]?.outcome, "SUCCESS");
+  assert.equal(focusAfterCompletion.data?.history?.[0]?.evidenceValid, true);
+  const evidenceId = focusAfterCompletion.data?.history?.[0]?.evidenceId;
+  assert.match(evidenceId ?? "", /^[0-9a-f-]{36}$/u, "completion must persist evidence");
+
+  await page.getByRole("button", { name: "Correct this evidence" }).click();
+  await page
+    .getByLabel("Why is this evidence incorrect?")
+    .fill("The auth gate intentionally invalidates this synthetic observation.");
+  await page.getByRole("button", { name: "Invalidate evidence" }).click();
+  await page.getByText("Evidence invalidated; original preserved").waitFor();
+  const focusAfterInvalidation = await phase2Verifier.rpc("get_focus_workspace_v1", {
+    p_readiness_goal_key: "goal:nvidia-python-verification-base-v1",
+    p_activity_key: activityKey,
+  });
+  assert.equal(focusAfterInvalidation.error, null, "invalidated Focus workspace must load");
+  assert.equal(focusAfterInvalidation.data?.projectionState, "current");
+  assert.equal(focusAfterInvalidation.data?.masteryState?.achievementLevel, "NOT_STARTED");
+  assert.equal(
+    focusAfterInvalidation.data?.history?.[0]?.evidenceId,
+    evidenceId,
+    "invalidation must preserve the original evidence identifier",
+  );
+  assert.equal(focusAfterInvalidation.data?.history?.[0]?.evidenceValid, false);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const focusDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert.ok(
+    focusDimensions.scrollWidth <= focusDimensions.clientWidth,
+    "authenticated Focus must not overflow a 390px viewport",
+  );
+  const focusAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  assert.deepEqual(focusAccessibility.violations, [], "authenticated /focus must pass axe");
+
+  await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto(
     `${baseUrl}/explore?goal=${encodeURIComponent("goal:nvidia-python-verification-base-v1")}`,
   );

@@ -2,7 +2,7 @@
 
 Owns derived competency states and estimate confidence, not raw attempts.
 
-## Implemented Phase 0 domain core
+## Implemented domain core
 
 domain/calculate-competency-state.ts is the pure mastery-engine/0.1.0 implementation governed by
 [ADR-0006](../../../docs/adr/0006-calculation-and-review-engines.md) and
@@ -24,6 +24,25 @@ rules and the competency has target-relevant Application or InterviewExecution e
 competency-level achievement evaluates all objective dimensions together. SelfConfidence is not an
 engine input.
 
-Not implemented here: evidence normalization, database projection persistence, outbox consumers,
-watermark-checked snapshot application, UI, or policy activation/migration. Those remain
-application/infrastructure work and must not be added to this domain directory.
+The domain directory still contains no database, transport, or worker dependencies.
+
+## Implemented Phase 2 projection boundary
+
+Evidence events enqueue only the fixed `mastery.evidence_projection_v1` consumer. The server-only
+dispatcher claims bounded leased deliveries, reloads the authoritative effective ledger, calls the
+pure engine with an explicit clock and accepted policy, and applies the result through a
+service-only RPC. Application checks the current ledger watermark and lease before atomically
+inserting an immutable snapshot, advancing the current pointer, writing the consumer receipt, and
+completing the delivery.
+
+Snapshot identity includes engine, policy, projection generation (`live-v1` for this worker), and
+input watermark. This keeps live retries idempotent without preventing later side-by-side policy,
+replay, or time-freshness generations.
+
+The browser cannot submit a calculated state or call worker RPCs. A missing worker configuration or
+temporary dispatch failure leaves durable evidence and an explicit pending projection for later
+retry.
+
+The fixed internal route is recovered once per minute by Supabase Cron after the deployment-only
+Vault activation documented in
+[the Phase 2 worker runbook](../../../docs/runbooks/database/phase-2-mastery-projection.md).
