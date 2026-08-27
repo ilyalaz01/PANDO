@@ -328,10 +328,9 @@ select throws_ok(
   'published profile in a retired series cannot be selected for a new readiness goal'
 );
 insert into phase1_integrity_results values(
-  'alice-activity-after-series-retire',api.add_custom_activity(
-    (select workspace_id from phase1_integrity_workspaces where name='alice-bootstrap'),
-    'target:nvidia-python-verification-base-v1','activity:retired-series-practice',
-    'Retired series practice','MANUAL_CODING','competency:python-error-handling',0,
+  'alice-activity-after-series-retire',api.add_current_custom_activity_v1(
+    'goal:integrity-alice','activity:retired-series-practice',
+    'Retired series practice','MANUAL_CODING','competency:python-error-handling','0',
     'phase1-retired-series-activity'
   )
 );
@@ -394,10 +393,9 @@ insert into phase1_integrity_results values(
   )
 );
 insert into phase1_integrity_results values(
-  'alice-activity-after-retire',api.add_custom_activity(
-    (select workspace_id from phase1_integrity_workspaces where name='alice-bootstrap'),
-    'target:nvidia-python-verification-base-v1','activity:retired-profile-practice',
-    'Retired profile practice','MANUAL_CODING','competency:python-error-handling',3,
+  'alice-activity-after-retire',api.add_current_custom_activity_v1(
+    'goal:integrity-alice','activity:retired-profile-practice',
+    'Retired profile practice','MANUAL_CODING','competency:python-error-handling','3',
     'phase1-retired-profile-activity'
   )
 );

@@ -4,6 +4,7 @@ import { Background, Controls, ReactFlow, type NodeTypes } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 
 import styles from "./explore.module.css";
+import { CompetencyOverlayInspector } from "./competency-overlay-inspector";
 import { ExploreMapNode, nodeTypeLabel, type ExploreNodeInteraction } from "./explore-map-node";
 import { buildReactFlowElements } from "./react-flow-adapter";
 import type {
@@ -123,7 +124,17 @@ function OutlineBranch({ item, itemById, nodeById, interaction }: OutlineBranchP
   );
 }
 
-export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceProjectionView }) {
+export interface ExploreWorkspaceProps {
+  readonly projection: ExploreWorkspaceProjectionView;
+  readonly readinessGoalKey: string;
+  readonly initialSelectedNodeId?: string;
+}
+
+export function ExploreWorkspace({
+  projection,
+  readinessGoalKey,
+  initialSelectedNodeId: requestedInitialSelectedNodeId,
+}: ExploreWorkspaceProps) {
   const orderedNodes = useMemo(() => sortByKeyboardOrder(projection.nodes), [projection.nodes]);
   const orderedNodeIds = useMemo(() => orderedNodes.map((node) => node.nodeId), [orderedNodes]);
   const nodeById = useMemo(
@@ -140,14 +151,26 @@ export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceP
     [orderedNodes, visibleNodeIdSet],
   );
 
-  const initialSelectedNodeId = orderedNodeIds[0] ?? "";
+  const initialSelectedNodeId =
+    requestedInitialSelectedNodeId !== undefined &&
+    orderedNodeIds.includes(requestedInitialSelectedNodeId)
+      ? requestedInitialSelectedNodeId
+      : (orderedNodeIds[0] ?? "");
   const [view, setView] = useState<ExploreView>("map");
   const [selectedNodeId, setSelectedNodeId] = useState(initialSelectedNodeId);
   const [previousProjection, setPreviousProjection] = useState(projection);
+  const [previousRequestedSelection, setPreviousRequestedSelection] = useState(
+    requestedInitialSelectedNodeId,
+  );
   const [mapFocusedNodeId, setMapFocusedNodeId] = useState(() =>
     chooseViewFocus(mapOrderedNodeIds, initialSelectedNodeId, ""),
   );
   const [outlineFocusedNodeId, setOutlineFocusedNodeId] = useState(initialSelectedNodeId);
+  const [dirtyInspectorRef, setDirtyInspectorRef] = useState<string | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<{
+    nodeId: string;
+    view: ExploreView;
+  } | null>(null);
   const restoreFocusRef = useRef(false);
   const workspaceRef = useRef<HTMLDivElement>(null);
 
@@ -161,11 +184,23 @@ export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceP
   );
   const baseElements = useMemo(() => buildReactFlowElements(projection), [projection]);
 
-  if (projection !== previousProjection) {
-    const normalizedSelection = nodeById.has(selectedNodeId)
-      ? selectedNodeId
-      : (orderedNodeIds[0] ?? "");
+  if (
+    projection !== previousProjection ||
+    requestedInitialSelectedNodeId !== previousRequestedSelection
+  ) {
+    const requestedSelection =
+      requestedInitialSelectedNodeId !== undefined && nodeById.has(requestedInitialSelectedNodeId)
+        ? requestedInitialSelectedNodeId
+        : undefined;
+    const normalizedSelection =
+      requestedInitialSelectedNodeId !== previousRequestedSelection &&
+      requestedSelection !== undefined
+        ? requestedSelection
+        : nodeById.has(selectedNodeId)
+          ? selectedNodeId
+          : (orderedNodeIds[0] ?? "");
     setPreviousProjection(projection);
+    setPreviousRequestedSelection(requestedInitialSelectedNodeId);
     setSelectedNodeId(normalizedSelection);
     setMapFocusedNodeId((previous) =>
       chooseViewFocus(mapOrderedNodeIds, normalizedSelection, previous),
@@ -175,13 +210,34 @@ export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceP
     );
   }
 
-  const selectMapNode = useCallback((nodeId: string) => {
-    setMapFocusedNodeId(nodeId);
+  const commitSelection = useCallback((nodeId: string, sourceView: ExploreView) => {
+    if (sourceView === "map") setMapFocusedNodeId(nodeId);
+    else setOutlineFocusedNodeId(nodeId);
     setSelectedNodeId(nodeId);
   }, []);
-  const selectOutlineNode = useCallback((nodeId: string) => {
-    setOutlineFocusedNodeId(nodeId);
-    setSelectedNodeId(nodeId);
+  const requestSelection = useCallback(
+    (nodeId: string, sourceView: ExploreView) => {
+      if (dirtyInspectorRef !== null && nodeId !== selectedNodeId) {
+        setPendingSelection({ nodeId, view: sourceView });
+        return;
+      }
+      commitSelection(nodeId, sourceView);
+    },
+    [commitSelection, dirtyInspectorRef, selectedNodeId],
+  );
+  const selectMapNode = useCallback(
+    (nodeId: string) => requestSelection(nodeId, "map"),
+    [requestSelection],
+  );
+  const selectOutlineNode = useCallback(
+    (nodeId: string) => requestSelection(nodeId, "outline"),
+    [requestSelection],
+  );
+  const handleDirtyChange = useCallback((inspectorRef: string, dirty: boolean) => {
+    setDirtyInspectorRef((current) => {
+      if (dirty) return inspectorRef;
+      return current === inspectorRef ? null : current;
+    });
   }, []);
 
   const handleMapKeyDown = useCallback(
@@ -409,7 +465,7 @@ export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceP
           )}
         </section>
 
-        <aside className={styles.inspector} aria-labelledby="inspector-title" aria-live="polite">
+        <aside className={styles.inspector} aria-labelledby="inspector-title">
           <p className={styles.eyebrow}>{nodeTypeLabel(selectedNode.nodeType)}</p>
           <h2 id="inspector-title">{selectedNode.title}</h2>
           <p>{selectedNode.accessibility.description}</p>
@@ -473,6 +529,43 @@ export function ExploreWorkspace({ projection }: { projection: ExploreWorkspaceP
           ) : null}
           {projection.readiness?.staleNodeIds.includes(selectedNode.nodeId) ? (
             <p className={styles.notice}>This estimate is marked stale by the server projection.</p>
+          ) : null}
+          {pendingSelection !== null ? (
+            <section
+              className={styles.draftWarning}
+              aria-labelledby="draft-warning-title"
+              role="alert"
+            >
+              <h3 id="draft-warning-title">Unsaved changes</h3>
+              <p>Keep editing this competency, or discard the draft before opening another node.</p>
+              <div>
+                <button type="button" onClick={() => setPendingSelection(null)}>
+                  Keep editing
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const selection = pendingSelection;
+                    setPendingSelection(null);
+                    setDirtyInspectorRef(null);
+                    commitSelection(selection.nodeId, selection.view);
+                  }}
+                >
+                  Discard draft and open selection
+                </button>
+              </div>
+            </section>
+          ) : null}
+          {selectedNode.nodeType === "COMPETENCY" &&
+          selectedNode.entityRef.entityType === "COMPETENCY" ? (
+            <CompetencyOverlayInspector
+              key={selectedNode.inspectorRef}
+              readinessGoalKey={readinessGoalKey}
+              competencyRef={selectedNode.entityRef.entityId}
+              inspectorRef={selectedNode.inspectorRef}
+              initialOverlayVersion={projection.workspaceScope.overlayRevision}
+              onDirtyChange={handleDirtyChange}
+            />
           ) : null}
         </aside>
       </div>

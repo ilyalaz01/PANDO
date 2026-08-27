@@ -2,10 +2,40 @@ import "server-only";
 
 import type { ExploreStructuralProjectionV1 } from "../../../shared/contracts/explore-structural-projection";
 
-import type { ExploreStructuralProjectionView } from "../types";
+import type { ExploreNode, ExploreStructuralProjectionView } from "../types";
 
 const NOT_MATERIALIZED_EXPLANATION =
   "This is the live authorized target structure. Evidence-derived Mastery and readiness have not been materialized yet.";
+
+function mapStructuralNode(node: ExploreStructuralProjectionV1["nodes"][number]): ExploreNode {
+  const common = {
+    nodeId: node.nodeId,
+    entityRef: { ...node.entityRef },
+    inspectorRef: node.inspectorRef,
+    domainNodeId: node.domainNodeId,
+    title: node.title,
+    shortLabel: node.shortLabel,
+    state: {
+      kind: "UNAVAILABLE" as const,
+      summaryText: "Calculation not materialized.",
+    },
+    requirementState:
+      node.requirementState.kind === "NOT_REQUIRED"
+        ? ({ kind: "NOT_REQUIRED" } as const)
+        : ({ kind: "REQUIRED_UNEVALUATED" } as const),
+    explanations: [
+      {
+        code: "calculation.not-materialized",
+        message: NOT_MATERIALIZED_EXPLANATION,
+      },
+    ],
+    accessibility: { ...node.accessibility },
+  };
+
+  return node.nodeType === "ACTIVITY"
+    ? { ...common, nodeType: "ACTIVITY" }
+    : { ...common, nodeType: node.nodeType };
+}
 
 /** Maps structural facts to the client view without manufacturing any calculation result. */
 export function toExploreStructuralProjectionView(
@@ -19,6 +49,9 @@ export function toExploreStructuralProjectionView(
       staleReason: null,
       explanation: NOT_MATERIALIZED_EXPLANATION,
     },
+    workspaceScope: {
+      overlayRevision: projection.workspaceScope.overlayRevision,
+    },
     layout: {
       ...projection.layout,
       fixedNodeSize: { ...projection.layout.fixedNodeSize },
@@ -29,28 +62,7 @@ export function toExploreStructuralProjectionView(
         effective: { ...position.effective },
       })),
     },
-    nodes: projection.nodes.map((node) => ({
-      nodeId: node.nodeId,
-      nodeType: node.nodeType,
-      domainNodeId: node.domainNodeId,
-      title: node.title,
-      shortLabel: node.shortLabel,
-      state: {
-        kind: "UNAVAILABLE",
-        summaryText: "Calculation not materialized.",
-      },
-      requirementState:
-        node.requirementState.kind === "NOT_REQUIRED"
-          ? { kind: "NOT_REQUIRED" }
-          : { kind: "REQUIRED_UNEVALUATED" },
-      explanations: [
-        {
-          code: "calculation.not-materialized",
-          message: NOT_MATERIALIZED_EXPLANATION,
-        },
-      ],
-      accessibility: { ...node.accessibility },
-    })),
+    nodes: projection.nodes.map(mapStructuralNode),
     edges: projection.edges.map((edge) => ({
       edgeId: edge.edgeId,
       edgeType: edge.edgeType,

@@ -107,11 +107,25 @@ function mapNode(value: JsonObject, index: number): ExploreNode {
     ["DOMAIN", "GROUP", "COMPETENCY", "ACTIVITY"] as const,
     label + ".nodeType",
   );
+  const entityRef = asJsonObject(value.entityRef, label + ".entityRef");
   const state = asJsonObject(value.state, label + ".state");
   const requirementState = asJsonObject(value.requirementState, label + ".requirementState");
   const accessibility = asJsonObject(value.accessibility, label + ".accessibility");
   const common = {
     nodeId: requiredString(value.nodeId, label + ".nodeId"),
+    entityRef: {
+      entityType: enumValue(
+        entityRef.entityType,
+        ["DOMAIN", "GROUP", "COMPETENCY", "ACTIVITY"] as const,
+        label + ".entityRef.entityType",
+      ),
+      entityId: requiredString(entityRef.entityId, label + ".entityRef.entityId"),
+      entityVersionId: nullableString(
+        entityRef.entityVersionId,
+        label + ".entityRef.entityVersionId",
+      ),
+    },
+    inspectorRef: requiredString(value.inspectorRef, label + ".inspectorRef"),
     domainNodeId: nullableString(value.domainNodeId, label + ".domainNodeId"),
     title: requiredString(value.title, label + ".title"),
     shortLabel: requiredString(value.shortLabel, label + ".shortLabel"),
@@ -230,6 +244,7 @@ export function toExploreProjectionView(value: unknown): ExploreGraphProjectionV
   const projection = asJsonObject(value, "GraphProjectionV1");
   const contract = asJsonObject(projection.contract, "contract");
   const projectionState = asJsonObject(projection.projectionState, "projectionState");
+  const workspaceScope = asJsonObject(projection.workspaceScope, "workspaceScope");
   const layout = asJsonObject(projection.layout, "layout");
   const fixedNodeSize = asJsonObject(layout.fixedNodeSize, "layout.fixedNodeSize");
   const spacing = asJsonObject(layout.spacing, "layout.spacing");
@@ -244,6 +259,12 @@ export function toExploreProjectionView(value: unknown): ExploreGraphProjectionV
       version: enumValue(contract.version, ["1.0.0"] as const, "contract.version"),
     },
     projectionId: requiredString(projection.projectionId, "projectionId"),
+    workspaceScope: {
+      overlayRevision: requiredString(
+        workspaceScope.overlayRevision,
+        "workspaceScope.overlayRevision",
+      ),
+    },
     projectionState: {
       calculationState: enumValue(
         projectionState.calculationState,

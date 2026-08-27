@@ -45,6 +45,25 @@ vi.mock("@xyflow/react", () => ({
   ),
 }));
 
+vi.mock("./competency-overlay-inspector", () => ({
+  CompetencyOverlayInspector: ({
+    competencyRef,
+    inspectorRef,
+    onDirtyChange,
+  }: {
+    competencyRef: string;
+    inspectorRef: string;
+    onDirtyChange: (inspectorRef: string, dirty: boolean) => void;
+  }) => (
+    <div data-testid="mock-overlay-inspector">
+      {competencyRef}
+      <button type="button" onClick={() => onDirtyChange(inspectorRef, true)}>
+        Mark draft dirty
+      </button>
+    </div>
+  ),
+}));
+
 import { chooseViewFocus, ExploreWorkspace, nextNodeId } from "./explore-workspace";
 import { composeExploreProjection } from "./server/compose-graph-projection";
 
@@ -120,7 +139,7 @@ describe("Explore roving keyboard order", () => {
 
 describe("ExploreWorkspace", () => {
   it("shares selection while keeping deterministic per-view focus", () => {
-    render(<ExploreWorkspace projection={projection} />);
+    render(<ExploreWorkspace projection={projection} readinessGoalKey="goal:test-fixture" />);
     expect(screen.getByTestId("mock-react-flow")).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /competency|domain summary/i })).toHaveLength(25);
 
@@ -170,7 +189,9 @@ describe("ExploreWorkspace", () => {
       .filter((edge) => visibleIdSet.has(edge.sourceNodeId) && visibleIdSet.has(edge.targetNodeId))
       .map((edge) => edge.edgeId);
 
-    const { container, rerender } = render(<ExploreWorkspace projection={limited} />);
+    const { container, rerender } = render(
+      <ExploreWorkspace projection={limited} readinessGoalKey="goal:test-fixture" />,
+    );
     expect(container.querySelectorAll('[data-explore-view="map"]')).toHaveLength(3);
 
     fireEvent.click(screen.getByRole("button", { name: "Outline" }));
@@ -193,7 +214,12 @@ describe("ExploreWorkspace", () => {
     fireEvent.keyDown(firstVisible!, { key: "ArrowDown" });
     expect(secondVisible).toHaveFocus();
 
-    rerender(<ExploreWorkspace projection={withoutNode(limited, hiddenNodeId)} />);
+    rerender(
+      <ExploreWorkspace
+        projection={withoutNode(limited, hiddenNodeId)}
+        readinessGoalKey="goal:test-fixture"
+      />,
+    );
     await waitFor(() => {
       expect(
         screen.queryByRole("heading", { level: 2, name: "Graph traversal" }),
@@ -215,7 +241,7 @@ describe("ExploreWorkspace", () => {
       "SEMANTIC",
     );
 
-    render(<ExploreWorkspace projection={typedProjection} />);
+    render(<ExploreWorkspace projection={typedProjection} readinessGoalKey="goal:test-fixture" />);
     expect(
       screen.getByRole("button", { name: /Networking fundamentals, group/i }),
     ).toBeInTheDocument();
@@ -227,6 +253,41 @@ describe("ExploreWorkspace", () => {
       name: "TCP troubleshooting exercise",
     });
     expect(within(inspector).getByText("Activity")).toBeInTheDocument();
+  });
+
+  it("opens a server-requested activity as the initial inspector selection", () => {
+    const typedProjection = composeExploreProjection(typedVariantsFixture);
+    const activity = typedProjection.nodes.find((node) => node.nodeType === "ACTIVITY");
+    expect(activity).toBeDefined();
+
+    render(
+      <ExploreWorkspace
+        projection={typedProjection}
+        readinessGoalKey="goal:test-fixture"
+        initialSelectedNodeId={activity!.nodeId}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { level: 2, name: activity!.title })).toBeVisible();
+  });
+
+  it("requires an explicit discard before leaving an inspector with a dirty draft", () => {
+    render(<ExploreWorkspace projection={projection} readinessGoalKey="goal:test-fixture" />);
+    const firstCompetency = screen.getByRole("button", {
+      name: /Complexity analysis, competency/u,
+    });
+    fireEvent.click(firstCompetency);
+    fireEvent.click(screen.getByRole("button", { name: "Mark draft dirty" }));
+
+    fireEvent.click(screen.getByRole("button", { name: /Graph traversal, competency/u }));
+    expect(screen.getByRole("heading", { level: 2, name: "Complexity analysis" })).toBeVisible();
+    expect(screen.getByRole("alert", { name: "Unsaved changes" })).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.queryByRole("heading", { level: 3, name: "Unsaved changes" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Graph traversal, competency/u }));
+    fireEvent.click(screen.getByRole("button", { name: "Discard draft and open selection" }));
+    expect(screen.getByRole("heading", { level: 2, name: "Graph traversal" })).toBeVisible();
   });
 
   it.each([
@@ -244,7 +305,9 @@ describe("ExploreWorkspace", () => {
       stateProjection.projectionState.explanation =
         "Projection calculation state is " + calculationState + ".";
 
-      render(<ExploreWorkspace projection={stateProjection} />);
+      render(
+        <ExploreWorkspace projection={stateProjection} readinessGoalKey="goal:test-fixture" />,
+      );
       expect(
         screen.getByText(
           "Projection state · " + calculationState[0] + calculationState.slice(1).toLowerCase(),
@@ -270,7 +333,7 @@ describe("ExploreWorkspace", () => {
     onboarding.readiness.confidence = "LOW";
     onboarding.readiness.displayLabel = "Readiness is not applicable until a target is selected.";
 
-    render(<ExploreWorkspace projection={onboarding} />);
+    render(<ExploreWorkspace projection={onboarding} readinessGoalKey="goal:test-fixture" />);
     expect(
       screen.getByRole("heading", {
         name: "Choose a target to calculate readiness",
@@ -287,7 +350,9 @@ describe("ExploreWorkspace", () => {
     empty.nodes = [];
     empty.layout.positions = [];
     empty.visibilityHints.defaultVisibleNodeIds = [];
-    const { container } = render(<ExploreWorkspace projection={empty} />);
+    const { container } = render(
+      <ExploreWorkspace projection={empty} readinessGoalKey="goal:test-fixture" />,
+    );
     expect(container).toBeEmptyDOMElement();
   });
 });

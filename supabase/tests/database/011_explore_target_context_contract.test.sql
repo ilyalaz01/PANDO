@@ -463,6 +463,26 @@ insert into target_context_results
 values ('alice-closure-context', api.get_explore_target_context_v1('goal:closure-main'));
 insert into target_context_results
 values ('alice-closure-context-repeat', api.get_explore_target_context_v1('goal:closure-main'));
+insert into target_context_results
+values (
+  'alice-closure-overlay-detail',
+  api.get_current_competency_overlay_v1('goal:closure-main', 'competency:closure-c')
+);
+select throws_ok(
+  $$select api.get_current_competency_overlay_v1('goal:closure-main','competency:closure-d')$$,
+  '42501', 'competency is not accessible',
+  'competency overlay detail rejects a descendant outside the exact target closure'
+);
+select throws_ok(
+  $$select api.save_current_overlay_note_v1('goal:closure-main','competency:closure-e','Outside closure','0','closure-note-outside')$$,
+  '42501', 'competency is not accessible',
+  'current note command rejects an unrelated competency from the same Catalog version'
+);
+select throws_ok(
+  $$select api.add_current_custom_activity_v1('goal:closure-main','activity:closure-outside','Outside closure','READING','competency:closure-d','0','closure-activity-outside')$$,
+  '42501', 'competency is not accessible',
+  'current activity command rejects a target outside the exact target closure'
+);
 reset role;
 
 select is(
@@ -500,6 +520,26 @@ select is(
   (select response from target_context_results where result_name = 'alice-closure-context-repeat'),
   (select response from target_context_results where result_name = 'alice-closure-context'),
   'recursive target closure is byte-equivalent across repeated reads'
+);
+select is(
+  (select response->>'competencyRef' from target_context_results where result_name = 'alice-closure-overlay-detail'),
+  'competency:closure-c',
+  'current competency overlay detail accepts an exact target-closure member'
+);
+select is(
+  (select count(*) from overlay.notes where subject_ref = 'competency:closure-e'),
+  0::bigint,
+  'rejected outside-closure note leaves no User Overlay row'
+);
+select is(
+  (select count(*) from overlay.custom_activities where activity_key = 'activity:closure-outside'),
+  0::bigint,
+  'rejected outside-closure activity leaves no User Overlay row'
+);
+select is(
+  (select count(*) from outbox.command_receipts where idempotency_key in ('closure-note-outside','closure-activity-outside')),
+  0::bigint,
+  'outside-closure commands leave no receipt or partial transaction'
 );
 
 -- A null-roadmap workspace target proves that accepted personal requirements pull in their exact

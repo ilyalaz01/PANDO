@@ -39,7 +39,7 @@ export default function ExploreFixturePage() {
             validation. This route is disabled unless the test harness explicitly enables it.
           </p>
         </section>
-        <ExploreWorkspace projection={projection} />
+        <ExploreWorkspace projection={projection} readinessGoalKey="goal:representative-fixture" />
       </main>
     </div>
   );

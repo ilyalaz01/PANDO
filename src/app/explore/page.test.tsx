@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   loadSource: vi.fn(),
   materialize: vi.fn(),
   toView: vi.fn(),
+  renderWorkspace: vi.fn(),
 }));
 
 vi.mock("../../shared/supabase/server", () => ({
@@ -30,9 +31,14 @@ vi.mock("../../ui/explore/server/structural-projection-view", () => ({
   toExploreStructuralProjectionView: mocks.toView,
 }));
 vi.mock("../../ui/explore/explore-workspace", () => ({
-  ExploreWorkspace: ({ projection }: { projection: { nodes: unknown[] } }) => (
-    <div data-testid="explore-workspace">{projection.nodes.length} live nodes</div>
-  ),
+  ExploreWorkspace: (props: {
+    projection: { nodes: unknown[] };
+    readinessGoalKey: string;
+    initialSelectedNodeId?: string;
+  }) => {
+    mocks.renderWorkspace(props);
+    return <div data-testid="explore-workspace">{props.projection.nodes.length} live nodes</div>;
+  },
 }));
 
 import ExploreLayout from "./layout";
@@ -43,7 +49,26 @@ describe("live Explore page", () => {
   const targetContext = { kind: "target-context" };
   const source = { kind: "source" };
   const structuralProjection = { kind: "structural-projection" };
-  const view = { nodes: [{}, {}] };
+  const view = {
+    nodes: [
+      {
+        nodeId: "node:domain:core",
+        entityRef: {
+          entityType: "DOMAIN",
+          entityId: "domain:core",
+          entityVersionId: "catalog:seed-v1",
+        },
+      },
+      {
+        nodeId: "node:opaque:selected-activity",
+        entityRef: {
+          entityType: "ACTIVITY",
+          entityId: "activity:beta-lab",
+          entityVersionId: null,
+        },
+      },
+    ],
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -79,7 +104,48 @@ describe("live Explore page", () => {
       targetContext,
       selectedActivityKey: null,
     });
+    expect(mocks.renderWorkspace).toHaveBeenCalledWith({
+      projection: view,
+      readinessGoalKey: "goal:personal-main",
+    });
     expect(screen.queryByText(/Representative Phase 0 fixture/iu)).not.toBeInTheDocument();
+  });
+
+  it("selects the requested activity by its entity reference without parsing node IDs", async () => {
+    render(
+      await ExplorePage({
+        searchParams: Promise.resolve({
+          goal: "goal:personal-main",
+          activity: "activity:beta-lab",
+        }),
+      }),
+    );
+
+    expect(mocks.loadSource).toHaveBeenCalledWith(client, {
+      readinessGoalKey: "goal:personal-main",
+      selectedActivityKey: "activity:beta-lab",
+    });
+    expect(mocks.renderWorkspace).toHaveBeenCalledWith({
+      projection: view,
+      readinessGoalKey: "goal:personal-main",
+      initialSelectedNodeId: "node:opaque:selected-activity",
+    });
+  });
+
+  it("fails closed when the requested activity entity is absent from the correlated view", async () => {
+    mocks.toView.mockReturnValueOnce({ nodes: [view.nodes[0]] });
+
+    render(
+      await ExplorePage({
+        searchParams: Promise.resolve({
+          goal: "goal:personal-main",
+          activity: "activity:beta-lab",
+        }),
+      }),
+    );
+
+    expect(screen.getByRole("heading", { name: "Your saved goal was not changed." })).toBeVisible();
+    expect(mocks.renderWorkspace).not.toHaveBeenCalled();
   });
 
   it("requires an explicit selected target before accessing either live source", async () => {

@@ -120,6 +120,17 @@ describe("structural Explore client view", () => {
 
     expect(view.projectionState.calculationState).toBe("NOT_MATERIALIZED");
     expect(view.readiness).toBeNull();
+    expect(view.workspaceScope.overlayRevision).toBe("0");
+    expect(view.nodes[0]).toEqual(
+      expect.objectContaining({
+        entityRef: {
+          entityType: "DOMAIN",
+          entityId: "domain:test",
+          entityVersionId: "catalog:seed-v1",
+        },
+        inspectorRef: "inspector:node:domain:test",
+      }),
+    );
     expect(view.nodes.every((node) => node.state.kind === "UNAVAILABLE")).toBe(true);
     expect(JSON.stringify(view)).not.toMatch(
       /"achievementLevel"|"estimate"|"confidence"|"unknownNodeIds"/u,

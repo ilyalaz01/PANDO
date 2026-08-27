@@ -36,8 +36,16 @@ export interface ExploreActivityNodeState {
   summaryText: string;
 }
 
+export interface ExploreEntityRef {
+  entityType: ExploreNodeType;
+  entityId: string;
+  entityVersionId: string | null;
+}
+
 interface ExploreNodeBase {
   nodeId: string;
+  entityRef: ExploreEntityRef;
+  inspectorRef: string;
   domainNodeId: string | null;
   title: string;
   shortLabel: string;
@@ -97,6 +105,7 @@ export interface ExploreOutlineItem {
 export interface ExploreGraphProjectionView {
   contract: { name: "GraphProjectionV1"; version: "1.0.0" };
   projectionId: string;
+  workspaceScope: { overlayRevision: string };
   projectionState: {
     calculationState: ExploreProjectionCalculationState;
     staleReason: string | null;

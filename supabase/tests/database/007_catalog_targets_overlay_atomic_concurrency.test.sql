@@ -11,8 +11,10 @@ create temporary table phase1_concurrency_fixture(
   connection_password text not null
 ) on commit preserve rows;
 create temporary table phase1_concurrency_bootstrap(response jsonb not null) on commit preserve rows;
+create temporary table phase1_concurrency_goal(response jsonb not null) on commit preserve rows;
 grant select,insert,update on phase1_concurrency_fixture to authenticated;
 grant select,insert on phase1_concurrency_bootstrap to authenticated;
+grant select,insert on phase1_concurrency_goal to authenticated;
 
 insert into phase1_concurrency_fixture(
   auth_user_id,
@@ -53,6 +55,14 @@ select set_config('request.jwt.claims',(select claims from phase1_concurrency_fi
 set local role authenticated;
 insert into phase1_concurrency_bootstrap
 select api.bootstrap_personal_workspace('phase1-concurrency-bootstrap','Phase 1 concurrency');
+insert into phase1_concurrency_goal
+select api.create_readiness_goal(
+  (select (response->>'workspace_id')::uuid from phase1_concurrency_bootstrap),
+  'goal:phase1-concurrency',
+  'Phase 1 concurrency readiness',
+  'target:nvidia-python-verification-base-v1',
+  'phase1-concurrency-goal'
+);
 reset role;
 update phase1_concurrency_fixture
 set workspace_id=(select (response->>'workspace_id')::uuid from phase1_concurrency_bootstrap);
@@ -139,10 +149,11 @@ select 'c1',command.response
 from extensions.dblink(
   'phase1_c1',
   format(
-    'select api.save_overlay_note(%L::uuid,%L,%L,0,%L)',
-    (select workspace_id from phase1_concurrency_fixture),
+    'select api.save_current_overlay_note_v1(%L,%L,%L,%L,%L)',
+    'goal:phase1-concurrency',
     'competency:python-error-handling',
     'Concurrent note body stays private',
+    '0',
     'phase1-concurrent-note'
   )
 ) as command(response jsonb);
@@ -151,10 +162,11 @@ select is(
   extensions.dblink_send_query(
     'phase1_c2',
     format(
-      'select api.save_overlay_note(%L::uuid,%L,%L,0,%L)',
-      (select workspace_id from phase1_concurrency_fixture),
+      'select api.save_current_overlay_note_v1(%L,%L,%L,%L,%L)',
+      'goal:phase1-concurrency',
       'competency:python-error-handling',
       'Concurrent note body stays private',
+      '0',
       'phase1-concurrent-note'
     )
   ),
@@ -264,10 +276,11 @@ select set_config('request.jwt.claims',(select claims from phase1_concurrency_fi
 set local role authenticated;
 select throws_ok(
   format(
-    'select api.save_overlay_note(%L::uuid,%L,%L,1,%L)',
-    (select workspace_id from phase1_concurrency_fixture),
+    'select api.save_current_overlay_note_v1(%L,%L,%L,%L,%L)',
+    'goal:phase1-concurrency',
     'competency:python-typing',
     'This mutation must roll back with its event',
+    '1',
     'phase1-atomic-failure'
   ),
   'P0001',

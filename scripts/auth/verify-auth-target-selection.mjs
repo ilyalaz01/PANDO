@@ -433,10 +433,68 @@ try {
     0,
     "production Explore must never substitute the representative fixture",
   );
+
+  const competencyButton = page.getByRole("button", { name: /Error handling, competency/u });
+  await competencyButton.click();
+  const privateNote = page.getByLabel("Private note");
+  await privateNote.waitFor();
+  const noteBody = "Auth gate: rehearse failure modes before the next interview.";
+  await privateNote.fill(noteBody);
+  await page.getByRole("button", { name: /Save note|Update note/u }).click();
+  await page.getByRole("status").filter({ hasText: "Note saved." }).waitFor();
+
+  await page.reload();
+  await page.getByRole("heading", { name: "See the roots beneath your next move." }).waitFor();
+  await page.getByRole("button", { name: /Error handling, competency/u }).click();
+  const persistedNote = page.getByLabel("Private note");
+  await persistedNote.waitFor();
+  assert.equal(
+    await persistedNote.inputValue(),
+    noteBody,
+    "the note must survive a browser reload",
+  );
+
+  const activityTitle = "Explain Python failure modes aloud";
+  await page.getByLabel("New activity").fill(activityTitle);
+  await page.getByLabel("Activity type").selectOption("EXPLANATION");
+  await Promise.all([
+    page.waitForURL(/\/explore\?goal=.*&activity=activity%3Acustom-/u),
+    page.getByRole("button", { name: "Add activity" }).click(),
+  ]);
+  assert.match(
+    new URL(page.url()).searchParams.get("activity") ?? "",
+    /^activity:custom-[0-9a-f]{32}$/u,
+    "a browser command must navigate to its server-accepted custom activity",
+  );
+  await page.getByRole("heading", { level: 2, name: activityTitle }).waitFor();
+  await page.reload();
+  await page.getByRole("heading", { level: 2, name: activityTitle }).waitFor();
+
+  await page.goto(
+    `${baseUrl}/explore?goal=${encodeURIComponent("goal:nvidia-python-verification-base-v1")}`,
+  );
+  await page.getByRole("heading", { name: "See the roots beneath your next move." }).waitFor();
+  await page.getByRole("button", { name: /Error handling, competency/u }).click();
+  await page.getByText(activityTitle).waitFor();
   const exploreAccessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   assert.deepEqual(exploreAccessibility.violations, [], "authenticated /explore must pass axe");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const exploreDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert.ok(
+    exploreDimensions.scrollWidth <= exploreDimensions.clientWidth,
+    "authenticated competency overlay must not overflow a 390px viewport",
+  );
+  for (const controlName of [/Update note/u, /Add activity/u]) {
+    const box = await page.getByRole("button", { name: controlName }).boundingBox();
+    assert.ok(box !== null && box.height >= 48, `${controlName} must preserve a 48px touch target`);
+  }
 
   await page.goto(
     `${baseUrl}/start?goal=${encodeURIComponent("goal:nvidia-python-verification-base-v1")}`,
@@ -514,6 +572,21 @@ try {
   });
   assert.equal(liveTargetContext.error, null, "zero-workspace target context must load");
   assert.equal(liveTargetContext.data?.contract?.name, "ExploreTargetContextV1");
+  const overlayDetail = await verifier.rpc("get_current_competency_overlay_v1", {
+    p_readiness_goal_key: "goal:nvidia-python-verification-base-v1",
+    p_competency_ref: "competency:python-error-handling",
+  });
+  assert.equal(overlayDetail.error, null, "current-session competency overlay must load");
+  assert.equal(
+    overlayDetail.data?.note?.body,
+    noteBody,
+    "the browser note must persist in Overlay",
+  );
+  assert.deepEqual(
+    overlayDetail.data?.customActivities?.map((activity) => activity.title),
+    [activityTitle],
+    "the browser custom activity must persist in Overlay",
+  );
 
   await Promise.all([
     page.waitForURL(/\/sign-in$/u),
@@ -543,6 +616,6 @@ if (receivedSignal) {
   throw finalError;
 } else {
   process.stdout.write(
-    "isolated auth, personal-workspace, target-selection, reload, refresh, and sign-out gate passed\n",
+    "isolated auth, target selection, overlay note/activity persistence, reload, refresh, and sign-out gate passed\n",
   );
 }

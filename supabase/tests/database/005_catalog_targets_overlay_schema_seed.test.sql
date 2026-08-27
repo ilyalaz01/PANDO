@@ -86,11 +86,11 @@ select ok(
 from (values
   ('api.get_available_target_profiles(uuid)'),
   ('api.get_target_profile(uuid,text)'),
-  ('api.get_overlay_note(uuid,text)'),
+  ('api.get_current_competency_overlay_v1(text,text)'),
   ('api.get_current_explore_source_v1(text,text)'),
   ('api.get_explore_target_context_v1(text)'),
-  ('api.save_overlay_note(uuid,text,text,bigint,text)'),
-  ('api.add_custom_activity(uuid,text,text,text,text,text,bigint,text)'),
+  ('api.save_current_overlay_note_v1(text,text,text,text,text)'),
+  ('api.add_current_custom_activity_v1(text,text,text,text,text,text,text)'),
   ('api.set_overlay_position(uuid,text,text,numeric,numeric,bigint,text)'),
   ('api.create_readiness_goal(uuid,text,text,text,text)'),
   ('api.get_readiness_goal(uuid,text)'),
@@ -106,11 +106,11 @@ from (values ('anon'), ('service_role')) as runtime_role(role_name)
 cross join (values
   ('api.get_available_target_profiles(uuid)'),
   ('api.get_target_profile(uuid,text)'),
-  ('api.get_overlay_note(uuid,text)'),
+  ('api.get_current_competency_overlay_v1(text,text)'),
   ('api.get_current_explore_source_v1(text,text)'),
   ('api.get_explore_target_context_v1(text)'),
-  ('api.save_overlay_note(uuid,text,text,bigint,text)'),
-  ('api.add_custom_activity(uuid,text,text,text,text,text,bigint,text)'),
+  ('api.save_current_overlay_note_v1(text,text,text,text,text)'),
+  ('api.add_current_custom_activity_v1(text,text,text,text,text,text,text)'),
   ('api.set_overlay_position(uuid,text,text,numeric,numeric,bigint,text)'),
   ('api.create_readiness_goal(uuid,text,text,text,text)'),
   ('api.get_readiness_goal(uuid,text)'),
@@ -136,10 +136,18 @@ from (values
   ('overlay.get_note_impl(uuid,text)'),
   ('overlay.get_explore_overlay_source_impl(uuid,uuid,uuid,text,text[])'),
   ('overlay.get_explore_required_overlay_nodes_impl(uuid,text[])'),
-  ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
-  ('overlay.add_custom_activity_impl(uuid,text,text,text,text,text,bigint,text)'),
   ('overlay.set_position_impl(uuid,text,text,numeric,numeric,bigint,text)'),
   ('overlay.reset_position_impl(uuid,text,text,bigint,text)')
+) as implementation(signature);
+
+select ok(
+  not pg_catalog.has_function_privilege('authenticated', implementation.signature, 'EXECUTE'),
+  format('authenticated cannot bypass scoped api through private bridge %s', implementation.signature)
+)
+from (values
+  ('overlay.get_competency_overlay_detail_impl(uuid,uuid,text)'),
+  ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
+  ('overlay.add_current_custom_activity_impl(uuid,uuid,text,text,text,text,text,bigint,text)')
 ) as implementation(signature);
 
 select ok(
@@ -159,10 +167,11 @@ cross join (values
   ('catalog.get_explore_target_closure_impl(uuid,uuid,text[])'),
   ('catalog.get_target_selection_version_keys_impl(uuid[],uuid[])'),
   ('overlay.get_note_impl(uuid,text)'),
+  ('overlay.get_competency_overlay_detail_impl(uuid,uuid,text)'),
   ('overlay.get_explore_overlay_source_impl(uuid,uuid,uuid,text,text[])'),
   ('overlay.get_explore_required_overlay_nodes_impl(uuid,text[])'),
   ('overlay.save_note_impl(uuid,text,text,bigint,text)'),
-  ('overlay.add_custom_activity_impl(uuid,text,text,text,text,text,bigint,text)'),
+  ('overlay.add_current_custom_activity_impl(uuid,uuid,text,text,text,text,text,bigint,text)'),
   ('overlay.set_position_impl(uuid,text,text,numeric,numeric,bigint,text)'),
   ('overlay.reset_position_impl(uuid,text,text,bigint,text)')
 ) as implementation(signature);
@@ -202,11 +211,31 @@ from pg_catalog.pg_proc as procedure
 join pg_catalog.pg_namespace as namespace on namespace.oid = procedure.pronamespace
 where namespace.nspname = 'api'
   and procedure.proname in (
-    'get_available_target_profiles', 'get_target_profile', 'get_overlay_note',
+    'get_available_target_profiles', 'get_target_profile',
     'get_current_explore_source_v1', 'get_explore_target_context_v1',
-    'save_overlay_note', 'add_custom_activity',
     'set_overlay_position', 'create_readiness_goal', 'get_readiness_goal',
     'reset_overlay_position', 'get_target_selection_source_v1'
+  )
+order by procedure.proname;
+
+select ok(
+  procedure.prosecdef
+    and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+    and owner.rolname = 'pando_phase1_api'
+    and not owner.rolcanlogin
+    and not owner.rolinherit
+    and not owner.rolbypassrls,
+  format('scoped api function %s is pinned to the least-privilege Phase 1 owner',
+    procedure.oid::regprocedure)
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner on owner.oid = procedure.proowner
+where namespace.nspname = 'api'
+  and procedure.proname in (
+    'get_current_competency_overlay_v1',
+    'save_current_overlay_note_v1',
+    'add_current_custom_activity_v1'
   )
 order by procedure.proname;
 
@@ -224,6 +253,38 @@ select ok(
 select ok(
   pg_catalog.to_regprocedure('api.get_explore_source_v1(uuid,text,text)') is null,
   'the caller-selected Explore transport is not exposed through the api schema'
+);
+
+select ok(
+  pg_catalog.to_regprocedure(retired.signature) is null,
+  format('the retired caller-scoped Overlay transport %s is absent', retired.signature)
+)
+from (values
+  ('api.get_overlay_note(uuid,text)'),
+  ('api.save_overlay_note(uuid,text,text,bigint,text)'),
+  ('api.add_custom_activity(uuid,text,text,text,text,text,bigint,text)'),
+  ('overlay.add_custom_activity_impl(uuid,text,text,text,text,text,bigint,text)')
+) as retired(signature);
+
+select ok(
+  pg_catalog.pg_get_functiondef(
+    'overlay.get_competency_overlay_detail_impl(uuid,uuid,text)'::pg_catalog.regprocedure
+  ) !~ '(^|[^[:alnum:]_])(targets|catalog)\.',
+  'the User Overlay competency-detail query reads no private Targets or Catalog object'
+);
+
+select ok(
+  pg_catalog.pg_get_functiondef(
+    'overlay.add_current_custom_activity_impl(uuid,uuid,text,text,text,text,text,bigint,text)'::pg_catalog.regprocedure
+  ) !~ '(^|[^[:alnum:]_])(targets|catalog)\.',
+  'the User Overlay activity command reads no private Targets or Catalog object'
+);
+
+select ok(
+  pg_catalog.pg_get_functiondef(
+    'api.get_current_competency_overlay_v1(text,text)'::pg_catalog.regprocedure
+  ) like '%api.get_explore_target_context_v1%',
+  'the current competency-detail composer validates exact target closure through owner queries'
 );
 
 select ok(
@@ -248,7 +309,7 @@ where namespace.nspname in ('catalog', 'targets', 'overlay')
     'get_explore_catalog_source_impl', 'get_explore_target_closure_impl',
     'get_target_selection_version_keys_impl', 'get_note_impl',
     'get_explore_overlay_source_impl', 'get_explore_required_overlay_nodes_impl',
-    'save_note_impl', 'add_custom_activity_impl', 'set_position_impl',
+    'save_note_impl', 'add_current_custom_activity_impl', 'set_position_impl',
     'reset_position_impl'
   )
 order by namespace.nspname, procedure.proname;

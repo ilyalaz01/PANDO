@@ -82,6 +82,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
   const selectedActivityKey = oneValue(query.activity) ?? null;
   const ambiguousSelector = Array.isArray(query.goal) || Array.isArray(query.activity);
   let projection: ExploreStructuralProjectionView | undefined;
+  let initialSelectedNodeId: string | undefined;
   if (client !== undefined && readinessGoalKey !== undefined && !ambiguousSelector) {
     try {
       const targetContext = await loadDatabaseExploreTargetContextV1(client, {
@@ -91,9 +92,20 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
         readinessGoalKey,
         selectedActivityKey,
       });
-      projection = toExploreStructuralProjectionView(
+      const view = toExploreStructuralProjectionView(
         materializeLiveExploreStructure({ source, targetContext, selectedActivityKey }),
       );
+      initialSelectedNodeId =
+        selectedActivityKey === null
+          ? undefined
+          : view.nodes.find(
+              ({ entityRef }) =>
+                entityRef.entityType === "ACTIVITY" && entityRef.entityId === selectedActivityKey,
+            )?.nodeId;
+      if (selectedActivityKey !== null && initialSelectedNodeId === undefined) {
+        throw new Error("Selected activity is absent from the correlated Explore view.");
+      }
+      projection = view;
     } catch {
       projection = undefined;
     }
@@ -129,7 +141,12 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
                 remain hidden until their evidence-derived projections are materialized.
               </p>
             </section>
-            <ExploreWorkspace projection={projection} />
+            <ExploreWorkspace
+              key={initialSelectedNodeId ?? projection.projectionId}
+              projection={projection}
+              readinessGoalKey={readinessGoalKey}
+              {...(initialSelectedNodeId === undefined ? {} : { initialSelectedNodeId })}
+            />
           </>
         )}
       </main>

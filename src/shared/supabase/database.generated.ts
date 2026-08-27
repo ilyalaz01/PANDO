@@ -15,16 +15,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      add_custom_activity: {
+      add_current_custom_activity_v1: {
         Args: {
           p_activity_key: string
           p_activity_type: string
-          p_expected_overlay_version: number
+          p_expected_overlay_version: string
           p_idempotency_key: string
-          p_profile_version_key: string
+          p_readiness_goal_key: string
           p_target_competency_ref: string
           p_title: string
-          p_workspace_id: string
         }
         Returns: Json
       }
@@ -79,16 +78,16 @@ export type Database = {
         Args: { p_workspace_id: string }
         Returns: Json
       }
+      get_current_competency_overlay_v1: {
+        Args: { p_competency_ref: string; p_readiness_goal_key: string }
+        Returns: Json
+      }
       get_current_explore_source_v1: {
         Args: { p_readiness_goal_key: string; p_selected_activity_key?: string }
         Returns: Json
       }
       get_explore_target_context_v1: {
         Args: { p_readiness_goal_key: string }
-        Returns: Json
-      }
-      get_overlay_note: {
-        Args: { p_subject_ref: string; p_workspace_id: string }
         Returns: Json
       }
       get_readiness_goal: {
@@ -111,13 +110,13 @@ export type Database = {
         }
         Returns: Json
       }
-      save_overlay_note: {
+      save_current_overlay_note_v1: {
         Args: {
-          p_expected_overlay_version: number
+          p_competency_ref: string
+          p_expected_overlay_version: string
           p_idempotency_key: string
           p_note_body: string
-          p_subject_ref: string
-          p_workspace_id: string
+          p_readiness_goal_key: string
         }
         Returns: Json
       }

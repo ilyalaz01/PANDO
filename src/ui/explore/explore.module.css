@@ -350,6 +350,141 @@
   background: var(--color-accent-soft);
 }
 
+.overlayInspector {
+  display: grid;
+  gap: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.overlayInspector h3,
+.overlayInspector h4,
+.overlayInspector p {
+  margin: 0;
+}
+
+.overlayForm {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-canvas);
+}
+
+.overlayForm label,
+.activityList h4 {
+  font-weight: 800;
+}
+
+.overlayForm textarea,
+.overlayForm input,
+.overlayForm select {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.overlayForm textarea {
+  min-height: 7.5rem;
+  resize: vertical;
+}
+
+.formHint,
+.formStatus,
+.activityList span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.formStatus {
+  min-height: 1.4rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 3rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: var(--color-accent);
+  color: white;
+}
+
+.secondaryButton {
+  justify-self: start;
+  background: transparent;
+  color: var(--color-accent);
+}
+
+.primaryButton:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.activityList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.activityList ul {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.activityList li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.7rem 0.8rem;
+  border-left: 0.2rem solid var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.draftWarning {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  border: 1px solid var(--color-graph-blocker);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+}
+
+.draftWarning h3,
+.draftWarning p {
+  margin: 0;
+}
+
+.draftWarning div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.draftWarning button {
+  min-height: 3rem;
+  padding-inline: 0.8rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .workspace button,
 .mapNode,
 .mapNodeDomain {

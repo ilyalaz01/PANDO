@@ -89,13 +89,13 @@ select ok(not ((select response->'nodes' from phase1_results where name='bob-exp
 
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000001','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
 set local role authenticated;
-insert into phase1_results select 'note-first',api.save_overlay_note(workspace_id,'competency:linux-log-triage','Private note sentinel: rain-forest-42',0,'alice-note-1') from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'note-replay',api.save_overlay_note(workspace_id,'competency:linux-log-triage','Private note sentinel: rain-forest-42',0,'alice-note-1') from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'note-read',api.get_overlay_note(workspace_id,'competency:linux-log-triage') from phase1_workspaces where name='alice-bootstrap';
-select throws_ok(format('select api.save_overlay_note(%L::uuid,%L,%L,0,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'competency:python-typing','Stale write must roll back','alice-note-stale'),'40001','overlay aggregate version conflict','stale expected overlay version rejects the entire note command');
+insert into phase1_results values ('note-first',api.save_current_overlay_note_v1('goal:alice-main','competency:linux-log-triage','Private note sentinel: rain-forest-42','0','alice-note-1'));
+insert into phase1_results values ('note-replay',api.save_current_overlay_note_v1('goal:alice-main','competency:linux-log-triage','Private note sentinel: rain-forest-42','0','alice-note-1'));
+insert into phase1_results values ('note-read',api.get_current_competency_overlay_v1('goal:alice-main','competency:linux-log-triage'));
+select throws_ok($$select api.save_current_overlay_note_v1('goal:alice-main','competency:python-typing','Stale write must roll back','0','alice-note-stale')$$,'40001','overlay aggregate version conflict','stale expected overlay version rejects the entire note command');
 reset role;
 select is((select response from phase1_results where name='note-replay'),(select response from phase1_results where name='note-first'),'same note retry returns stored response byte-for-byte');
-select is((select response->>'body' from phase1_results where name='note-read'),'Private note sentinel: rain-forest-42','purpose-specific note read returns persisted body after command reload');
+select is((select response->'note'->>'body' from phase1_results where name='note-read'),'Private note sentinel: rain-forest-42','purpose-specific note read returns persisted body after command reload');
 select is((select aggregate_version from overlay.workspace_overlays where workspace_id=(select workspace_id from phase1_workspaces where name='alice-bootstrap')),1::bigint,'note replay and stale write leave one overlay version increment');
 select is((select count(*) from outbox.command_receipts where idempotency_key='alice-note-1'),1::bigint,'note replay creates one receipt');
 select is((select count(*) from outbox.command_receipts where idempotency_key='alice-note-stale'),0::bigint,'stale note creates no receipt');
@@ -106,22 +106,34 @@ select ok(not exists(select 1 from outbox.command_receipts where command_type='o
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000001','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
 set local role authenticated;
 select throws_ok(
-  format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,1,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:unsafe-control-title',E'Unsafe\nactivity title','MANUAL_CODING','competency:linux-log-triage','alice-activity-unsafe-title'),
+  $$select api.add_current_custom_activity_v1('goal:alice-main','activity:unsafe-control-title',E'Unsafe\nactivity title','MANUAL_CODING','competency:linux-log-triage','1','alice-activity-unsafe-title')$$,
   '23514','new row for relation "custom_activities" violates check constraint "custom_activities_title_safe_text_check"',
   'custom activity title cannot persist control characters that violate ExploreSourceV1'
 );
 select throws_ok(
-  format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,1,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:unsafe-markup-title','Unsafe <activity> title','MANUAL_CODING','competency:linux-log-triage','alice-activity-unsafe-markup'),
+  $$select api.add_current_custom_activity_v1('goal:alice-main','activity:unsafe-markup-title','Unsafe <activity> title','MANUAL_CODING','competency:linux-log-triage','1','alice-activity-unsafe-markup')$$,
   '23514','new row for relation "custom_activities" violates check constraint "custom_activities_title_safe_text_check"',
   'custom activity title cannot persist markup delimiters forbidden by GraphProjectionV1'
 );
-insert into phase1_results select 'activity-add',api.add_custom_activity(workspace_id,'target:nvidia-python-verification-v1','activity:linux-log-triage-lab','Linux log triage lab','MANUAL_CODING','competency:linux-log-triage',1,'alice-activity-1') from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'activity-add-replay',api.add_custom_activity(workspace_id,'target:nvidia-python-verification-v1','activity:linux-log-triage-lab','Linux log triage lab','MANUAL_CODING','competency:linux-log-triage',1,'alice-activity-1') from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results values ('activity-add',api.add_current_custom_activity_v1('goal:alice-main','activity:linux-log-triage-lab','Linux log triage lab','MANUAL_CODING','competency:linux-log-triage','1','alice-activity-1'));
+insert into phase1_results values ('activity-add-replay',api.add_current_custom_activity_v1('goal:alice-main','activity:linux-log-triage-lab','Linux log triage lab','MANUAL_CODING','competency:linux-log-triage','1','alice-activity-1'));
+insert into phase1_results values ('activity-detail-after-add',api.get_current_competency_overlay_v1('goal:alice-main','competency:linux-log-triage'));
 select throws_ok(
-  format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,1,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:linux-log-triage-lab','Changed activity title','MANUAL_CODING','competency:linux-log-triage','alice-activity-1'),
+  $$select api.add_current_custom_activity_v1('goal:alice-main','activity:linux-log-triage-lab','Changed activity title','MANUAL_CODING','competency:linux-log-triage','1','alice-activity-1')$$,
   '22023','idempotency key reused with a different request',
   'custom-activity idempotency key rejects a changed request'
 );
+reset role;
+update overlay.custom_activities
+set lifecycle='paused'
+where activity_key='activity:linux-log-triage-lab';
+set local role authenticated;
+insert into phase1_results values ('activity-detail-while-paused',api.get_current_competency_overlay_v1('goal:alice-main','competency:linux-log-triage'));
+reset role;
+update overlay.custom_activities
+set lifecycle='active'
+where activity_key='activity:linux-log-triage-lab';
+set local role authenticated;
 insert into phase1_results select 'alice-explore-default-after-activity',api.get_current_explore_source_v1('goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'alice-explore-selected',api.get_current_explore_source_v1('goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
 reset role;
@@ -131,6 +143,9 @@ select is((select count(*) from outbox.command_receipts where idempotency_key='a
 select is((select count(*) from outbox.command_receipts where idempotency_key='alice-activity-unsafe-markup'),0::bigint,'unsafe markup title leaves no command receipt');
 select is(((select response from phase1_results where name='alice-explore-default-after-activity')->>'nodeCount')::int,25,'unselected custom activity is absent from default Explore nodes');
 select is((select response from phase1_results where name='activity-add-replay'),(select response from phase1_results where name='activity-add'),'custom-activity retry returns its stored response byte-for-byte');
+select is((select response->>'overlayVersion' from phase1_results where name='activity-detail-after-add'),'2','competency detail carries the current string overlay version after the command');
+select ok((select response->'customActivities' from phase1_results where name='activity-detail-after-add') @> '[{"activityKey":"activity:linux-log-triage-lab","title":"Linux log triage lab","activityType":"MANUAL_CODING","lifecycle":"active"}]'::jsonb,'competency detail reload discovers the persisted custom activity');
+select is((select response->'customActivities' from phase1_results where name='activity-detail-while-paused'),'[]'::jsonb,'competency detail excludes a legal paused activity instead of breaking its active-only contract');
 select is(((select response from phase1_results where name='alice-explore-default-after-activity')->>'edgeCount')::int,35,'unselected custom activity edge is absent from default Explore');
 select is(((select response from phase1_results where name='alice-explore-selected')->>'nodeCount')::int,26,'selected custom activity adds exactly one node');
 select is(((select response from phase1_results where name='alice-explore-selected')->>'edgeCount')::int,36,'selected custom activity adds exactly one ACTIVITY_EVIDENCES edge');
@@ -141,11 +156,11 @@ select ok(position('rain-forest-42' in (select response::text from phase1_result
 
 select set_config('request.jwt.claims',jsonb_build_object('sub','10000000-0000-4000-8000-000000000002','role','authenticated','aud','authenticated','exp',extract(epoch from clock_timestamp()+interval '1 hour')::bigint)::text,true);
 set local role authenticated;
-select throws_ok(format('select api.get_overlay_note(%L::uuid,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'competency:linux-log-triage'),'42501','workspace is not accessible','Bob cannot read Alice note through the purpose-specific query');
+select throws_ok($$select api.get_current_competency_overlay_v1('goal:alice-main','competency:linux-log-triage')$$,'42501','readiness goal is not accessible','Bob cannot read Alice note through the current-personal query');
 select throws_ok($$select api.get_current_explore_source_v1('goal:bob-main','activity:linux-log-triage-lab')$$,'42501','activity is not accessible','Bob cannot select Alice custom activity in his canonical graph');
 select throws_ok(format('select api.create_readiness_goal(%L::uuid,%L,%L,%L,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:bob-foreign','Foreign goal','target:nvidia-python-verification-v1','bob-foreign-goal'),'42501','workspace is not accessible','Bob cannot create a readiness goal in Alice workspace');
-select throws_ok(format('select api.save_overlay_note(%L::uuid,%L,%L,2,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'competency:linux-log-triage','Foreign note','bob-foreign-note'),'42501','workspace is not accessible','Bob cannot save a note in Alice workspace');
-select throws_ok(format('select api.add_custom_activity(%L::uuid,%L,%L,%L,%L,%L,2,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'target:nvidia-python-verification-v1','activity:bob-foreign','Foreign activity','MANUAL_CODING','competency:linux-log-triage','bob-foreign-activity'),'42501','workspace is not accessible','Bob cannot add an activity in Alice workspace');
+select throws_ok($$select api.save_current_overlay_note_v1('goal:alice-main','competency:linux-log-triage','Foreign note','2','bob-foreign-note')$$,'42501','readiness goal is not accessible','Bob cannot save a note in Alice workspace');
+select throws_ok($$select api.add_current_custom_activity_v1('goal:alice-main','activity:bob-foreign','Foreign activity','MANUAL_CODING','competency:linux-log-triage','2','bob-foreign-activity')$$,'42501','readiness goal is not accessible','Bob cannot add an activity in Alice workspace');
 select throws_ok(format('select api.set_overlay_position(%L::uuid,%L,%L,1,2,2,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:alice-main','competency:linux-log-triage','bob-foreign-position'),'42501','workspace is not accessible','Bob cannot set a position in Alice workspace');
 select throws_ok(format('select api.reset_overlay_position(%L::uuid,%L,%L,2,%L)',(select workspace_id from phase1_workspaces where name='alice-bootstrap'),'goal:alice-main','competency:linux-log-triage','bob-foreign-reset'),'42501','workspace is not accessible','Bob cannot reset a position in Alice workspace');
 reset role;
@@ -176,7 +191,7 @@ select throws_ok(
 );
 insert into phase1_results select 'explore-main-reset',api.get_current_explore_source_v1('goal:alice-main',null) from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'explore-alt-after-main-reset',api.get_current_explore_source_v1('goal:alice-alt',null) from phase1_workspaces where name='alice-bootstrap';
-insert into phase1_results select 'note-replay-late',api.save_overlay_note(workspace_id,'competency:linux-log-triage','Private note sentinel: rain-forest-42',0,'alice-note-1') from phase1_workspaces where name='alice-bootstrap';
+insert into phase1_results values ('note-replay-late',api.save_current_overlay_note_v1('goal:alice-main','competency:linux-log-triage','Private note sentinel: rain-forest-42','0','alice-note-1'));
 insert into phase1_results select 'persisted-read-a',api.get_current_explore_source_v1('goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
 insert into phase1_results select 'persisted-read-b',api.get_current_explore_source_v1('goal:alice-main','activity:linux-log-triage-lab') from phase1_workspaces where name='alice-bootstrap';
 reset role;
