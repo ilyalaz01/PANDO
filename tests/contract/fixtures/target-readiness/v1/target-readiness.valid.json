@@ -1,0 +1,81 @@
+{
+  "contract": { "name": "TargetReadinessV1", "version": "1.0.0" },
+  "asOf": "2026-08-28T10:00:00.000Z",
+  "projectionState": "CURRENT",
+  "stateReason": null,
+  "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:python-readiness",
+  "readinessGoalLifecycle": "active",
+  "readinessGoalAggregateVersion": "3",
+  "profile": {
+    "profileVersionId": "30000000-0000-4000-8000-000000000001",
+    "profileVersionKey": "target:python-verification-v1",
+    "catalogVersionId": "31000000-0000-4000-8000-000000000001"
+  },
+  "projectionVersion": "7",
+  "validUntil": "2026-08-29T09:00:00.000Z",
+  "snapshot": {
+    "snapshotId": "40000000-0000-4000-8000-000000000001",
+    "inputFingerprint": "readiness-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "sourceEvidenceWatermark": "42",
+    "calculatedAsOf": "2026-08-28T09:00:00.000Z",
+    "engineVersion": "readiness-engine/0.1.0",
+    "policyVersion": "mastery-readiness-policy/0.1",
+    "status": "INSUFFICIENT_EVIDENCE",
+    "lower": 0.2,
+    "upper": 0.8,
+    "coverage": 0.5,
+    "confidence": "LOW",
+    "blockers": [
+      {
+        "code": "MANDATORY_FLOOR_UNKNOWN",
+        "ruleId": "rule:typing-floor",
+        "lower": 0,
+        "upper": 1
+      }
+    ],
+    "ruleEvaluations": [
+      {
+        "ruleId": "rule:typing-floor",
+        "kind": "MANDATORY_FLOOR",
+        "lower": 0,
+        "upper": 1,
+        "coverage": 0,
+        "threshold": 1,
+        "outcome": "UNRESOLVED",
+        "witnessMemberKeys": ["NODE:competency:python-typing:APPLICATION:VERIFIED"]
+      }
+    ],
+    "explanationCodes": [
+      "STATUS_INSUFFICIENT_EVIDENCE",
+      "UNKNOWN_PRESERVED_AS_INTERVAL",
+      "MANDATORY_FLOORS_EVALUATED_FIRST"
+    ]
+  },
+  "gaps": [
+    {
+      "gapCode": "UNKNOWN_MANDATORY_FLOOR",
+      "competencyRef": "competency:python-typing",
+      "dimension": "APPLICATION",
+      "requiredLevel": "VERIFIED",
+      "owningRuleKeys": ["rule:typing-floor"],
+      "freshness": "UNKNOWN",
+      "confidence": null
+    }
+  ],
+  "inputs": [
+    {
+      "competencyRef": "competency:python-typing",
+      "dimension": "APPLICATION",
+      "requiredLevel": "VERIFIED",
+      "owningRuleKeys": ["rule:typing-floor"],
+      "value": "UNKNOWN",
+      "achievementLevel": "NOT_STARTED",
+      "freshness": "UNKNOWN",
+      "confidence": null,
+      "lastMeaningfulEvidenceAt": null,
+      "supportingEvidenceIds": [],
+      "contradictingEvidenceIds": []
+    }
+  ]
+}

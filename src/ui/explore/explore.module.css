@@ -162,6 +162,52 @@
   font-weight: 800;
 }
 
+.readinessContext {
+  color: var(--color-text-muted);
+}
+
+.readinessDetail {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.9rem;
+  width: 100%;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.readinessDetail h3,
+.readinessDetail ul {
+  margin: 0;
+}
+
+.readinessDetail ul {
+  display: grid;
+  gap: 0.45rem;
+  padding-left: 1.2rem;
+}
+
+.readinessDetail li {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.readinessDetail button {
+  justify-self: start;
+  min-height: var(--size-control-min);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.readinessDetail small {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
 .viewBar {
   display: flex;
   align-items: center;

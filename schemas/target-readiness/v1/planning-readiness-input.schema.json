@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/target-readiness/v1/planning-readiness-input.schema.json",
+  "title": "PlanningReadinessInputV1",
+  "description": "Fail-closed Planning input containing either one current minimized snapshot or an unavailable reason.",
+  "oneOf": [
+    { "$ref": "#/$defs/current" },
+    { "$ref": "#/$defs/unavailable" }
+  ],
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "PlanningReadinessInputV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "current": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "availability",
+        "reason",
+        "readinessGoalId",
+        "readinessGoalKey",
+        "snapshot"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contract" },
+        "availability": { "const": "CURRENT" },
+        "reason": { "type": "null" },
+        "readinessGoalId": { "$ref": "#/$defs/uuid" },
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "snapshot": { "$ref": "#/$defs/currentSnapshot" }
+      }
+    },
+    "unavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "availability",
+        "reason",
+        "readinessGoalId",
+        "readinessGoalKey",
+        "snapshot"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contract" },
+        "availability": { "const": "UNAVAILABLE" },
+        "reason": {
+          "enum": ["GOAL_INACTIVE", "NOT_MATERIALIZED", "REBUILDING", "STALE", "ERROR"]
+        },
+        "readinessGoalId": { "$ref": "#/$defs/uuid" },
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "snapshot": { "type": "null" }
+      }
+    },
+    "currentSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshotId",
+        "profileVersionId",
+        "profileVersionKey",
+        "projectionVersion",
+        "inputFingerprint",
+        "sourceEvidenceWatermark",
+        "calculatedAsOf",
+        "validUntil",
+        "engineVersion",
+        "policyVersion",
+        "status",
+        "lower",
+        "upper",
+        "coverage",
+        "confidence",
+        "blockers",
+        "gaps"
+      ],
+      "properties": {
+        "snapshotId": { "$ref": "#/$defs/uuid" },
+        "profileVersionId": { "$ref": "#/$defs/uuid" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "projectionVersion": { "$ref": "#/$defs/positiveBigint" },
+        "inputFingerprint": { "$ref": "#/$defs/inputFingerprint" },
+        "sourceEvidenceWatermark": { "$ref": "#/$defs/nonNegativeBigint" },
+        "calculatedAsOf": { "$ref": "#/$defs/instant" },
+        "validUntil": { "$ref": "#/$defs/nullableInstant" },
+        "engineVersion": { "const": "readiness-engine/0.1.0" },
+        "policyVersion": { "const": "mastery-readiness-policy/0.1" },
+        "status": { "$ref": "#/$defs/readinessStatus" },
+        "lower": { "$ref": "#/$defs/unitInterval" },
+        "upper": { "$ref": "#/$defs/unitInterval" },
+        "coverage": { "$ref": "#/$defs/unitInterval" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "blockers": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "https://pando.local/schemas/target-readiness/v1/target-readiness.schema.json#/$defs/blocker"
+          }
+        },
+        "gaps": {
+          "type": "array",
+          "maxItems": 250,
+          "items": {
+            "$ref": "https://pando.local/schemas/target-readiness/v1/target-readiness.schema.json#/$defs/gap"
+          }
+        }
+      }
+    },
+    "uuid": { "type": "string", "format": "uuid" },
+    "instant": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "nullableInstant": {
+      "oneOf": [{ "$ref": "#/$defs/instant" }, { "type": "null" }]
+    },
+    "positiveBigint": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" },
+    "nonNegativeBigint": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$" },
+    "readinessGoalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "profileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^readiness-input:[a-f0-9]{64}$"
+    },
+    "readinessStatus": {
+      "enum": ["NOT_READY", "INSUFFICIENT_EVIDENCE", "READY", "DEVELOPING"]
+    },
+    "unitInterval": { "type": "number", "minimum": 0, "maximum": 1 },
+    "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] }
+  }
+}

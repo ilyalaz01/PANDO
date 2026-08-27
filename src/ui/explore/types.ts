@@ -156,7 +156,60 @@ export interface ExploreStructuralProjectionView extends Omit<
     explanation: string;
   };
   readiness: null;
+  selectedVersions: {
+    catalogVersionKey: string;
+    targetProfileVersionKey: string;
+  };
 }
 
 export type ExploreWorkspaceProjectionView =
   ExploreGraphProjectionView | ExploreStructuralProjectionView;
+
+export type ExploreTargetReadinessState =
+  "NOT_MATERIALIZED" | "REBUILDING" | "CURRENT" | "STALE" | "ERROR";
+
+export interface ExploreReadinessGapView {
+  gapKey: string;
+  title: string;
+  gapCode:
+    | "FAILED_MANDATORY_FLOOR"
+    | "UNKNOWN_MANDATORY_FLOOR"
+    | "UNKNOWN_REQUIREMENT"
+    | "KNOWN_SHORTFALL";
+  competencyRef: string;
+  dimension: string;
+  requiredLevel: string;
+  freshness: "FRESH" | "STALE" | "UNKNOWN";
+  outlineNodeId: string;
+  evidenceRefs: string[];
+  evidenceRefCount: number;
+}
+
+export interface ExploreReadinessDomainCountsView {
+  domainNodeId: string;
+  title: string;
+  catalogVersionKey: string;
+  overlayRevision: string;
+  requiredCount: number;
+  knownCount: number;
+  unknownCount: number;
+  staleCount: number;
+  mandatoryFloorBlockerCount: number;
+}
+
+export interface ExploreTargetReadinessView {
+  state: ExploreTargetReadinessState;
+  message: string;
+  profileVersionKey: string;
+  calculatedAt: string | null;
+  snapshot: {
+    status: "NOT_READY" | "INSUFFICIENT_EVIDENCE" | "DEVELOPING" | "READY";
+    lower: number;
+    upper: number;
+    coverage: number;
+    confidence: "LOW" | "MEDIUM" | "HIGH";
+    blockers: Array<{ code: string; title: string }>;
+    gaps: ExploreReadinessGapView[];
+    domains: ExploreReadinessDomainCountsView[];
+  } | null;
+}

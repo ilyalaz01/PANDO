@@ -362,7 +362,7 @@ select ok(
   and owner.rolname in (
     'pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker',
     'pando_mastery_worker', 'pando_mastery_scheduler', 'pando_review_worker',
-    'pando_review_scheduler'
+    'pando_review_scheduler', 'pando_readiness_worker', 'pando_readiness_scheduler'
   )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
@@ -392,7 +392,8 @@ select ok(
 from pg_catalog.pg_roles as role
 where role.rolname in (
   'pando_identity_api', 'pando_outbox_worker', 'pando_mastery_worker',
-  'pando_mastery_scheduler', 'pando_review_worker', 'pando_review_scheduler'
+  'pando_mastery_scheduler', 'pando_review_worker', 'pando_review_scheduler',
+  'pando_readiness_worker', 'pando_readiness_scheduler'
 )
 order by role.rolname;
 

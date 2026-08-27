@@ -1,0 +1,20 @@
+{
+  "event_name": "targets.readiness_projection_changed",
+  "event_schema_version": 1,
+  "workspace_id": "10000000-0000-4000-8000-000000000001",
+  "payload": {
+    "readiness_goal_id": "20000000-0000-4000-8000-000000000001",
+    "profile_version_id": "30000000-0000-4000-8000-000000000001",
+    "snapshot_id": "40000000-0000-4000-8000-000000000001",
+    "projection_version": "7",
+    "input_fingerprint": "readiness-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "source_evidence_watermark": "42",
+    "calculated_as_of": "2026-08-28T09:00:00.000Z",
+    "status": "DEVELOPING",
+    "lower": 0.55,
+    "upper": 0.85,
+    "confidence": "MEDIUM",
+    "engine_version": "readiness-engine/0.1.0",
+    "policy_version": "mastery-readiness-policy/0.1"
+  }
+}

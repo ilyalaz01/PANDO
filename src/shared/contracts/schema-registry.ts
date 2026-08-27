@@ -8,6 +8,7 @@ import exploreStructuralProjectionSchema from "../../../schemas/explore-structur
 import exploreTargetContextSchema from "../../../schemas/explore-target-context/v1/explore-target-context.schema.json";
 import evidenceEventSchema from "../../../schemas/events/v1/evidence-event.schema.json";
 import masteryEventSchema from "../../../schemas/events/v1/mastery-event.schema.json";
+import readinessEventSchema from "../../../schemas/events/v1/readiness-event.schema.json";
 import reviewEventSchema from "../../../schemas/events/v1/review-event.schema.json";
 import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-projection.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
@@ -16,6 +17,8 @@ import preparationManifestSchema from "../../../schemas/preparation-pack/v1/mani
 import preparationPlanSchema from "../../../schemas/preparation-pack/v1/preparation-plan.schema.json";
 import targetProfileSchema from "../../../schemas/preparation-pack/v1/target-profile.schema.json";
 import targetSelectionSourceSchema from "../../../schemas/target-selection/v1/target-selection-source.schema.json";
+import planningReadinessInputSchema from "../../../schemas/target-readiness/v1/planning-readiness-input.schema.json";
+import targetReadinessSchema from "../../../schemas/target-readiness/v1/target-readiness.schema.json";
 
 import { type ContractViolation, type ValidationResult, validationResult } from "./result";
 
@@ -27,12 +30,15 @@ export const schemaNames = [
   "explore-target-context",
   "evidence-event-v1",
   "mastery-event-v1",
+  "readiness-event-v1",
   "review-event-v1",
   "preparation-context",
   "preparation-manifest",
   "preparation-plan",
   "target-profile",
   "target-selection-source",
+  "target-readiness-v1",
+  "planning-readiness-input-v1",
   "graph-projection",
 ] as const;
 
@@ -48,12 +54,15 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "explore-target-context": exploreTargetContextSchema,
   "evidence-event-v1": evidenceEventSchema,
   "mastery-event-v1": masteryEventSchema,
+  "readiness-event-v1": readinessEventSchema,
   "review-event-v1": reviewEventSchema,
   "preparation-context": preparationContextSchema,
   "preparation-manifest": preparationManifestSchema,
   "preparation-plan": preparationPlanSchema,
   "target-profile": targetProfileSchema,
   "target-selection-source": targetSelectionSourceSchema,
+  "target-readiness-v1": targetReadinessSchema,
+  "planning-readiness-input-v1": planningReadinessInputSchema,
   "graph-projection": graphProjectionSchema,
 };
 

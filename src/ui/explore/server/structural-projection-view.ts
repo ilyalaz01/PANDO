@@ -72,6 +72,10 @@ export function toExploreStructuralProjectionView(
       accessibilityLabel: edge.accessibilityLabel,
     })),
     readiness: null,
+    selectedVersions: {
+      catalogVersionKey: projection.selectedVersions.catalogVersionKey,
+      targetProfileVersionKey: projection.selectedVersions.targetProfileVersionKey,
+    },
     visibilityHints: {
       defaultVisibleNodeIds: [...projection.visibilityHints.defaultVisibleNodeIds],
       defaultVisibleEdgeIds: [...projection.visibilityHints.defaultVisibleEdgeIds],

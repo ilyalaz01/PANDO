@@ -1,0 +1,389 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/target-readiness/v1/target-readiness.schema.json",
+  "title": "TargetReadinessV1",
+  "description": "Authenticated Targets-owned readiness detail. Domain composition belongs to Explore and is excluded.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "asOf",
+    "projectionState",
+    "stateReason",
+    "readinessGoalId",
+    "readinessGoalKey",
+    "readinessGoalLifecycle",
+    "readinessGoalAggregateVersion",
+    "profile",
+    "projectionVersion",
+    "validUntil",
+    "snapshot",
+    "gaps",
+    "inputs"
+  ],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "TargetReadinessV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "asOf": { "$ref": "#/$defs/instant" },
+    "projectionState": {
+      "enum": ["NOT_MATERIALIZED", "REBUILDING", "CURRENT", "STALE", "ERROR"]
+    },
+    "stateReason": {
+      "oneOf": [
+        { "enum": ["NO_SNAPSHOT", "DELIVERY_PENDING", "SNAPSHOT_EXPIRED", "DEAD_LETTER"] },
+        { "type": "null" }
+      ]
+    },
+    "readinessGoalId": { "$ref": "#/$defs/uuid" },
+    "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+    "readinessGoalLifecycle": { "enum": ["active", "paused", "completed", "archived"] },
+    "readinessGoalAggregateVersion": { "$ref": "#/$defs/positiveBigint" },
+    "profile": { "$ref": "#/$defs/profile" },
+    "projectionVersion": {
+      "oneOf": [{ "$ref": "#/$defs/positiveBigint" }, { "type": "null" }]
+    },
+    "validUntil": { "$ref": "#/$defs/nullableInstant" },
+    "snapshot": {
+      "oneOf": [{ "$ref": "#/$defs/snapshot" }, { "type": "null" }]
+    },
+    "gaps": {
+      "type": "array",
+      "maxItems": 250,
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "inputs": {
+      "type": "array",
+      "maxItems": 250,
+      "items": { "$ref": "#/$defs/input" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "projectionState": { "const": "NOT_MATERIALIZED" } },
+        "required": ["projectionState"]
+      },
+      "then": {
+        "properties": {
+          "stateReason": { "const": "NO_SNAPSHOT" },
+          "projectionVersion": { "type": "null" },
+          "validUntil": { "type": "null" },
+          "snapshot": { "type": "null" },
+          "gaps": { "type": "array", "maxItems": 0 },
+          "inputs": { "type": "array", "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "projectionState": { "const": "REBUILDING" } },
+        "required": ["projectionState"]
+      },
+      "then": { "properties": { "stateReason": { "const": "DELIVERY_PENDING" } } }
+    },
+    {
+      "if": {
+        "properties": { "projectionState": { "const": "CURRENT" } },
+        "required": ["projectionState"]
+      },
+      "then": {
+        "properties": {
+          "stateReason": { "type": "null" },
+          "projectionVersion": { "$ref": "#/$defs/positiveBigint" },
+          "snapshot": { "$ref": "#/$defs/snapshot" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "projectionState": { "const": "STALE" } },
+        "required": ["projectionState"]
+      },
+      "then": {
+        "properties": {
+          "stateReason": { "const": "SNAPSHOT_EXPIRED" },
+          "projectionVersion": { "$ref": "#/$defs/positiveBigint" },
+          "snapshot": { "$ref": "#/$defs/snapshot" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "projectionState": { "const": "ERROR" } },
+        "required": ["projectionState"]
+      },
+      "then": { "properties": { "stateReason": { "const": "DEAD_LETTER" } } }
+    },
+    {
+      "if": { "properties": { "snapshot": { "type": "null" } }, "required": ["snapshot"] },
+      "then": {
+        "properties": {
+          "projectionVersion": { "type": "null" },
+          "validUntil": { "type": "null" },
+          "gaps": { "type": "array", "maxItems": 0 },
+          "inputs": { "type": "array", "maxItems": 0 }
+        }
+      },
+      "else": { "properties": { "projectionVersion": { "$ref": "#/$defs/positiveBigint" } } }
+    }
+  ],
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profileVersionId", "profileVersionKey", "catalogVersionId"],
+      "properties": {
+        "profileVersionId": { "$ref": "#/$defs/uuid" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "catalogVersionId": { "$ref": "#/$defs/uuid" }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshotId",
+        "inputFingerprint",
+        "sourceEvidenceWatermark",
+        "calculatedAsOf",
+        "engineVersion",
+        "policyVersion",
+        "status",
+        "lower",
+        "upper",
+        "coverage",
+        "confidence",
+        "blockers",
+        "ruleEvaluations",
+        "explanationCodes"
+      ],
+      "properties": {
+        "snapshotId": { "$ref": "#/$defs/uuid" },
+        "inputFingerprint": { "$ref": "#/$defs/inputFingerprint" },
+        "sourceEvidenceWatermark": { "$ref": "#/$defs/nonNegativeBigint" },
+        "calculatedAsOf": { "$ref": "#/$defs/instant" },
+        "engineVersion": { "const": "readiness-engine/0.1.0" },
+        "policyVersion": { "const": "mastery-readiness-policy/0.1" },
+        "status": { "$ref": "#/$defs/readinessStatus" },
+        "lower": { "$ref": "#/$defs/unitInterval" },
+        "upper": { "$ref": "#/$defs/unitInterval" },
+        "coverage": { "$ref": "#/$defs/unitInterval" },
+        "confidence": { "$ref": "#/$defs/confidence" },
+        "blockers": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/blocker" }
+        },
+        "ruleEvaluations": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": { "$ref": "#/$defs/ruleEvaluation" }
+        },
+        "explanationCodes": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/explanationCode" }
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "ruleId", "lower", "upper"],
+      "properties": {
+        "code": {
+          "enum": [
+            "MANDATORY_FLOOR_FAILED",
+            "MANDATORY_FLOOR_UNKNOWN",
+            "AGGREGATE_BELOW_THRESHOLD"
+          ]
+        },
+        "ruleId": { "$ref": "#/$defs/ruleKey" },
+        "lower": { "$ref": "#/$defs/unitInterval" },
+        "upper": { "$ref": "#/$defs/unitInterval" }
+      }
+    },
+    "ruleEvaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId",
+        "kind",
+        "lower",
+        "upper",
+        "coverage",
+        "threshold",
+        "outcome",
+        "witnessMemberKeys"
+      ],
+      "properties": {
+        "ruleId": { "$ref": "#/$defs/ruleKey" },
+        "kind": {
+          "enum": ["ALL", "ANY", "K_OF_N", "WEIGHTED_THRESHOLD", "MANDATORY_FLOOR"]
+        },
+        "lower": { "$ref": "#/$defs/unitInterval" },
+        "upper": { "$ref": "#/$defs/unitInterval" },
+        "coverage": { "$ref": "#/$defs/unitInterval" },
+        "threshold": { "$ref": "#/$defs/unitInterval" },
+        "outcome": { "enum": ["SATISFIED", "FAILED", "UNRESOLVED"] },
+        "witnessMemberKeys": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/witnessMemberKey" }
+        }
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gapCode",
+        "competencyRef",
+        "dimension",
+        "requiredLevel",
+        "owningRuleKeys",
+        "freshness",
+        "confidence"
+      ],
+      "properties": {
+        "gapCode": {
+          "enum": [
+            "FAILED_MANDATORY_FLOOR",
+            "UNKNOWN_MANDATORY_FLOOR",
+            "UNKNOWN_REQUIREMENT",
+            "KNOWN_SHORTFALL"
+          ]
+        },
+        "competencyRef": { "$ref": "#/$defs/competencyRef" },
+        "dimension": { "$ref": "#/$defs/dimension" },
+        "requiredLevel": { "$ref": "#/$defs/requiredLevel" },
+        "owningRuleKeys": { "$ref": "#/$defs/ruleKeyArray" },
+        "freshness": { "$ref": "#/$defs/freshness" },
+        "confidence": { "$ref": "#/$defs/nullableConfidence" }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "competencyRef",
+        "dimension",
+        "requiredLevel",
+        "owningRuleKeys",
+        "value",
+        "achievementLevel",
+        "freshness",
+        "confidence",
+        "lastMeaningfulEvidenceAt",
+        "supportingEvidenceIds",
+        "contradictingEvidenceIds"
+      ],
+      "properties": {
+        "competencyRef": { "$ref": "#/$defs/competencyRef" },
+        "dimension": { "$ref": "#/$defs/dimension" },
+        "requiredLevel": { "$ref": "#/$defs/requiredLevel" },
+        "owningRuleKeys": { "$ref": "#/$defs/ruleKeyArray" },
+        "value": { "enum": ["KNOWN", "UNKNOWN"] },
+        "achievementLevel": {
+          "enum": ["NOT_STARTED", "COMPLETED", "VERIFIED", "MASTERED"]
+        },
+        "freshness": { "$ref": "#/$defs/freshness" },
+        "confidence": { "$ref": "#/$defs/nullableConfidence" },
+        "lastMeaningfulEvidenceAt": { "$ref": "#/$defs/nullableInstant" },
+        "supportingEvidenceIds": { "$ref": "#/$defs/evidenceIdArray" },
+        "contradictingEvidenceIds": { "$ref": "#/$defs/evidenceIdArray" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "value": { "const": "UNKNOWN" } }, "required": ["value"] },
+          "then": {
+            "properties": {
+              "achievementLevel": { "const": "NOT_STARTED" },
+              "freshness": { "const": "UNKNOWN" },
+              "confidence": { "type": "null" },
+              "lastMeaningfulEvidenceAt": { "type": "null" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "value": { "const": "KNOWN" } }, "required": ["value"] },
+          "then": {
+            "properties": {
+              "freshness": { "enum": ["FRESH", "STALE"] },
+              "confidence": { "$ref": "#/$defs/confidence" },
+              "lastMeaningfulEvidenceAt": { "$ref": "#/$defs/instant" }
+            }
+          }
+        }
+      ]
+    },
+    "uuid": { "type": "string", "format": "uuid" },
+    "instant": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "nullableInstant": {
+      "oneOf": [{ "$ref": "#/$defs/instant" }, { "type": "null" }]
+    },
+    "positiveBigint": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" },
+    "nonNegativeBigint": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$" },
+    "readinessGoalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "profileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "competencyRef": {
+      "type": "string",
+      "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "ruleKey": { "type": "string", "pattern": "^rule:[a-z0-9][a-z0-9-]{1,100}$" },
+    "ruleKeyArray": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1000,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/ruleKey" }
+    },
+    "dimension": {
+      "enum": ["KNOWLEDGE", "RECALL", "APPLICATION", "INTERVIEW_EXECUTION"]
+    },
+    "requiredLevel": { "enum": ["COMPLETED", "VERIFIED", "MASTERED"] },
+    "freshness": { "enum": ["FRESH", "STALE", "UNKNOWN"] },
+    "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] },
+    "nullableConfidence": {
+      "oneOf": [{ "$ref": "#/$defs/confidence" }, { "type": "null" }]
+    },
+    "unitInterval": { "type": "number", "minimum": 0, "maximum": 1 },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^readiness-input:[a-f0-9]{64}$"
+    },
+    "readinessStatus": {
+      "enum": ["NOT_READY", "INSUFFICIENT_EVIDENCE", "READY", "DEVELOPING"]
+    },
+    "explanationCode": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,127}$"
+    },
+    "witnessMemberKey": {
+      "type": "string",
+      "maxLength": 350,
+      "pattern": "^(?:RULE:rule:[a-z0-9][a-z0-9-]{1,100}|NODE:competency:[a-z0-9][a-z0-9-]{1,100}:(?:KNOWLEDGE|RECALL|APPLICATION|INTERVIEW_EXECUTION):(?:COMPLETED|VERIFIED|MASTERED))$"
+    },
+    "evidenceIdArray": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/uuid" }
+    }
+  }
+}

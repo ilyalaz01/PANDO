@@ -11,9 +11,14 @@ import { ExploreWorkspace } from "../../ui/explore/explore-workspace";
 import styles from "../../ui/explore/explore.module.css";
 import { loadCurrentDatabaseExploreSourceV1 } from "../../ui/explore/server/database-current-explore-source";
 import { loadDatabaseExploreTargetContextV1 } from "../../ui/explore/server/database-explore-target-context";
+import { loadDatabaseTargetReadinessV1 } from "../../ui/explore/server/database-target-readiness";
+import { composeTargetReadinessView } from "../../ui/explore/server/compose-target-readiness-view";
 import { materializeLiveExploreStructure } from "../../ui/explore/server/materialize-live-explore-structure";
 import { toExploreStructuralProjectionView } from "../../ui/explore/server/structural-projection-view";
-import type { ExploreStructuralProjectionView } from "../../ui/explore/types";
+import type {
+  ExploreStructuralProjectionView,
+  ExploreTargetReadinessView,
+} from "../../ui/explore/types";
 import { SkipLink } from "../../ui/primitives/skip-link";
 
 export const dynamic = "force-dynamic";
@@ -82,6 +87,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
   const selectedActivityKey = oneValue(query.activity) ?? null;
   const ambiguousSelector = Array.isArray(query.goal) || Array.isArray(query.activity);
   let projection: ExploreStructuralProjectionView | undefined;
+  let targetReadiness: ExploreTargetReadinessView | null = null;
   let initialSelectedNodeId: string | undefined;
   if (client !== undefined && readinessGoalKey !== undefined && !ambiguousSelector) {
     try {
@@ -106,6 +112,14 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
         throw new Error("Selected activity is absent from the correlated Explore view.");
       }
       projection = view;
+      try {
+        targetReadiness = composeTargetReadinessView(
+          await loadDatabaseTargetReadinessV1(client, { readinessGoalKey }),
+          view,
+        );
+      } catch {
+        targetReadiness = null;
+      }
     } catch {
       projection = undefined;
     }
@@ -148,6 +162,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
               key={initialSelectedNodeId ?? projection.projectionId}
               projection={projection}
               readinessGoalKey={readinessGoalKey}
+              targetReadiness={targetReadiness}
               {...(initialSelectedNodeId === undefined ? {} : { initialSelectedNodeId })}
             />
           </>

@@ -4,7 +4,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import type { ComponentType } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { ExploreGraphProjectionView } from "./types";
+import type { ExploreGraphProjectionView, ExploreTargetReadinessView } from "./types";
 
 interface MockFlowNode {
   id: string;
@@ -68,6 +68,47 @@ import { chooseViewFocus, ExploreWorkspace, nextNodeId } from "./explore-workspa
 import { composeExploreProjection } from "./server/compose-graph-projection";
 
 const projection = composeExploreProjection(fixture);
+const targetReadiness: ExploreTargetReadinessView = {
+  state: "CURRENT",
+  message: "Current readiness.",
+  profileVersionKey: "target:test",
+  calculatedAt: "2026-08-28T10:00:00.000Z",
+  snapshot: {
+    status: "DEVELOPING",
+    lower: 0.5,
+    upper: 0.7,
+    coverage: 0.8,
+    confidence: "MEDIUM",
+    blockers: [{ code: "MANDATORY_FLOOR_FAILED", title: "Graph traversal" }],
+    gaps: [
+      {
+        gapKey: "gap:graph",
+        title: "Graph traversal",
+        gapCode: "KNOWN_SHORTFALL",
+        competencyRef: "competency:algorithms-graph-traversal",
+        dimension: "APPLICATION",
+        requiredLevel: "VERIFIED",
+        freshness: "STALE",
+        outlineNodeId: "node:competency:algorithms-graph-traversal",
+        evidenceRefs: [],
+        evidenceRefCount: 0,
+      },
+    ],
+    domains: [
+      {
+        domainNodeId: "node:domain:algorithms",
+        title: "Algorithms",
+        catalogVersionKey: "catalog:test",
+        overlayRevision: "1",
+        requiredCount: 1,
+        knownCount: 1,
+        unknownCount: 0,
+        staleCount: 1,
+        mandatoryFloorBlockerCount: 1,
+      },
+    ],
+  },
+};
 
 function withoutNode(
   source: ExploreGraphProjectionView,
@@ -308,6 +349,63 @@ describe("ExploreWorkspace", () => {
     fireEvent.click(screen.getByRole("button", { name: /Graph traversal, competency/u }));
     fireEvent.click(screen.getByRole("button", { name: "Discard draft and open selection" }));
     expect(screen.getByRole("heading", { level: 2, name: "Graph traversal" })).toBeVisible();
+  });
+
+  it("opens a readiness gap in Outline and focuses its exact roving button", () => {
+    render(
+      <ExploreWorkspace
+        projection={projection}
+        readinessGoalKey="goal:test-fixture"
+        targetReadiness={targetReadiness}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Inspect Graph traversal" }));
+    const outlineNode = screen
+      .getAllByRole("button", { name: /Graph traversal, competency/ })
+      .find((button) => button.getAttribute("data-explore-view") === "outline")!;
+    expect(outlineNode).toHaveFocus();
+    expect(outlineNode).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("keeps a dirty draft until discard, then performs the readiness Outline focus action", () => {
+    render(
+      <ExploreWorkspace
+        projection={projection}
+        readinessGoalKey="goal:test-fixture"
+        targetReadiness={targetReadiness}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Complexity analysis, competency/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Mark draft dirty" }));
+    fireEvent.click(screen.getByRole("button", { name: "Inspect Graph traversal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Keep editing" }));
+    expect(screen.getByRole("heading", { level: 2, name: "Complexity analysis" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Inspect Graph traversal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Discard draft and open selection" }));
+    expect(
+      screen
+        .getAllByRole("button", { name: /Graph traversal, competency/ })
+        .find((button) => button.getAttribute("data-explore-view") === "outline"),
+    ).toHaveFocus();
+  });
+
+  it("keeps the last safe explanatory breakdown visible without stale numeric readiness", () => {
+    const staleReadiness = structuredClone(targetReadiness);
+    staleReadiness.state = "STALE";
+    staleReadiness.message = "Readiness is stale.";
+
+    render(
+      <ExploreWorkspace
+        projection={projection}
+        readinessGoalKey="goal:test-fixture"
+        targetReadiness={staleReadiness}
+      />,
+    );
+
+    expect(screen.queryByLabelText("Current readiness")).not.toBeInTheDocument();
+    expect(screen.getByText(/last safe breakdown/iu)).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Readiness blockers" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Inspect Graph traversal" })).toBeVisible();
   });
 
   it.each([

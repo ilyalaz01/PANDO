@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   invalidate: vi.fn(),
   dispatch: vi.fn(),
   dispatchReview: vi.fn(),
+  dispatchReadiness: vi.fn(),
   revalidate: vi.fn(),
 }));
 const classes = vi.hoisted(() => ({
@@ -25,6 +26,9 @@ vi.mock("../../modules/mastery/application/dispatch-evidence-projection", () => 
 }));
 vi.mock("../../modules/review/application/dispatch-review-projection", () => ({
   dispatchReviewItemProjectionIfConfigured: mocks.dispatchReview,
+}));
+vi.mock("../../modules/targets/application/dispatch-target-readiness-projection", () => ({
+  dispatchTargetReadinessProjectionIfConfigured: mocks.dispatchReadiness,
 }));
 vi.mock("../../ui/focus/server/database-focus-workspace", () => ({
   startFocusActivityV1: mocks.start,
@@ -77,6 +81,12 @@ describe("Focus Server Actions", () => {
       completed: 0,
       retried: 0,
     });
+    mocks.dispatchReadiness.mockResolvedValue({
+      configured: false,
+      claimed: 0,
+      completed: 0,
+      retried: 0,
+    });
   });
 
   it("starts only with goal, activity, bounded duration, and a derived idempotency key", async () => {
@@ -113,6 +123,8 @@ describe("Focus Server Actions", () => {
     });
     expect(mocks.dispatch).toHaveBeenCalledTimes(1);
     expect(mocks.dispatchReview).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchReadiness).toHaveBeenCalledTimes(1);
+    expect(mocks.revalidate).toHaveBeenCalledWith("/explore");
   });
 
   it("keeps completion-only and stop outside evidence projection", async () => {
@@ -128,6 +140,7 @@ describe("Focus Server Actions", () => {
     });
     expect(mocks.dispatch).not.toHaveBeenCalled();
     expect(mocks.dispatchReview).not.toHaveBeenCalled();
+    expect(mocks.dispatchReadiness).not.toHaveBeenCalled();
 
     mocks.finish.mockResolvedValueOnce({ state: "stopped", evidenceId: null });
     await expect(stopFocusAction(initialFocusActionState, baseForm())).resolves.toEqual({
@@ -155,6 +168,7 @@ describe("Focus Server Actions", () => {
     });
     expect(mocks.dispatch).toHaveBeenCalledTimes(1);
     expect(mocks.dispatchReview).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchReadiness).toHaveBeenCalledTimes(1);
   });
 
   it("rejects malformed action input and collapses private errors", async () => {

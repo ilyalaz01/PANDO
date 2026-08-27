@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   verifySession: vi.fn(),
   ensureWorkspace: vi.fn(),
   selectTarget: vi.fn(),
+  dispatchReadiness: vi.fn(),
   redirect: vi.fn(),
 }));
 const classes = vi.hoisted(() => ({
@@ -16,6 +17,9 @@ vi.mock("../../shared/supabase/server", () => ({
   createPandoServerActionClient: mocks.createClient,
 }));
 vi.mock("../../shared/supabase/session", () => ({ verifyPandoSession: mocks.verifySession }));
+vi.mock("../../modules/targets/application/dispatch-target-readiness-projection", () => ({
+  dispatchTargetReadinessProjectionIfConfigured: mocks.dispatchReadiness,
+}));
 vi.mock("../../ui/start/server/database-target-selection", () => ({
   ensurePersonalWorkspace: mocks.ensureWorkspace,
   selectTargetProfile: mocks.selectTarget,
@@ -38,6 +42,9 @@ describe("start Server Actions", () => {
     mocks.verifySession.mockReset().mockResolvedValue({ client, subject: "owner-subject" });
     mocks.ensureWorkspace.mockReset().mockResolvedValue({ workspace: {} });
     mocks.selectTarget.mockReset();
+    mocks.dispatchReadiness
+      .mockReset()
+      .mockResolvedValue({ configured: false, claimed: 0, completed: 0, retried: 0 });
     client.auth.getClaims.mockReset().mockResolvedValue({ data: { claims: {} }, error: null });
     client.auth.signOut.mockReset().mockResolvedValue({ error: null });
     mocks.redirect.mockReset().mockImplementation((path: string) => {
@@ -86,6 +93,7 @@ describe("start Server Actions", () => {
     await expect(selectTargetAction(initialStartActionState, form)).rejects.toThrow(
       "NEXT_REDIRECT:/start?goal=goal%3Asafe%3Fnext%3Dhttps%3A%2F%2Fevil.test",
     );
+    expect(mocks.dispatchReadiness).toHaveBeenCalledTimes(1);
   });
 
   it("clears only the local session and reports cookie-write failure without claiming success", async () => {

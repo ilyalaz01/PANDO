@@ -26,13 +26,16 @@ select is(
     'overlay.personal_edges',
     'overlay.positions',
     'overlay.workspace_overlays',
+    'targets.current_readiness_snapshots',
     'targets.readiness_goals',
+    'targets.readiness_snapshot_inputs',
+    'targets.readiness_snapshots',
     'targets.target_profile_series',
     'targets.target_profile_versions',
     'targets.target_requirement_members',
     'targets.target_requirement_rules'
   ]::text[],
-  'Catalog, Targets, and Overlay contain exactly the Phase 1 authoritative tables'
+  'Catalog, Targets, and Overlay contain exactly the current authoritative tables'
 );
 
 select ok(

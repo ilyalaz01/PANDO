@@ -1,0 +1,27 @@
+{
+  "contract": { "name": "PlanningReadinessInputV1", "version": "1.0.0" },
+  "availability": "CURRENT",
+  "reason": null,
+  "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:python-readiness",
+  "snapshot": {
+    "snapshotId": "40000000-0000-4000-8000-000000000001",
+    "profileVersionId": "30000000-0000-4000-8000-000000000001",
+    "profileVersionKey": "target:python-verification-v1",
+    "projectionVersion": "7",
+    "inputFingerprint": "readiness-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "sourceEvidenceWatermark": "42",
+    "calculatedAsOf": "2026-08-28T09:00:00.000Z",
+    "validUntil": "2026-08-29T09:00:00.000Z",
+    "engineVersion": "readiness-engine/0.1.0",
+    "policyVersion": "mastery-readiness-policy/0.1",
+    "status": "DEVELOPING",
+    "lower": 0.2,
+    "upper": 0.8,
+    "coverage": 0.5,
+    "confidence": "MEDIUM",
+    "blockers": [],
+    "gaps": [],
+    "supportingEvidenceIds": ["50000000-0000-4000-8000-000000000001"]
+  }
+}

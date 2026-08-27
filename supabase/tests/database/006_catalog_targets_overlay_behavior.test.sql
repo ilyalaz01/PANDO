@@ -218,10 +218,16 @@ select is(jsonb_array_length((select response->'positions' from phase1_results w
 
 select is((select count(*) from targets.readiness_goals),3::bigint,'two Alice goals and one Bob goal persist as separate Targets aggregates');
 select is((select count(*) from overlay.positions where workspace_id=(select workspace_id from phase1_workspaces where name='alice-bootstrap')),1::bigint,'only alternate-goal position remains after main reset');
+select is((
+  select count(*) from outbox.deliveries delivery join outbox.events event on event.event_id=delivery.event_id
+  where event.event_name='targets.readiness_goal_created'
+    and delivery.consumer_name='targets.readiness_projection_v1'
+    and delivery.handler_contract_version=1
+),3::bigint,'each Phase 1 Target event now enqueues one fixed readiness projection delivery');
 select ok(not exists(
   select 1 from outbox.deliveries delivery join outbox.events event on event.event_id=delivery.event_id
-  where event.event_name in ('targets.readiness_goal_created','overlay.note_saved','overlay.custom_activity_added','overlay.position_set','overlay.position_reset')
-),'Phase 1 Target and Overlay events intentionally enqueue zero deliveries without a real consumer');
+  where event.event_name in ('overlay.note_saved','overlay.custom_activity_added','overlay.position_set','overlay.position_reset')
+),'Phase 1 Overlay events still enqueue zero deliveries without a real consumer');
 select is((select count(*) from outbox.events where event_name='targets.readiness_goal_created'),3::bigint,'each readiness goal creates one immutable Target event');
 select is((select count(*) from outbox.events where event_name='overlay.position_set'),2::bigint,'two goal-scoped position commands create two events');
 select is((select count(*) from outbox.events where event_name='overlay.position_reset'),1::bigint,'one actual reset creates one event');

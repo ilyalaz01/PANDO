@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 
+import { dispatchTargetReadinessProjectionIfConfigured } from "../../modules/targets/application/dispatch-target-readiness-projection";
 import { createPandoServerActionClient } from "../../shared/supabase/server";
 import { verifyPandoSession } from "../../shared/supabase/session";
 import type { StartActionState } from "../../ui/start/start-action-state";
@@ -42,6 +43,7 @@ export async function selectTargetAction(
     const session = await verifyPandoSession(client);
     const goal = await selectTargetProfile(session.client, profileVersionKey);
     readinessGoalKey = goal.readinessGoalKey;
+    await dispatchTargetReadinessProjectionIfConfigured();
   } catch (error) {
     if (error instanceof TargetSelectionInputError) {
       return {

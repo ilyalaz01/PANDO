@@ -144,6 +144,39 @@ async function waitForHttp(url, child) {
   throw new Error("PANDO auth gate server did not become ready");
 }
 
+async function loadCurrentTargetReadiness({
+  client,
+  baseUrl,
+  dispatchSecret,
+  readinessGoalKey,
+  label,
+}) {
+  const dispatches = [];
+  let result = await client.rpc("get_target_readiness_v1", {
+    p_readiness_goal_key: readinessGoalKey,
+  });
+  assert.equal(result.error, null, `${label} readiness must load`);
+  for (let attempt = 0; attempt < 2 && result.data?.projectionState !== "CURRENT"; attempt += 1) {
+    if (attempt > 0) await new Promise((resolveWait) => setTimeout(resolveWait, 6_000));
+    const response = await fetch(`${baseUrl}/api/internal/target-readiness`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${dispatchSecret}` },
+    });
+    assert.equal(response.status, 200, `${label} readiness recovery wake-up must succeed`);
+    dispatches.push(await response.json());
+    result = await client.rpc("get_target_readiness_v1", {
+      p_readiness_goal_key: readinessGoalKey,
+    });
+    assert.equal(result.error, null, `${label} recovered readiness must load`);
+  }
+  assert.equal(
+    result.data?.projectionState,
+    "CURRENT",
+    `${label} readiness must become current; dispatches=${JSON.stringify(dispatches)} state=${JSON.stringify(result.data)}`,
+  );
+  return result.data;
+}
+
 function requireStatusValue(status, key) {
   const value = status[key];
   if (typeof value !== "string" || value.length < 1) {
@@ -416,6 +449,30 @@ try {
     "an identical browser retry must reuse the derived readiness goal",
   );
 
+  const readinessVerifier = createClient(apiUrl, publishableKey, {
+    db: { schema: "api" },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const readinessVerifierSignIn = await readinessVerifier.auth.signInWithPassword({
+    email: ownerEmail,
+    password: ownerPassword,
+  });
+  assert.equal(readinessVerifierSignIn.error, null, "readiness verifier login must succeed");
+  const readinessGoalKey = "goal:nvidia-python-verification-base-v1";
+  const initialReadiness = await loadCurrentTargetReadiness({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    readinessGoalKey,
+    label: "initial Unknown",
+  });
+  assert.equal(initialReadiness.snapshot?.status, "INSUFFICIENT_EVIDENCE");
+  assert.equal(initialReadiness.snapshot?.coverage, 0, "Unknown inputs must not invent coverage");
+  assert.ok(
+    initialReadiness.inputs?.every((input) => input.value === "UNKNOWN"),
+    "a new goal must preserve every evidence-free input as Unknown",
+  );
+
   await Promise.all([
     page.waitForURL(/\/explore\?goal=/u),
     page.getByRole("link", { name: "Explore this target" }).click(),
@@ -426,7 +483,12 @@ try {
     "live Explore must preserve the exact selected readiness goal",
   );
   await page.getByRole("heading", { name: "See the roots beneath your next move." }).waitFor();
-  await page.getByText("Projection state · Not materialized").waitFor();
+  await page.getByText("Readiness · CURRENT").waitFor();
+  assert.equal(
+    await page.getByText("≈0%").count(),
+    0,
+    "low-coverage Unknown readiness must not be shown as a point estimate",
+  );
   assert.ok(
     (await page.locator('[data-explore-view="map"]').count()) > 0,
     "live Explore must render the authorized target structure",
@@ -436,6 +498,35 @@ try {
     0,
     "production Explore must never substitute the representative fixture",
   );
+
+  const inspectGap = page.getByRole("button", { name: /^Inspect /u }).first();
+  await inspectGap.waitFor();
+  await inspectGap.click();
+  const selectedOutlineGap = page.locator('[data-explore-view="outline"][aria-pressed="true"]');
+  await selectedOutlineGap.waitFor();
+  assert.equal(
+    await selectedOutlineGap.count(),
+    1,
+    "an Explore readiness gap must select exactly one Outline competency",
+  );
+  assert.equal(
+    await selectedOutlineGap.evaluate((element) => document.activeElement === element),
+    true,
+    "an Explore readiness gap must move keyboard focus to its selected Outline competency",
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const readinessMobileAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  assert.deepEqual(
+    readinessMobileAccessibility.violations,
+    [],
+    "authenticated mobile Explore readiness must pass axe",
+  );
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.getByRole("button", { name: "Map" }).click();
 
   const competencyButton = page.getByRole("button", { name: /Error handling, competency/u });
   await competencyButton.click();
@@ -539,6 +630,26 @@ try {
   const evidenceId = focusAfterCompletion.data?.history?.[0]?.evidenceId;
   assert.match(evidenceId ?? "", /^[0-9a-f-]{36}$/u, "completion must persist evidence");
 
+  const readinessAfterCompletion = await loadCurrentTargetReadiness({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    readinessGoalKey,
+    label: "post-evidence",
+  });
+  const completedReadinessInput = readinessAfterCompletion.inputs?.find(
+    (input) =>
+      input.competencyRef === "competency:python-error-handling" &&
+      input.dimension === "APPLICATION",
+  );
+  assert.equal(completedReadinessInput?.value, "KNOWN");
+  assert.equal(completedReadinessInput?.achievementLevel, "COMPLETED");
+  assert.notEqual(
+    readinessAfterCompletion.snapshot?.inputFingerprint,
+    initialReadiness.snapshot?.inputFingerprint,
+    "new evidence must publish a new readiness input generation",
+  );
+
   const reviewRecoveryResponse = await fetch(`${baseUrl}/api/internal/review-projection`, {
     method: "POST",
     headers: { Authorization: `Bearer ${internalDispatchSecret}` },
@@ -621,6 +732,21 @@ try {
     "invalidation must preserve the original evidence identifier",
   );
   assert.equal(focusAfterInvalidation.data?.history?.[0]?.evidenceValid, false);
+
+  const readinessAfterInvalidation = await loadCurrentTargetReadiness({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    readinessGoalKey,
+    label: "post-invalidation",
+  });
+  const invalidatedReadinessInput = readinessAfterInvalidation.inputs?.find(
+    (input) =>
+      input.competencyRef === "competency:python-error-handling" &&
+      input.dimension === "APPLICATION",
+  );
+  assert.equal(invalidatedReadinessInput?.value, "UNKNOWN");
+  assert.equal(invalidatedReadinessInput?.achievementLevel, "NOT_STARTED");
 
   const invalidationReviewRecovery = await fetch(`${baseUrl}/api/internal/review-projection`, {
     method: "POST",

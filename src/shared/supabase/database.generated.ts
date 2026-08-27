@@ -77,6 +77,21 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      claim_target_readiness_projection_v1: {
+        Args: never
+        Returns: {
+          attempt_count: number
+          delivery_id: string
+          event_id: string
+          event_name: string
+          event_position: number
+          event_schema_version: number
+          lease_expires_at: string
+          lease_token: string
+          payload: Json
+          workspace_id: string
+        }[]
+      }
       complete_mastery_evidence_projection_v1: {
         Args: {
           p_delivery_id: string
@@ -101,6 +116,15 @@ export type Database = {
           p_expected_event_position: number
           p_lease_token: string
           p_subjects: Json
+        }
+        Returns: boolean
+      }
+      complete_target_readiness_projection_v1: {
+        Args: {
+          p_delivery_id: string
+          p_expected_event_position: number
+          p_lease_token: string
+          p_results: Json
         }
         Returns: boolean
       }
@@ -151,6 +175,15 @@ export type Database = {
         }
         Returns: string
       }
+      fail_target_readiness_projection_v1: {
+        Args: {
+          p_delivery_id: string
+          p_error_code: string
+          p_failure_class: string
+          p_lease_token: string
+        }
+        Returns: string
+      }
       finish_focus_activity_v1: {
         Args: {
           p_expected_version: number
@@ -174,6 +207,10 @@ export type Database = {
         Args: { p_readiness_goal_key: string; p_selected_activity_key?: string }
         Returns: Json
       }
+      get_current_planning_readiness_input_v1: {
+        Args: { p_readiness_goal_key: string }
+        Returns: Json
+      }
       get_explore_target_context_v1: {
         Args: { p_readiness_goal_key: string }
         Returns: Json
@@ -193,6 +230,11 @@ export type Database = {
         Args: { p_profile_version_key: string; p_workspace_id: string }
         Returns: Json
       }
+      get_target_readiness_projection_health_v1: { Args: never; Returns: Json }
+      get_target_readiness_v1: {
+        Args: { p_readiness_goal_key: string }
+        Returns: Json
+      }
       get_target_selection_source_v1: { Args: never; Returns: Json }
       get_workspace: { Args: { p_workspace_id: string }; Returns: Json }
       invalidate_evidence_v1: {
@@ -208,6 +250,10 @@ export type Database = {
         Returns: Json
       }
       load_review_item_projection_v1: {
+        Args: { p_delivery_id: string; p_lease_token: string }
+        Returns: Json
+      }
+      load_target_readiness_projection_v1: {
         Args: { p_delivery_id: string; p_lease_token: string }
         Returns: Json
       }

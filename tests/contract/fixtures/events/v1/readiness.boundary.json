@@ -1,0 +1,11 @@
+{
+  "event_name": "targets.readiness_refresh_scheduled",
+  "event_schema_version": 1,
+  "workspace_id": "10000000-0000-4000-8000-000000000001",
+  "payload": {
+    "readiness_goal_id": "20000000-0000-4000-8000-000000000001",
+    "source_snapshot_id": "40000000-0000-4000-8000-000000000001",
+    "scheduled_for": "2026-08-29T09:00:00.001Z",
+    "input_fingerprint": "readiness-input:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+  }
+}

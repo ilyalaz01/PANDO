@@ -35,6 +35,7 @@ vi.mock("../../ui/explore/explore-workspace", () => ({
     projection: { nodes: unknown[] };
     readinessGoalKey: string;
     initialSelectedNodeId?: string;
+    targetReadiness?: unknown;
   }) => {
     mocks.renderWorkspace(props);
     return <div data-testid="explore-workspace">{props.projection.nodes.length} live nodes</div>;
@@ -107,6 +108,7 @@ describe("live Explore page", () => {
     expect(mocks.renderWorkspace).toHaveBeenCalledWith({
       projection: view,
       readinessGoalKey: "goal:personal-main",
+      targetReadiness: null,
     });
     expect(screen.queryByText(/Representative Phase 0 fixture/iu)).not.toBeInTheDocument();
   });
@@ -129,6 +131,7 @@ describe("live Explore page", () => {
       projection: view,
       readinessGoalKey: "goal:personal-main",
       initialSelectedNodeId: "node:opaque:selected-activity",
+      targetReadiness: null,
     });
   });
 

@@ -1,0 +1,35 @@
+{
+  "contract": { "name": "TargetReadinessV1", "version": "1.0.0" },
+  "asOf": "2026-08-29T09:00:00.000Z",
+  "projectionState": "CURRENT",
+  "stateReason": null,
+  "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:python-readiness",
+  "readinessGoalLifecycle": "active",
+  "readinessGoalAggregateVersion": "9999999999999999999",
+  "profile": {
+    "profileVersionId": "30000000-0000-4000-8000-000000000001",
+    "profileVersionKey": "target:python-verification-v1",
+    "catalogVersionId": "31000000-0000-4000-8000-000000000001"
+  },
+  "projectionVersion": "9999999999999999999",
+  "validUntil": "2026-08-29T09:00:00.000Z",
+  "snapshot": {
+    "snapshotId": "40000000-0000-4000-8000-000000000001",
+    "inputFingerprint": "readiness-input:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "sourceEvidenceWatermark": "0",
+    "calculatedAsOf": "2026-08-28T09:00:00.000Z",
+    "engineVersion": "readiness-engine/0.1.0",
+    "policyVersion": "mastery-readiness-policy/0.1",
+    "status": "INSUFFICIENT_EVIDENCE",
+    "lower": 0,
+    "upper": 1,
+    "coverage": 0,
+    "confidence": "LOW",
+    "blockers": [],
+    "ruleEvaluations": [],
+    "explanationCodes": ["STATUS_INSUFFICIENT_EVIDENCE"]
+  },
+  "gaps": [],
+  "inputs": []
+}

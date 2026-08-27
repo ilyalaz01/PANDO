@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/events/v1/readiness-event.schema.json",
+  "title": "PANDO Target Readiness Event V1",
+  "oneOf": [
+    { "$ref": "#/$defs/projectionChanged" },
+    { "$ref": "#/$defs/refreshScheduled" }
+  ],
+  "$defs": {
+    "projectionChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "targets.readiness_projection_changed" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "type": "string", "format": "uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "readiness_goal_id",
+            "profile_version_id",
+            "snapshot_id",
+            "projection_version",
+            "input_fingerprint",
+            "source_evidence_watermark",
+            "calculated_as_of",
+            "status",
+            "lower",
+            "upper",
+            "confidence",
+            "engine_version",
+            "policy_version"
+          ],
+          "properties": {
+            "readiness_goal_id": { "$ref": "#/$defs/uuid" },
+            "profile_version_id": { "$ref": "#/$defs/uuid" },
+            "snapshot_id": { "$ref": "#/$defs/uuid" },
+            "projection_version": { "$ref": "#/$defs/positiveBigint" },
+            "input_fingerprint": { "$ref": "#/$defs/inputFingerprint" },
+            "source_evidence_watermark": { "$ref": "#/$defs/nonNegativeBigint" },
+            "calculated_as_of": { "$ref": "#/$defs/instant" },
+            "status": { "$ref": "#/$defs/readinessStatus" },
+            "lower": { "$ref": "#/$defs/unitInterval" },
+            "upper": { "$ref": "#/$defs/unitInterval" },
+            "confidence": { "$ref": "#/$defs/confidence" },
+            "engine_version": { "const": "readiness-engine/0.1.0" },
+            "policy_version": { "const": "mastery-readiness-policy/0.1" }
+          }
+        }
+      }
+    },
+    "refreshScheduled": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "targets.readiness_refresh_scheduled" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "type": "string", "format": "uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "readiness_goal_id",
+            "source_snapshot_id",
+            "scheduled_for",
+            "input_fingerprint"
+          ],
+          "properties": {
+            "readiness_goal_id": { "$ref": "#/$defs/uuid" },
+            "source_snapshot_id": { "$ref": "#/$defs/uuid" },
+            "scheduled_for": { "$ref": "#/$defs/instant" },
+            "input_fingerprint": { "$ref": "#/$defs/inputFingerprint" }
+          }
+        }
+      }
+    },
+    "uuid": { "type": "string", "format": "uuid" },
+    "positiveBigint": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" },
+    "nonNegativeBigint": { "type": "string", "pattern": "^(0|[1-9][0-9]{0,18})$" },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^readiness-input:[a-f0-9]{64}$"
+    },
+    "instant": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "unitInterval": { "type": "number", "minimum": 0, "maximum": 1 },
+    "readinessStatus": {
+      "enum": ["NOT_READY", "INSUFFICIENT_EVIDENCE", "READY", "DEVELOPING"]
+    },
+    "confidence": { "enum": ["LOW", "MEDIUM", "HIGH"] }
+  }
+}

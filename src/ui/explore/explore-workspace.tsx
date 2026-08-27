@@ -6,11 +6,13 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 
 import styles from "./explore.module.css";
 import { CompetencyOverlayInspector } from "./competency-overlay-inspector";
+import { TargetReadinessPanel } from "./target-readiness-panel";
 import { ExploreMapNode, nodeTypeLabel, type ExploreNodeInteraction } from "./explore-map-node";
 import { buildReactFlowElements } from "./react-flow-adapter";
 import type {
   ExploreOutlineItem,
   ExploreProjectionCalculationState,
+  ExploreTargetReadinessView,
   ExploreWorkspaceProjectionView,
 } from "./types";
 
@@ -129,12 +131,14 @@ export interface ExploreWorkspaceProps {
   readonly projection: ExploreWorkspaceProjectionView;
   readonly readinessGoalKey: string;
   readonly initialSelectedNodeId?: string;
+  readonly targetReadiness?: ExploreTargetReadinessView | null;
 }
 
 export function ExploreWorkspace({
   projection,
   readinessGoalKey,
   initialSelectedNodeId: requestedInitialSelectedNodeId,
+  targetReadiness,
 }: ExploreWorkspaceProps) {
   const orderedNodes = useMemo(() => sortByKeyboardOrder(projection.nodes), [projection.nodes]);
   const orderedNodeIds = useMemo(() => orderedNodes.map((node) => node.nodeId), [orderedNodes]);
@@ -171,6 +175,7 @@ export function ExploreWorkspace({
   const [pendingSelection, setPendingSelection] = useState<{
     nodeId: string;
     view: ExploreView;
+    switchToOutline?: boolean;
   } | null>(null);
   const restoreFocusRef = useRef(false);
   const workspaceRef = useRef<HTMLDivElement>(null);
@@ -233,6 +238,19 @@ export function ExploreWorkspace({
   const selectOutlineNode = useCallback(
     (nodeId: string) => requestSelection(nodeId, "outline"),
     [requestSelection],
+  );
+  const inspectReadinessGap = useCallback(
+    (nodeId: string) => {
+      if (dirtyInspectorRef !== null && nodeId !== selectedNodeId) {
+        setPendingSelection({ nodeId, view: "outline", switchToOutline: true });
+        return;
+      }
+      restoreFocusRef.current = true;
+      setOutlineFocusedNodeId(nodeId);
+      setSelectedNodeId(nodeId);
+      setView("outline");
+    },
+    [dirtyInspectorRef, selectedNodeId],
   );
   const handleDirtyChange = useCallback((inspectorRef: string, dirty: boolean) => {
     setDirtyInspectorRef((current) => {
@@ -332,56 +350,60 @@ export function ExploreWorkspace({
 
   return (
     <div ref={workspaceRef} className={styles.workspace} data-explore-interactive="false">
-      <section className={styles.readiness} aria-labelledby="readiness-title">
-        <div>
-          <p className={styles.eyebrow}>
-            Projection state · {projectionStateLabels[calculationState]}
-          </p>
-          <h2 id="readiness-title">
-            {calculationState === "NOT_MATERIALIZED"
-              ? "Mastery and readiness are not calculated yet"
-              : readinessNotApplicable
-                ? "Choose a target to calculate readiness"
-                : projection.readiness?.status.replaceAll("_", " ")}
-          </h2>
+      {targetReadiness !== undefined ? (
+        <TargetReadinessPanel readiness={targetReadiness} onInspectGap={inspectReadinessGap} />
+      ) : (
+        <section className={styles.readiness} aria-labelledby="readiness-title">
+          <div>
+            <p className={styles.eyebrow}>
+              Projection state · {projectionStateLabels[calculationState]}
+            </p>
+            <h2 id="readiness-title">
+              {calculationState === "NOT_MATERIALIZED"
+                ? "Mastery and readiness are not calculated yet"
+                : readinessNotApplicable
+                  ? "Choose a target to calculate readiness"
+                  : projection.readiness?.status.replaceAll("_", " ")}
+            </h2>
+            {showCurrentMetrics || showStaleMetrics ? (
+              <p>{projection.readiness?.displayLabel}</p>
+            ) : null}
+            <p className={styles.projectionExplanation}>{projection.projectionState.explanation}</p>
+          </div>
           {showCurrentMetrics || showStaleMetrics ? (
-            <p>{projection.readiness?.displayLabel}</p>
-          ) : null}
-          <p className={styles.projectionExplanation}>{projection.projectionState.explanation}</p>
-        </div>
-        {showCurrentMetrics || showStaleMetrics ? (
-          <dl
-            className={styles.readinessMetrics}
-            aria-label={showStaleMetrics ? "Last calculated readiness" : "Current readiness"}
-          >
-            <div>
-              <dt>{showStaleMetrics ? "Last interval" : "Interval"}</dt>
-              <dd>
-                {percentage(projection.readiness?.estimate.lower ?? 0)}–
-                {percentage(projection.readiness?.estimate.upper ?? 0)}
-              </dd>
-            </div>
-            <div>
-              <dt>{showStaleMetrics ? "Last coverage" : "Coverage"}</dt>
-              <dd>{percentage(projection.readiness?.coverage ?? 0)}</dd>
-            </div>
-            <div>
-              <dt>{showStaleMetrics ? "Last confidence" : "Confidence"}</dt>
-              <dd>{projection.readiness?.confidence}</dd>
-            </div>
-          </dl>
-        ) : (
-          <p className={styles.projectionNotice}>
-            {calculationState === "NOT_MATERIALIZED"
-              ? "The live target structure is available. Evidence-derived states will appear after the calculation boundary is materialized."
-              : readinessNotApplicable
-                ? "Start by choosing a target. Readiness is not calculated without one."
-                : calculationState === "REBUILDING"
-                  ? "Readiness is being rebuilt. No result is presented as current."
-                  : "Readiness could not be calculated. No result is presented as current."}
-          </p>
-        )}
-      </section>
+            <dl
+              className={styles.readinessMetrics}
+              aria-label={showStaleMetrics ? "Last calculated readiness" : "Current readiness"}
+            >
+              <div>
+                <dt>{showStaleMetrics ? "Last interval" : "Interval"}</dt>
+                <dd>
+                  {percentage(projection.readiness?.estimate.lower ?? 0)}–
+                  {percentage(projection.readiness?.estimate.upper ?? 0)}
+                </dd>
+              </div>
+              <div>
+                <dt>{showStaleMetrics ? "Last coverage" : "Coverage"}</dt>
+                <dd>{percentage(projection.readiness?.coverage ?? 0)}</dd>
+              </div>
+              <div>
+                <dt>{showStaleMetrics ? "Last confidence" : "Confidence"}</dt>
+                <dd>{projection.readiness?.confidence}</dd>
+              </div>
+            </dl>
+          ) : (
+            <p className={styles.projectionNotice}>
+              {calculationState === "NOT_MATERIALIZED"
+                ? "The live target structure is available. Evidence-derived states will appear after the calculation boundary is materialized."
+                : readinessNotApplicable
+                  ? "Start by choosing a target. Readiness is not calculated without one."
+                  : calculationState === "REBUILDING"
+                    ? "Readiness is being rebuilt. No result is presented as current."
+                    : "Readiness could not be calculated. No result is presented as current."}
+            </p>
+          )}
+        </section>
+      )}
 
       <div className={styles.viewBar} aria-label="Explore view">
         <div className={styles.viewSwitch}>
@@ -563,7 +585,14 @@ export function ExploreWorkspace({
                     const selection = pendingSelection;
                     setPendingSelection(null);
                     setDirtyInspectorRef(null);
-                    commitSelection(selection.nodeId, selection.view);
+                    if (selection.switchToOutline) {
+                      restoreFocusRef.current = true;
+                      setOutlineFocusedNodeId(selection.nodeId);
+                      setSelectedNodeId(selection.nodeId);
+                      setView("outline");
+                    } else {
+                      commitSelection(selection.nodeId, selection.view);
+                    }
                   }}
                 >
                   Discard draft and open selection

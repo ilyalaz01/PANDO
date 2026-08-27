@@ -1,4 +1,4 @@
-# Evidence, Mastery, and Review event contracts v1
+# Evidence, Mastery, Review, and Target Readiness event contracts v1
 
 `evidence-event.schema.json` is the fixed, privacy-minimized outbox contract consumed by
 `mastery.evidence_projection_v1`.
@@ -21,3 +21,11 @@ Inactive and suppressed projections carry neither an effective due instant nor a
 Internal `review.input_changed` wake-ups are deliberately excluded from this public registry.
 Evidence identifiers and bodies, notes, URLs, arbitrary consumer names, activity content, and
 user-supplied HTML are forbidden.
+
+`readiness-event.schema.json` contains exactly the two Targets-owned readiness facts:
+`targets.readiness_projection_changed` and `targets.readiness_refresh_scheduled`. The changed event
+contains only goal/profile/snapshot identity, projection and source watermarks, calculation
+versions, status, confidence, and the bounded readiness interval. The scheduled event contains only
+the goal, source snapshot, deterministic input fingerprint, and due instant. Goal-created and
+Mastery wake events retain their existing owner schemas. Evidence bodies, notes, attempt results,
+provider payloads, arbitrary consumers, and UI/domain-composition data are forbidden.

@@ -1,0 +1,8 @@
+{
+  "contract": { "name": "PlanningReadinessInputV1", "version": "1.0.0" },
+  "availability": "CURRENT",
+  "reason": "STALE",
+  "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:python-readiness",
+  "snapshot": null
+}

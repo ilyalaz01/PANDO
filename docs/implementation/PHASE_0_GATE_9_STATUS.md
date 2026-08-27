@@ -1,6 +1,6 @@
 # Phase 0 gate 9 - deterministic engine status
 
-Status: Executable domain core implemented; integration work remains
+Status: Executable domain core implemented; Phase 2/3 integration delivered
 Policy versions: mastery-readiness-policy/0.1, review-policy/0.1
 Engine versions: mastery-engine/0.1.0, readiness-engine/0.1.0, review-engine/0.1.0
 
@@ -19,18 +19,16 @@ regression, permutation, and property tests cover event-order/replay determinism
 conflicting revision permutations, correction examples, stale and Unknown states, ANY/K_OF_N
 known-plus-unknown witness selection and ties, nested weighted failure/unresolved outcomes, root
 threshold mismatch, mandatory floors, UTC offsets, DST transitions, leap day, representative
-malformed inputs, interval bounds, and the review interval cap. These tests do not constitute
-integration coverage or calibrated-outcome coverage.
+malformed inputs, interval bounds, and the review interval cap. Phase 2 Mastery, Phase 3A Review,
+and Phase 3B Target Readiness now add their separate database/application/browser integration
+gates; none constitutes calibrated-outcome coverage.
 
 ## Deliberate non-scope
 
-This change does not implement or claim completion of:
+This original gate record does not by itself claim completion of:
 
-- database tables, stored projection snapshots, migrations, RLS, or transactional application;
-- event/outbox consumers and watermark recheck at snapshot application time;
-- Review action persistence/folding or Focus/evidence workflows;
-- planner/Today integration, UI, or Agent Control exposure;
+- planner/Today integration or Agent Control exposure;
 - policy activation, shadow comparison, calibration, FSRS, AI, or external SDK behavior.
 
-Those pieces must call these pure engines through their owning application boundaries and preserve
+Delivered integrations call these pure engines through owning application boundaries and preserve
 the engine, policy, profile, template, watermark, and explicit-clock metadata required by ADR-0006.

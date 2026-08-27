@@ -1,0 +1,24 @@
+{
+  "contract": { "name": "TargetReadinessV1", "version": "1.0.0" },
+  "asOf": "2026-08-28T10:00:00.000Z",
+  "projectionState": "NOT_MATERIALIZED",
+  "stateReason": "NO_SNAPSHOT",
+  "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+  "readinessGoalKey": "goal:python-readiness",
+  "readinessGoalLifecycle": "active",
+  "readinessGoalAggregateVersion": "1",
+  "profile": {
+    "profileVersionId": "30000000-0000-4000-8000-000000000001",
+    "profileVersionKey": "target:python-verification-v1",
+    "catalogVersionId": "31000000-0000-4000-8000-000000000001"
+  },
+  "projectionVersion": null,
+  "validUntil": null,
+  "snapshot": null,
+  "gaps": [],
+  "inputs": [],
+  "domainBreakdown": {
+    "domains": [],
+    "privateNote": "<script>read-evidence-bodies()</script>"
+  }
+}
