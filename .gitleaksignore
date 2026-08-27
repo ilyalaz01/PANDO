@@ -1,0 +1,10 @@
+# Synthetic publishable keys used only to prove configuration validation.
+2d0aaedec163c17ac7a89c58acf973eb666d6122:src/shared/supabase/server.test.ts:generic-api-key:18
+2d0aaedec163c17ac7a89c58acf973eb666d6122:src/shared/supabase/config.test.ts:generic-api-key:20
+2d0aaedec163c17ac7a89c58acf973eb666d6122:src/shared/supabase/config.test.ts:generic-api-key:24
+2d0aaedec163c17ac7a89c58acf973eb666d6122:src/shared/supabase/config.test.ts:generic-api-key:43
+2d0aaedec163c17ac7a89c58acf973eb666d6122:src/shared/supabase/config.test.ts:generic-api-key:47
+2d0aaedec163c17ac7a89c58acf973eb666d6122:src/shared/supabase/config.test.ts:generic-api-key:51
+
+# Deterministic pgTAP-only authentication fixture, never a deployed credential.
+3e4912c24cc5a27d10ec2236f2ffad07f542dee1:supabase/tests/database/007_catalog_targets_overlay_atomic_concurrency.test.sql:generic-api-key:48
