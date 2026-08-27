@@ -27,6 +27,21 @@
   font-size: 0.875rem;
 }
 
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerNav a {
+  min-height: 2.75rem;
+  padding-block: 0.8rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .brand,
 .eyebrow {
   color: var(--color-accent);

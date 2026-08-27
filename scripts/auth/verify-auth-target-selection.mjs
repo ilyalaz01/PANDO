@@ -539,6 +539,69 @@ try {
   const evidenceId = focusAfterCompletion.data?.history?.[0]?.evidenceId;
   assert.match(evidenceId ?? "", /^[0-9a-f-]{36}$/u, "completion must persist evidence");
 
+  const reviewRecoveryResponse = await fetch(`${baseUrl}/api/internal/review-projection`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${internalDispatchSecret}` },
+  });
+  assert.equal(reviewRecoveryResponse.status, 200, "authorized Review wake-up must succeed");
+  const reviewDispatches = [await reviewRecoveryResponse.json()];
+  let reviewAfterCompletion = await phase2Verifier.rpc("get_review_workspace_v1", {});
+  assert.equal(reviewAfterCompletion.error, null, "Review workspace must load after evidence");
+  if (reviewAfterCompletion.data?.projectionState !== "current") {
+    await new Promise((resolveWait) => setTimeout(resolveWait, 6_000));
+    const recoveryResponse = await fetch(`${baseUrl}/api/internal/review-projection`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${internalDispatchSecret}` },
+    });
+    assert.equal(recoveryResponse.status, 200, "Review recovery retry must succeed");
+    reviewDispatches.push(await recoveryResponse.json());
+    reviewAfterCompletion = await phase2Verifier.rpc("get_review_workspace_v1", {});
+  }
+  assert.equal(reviewAfterCompletion.error, null, "recovered Review workspace must load");
+  if (reviewAfterCompletion.data?.projectionState !== "current") {
+    const workerAdmin = createClient(apiUrl, serviceRoleKey, {
+      db: { schema: "api" },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const health = await workerAdmin.rpc("get_review_projection_health_v1");
+    assert.fail(
+      `Review projection did not become current; dispatches=${JSON.stringify(reviewDispatches)} health=${JSON.stringify(health.data)} error=${health.error?.code ?? "none"}`,
+    );
+  }
+  assert.equal(reviewAfterCompletion.data?.items?.length, 1, "one subject becomes one Review item");
+  const reviewItem = reviewAfterCompletion.data?.items?.[0];
+  assert.equal(reviewItem?.subjectRef, "competency:python-error-handling/application");
+  assert.equal(reviewItem?.focus?.activityKey, activityKey);
+  assert.deepEqual(
+    reviewItem?.reasons?.map((reason) => reason.reasonType).sort(),
+    ["RETENTION_RISK", "VERIFICATION_NEEDED"],
+    "one qualifying completion must expose both current Review reasons",
+  );
+
+  const focusUrl = page.url();
+  await page.goto(`${baseUrl}/review`);
+  await page.getByRole("heading", { name: "Refresh what needs proof." }).waitFor();
+  await page.getByRole("heading", { level: 3, name: activityTitle }).waitFor();
+  await page.getByText("Retention risk", { exact: true }).waitFor();
+  await page.getByText("Verification needed", { exact: true }).waitFor();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reviewDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert.ok(
+    reviewDimensions.scrollWidth <= reviewDimensions.clientWidth,
+    "authenticated Review must not overflow a 390px viewport",
+  );
+  const reviewAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  assert.deepEqual(reviewAccessibility.violations, [], "authenticated /review must pass axe");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(focusUrl);
+  await page.getByRole("heading", { level: 1, name: activityTitle }).waitFor();
+
   await page.getByRole("button", { name: "Correct this evidence" }).click();
   await page
     .getByLabel("Why is this evidence incorrect?")
@@ -558,6 +621,24 @@ try {
     "invalidation must preserve the original evidence identifier",
   );
   assert.equal(focusAfterInvalidation.data?.history?.[0]?.evidenceValid, false);
+
+  const invalidationReviewRecovery = await fetch(`${baseUrl}/api/internal/review-projection`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${internalDispatchSecret}` },
+  });
+  assert.equal(invalidationReviewRecovery.status, 200, "Review invalidation wake-up must succeed");
+  const reviewAfterInvalidation = await phase2Verifier.rpc("get_review_workspace_v1", {});
+  assert.equal(
+    reviewAfterInvalidation.error,
+    null,
+    "Review workspace must load after invalidation",
+  );
+  assert.equal(reviewAfterInvalidation.data?.projectionState, "current");
+  assert.deepEqual(
+    reviewAfterInvalidation.data?.items,
+    [],
+    "invalidated evidence removes its inactive unsuppressed Review subject from the queue",
+  );
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });

@@ -62,6 +62,21 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      claim_review_item_projection_v1: {
+        Args: never
+        Returns: {
+          attempt_count: number
+          delivery_id: string
+          event_id: string
+          event_name: string
+          event_position: number
+          event_schema_version: number
+          lease_expires_at: string
+          lease_token: string
+          payload: Json
+          workspace_id: string
+        }[]
+      }
       complete_mastery_evidence_projection_v1: {
         Args: {
           p_delivery_id: string
@@ -79,6 +94,25 @@ export type Database = {
           p_lease_token: string
         }
         Returns: boolean
+      }
+      complete_review_item_projection_v1: {
+        Args: {
+          p_delivery_id: string
+          p_expected_event_position: number
+          p_lease_token: string
+          p_subjects: Json
+        }
+        Returns: boolean
+      }
+      create_personal_review_reminder_v1: {
+        Args: {
+          p_competency_ref: string
+          p_dimension: string
+          p_expected_subject_version: number
+          p_idempotency_key: string
+          p_local_due_at: string
+        }
+        Returns: Json
       }
       create_readiness_goal: {
         Args: {
@@ -100,6 +134,15 @@ export type Database = {
         Returns: string
       }
       fail_phase0_probe_delivery: {
+        Args: {
+          p_delivery_id: string
+          p_error_code: string
+          p_failure_class: string
+          p_lease_token: string
+        }
+        Returns: string
+      }
+      fail_review_item_projection_v1: {
         Args: {
           p_delivery_id: string
           p_error_code: string
@@ -144,6 +187,8 @@ export type Database = {
         Args: { p_readiness_goal_key: string; p_workspace_id: string }
         Returns: Json
       }
+      get_review_projection_health_v1: { Args: never; Returns: Json }
+      get_review_workspace_v1: { Args: never; Returns: Json }
       get_target_profile: {
         Args: { p_profile_version_key: string; p_workspace_id: string }
         Returns: Json
@@ -162,6 +207,21 @@ export type Database = {
         Args: { p_delivery_id: string; p_lease_token: string }
         Returns: Json
       }
+      load_review_item_projection_v1: {
+        Args: { p_delivery_id: string; p_lease_token: string }
+        Returns: Json
+      }
+      reschedule_review_reason_v1: {
+        Args: {
+          p_expected_projection_version: number
+          p_expected_source_revision: number
+          p_idempotency_key: string
+          p_local_due_at: string
+          p_reason_id: string
+          p_subject_id: string
+        }
+        Returns: Json
+      }
       reset_overlay_position: {
         Args: {
           p_expected_overlay_version: number
@@ -169,6 +229,16 @@ export type Database = {
           p_node_ref: string
           p_readiness_goal_key: string
           p_workspace_id: string
+        }
+        Returns: Json
+      }
+      restore_review_reason_v1: {
+        Args: {
+          p_expected_projection_version: number
+          p_expected_source_revision: number
+          p_idempotency_key: string
+          p_reason_id: string
+          p_subject_id: string
         }
         Returns: Json
       }
@@ -194,12 +264,32 @@ export type Database = {
         }
         Returns: Json
       }
+      skip_review_reason_once_v1: {
+        Args: {
+          p_expected_projection_version: number
+          p_expected_source_revision: number
+          p_idempotency_key: string
+          p_reason_id: string
+          p_subject_id: string
+        }
+        Returns: Json
+      }
       start_focus_activity_v1: {
         Args: {
           p_activity_key: string
           p_idempotency_key: string
           p_planned_minutes: number
           p_readiness_goal_key: string
+        }
+        Returns: Json
+      }
+      suppress_review_reason_v1: {
+        Args: {
+          p_expected_projection_version: number
+          p_expected_source_revision: number
+          p_idempotency_key: string
+          p_reason_id: string
+          p_subject_id: string
         }
         Returns: Json
       }

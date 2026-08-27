@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   finish: vi.fn(),
   invalidate: vi.fn(),
   dispatch: vi.fn(),
+  dispatchReview: vi.fn(),
   revalidate: vi.fn(),
 }));
 const classes = vi.hoisted(() => ({
@@ -21,6 +22,9 @@ vi.mock("../../shared/supabase/server", () => ({
 vi.mock("../../shared/supabase/session", () => ({ verifyPandoSession: mocks.verifySession }));
 vi.mock("../../modules/mastery/application/dispatch-evidence-projection", () => ({
   dispatchMasteryEvidenceProjectionIfConfigured: mocks.dispatch,
+}));
+vi.mock("../../modules/review/application/dispatch-review-projection", () => ({
+  dispatchReviewItemProjectionIfConfigured: mocks.dispatchReview,
 }));
 vi.mock("../../ui/focus/server/database-focus-workspace", () => ({
   startFocusActivityV1: mocks.start,
@@ -67,6 +71,12 @@ describe("Focus Server Actions", () => {
     mocks.finish.mockResolvedValue({ state: "completed", evidenceId, projectionState: "pending" });
     mocks.invalidate.mockResolvedValue({ evidenceId, projectionState: "pending" });
     mocks.dispatch.mockResolvedValue({ configured: false, claimed: 0, completed: 0, retried: 0 });
+    mocks.dispatchReview.mockResolvedValue({
+      configured: false,
+      claimed: 0,
+      completed: 0,
+      retried: 0,
+    });
   });
 
   it("starts only with goal, activity, bounded duration, and a derived idempotency key", async () => {
@@ -102,6 +112,7 @@ describe("Focus Server Actions", () => {
       idempotencyKey: `focus-finish:v1:${requestId}`,
     });
     expect(mocks.dispatch).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchReview).toHaveBeenCalledTimes(1);
   });
 
   it("keeps completion-only and stop outside evidence projection", async () => {
@@ -116,6 +127,7 @@ describe("Focus Server Actions", () => {
       message: "Completion saved without evidence.",
     });
     expect(mocks.dispatch).not.toHaveBeenCalled();
+    expect(mocks.dispatchReview).not.toHaveBeenCalled();
 
     mocks.finish.mockResolvedValueOnce({ state: "stopped", evidenceId: null });
     await expect(stopFocusAction(initialFocusActionState, baseForm())).resolves.toEqual({
@@ -142,6 +154,7 @@ describe("Focus Server Actions", () => {
       idempotencyKey: `evidence-invalidate:v1:${requestId}`,
     });
     expect(mocks.dispatch).toHaveBeenCalledTimes(1);
+    expect(mocks.dispatchReview).toHaveBeenCalledTimes(1);
   });
 
   it("rejects malformed action input and collapses private errors", async () => {

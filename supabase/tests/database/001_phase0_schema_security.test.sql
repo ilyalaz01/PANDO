@@ -276,7 +276,38 @@ where namespace.nspname = 'api'
     'start_focus_activity_v1',
     'finish_focus_activity_v1',
     'invalidate_evidence_v1',
-    'get_focus_workspace_v1'
+    'get_focus_workspace_v1',
+    'create_personal_review_reminder_v1',
+    'reschedule_review_reason_v1',
+    'skip_review_reason_once_v1',
+    'suppress_review_reason_v1',
+    'restore_review_reason_v1',
+    'get_review_workspace_v1'
+  )
+order by procedure.proname;
+
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname = 'pando_review_api'
+  and not owner.rolcanlogin
+  and not owner.rolinherit
+  and not owner.rolbypassrls,
+  format('scoped api definer %s is pinned and owned by the Review NOLOGIN role', procedure.proname)
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner
+  on owner.oid = procedure.proowner
+where namespace.nspname = 'api'
+  and procedure.proname in (
+    'create_personal_review_reminder_v1',
+    'reschedule_review_reason_v1',
+    'skip_review_reason_once_v1',
+    'suppress_review_reason_v1',
+    'restore_review_reason_v1',
+    'get_review_workspace_v1'
   )
 order by procedure.proname;
 
@@ -330,7 +361,8 @@ select ok(
   and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
   and owner.rolname in (
     'pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker',
-    'pando_mastery_worker', 'pando_mastery_scheduler'
+    'pando_mastery_worker', 'pando_mastery_scheduler', 'pando_review_worker',
+    'pando_review_scheduler'
   )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
@@ -360,7 +392,7 @@ select ok(
 from pg_catalog.pg_roles as role
 where role.rolname in (
   'pando_identity_api', 'pando_outbox_worker', 'pando_mastery_worker',
-  'pando_mastery_scheduler'
+  'pando_mastery_scheduler', 'pando_review_worker', 'pando_review_scheduler'
 )
 order by role.rolname;
 

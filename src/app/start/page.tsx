@@ -66,11 +66,16 @@ export default async function StartPage({
           >
             PANDO
           </Link>
-          <form action={signOutAction}>
-            <button className="min-h-11 px-3 text-sm font-bold underline" type="submit">
-              Sign out
-            </button>
-          </form>
+          <div className="flex items-center gap-2">
+            <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/review">
+              Review
+            </Link>
+            <form action={signOutAction}>
+              <button className="min-h-11 px-3 text-sm font-bold underline" type="submit">
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
       </header>
       <main

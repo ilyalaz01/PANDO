@@ -1,0 +1,19 @@
+{
+  "event_name": "review.item_changed",
+  "event_schema_version": 1,
+  "workspace_id": "10000000-0000-4000-8000-000000000001",
+  "payload": {
+    "subject_id": "20000000-0000-4000-8000-000000000001",
+    "subject_ref": "competency:python-typing/application",
+    "subject_type": "COMPETENCY_DIMENSION",
+    "competency_ref": "competency:python-typing",
+    "dimension": "APPLICATION",
+    "subject_version": "2",
+    "effective_due_at": "2026-08-30T09:00:00.000Z",
+    "active_reason_types": ["RETENTION_RISK"],
+    "projection_status": "CURRENT",
+    "note": "<script>private evidence body</script>",
+    "supporting_evidence_ids": ["30000000-0000-4000-8000-000000000001"],
+    "url": "https://attacker.invalid/collect"
+  }
+}

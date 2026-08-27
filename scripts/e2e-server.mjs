@@ -22,6 +22,7 @@ const server = spawn(
       ...process.env,
       PANDO_ENABLE_EXPLORE_FIXTURE: "true",
       PANDO_ENABLE_FOCUS_FIXTURE: "true",
+      PANDO_ENABLE_REVIEW_FIXTURE: "true",
     },
   },
 );

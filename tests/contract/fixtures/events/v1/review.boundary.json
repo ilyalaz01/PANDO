@@ -1,0 +1,21 @@
+{
+  "event_name": "review.item_changed",
+  "event_schema_version": 1,
+  "workspace_id": "10000000-0000-4000-8000-000000000001",
+  "payload": {
+    "subject_id": "20000000-0000-4000-8000-000000000001",
+    "subject_ref": "competency:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/interview_execution",
+    "subject_type": "COMPETENCY_DIMENSION",
+    "competency_ref": "competency:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "dimension": "INTERVIEW_EXECUTION",
+    "subject_version": "9223372036854775807",
+    "effective_due_at": "9999-12-31T23:59:59.999Z",
+    "active_reason_types": [
+      "RETENTION_RISK",
+      "PERSONAL_REMINDER",
+      "GOAL_DEADLINE",
+      "VERIFICATION_NEEDED"
+    ],
+    "projection_status": "CURRENT"
+  }
+}

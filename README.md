@@ -4,7 +4,8 @@ PANDO is **source-available**, not OSI-approved open-source software. Noncommerc
 by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribution in
 [NOTICE](NOTICE). This public license does not grant commercial rights; see
 [COMMERCIAL.md](COMMERCIAL.md) for non-binding information about requesting a separate agreement.
-PANDO has completed its Phase 0 technical foundation and the first usable Phase 1 vertical slice. The repository
+PANDO has completed its Phase 0 technical foundation, the first usable Phase 1 vertical slice,
+the Phase 2 Focus/evidence/Mastery slice, and the Phase 3A Review Core. The repository
 contains the executable Next.js modular monolith, strict contract/runtime validators, deterministic
 mastery/readiness/review engines, the Identity/RLS/outbox database boundary, an encrypted
 clean-restore proof, and an accessible Explore Map/Outline vertical slice. It also contains
@@ -14,8 +15,11 @@ goal's authorized live structure through a zero-workspace server boundary and re
 target closure without inventing Mastery or readiness values. The representative 25-node graph is
 retained only by the explicitly enabled test harness. From a competency inspector, the user can
 now create or update a private note and add a personal activity; both persist across reloads through
-authenticated, optimistic, idempotent commands that atomically emit outbox events. Authenticated
-Mastery/readiness projections and the Phase 2 session/evidence vertical slice are not yet implemented.
+authenticated, optimistic, idempotent commands that atomically emit outbox events. `/focus` now
+records meaningful manual evidence and projects explainable Mastery; `/review` provides one
+deduplicated item per competency dimension with auditable retention, verification, and personal
+reminder reasons plus reschedule, skip-once, suppress, and restore commands. Target readiness,
+Planning/Today, and the live Agent Control plane remain later phases.
 
 ## Prerequisites
 
@@ -41,7 +45,8 @@ pnpm dev
 ```
 
 Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/start`, then follow
-`Explore this target`. Select a competency to keep a private note or add a personal activity. The
+`Explore this target`. Select a competency to keep a private note or add a personal activity, run it
+through Focus, and open Review from the authenticated header. The
 live `/explore?goal=...` route requires the configured authenticated Supabase boundary; it never
 substitutes demo data after a failed or unauthorized read.
 
@@ -73,8 +78,9 @@ Use `pnpm verify:db`, `pnpm verify:backup`, or `pnpm verify:auth` for an individ
 gate. These commands copy the required Supabase files to OS-created temporary directories and stop
 only their own random project IDs, so they do not reset or remove an ordinary local development
 stack. The auth gate creates one synthetic owner inside its disposable stack, exercises sign-in,
-workspace bootstrap, target selection, note/activity persistence, reload, responsive accessibility,
-and sign-out through a real browser, and checks that generated `api` schema types have not drifted. CI runs the four
+workspace bootstrap, target selection, note/activity persistence, Focus evidence, Mastery and
+Review projection/invalidation, reload, responsive accessibility, and sign-out through a real
+browser, and checks that generated `api` schema types have not drifted. CI runs the four
 expensive suites as separate jobs from the same frozen lockfile and combines their results in a
 cheap `phase0` status; it does not rerun them in the aggregate job. Committed history is scanned for
 secrets.

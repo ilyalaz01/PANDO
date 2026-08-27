@@ -119,7 +119,10 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
           <Link className={styles.brand} href="/start">
             PANDO
           </Link>
-          <p>Live target structure</p>
+          <nav className={styles.headerNav} aria-label="Workspace">
+            <p>Live target structure</p>
+            <Link href="/review">Review</Link>
+          </nav>
         </div>
       </header>
       <main id="explore-main" tabIndex={-1} className={styles.main}>

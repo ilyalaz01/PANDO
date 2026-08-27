@@ -8,6 +8,7 @@ import exploreStructuralProjectionSchema from "../../../schemas/explore-structur
 import exploreTargetContextSchema from "../../../schemas/explore-target-context/v1/explore-target-context.schema.json";
 import evidenceEventSchema from "../../../schemas/events/v1/evidence-event.schema.json";
 import masteryEventSchema from "../../../schemas/events/v1/mastery-event.schema.json";
+import reviewEventSchema from "../../../schemas/events/v1/review-event.schema.json";
 import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-projection.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
 import preparationContextSchema from "../../../schemas/preparation-pack/v1/preparation-context.schema.json";
@@ -26,6 +27,7 @@ export const schemaNames = [
   "explore-target-context",
   "evidence-event-v1",
   "mastery-event-v1",
+  "review-event-v1",
   "preparation-context",
   "preparation-manifest",
   "preparation-plan",
@@ -46,6 +48,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "explore-target-context": exploreTargetContextSchema,
   "evidence-event-v1": evidenceEventSchema,
   "mastery-event-v1": masteryEventSchema,
+  "review-event-v1": reviewEventSchema,
   "preparation-context": preparationContextSchema,
   "preparation-manifest": preparationManifestSchema,
   "preparation-plan": preparationPlanSchema,

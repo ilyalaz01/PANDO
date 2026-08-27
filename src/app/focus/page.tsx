@@ -79,7 +79,10 @@ export default async function FocusPage({ searchParams }: { searchParams: FocusS
           <Link className={styles.brand} href="/start">
             PANDO
           </Link>
-          <span>Focus</span>
+          <nav className={styles.headerNav} aria-label="Workspace">
+            <span>Focus</span>
+            <Link href="/review">Review</Link>
+          </nav>
         </div>
       </header>
       <main className={styles.main} id="focus-main" tabIndex={-1}>

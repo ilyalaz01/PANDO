@@ -1,0 +1,16 @@
+{
+  "event_name": "review.item_changed",
+  "event_schema_version": 2,
+  "workspace_id": "not-a-workspace",
+  "payload": {
+    "subject_id": "not-a-subject",
+    "subject_ref": "competency:python-typing/recall",
+    "subject_type": "COMPETENCY_DIMENSION",
+    "competency_ref": "competency:python-typing",
+    "dimension": "APPLICATION",
+    "subject_version": "0",
+    "effective_due_at": null,
+    "active_reason_types": ["EXPERT_REVIEW"],
+    "projection_status": "CURRENT"
+  }
+}

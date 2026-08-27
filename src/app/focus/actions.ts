@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { dispatchMasteryEvidenceProjectionIfConfigured } from "../../modules/mastery/application/dispatch-evidence-projection";
+import { dispatchReviewItemProjectionIfConfigured } from "../../modules/review/application/dispatch-review-projection";
 import { createPandoServerActionClient } from "../../shared/supabase/server";
 import { verifyPandoSession } from "../../shared/supabase/session";
 import type { FocusActionState } from "../../ui/focus/focus-action-state";
@@ -90,8 +91,10 @@ export async function completeFocusAction(
     });
     if (result.evidenceId !== null && result.evidenceId !== undefined) {
       await dispatchMasteryEvidenceProjectionIfConfigured();
+      await dispatchReviewItemProjectionIfConfigured();
     }
     revalidatePath("/focus");
+    revalidatePath("/review");
     return {
       status: "updated",
       message:
@@ -143,7 +146,9 @@ export async function invalidateEvidenceAction(
       idempotencyKey: `evidence-invalidate:v1:${commandRequestId}`,
     });
     await dispatchMasteryEvidenceProjectionIfConfigured();
+    await dispatchReviewItemProjectionIfConfigured();
     revalidatePath("/focus");
+    revalidatePath("/review");
     return {
       status: "updated",
       message: "Evidence invalidated. The original remains in history while mastery recalculates.",
