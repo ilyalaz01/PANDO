@@ -12,3 +12,6 @@
 
 # Deterministic command idempotency key used only by the Phase 3B pgTAP capacity test.
 70f66165065eea88d6415d855667f7770805e70b:supabase/tests/database/015_phase3b_target_readiness.test.sql:generic-api-key:817
+
+# Removed deterministic pgTAP idempotency key from the first Phase 4A admission delivery commit.
+f84767834078f8ce8a69fc633ea0e61e7760f746:supabase/tests/database/019_phase4a_learning_track_activity_admission_concurrency.test.sql:generic-api-key:537
