@@ -189,6 +189,11 @@ select 'alice-goal', api.create_readiness_goal(
   'target:nvidia-python-verification-base-v1', 'phase3b-alice-goal'
 );
 insert into readiness_results values (
+  'alice-plan', api.initialize_growth_plan_v1(
+    'goal:readiness-alice', 300, 25, 80, 60, 'phase3b-alice-plan'
+  )
+);
+insert into readiness_results values (
   'alice-before', api.get_target_readiness_v1('goal:readiness-alice')
 );
 reset role;
@@ -417,6 +422,18 @@ select is(
       and event_schema_version = 1
   ), 1::bigint,
   'completion emits one canonical projection-changed event'
+);
+select is(
+  (
+    select count(*)::bigint
+    from outbox.events as event
+    join outbox.deliveries as delivery on delivery.event_id = event.event_id
+    where event.event_name = 'targets.readiness_projection_changed'
+      and delivery.consumer_name = 'planning.plan_snapshot_v1'
+      and delivery.handler_contract_version = 1
+  ),
+  1::bigint,
+  'real readiness completion atomically routes its changed projection to an existing plan'
 );
 select ok(
   (

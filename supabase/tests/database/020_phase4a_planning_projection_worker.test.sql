@@ -159,8 +159,8 @@ select is(
 select is(
   (select pg_catalog.jsonb_array_length(response#>'{sourceBundle,visibleDeliveryIds}')
    from worker_results where result_name = 'load'),
-  2,
-  'the attempt captures the exact two visible Planning deliveries'
+  3,
+  'the attempt captures plan initialization, Overlay change, and admission deliveries'
 );
 
 select throws_ok(
@@ -267,18 +267,18 @@ select is(
 select is(
   (select count(*)::integer from planning.plan_snapshot_delivery_ledger as ledger
    where ledger.workspace_id = (
-     select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
-   ) and ledger.coverage_state = 'COVERED'),
-  2,
+      select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+    ) and ledger.coverage_state = 'COVERED'),
+  3,
   'completion covers the exact captured input deliveries'
 );
 select is(
   (select count(*)::integer from outbox.deliveries as delivery
    where delivery.workspace_id = (
      select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
-   ) and delivery.consumer_name = 'planning.plan_snapshot_v1'
-     and delivery.delivery_state = 'succeeded'),
-  2,
+    ) and delivery.consumer_name = 'planning.plan_snapshot_v1'
+      and delivery.delivery_state = 'succeeded'),
+  3,
   'covered deliveries are terminal and have durable receipts'
 );
 select ok(

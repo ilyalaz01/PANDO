@@ -363,7 +363,7 @@ select ok(
     'pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker',
     'pando_mastery_worker', 'pando_mastery_scheduler', 'pando_review_worker',
     'pando_review_scheduler', 'pando_readiness_worker', 'pando_readiness_scheduler',
-    'pando_planning_worker', 'pando_planning_scheduler',
+    'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
     'pando_identity_planning_source', 'pando_phase1_planning_source',
     'pando_phase2_planning_source', 'pando_review_planning_source'
   )
@@ -397,7 +397,7 @@ where role.rolname in (
   'pando_identity_api', 'pando_outbox_worker', 'pando_mastery_worker',
   'pando_mastery_scheduler', 'pando_review_worker', 'pando_review_scheduler',
   'pando_readiness_worker', 'pando_readiness_scheduler',
-  'pando_planning_worker', 'pando_planning_scheduler',
+  'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
   'pando_identity_planning_source', 'pando_phase1_planning_source',
   'pando_phase2_planning_source', 'pando_review_planning_source'
 )
@@ -412,7 +412,8 @@ cross join (values
   ('pando_identity_planning_source'),
   ('pando_phase1_planning_source'),
   ('pando_phase2_planning_source'),
-  ('pando_review_planning_source')
+  ('pando_review_planning_source'),
+  ('pando_planning_router')
 ) as source_role(role_name)
 order by runtime_role.role_name, source_role.role_name;
 

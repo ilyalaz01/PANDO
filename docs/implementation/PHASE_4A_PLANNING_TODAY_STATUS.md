@@ -1,7 +1,7 @@
 # Phase 4A Planning and Today status
 
-Status: First live calculation worker implemented for fresh plans; remaining event routing,
-meaningful-work policy, and Today UI pending
+Status: First live calculation worker and owner-event routing implemented for fresh plans;
+meaningful-work policy and Today UI pending
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -68,6 +68,23 @@ and accepted design remain authoritative.
 - live database coverage from authenticated goal/plan/activity creation through owner-source load,
   immutable snapshot publication, pointer advance, exact multi-delivery coverage, and future
   refresh scheduling, plus dispatcher and route unit tests;
+- explicit same-transaction Planning routing from Targets readiness, Mastery state, Review item,
+  Overlay activity, Sessions Focus start/complete/stop, and Evidence invalidation producers. A
+  dedicated `NOLOGIN`/`NOINHERIT`/`NOBYPASSRLS` router fixes the consumer and contract version,
+  validates each exact owner envelope, and inserts idempotently only after the Planning sentinel
+  exists. A cursor-driven rollout repair processes at most 500 historical accepted events per
+  call, reports progress, is replay-safe, and rejects malformed envelopes. Reviewed malformed
+  immutable history has an administrator-only append-only quarantine path that atomically emits a
+  valid Planning-owned current-state repair wake-up under its own idempotent command receipt; valid
+  events, changed-request replays, and audit rewrites are refused.
+  Raw evidence append events remain outside this ledger; Focus completion supplies the immediate
+  wake-up and later
+  Mastery/Targets events provide the convergence wake-ups that become calculable after the
+  meaningful-work policy is implemented;
+- database proofs for router privilege isolation, real user-producer routing, pre-plan suppression,
+  explicit historical repair, audited malformed-history recovery, replay uniqueness, user-command
+  and Mastery-completion rollback on delivery failure, plan-enabled real Mastery/Review/Targets
+  completion routing, and strict valid/boundary/invalid/malicious envelope handling;
 - an explicit safety gate for the first live slice: a workspace with terminal Focus sessions in
   the current local week is rejected with `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` until a reviewed
   meaningful-duration policy exists. No elapsed or planned minutes are fabricated as completed
@@ -79,9 +96,6 @@ and accepted design remain authoritative.
 - later plan/track/activity lifecycle and capacity commands;
 - the versioned meaningful-work duration/repetition query and Mastery prerequisite-satisfaction
   policy needed to calculate workspaces with terminal sessions;
-- direct Planning wake-up insertion in Targets, Mastery, Review, Overlay, Focus, and Evidence
-  producer transactions; the current live worker is woken by `planning.input_changed` and its own
-  scheduled refresh deliveries;
 - campaign persistence, same-session duration/energy preference persistence, and Focus plan
   attribution columns;
 - live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed

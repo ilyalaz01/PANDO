@@ -75,6 +75,11 @@ select 'alice-goal', api.create_readiness_goal(
   'target:nvidia-python-verification-base-v1', 'phase2-alice-goal'
 ) from phase2_workspaces where result_name = 'alice-bootstrap';
 insert into phase2_results values (
+  'alice-plan', api.initialize_growth_plan_v1(
+    'goal:alice-focus', 300, 25, 80, 60, 'phase2-alice-plan'
+  )
+);
+insert into phase2_results values (
   'alice-activity', api.add_current_custom_activity_v1(
     'goal:alice-focus', 'activity:typing-practice', 'Typing practice', 'MANUAL_CODING',
     'competency:python-typing', '0', 'phase2-alice-activity'
@@ -126,6 +131,24 @@ $function$;
 create trigger phase2_injected_outbox_failure
 before insert on outbox.events
 for each row execute function phase2_reject_injected_outbox_event();
+
+create function phase2_reject_injected_planning_delivery()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  if new.consumer_name = 'planning.plan_snapshot_v1'
+    and pg_catalog.current_setting('pando.test.reject_planning_delivery', true) = 'on'
+  then
+    raise exception 'injected Mastery Planning delivery failure';
+  end if;
+  return new;
+end
+$function$;
+create trigger phase2_injected_planning_delivery_failure
+before insert on outbox.deliveries
+for each row execute function phase2_reject_injected_planning_delivery();
 
 select set_config('pando.test.reject_outbox_event', 'sessions.focus_started', true);
 select set_config(
@@ -478,6 +501,12 @@ select is((select payload->>'input_watermark' from outbox.events
 select ok((select not payload ? 'supportingEvidenceIds' from outbox.events
   where event_name = 'mastery.competency_state_changed'),
   'the Mastery change event does not expose supporting evidence identifiers');
+select is((select count(*) from outbox.deliveries as delivery
+  join outbox.events as event on event.event_id = delivery.event_id
+  where event.event_name = 'mastery.competency_state_changed'
+    and delivery.consumer_name = 'planning.plan_snapshot_v1'
+    and delivery.handler_contract_version = 1), 1::bigint,
+  'real Mastery completion atomically routes its state change to an existing plan');
 select is((select count(*) from outbox.consumer_receipts
   where consumer_name = 'mastery.evidence_projection_v1'), 2::bigint,
   'each delivery receives one durable consumer receipt');
@@ -537,7 +566,7 @@ grant select, insert, truncate on phase2_edge_claims to service_role;
 set local role service_role;
 insert into phase2_edge_claims select * from api.claim_mastery_evidence_projection_v1();
 reset role;
-select set_config('pando.test.reject_outbox_event', 'mastery.competency_state_changed', true);
+select set_config('pando.test.reject_planning_delivery', 'on', true);
 set local role service_role;
 select throws_ok(
   format(
@@ -555,11 +584,11 @@ select throws_ok(
       'explanationCodes', '["NO_RELEVANT_EVIDENCE"]'::jsonb
     )::text
   ),
-  'P0001', 'injected Phase 2 outbox failure',
-  'an injected Mastery event failure rolls back the entire worker completion'
+  'P0001', 'injected Mastery Planning delivery failure',
+  'an injected Mastery Planning route failure rolls back the entire worker completion'
 );
 reset role;
-select set_config('pando.test.reject_outbox_event', '', true);
+select set_config('pando.test.reject_planning_delivery', '', true);
 select is((select count(*) from mastery.competency_state_snapshots), 1::bigint,
   'failed worker completion leaves no partial snapshot');
 select is((select input_watermark from mastery.current_competency_states), 2::bigint,

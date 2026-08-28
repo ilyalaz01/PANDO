@@ -116,6 +116,17 @@ set local role authenticated;
 insert into review_results values (
   'alice-bootstrap', api.bootstrap_personal_workspace('phase3a-review-alice', 'Review Alice')
 );
+insert into review_results
+select 'alice-goal', api.create_readiness_goal(
+  (response->>'workspace_id')::uuid,
+  'goal:review-alice', 'Review Alice goal',
+  'target:nvidia-python-verification-base-v1', 'phase3a-review-alice-goal'
+) from review_results where result_name = 'alice-bootstrap';
+insert into review_results values (
+  'alice-plan', api.initialize_growth_plan_v1(
+    'goal:review-alice', 300, 25, 80, 60, 'phase3a-review-alice-plan'
+  )
+);
 reset role;
 
 select set_config(
@@ -663,6 +674,40 @@ join review_projection_inputs as input
   on input.workspace_id = claim.workspace_id
  and input.subject_id = (claim.payload->>'subject_id')::uuid;
 reset role;
+
+select is(
+  (
+    select count(delivery.delivery_id)
+    from outbox.events as event
+    left join outbox.deliveries as delivery
+      on delivery.event_id = event.event_id
+     and delivery.consumer_name = 'planning.plan_snapshot_v1'
+     and delivery.handler_contract_version = 1
+    where event.workspace_id = (
+      select workspace_id from review_workspaces where result_name = 'alice-bootstrap'
+    )
+      and event.event_name = 'review.item_changed'
+  ),
+  (
+    select count(*)
+    from outbox.events as event
+    where event.workspace_id = (
+      select workspace_id from review_workspaces where result_name = 'alice-bootstrap'
+    )
+      and event.event_name = 'review.item_changed'
+  ),
+  'real Review completions atomically route every item change to an existing plan'
+);
+select ok(
+  exists (
+    select 1 from outbox.events as event
+    where event.workspace_id = (
+      select workspace_id from review_workspaces where result_name = 'alice-bootstrap'
+    )
+      and event.event_name = 'review.item_changed'
+  ),
+  'the plan-enabled real Review completions emit at least one item change'
+);
 
 create temporary table review_third_claims as
 select * from api.claim_review_item_projection_v1() with no data;

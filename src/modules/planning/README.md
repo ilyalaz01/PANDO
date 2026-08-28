@@ -40,8 +40,17 @@ week. It deliberately fails with `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` rather th
 completed-duration rule. Candidates with structural prerequisites remain `UNKNOWN` until a
 versioned Mastery satisfaction rule exists. Campaign and same-session preference inputs remain
 explicitly null. Direct wake-up routing from Targets, Mastery, Review, Overlay, Focus, and Evidence
-is the next worker increment; current calculation is woken by Planning input changes and scheduled
-refreshes.
+is now installed in the exact owner/coordinator transaction through a fixed, least-privilege
+Planning router. Routing begins only after the Planning sentinel exists, is idempotent under owner
+command replay, and includes a sentinel-scoped rollout backfill. Raw evidence append events do not
+route directly: Focus completion provides the fast wake-up, while later Mastery and Targets changes
+provide the convergence wake-ups that become calculable after the meaningful-work policy supports
+terminal session history. Planning input changes and scheduled refreshes remain first-class
+wake-ups. A cursor-driven administrator repair can idempotently route accepted historical events
+in observable batches of at most 500 after a sentinel exists. A malformed immutable historical
+event blocks the cursor until an administrator records a reviewed append-only quarantine; that
+idempotent command refuses valid events and atomically emits a Planning-owned current-state repair
+wake-up with separate command provenance and causation back to the malformed event.
 
 Live Today remains unavailable until its read model and opaque selection resolver are implemented.
 A UI-only recommendation assembled from fixtures or direct cross-module table reads is not a
