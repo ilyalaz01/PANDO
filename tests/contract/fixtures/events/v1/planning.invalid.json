@@ -1,0 +1,9 @@
+{
+  "event_name": "planning.input_changed",
+  "event_schema_version": 2,
+  "workspace_id": "not-a-workspace",
+  "payload": {
+    "change_kind": "TRACK_ACTIVITY_ADMITTED",
+    "learning_track_version": 0
+  }
+}

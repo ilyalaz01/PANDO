@@ -41,13 +41,19 @@ and accepted design remain authoritative.
 - an idempotent Growth Plan initializer that derives the personal workspace and actor from the
   authenticated session, consumes a bounded Targets-owned initialization query, and atomically
   creates the first plan and track;
+- an idempotent Learning Track activity-admission command that derives workspace and candidate
+  identity, revalidates active Targets and Overlay owner state, persists explicit duration and
+  nullable energy, checks the expected Track version and 200-candidate bound, and leaves the
+  calculation pointer unchanged while recalculation is pending;
 - a minimal `planning.input_changed` v1 event with a fixed `planning.plan_snapshot_v1` delivery,
   transactional receipt/state/outbox behavior, rollback injection coverage, cross-workspace
-  isolation, replay, changed-payload conflict, and database constraint tests.
+  isolation, replay, changed-payload conflict, real concurrency, and database constraint tests;
+- a strict `planning.input_changed` v1 JSON contract for Growth Plan initialization and Track
+  activity admission, with valid, boundary, invalid, and malicious fixtures.
 
 ## Not yet implemented
 
-- activity-admission and later plan/track lifecycle and capacity commands;
+- later plan/track/activity lifecycle and capacity commands;
 - calculation-attempt, action-selection, and delivery-ledger persistence;
 - the remaining owner-scoped normalized input queries, leased worker, recovery, and
   fingerprint-checked snapshot application;

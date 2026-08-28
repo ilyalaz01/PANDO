@@ -27,6 +27,17 @@ export type Database = {
         }
         Returns: Json
       }
+      add_learning_track_activity_v1: {
+        Args: {
+          p_activity_key: string
+          p_energy?: string
+          p_estimated_minutes: number
+          p_expected_learning_track_version: string
+          p_idempotency_key: string
+          p_learning_track_key: string
+        }
+        Returns: Json
+      }
       bootstrap_personal_workspace: {
         Args: { p_idempotency_key: string; p_workspace_name?: string }
         Returns: Json

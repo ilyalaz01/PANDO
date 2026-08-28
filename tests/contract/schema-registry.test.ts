@@ -51,6 +51,8 @@ describe("strict Draft 2020-12 schema registry", () => {
     ["target-selection-source", "target-selection/v1/valid/target-selection-source-v1.seeded.json"],
     ["readiness-event-v1", "../contract/fixtures/events/v1/readiness.valid.json"],
     ["readiness-event-v1", "../contract/fixtures/events/v1/readiness.boundary.json"],
+    ["planning-event-v1", "../contract/fixtures/events/v1/planning.valid.json"],
+    ["planning-event-v1", "../contract/fixtures/events/v1/planning.boundary.json"],
     ["target-readiness-v1", "../contract/fixtures/target-readiness/v1/target-readiness.valid.json"],
     [
       "target-readiness-v1",

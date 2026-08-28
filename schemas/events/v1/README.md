@@ -1,4 +1,4 @@
-# Evidence, Mastery, Review, and Target Readiness event contracts v1
+# Evidence, Mastery, Review, Target Readiness, and Planning event contracts v1
 
 `evidence-event.schema.json` is the fixed, privacy-minimized outbox contract consumed by
 `mastery.evidence_projection_v1`.
@@ -29,3 +29,9 @@ versions, status, confidence, and the bounded readiness interval. The scheduled 
 the goal, source snapshot, deterministic input fingerprint, and due instant. Goal-created and
 Mastery wake events retain their existing owner schemas. Evidence bodies, notes, attempt results,
 provider payloads, arbitrary consumers, and UI/domain-composition data are forbidden.
+
+`planning-event.schema.json` contains the privacy-minimized `planning.input_changed` v1 variants
+for initial Growth Plan creation and admission of one accepted Overlay activity to a Learning
+Track. It carries only aggregate, attribution, and candidate identifiers plus safe versions.
+Titles, competency mappings, duration, energy, notes, evidence, URLs, and arbitrary
+consumer routing are forbidden; the Planning worker reloads authoritative inputs.

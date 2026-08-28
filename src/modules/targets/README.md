@@ -96,6 +96,12 @@ and count-only domain breakdown; it owns no readiness fact. The smaller
 `api.get_current_planning_readiness_input_v1(goal)` returns either one current minimized snapshot or
 a strict unavailable reason, so future Planning cannot consume stale numbers.
 
+Planning activity admission revalidates the Track's exact readiness-goal/profile pair through
+`targets.get_planning_track_goal_admission_source_v1`. The query shares the active-goal lifecycle
+fence and is executable only by the Planning application role; Planning has no direct Targets table
+read. Paused plans or tracks may be edited, but an inactive readiness goal cannot acquire new
+target-backed activity input.
+
 Immediate post-command dispatch improves target-selection and evidence/correction feedback. The
 durable outbox remains authoritative, and the once-per-minute fixed recovery route is activated by
 the [Phase 3B runbook](../../../docs/runbooks/database/phase-3b-target-readiness-projection.md).

@@ -156,6 +156,20 @@ atomically from an already authorized active Readiness Goal. It is the same owne
 by onboarding and Preparation Pack activation; it is not a fixture-only shortcut. It records the
 chosen weekly capacity and default session duration instead of inventing them in a read query.
 
+The idempotent `add_learning_track_activity_v1` command admits one existing accepted User Overlay
+activity to one current active or paused Learning Track. The caller supplies only stable Track and
+activity keys, explicit Planning-owned duration, nullable energy, expected Track version, and an
+idempotency key; workspace, goal/profile identities, custom activity UUID, and candidate key are
+server-derived. Targets and Overlay revalidate the exact active goal/profile/activity through
+fenced owner queries. The command increments the Track version, preserves the Growth Plan version,
+and emits a Track-versioned `planning.input_changed` event with one fixed Planning delivery. It
+rejects the 201st non-archived plan activity rather than allowing the worker to truncate input.
+
+Ordinary input commands, including activity admission, do not null or advance the current snapshot
+pointer. Their due delivery makes Today pending and may leave an unexpired prior snapshot available
+only as `lastKnownSafe`. Pointer advancement belongs exclusively to successful worker completion;
+the initializer's nullable reset is the special case for a newly created/reinitialized plan.
+
 Every workspace-owned table has grants, forced RLS, positive isolation tests, and negative
 cross-workspace tests. Plan/track/capacity state changes use purpose-specific idempotent commands
 that atomically commit state, a command receipt, and outbox events.
