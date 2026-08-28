@@ -29,6 +29,58 @@ interface EvidenceAnswer {
 
 let sessionCounter = 0;
 
+function prerequisiteProjection(
+  competencyRef: string,
+  condition: "STRONG" | "WEAK" | "STALE",
+  achievementLevel: "NOT_STARTED" | "COMPLETED" | "VERIFIED" | "MASTERED",
+  lastMeaningfulEvidenceAt: string,
+  calculatedAsOf = "2026-08-02T12:00:00Z",
+) {
+  const unknownDimension = (dimension: string) => ({
+    dimension,
+    value: "UNKNOWN",
+    achievementLevel: "NOT_STARTED",
+    condition: null,
+    confidence: null,
+    freshness: "UNKNOWN",
+    lastMeaningfulEvidenceAt: null,
+  });
+  return {
+    snapshotId: "29000000-0000-4000-8000-000000000001",
+    pointerInputWatermark: "1",
+    pointerProjectionVersion: "1",
+    pointerUpdatedAt: calculatedAsOf,
+    projectionGeneration: "live-v1",
+    engineVersion: "mastery-engine/0.1.0",
+    policyVersion: "mastery-readiness-policy/0.1",
+    calculatedAsOf,
+    achievementLevel,
+    createdAt: calculatedAsOf,
+    state: {
+      engineVersion: "mastery-engine/0.1.0",
+      policyVersion: "mastery-readiness-policy/0.1",
+      inputWatermark: "1",
+      competencyId: competencyRef,
+      calculatedAsOf,
+      achievementLevel,
+      dimensions: {
+        KNOWLEDGE: unknownDimension("KNOWLEDGE"),
+        RECALL: unknownDimension("RECALL"),
+        APPLICATION: {
+          dimension: "APPLICATION",
+          value: "KNOWN",
+          achievementLevel,
+          condition,
+          confidence: "LOW",
+          freshness: condition === "STALE" ? "STALE" : "FRESH",
+          lastMeaningfulEvidenceAt,
+        },
+        INTERVIEW_EXECUTION: unknownDimension("INTERVIEW_EXECUTION"),
+      },
+    },
+  };
+}
+
 /** One terminal Focus Session plus the exact Evidence answer that classifies it. */
 function terminalSession(
   overrides: Partial<WorkSession> & { evidenceBearing?: boolean; attemptTerminal?: boolean } = {},
@@ -153,6 +205,7 @@ function sourceBundle() {
           catalogVersionId: "26000000-0000-4000-8000-000000000106",
           competencyRef: "competency:debugging",
           prerequisiteCount: 1,
+          prerequisiteRefs: ["competency:foundations"],
           unlockCount: 2,
         },
       ],
@@ -170,7 +223,17 @@ function sourceBundle() {
       revision: `evidence-completed-work:${"4".repeat(64)}`,
       items: [] as EvidenceAnswer[],
     },
-    mastery: { revision: `mastery-scope:${"c".repeat(64)}` },
+    mastery: {
+      policyVersion: "mastery-prerequisite-satisfaction/0.1",
+      revision: `mastery-prerequisite:${"c".repeat(64)}`,
+      items: [
+        {
+          competencyRef: "competency:foundations",
+          projectionFence: "not-materialized",
+          projection: null,
+        },
+      ],
+    },
     review: {
       revision: `review-scope:${"d".repeat(64)}`,
       projectionState: "NOT_STARTED",
@@ -190,6 +253,7 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.candidates[0]).toMatchObject({
       candidateKey: "candidate:debug-api",
       prerequisiteState: "UNKNOWN",
+      prerequisiteSummary: { total: 1, satisfied: 0, blocked: 0, unknown: 1 },
       unlockCount: 2,
       repetitionsInLast7Days: 0,
     });
@@ -198,16 +262,37 @@ describe("assemblePlanSnapshotInput", () => {
       "EVIDENCE/completed-work",
       "FOCUS/completed-work",
       "FOCUS/workspace-focus",
-      "MASTERY/candidate-scope",
+      "MASTERY/prerequisite-scope",
       "OVERLAY/workspace-overlay",
       "REVIEW/workspace-review",
     ]);
     expect(calculatePlan(input, PLANNING_POLICY_V0_1).recommendationState).toBe("NO_CANDIDATES");
   });
 
+  it("accepts the C5 owner contract for an empty no-plan bundle", () => {
+    const source = sourceBundle();
+    const input = assemblePlanSnapshotInput({
+      ...source,
+      plan: null,
+      targets: { items: [] },
+      overlay: { ...source.overlay, items: [] },
+      catalog: { versions: [], items: [] },
+      mastery: { ...source.mastery, items: [] },
+    });
+
+    expect(input).toMatchObject({
+      growthPlan: null,
+      candidates: [],
+      prerequisiteEngineVersion: "mastery-prerequisite-engine/0.1.0",
+      prerequisitePolicyVersion: "mastery-prerequisite-satisfaction/0.1",
+    });
+  });
+
   it("records the completed-work policy version and both new owner fences", () => {
     const input = assemblePlanSnapshotInput(sourceBundle());
     expect(input.completedWorkPolicyVersion).toBe("planning-completed-work/0.1");
+    expect(input.prerequisiteEngineVersion).toBe("mastery-prerequisite-engine/0.1.0");
+    expect(input.prerequisitePolicyVersion).toBe("mastery-prerequisite-satisfaction/0.1");
     expect(input.sourceRevisions).toEqual(
       expect.arrayContaining([
         {
@@ -416,7 +501,11 @@ describe("assemblePlanSnapshotInput", () => {
           },
         ],
       },
-      catalog: { ...source.catalog, items: [{ ...graph, prerequisiteCount: 0 }] },
+      catalog: {
+        ...source.catalog,
+        items: [{ ...graph, prerequisiteCount: 0, prerequisiteRefs: [] }],
+      },
+      mastery: { ...source.mastery, items: [] },
       focus: {
         ...source.focus,
         activeFocus: {
@@ -459,10 +548,97 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.candidates[0]).toMatchObject({
       energy: null,
       prerequisiteState: "SATISFIED",
+      prerequisiteSummary: { total: 0, satisfied: 0, blocked: 0, unknown: 0 },
       sourceSignals: ["GROWTH_PLAN", "REVIEW"],
       review: { bucket: "OVERDUE", dueAt: "2026-08-30T12:00:00.000Z" },
     });
     expect(calculatePlan(input, PLANNING_POLICY_V0_1).recommendationState).toBe("CURRENT");
+  });
+
+  it("aggregates Mastery classifications with Blocked precedence and caps validity", () => {
+    const source = sourceBundle();
+    const graph = source.catalog.items[0];
+    const input = assemblePlanSnapshotInput({
+      ...source,
+      catalog: {
+        ...source.catalog,
+        items: [
+          {
+            ...graph,
+            prerequisiteCount: 3,
+            prerequisiteRefs: ["competency:blocked", "competency:satisfied", "competency:unknown"],
+          },
+        ],
+      },
+      mastery: {
+        ...source.mastery,
+        items: [
+          {
+            competencyRef: "competency:blocked",
+            projectionFence: "blocked:1",
+            projection: prerequisiteProjection(
+              "competency:blocked",
+              "WEAK",
+              "NOT_STARTED",
+              "2026-07-03T12:00:00Z",
+            ),
+          },
+          {
+            competencyRef: "competency:satisfied",
+            projectionFence: "satisfied:1",
+            projection: prerequisiteProjection(
+              "competency:satisfied",
+              "STRONG",
+              "COMPLETED",
+              "2026-07-04T12:00:00Z",
+            ),
+          },
+          {
+            competencyRef: "competency:unknown",
+            projectionFence: "not-materialized",
+            projection: null,
+          },
+        ],
+      },
+    });
+
+    expect(input.candidates[0]).toMatchObject({
+      prerequisiteState: "BLOCKED",
+      prerequisiteSummary: { total: 3, satisfied: 1, blocked: 1, unknown: 1 },
+    });
+    expect(input.evaluationHorizon.validUntil).toBe("2026-09-01T12:00:00.000Z");
+  });
+
+  it("fails closed on incomplete or conflicting prerequisite owner answers", () => {
+    const source = sourceBundle();
+    expect(() =>
+      assemblePlanSnapshotInput({ ...source, mastery: { ...source.mastery, items: [] } }),
+    ).toThrowError(
+      expect.objectContaining<Partial<PlanningProjectionSourceError>>({
+        code: "MISSING_MASTERY_SOURCE",
+      }),
+    );
+
+    expect(() =>
+      assemblePlanSnapshotInput({
+        ...source,
+        mastery: {
+          ...source.mastery,
+          items: [
+            ...source.mastery.items,
+            {
+              competencyRef: "competency:unrequested",
+              projectionFence: "not-materialized",
+              projection: null,
+            },
+          ],
+        },
+      }),
+    ).toThrowError(
+      expect.objectContaining<Partial<PlanningProjectionSourceError>>({
+        code: "OWNER_FENCE_CONFLICT",
+      }),
+    );
   });
 
   it("holds the completed-work invariants for arbitrary terminal history", () => {

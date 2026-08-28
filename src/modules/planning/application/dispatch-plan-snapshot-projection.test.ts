@@ -74,7 +74,11 @@ function sourceBundle(unclassifiableHistory = false) {
           [{ focusSessionId, attemptTerminal: false, evidenceBearing: false }]
         : [],
     },
-    mastery: { revision: `mastery-scope:${"c".repeat(64)}` },
+    mastery: {
+      policyVersion: "mastery-prerequisite-satisfaction/0.1",
+      revision: `mastery-prerequisite:${"c".repeat(64)}`,
+      items: [],
+    },
     review: {
       revision: `review-scope:${"d".repeat(64)}`,
       projectionState: "NOT_STARTED",
@@ -130,6 +134,7 @@ describe("Planning snapshot dispatcher", () => {
       p_input: {
         evaluationHorizon: { asOf: "2026-09-01T12:00:00.000Z" },
         growthPlan: null,
+        prerequisiteEngineVersion: "mastery-prerequisite-engine/0.1.0",
       },
     });
     expect(complete?.[1]).toMatchObject({

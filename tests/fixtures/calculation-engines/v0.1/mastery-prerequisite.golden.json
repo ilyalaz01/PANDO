@@ -1,0 +1,73 @@
+{
+  "fixtureVersion": "calculation-engines/0.1",
+  "clock": { "asOf": "2026-08-31T12:00:00Z" },
+  "input": {
+    "competencyRef": "competency:foundations",
+    "projection": {
+      "snapshotId": "29000000-0000-4000-8000-000000000001",
+      "pointerInputWatermark": "7",
+      "pointerProjectionVersion": "3",
+      "pointerUpdatedAt": "2026-08-02T12:00:00Z",
+      "projectionGeneration": "live-v1",
+      "engineVersion": "mastery-engine/0.1.0",
+      "policyVersion": "mastery-readiness-policy/0.1",
+      "calculatedAsOf": "2026-08-02T12:00:00Z",
+      "achievementLevel": "COMPLETED",
+      "createdAt": "2026-08-02T12:00:00Z",
+      "state": {
+        "engineVersion": "mastery-engine/0.1.0",
+        "policyVersion": "mastery-readiness-policy/0.1",
+        "inputWatermark": "7",
+        "competencyId": "competency:foundations",
+        "calculatedAsOf": "2026-08-02T12:00:00Z",
+        "achievementLevel": "COMPLETED",
+        "dimensions": {
+          "KNOWLEDGE": {
+            "dimension": "KNOWLEDGE",
+            "value": "UNKNOWN",
+            "achievementLevel": "NOT_STARTED",
+            "condition": null,
+            "confidence": null,
+            "freshness": "UNKNOWN",
+            "lastMeaningfulEvidenceAt": null
+          },
+          "RECALL": {
+            "dimension": "RECALL",
+            "value": "UNKNOWN",
+            "achievementLevel": "NOT_STARTED",
+            "condition": null,
+            "confidence": null,
+            "freshness": "UNKNOWN",
+            "lastMeaningfulEvidenceAt": null
+          },
+          "APPLICATION": {
+            "dimension": "APPLICATION",
+            "value": "KNOWN",
+            "achievementLevel": "COMPLETED",
+            "condition": "STRONG",
+            "confidence": "LOW",
+            "freshness": "FRESH",
+            "lastMeaningfulEvidenceAt": "2026-07-02T12:00:00Z"
+          },
+          "INTERVIEW_EXECUTION": {
+            "dimension": "INTERVIEW_EXECUTION",
+            "value": "UNKNOWN",
+            "achievementLevel": "NOT_STARTED",
+            "condition": null,
+            "confidence": null,
+            "freshness": "UNKNOWN",
+            "lastMeaningfulEvidenceAt": null
+          }
+        }
+      }
+    }
+  },
+  "expected": {
+    "engineVersion": "mastery-prerequisite-engine/0.1.0",
+    "policyVersion": "mastery-prerequisite-satisfaction/0.1",
+    "competencyRef": "competency:foundations",
+    "state": "SATISFIED",
+    "reason": "FRESH_STRONG",
+    "validUntil": "2026-08-31T12:00:00.000Z"
+  }
+}

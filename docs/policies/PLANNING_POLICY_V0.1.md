@@ -45,6 +45,12 @@ defined here. They are normalized from bounded Sessions and Evidence owner facts
 [Planning Completed Work Policy v0.1](PLANNING_COMPLETED_WORK_POLICY_V0.1.md), whose version travels
 in the calculation input and therefore in every snapshot fingerprint.
 
+Direct prerequisite structure and tri-state satisfaction are normalized by
+[Planning Prerequisite Satisfaction Policy v0.1](PLANNING_PREREQUISITE_SATISFACTION_POLICY_V0.1.md).
+Its pure classifier engine version, policy version, and bounded classification counts travel in the
+calculation input so the engine can verify every `SATISFIED`, `BLOCKED`, or `UNKNOWN` value before
+applying this policy.
+
 ## 3. Score factors
 
 | Factor | Points |

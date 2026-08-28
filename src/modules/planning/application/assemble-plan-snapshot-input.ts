@@ -8,6 +8,11 @@ import {
   type JsonValue,
 } from "../../../shared/contracts/json";
 import { planningInputFingerprint } from "../../../shared/contracts/planning-semantics";
+import {
+  calculatePrerequisiteSatisfaction,
+  MASTERY_PREREQUISITE_ENGINE_VERSION,
+  PREREQUISITE_SATISFACTION_POLICY_V0_1,
+} from "../../mastery/application/prerequisite-satisfaction-v1";
 import type {
   CalculatePlanInput,
   PlanningCandidateInput,
@@ -23,6 +28,7 @@ import type {
  * Evidence owner facts into consumed capacity, per-track cadence credit, and recent repetition.
  */
 export const COMPLETED_WORK_POLICY_VERSION = "planning-completed-work/0.1";
+export const PREREQUISITE_POLICY_VERSION = "mastery-prerequisite-satisfaction/0.1";
 
 /** 168 elapsed hours, never seven calendar days: a local offset change cannot resize the window. */
 const REPETITION_WINDOW_MILLISECONDS = 604_800_000;
@@ -31,6 +37,7 @@ const MAXIMUM_TERMINAL_SESSIONS = 500;
 const MAXIMUM_REPETITIONS = 50;
 const MAXIMUM_SESSION_MINUTES = 480;
 const MINUTES_PER_WEEK = 10_080;
+const MAXIMUM_DIRECT_PREREQUISITES = 20;
 
 export class PlanningProjectionSourceError extends TypeError {
   constructor(
@@ -94,6 +101,25 @@ function requiredBoolean(object: JsonObject, key: string): boolean {
 function objectArray(value: JsonValue | undefined, label: string): JsonObject[] {
   const raw = asArray(value);
   return raw.map((item, index) => asJsonObject(item, `${label}[${index}]`));
+}
+
+function canonicalStringArray(value: JsonValue | undefined, label: string): string[] {
+  if (!Array.isArray(value)) fail("INVALID_OWNER_SOURCE", `${label} must be an array`);
+  const values = value.map((item, index) => {
+    if (typeof item !== "string" || item.length === 0 || item !== item.trim()) {
+      fail("INVALID_OWNER_SOURCE", `${label}[${index}] must be a trimmed string`);
+    }
+    return item;
+  });
+  if (new Set(values).size !== values.length) {
+    fail("OWNER_FENCE_CONFLICT", `${label} contains duplicates`);
+  }
+  if (
+    !values.every((item, index) => index === 0 || compareCodePoints(values[index - 1]!, item) < 0)
+  ) {
+    fail("INVALID_OWNER_SOURCE", `${label} must use canonical code-point order`);
+  }
+  return values;
 }
 
 function minimumInstant(values: readonly (string | null)[]): string {
@@ -333,12 +359,50 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
       item,
     ]),
   );
+  const catalogItems = objectArray(catalog.items, "catalog.items");
   const graphByPair = new Map(
-    objectArray(catalog.items, "catalog.items").map((item) => [
+    uniqueBy(
+      catalogItems,
+      (item) =>
+        `${requiredString(item, "catalogVersionId")}\u001f${requiredString(item, "competencyRef")}`,
+      "Catalog source",
+    ).map((item) => [
       `${requiredString(item, "catalogVersionId")}\u001f${requiredString(item, "competencyRef")}`,
       item,
     ]),
   );
+  const catalogHasAnyPrerequisiteContract = catalogItems.some(
+    (item) => item.prerequisiteRefs !== undefined,
+  );
+  const catalogHasOnlyPrerequisiteContract = catalogItems.every(
+    (item) => item.prerequisiteRefs !== undefined,
+  );
+  if (catalogHasAnyPrerequisiteContract && !catalogHasOnlyPrerequisiteContract) {
+    fail("OWNER_FENCE_CONFLICT", "Catalog source mixes prerequisite contract versions");
+  }
+  const masteryPolicy = asString(mastery.policyVersion);
+  const hasPrerequisiteSource = masteryPolicy === PREREQUISITE_POLICY_VERSION;
+  if (
+    (masteryPolicy === undefined && catalogHasAnyPrerequisiteContract) ||
+    (masteryPolicy !== undefined && !catalogHasOnlyPrerequisiteContract)
+  ) {
+    fail("OWNER_FENCE_CONFLICT", "Catalog and Mastery prerequisite source versions disagree");
+  }
+  if (masteryPolicy !== undefined && masteryPolicy !== PREREQUISITE_POLICY_VERSION) {
+    fail("INVALID_OWNER_SOURCE", "Mastery prerequisite policy version is unsupported");
+  }
+  const masteryItems = hasPrerequisiteSource
+    ? uniqueBy(
+        objectArray(mastery.items, "mastery.items"),
+        (item) => requiredString(item, "competencyRef"),
+        "Mastery prerequisite source",
+      )
+    : [];
+  const masteryByCompetency = new Map(
+    masteryItems.map((item) => [requiredString(item, "competencyRef"), item]),
+  );
+  const usedPrerequisiteRefs = new Set<string>();
+  const prerequisiteValidityInstants: string[] = [];
 
   const reviewByPair = new Map<string, ReviewSignalInput>();
   for (const item of objectArray(review.items, "review.items")) {
@@ -441,6 +505,88 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
       );
       if (graph === undefined)
         fail("MISSING_CATALOG_SOURCE", "Candidate Catalog source is missing");
+      const prerequisiteCount = integer(graph, "prerequisiteCount");
+      if (prerequisiteCount < 0 || prerequisiteCount > MAXIMUM_DIRECT_PREREQUISITES) {
+        fail(
+          "PREREQUISITE_SOURCE_BOUND",
+          `candidate direct prerequisites exceed ${MAXIMUM_DIRECT_PREREQUISITES}`,
+        );
+      }
+      let prerequisiteSummary: PlanningCandidateInput["prerequisiteSummary"];
+      if (!hasPrerequisiteSource) {
+        prerequisiteSummary = {
+          total: prerequisiteCount,
+          satisfied: 0,
+          blocked: 0,
+          unknown: prerequisiteCount,
+        };
+      } else {
+        const prerequisiteRefs = canonicalStringArray(
+          graph.prerequisiteRefs,
+          "catalog.prerequisiteRefs",
+        );
+        if (prerequisiteRefs.length !== prerequisiteCount) {
+          fail(
+            "OWNER_FENCE_CONFLICT",
+            "Catalog prerequisite count does not match its exact references",
+          );
+        }
+        let satisfied = 0;
+        let blocked = 0;
+        let unknown = 0;
+        for (const prerequisiteRef of prerequisiteRefs) {
+          usedPrerequisiteRefs.add(prerequisiteRef);
+          const classification = masteryByCompetency.get(prerequisiteRef);
+          if (classification === undefined) {
+            fail(
+              "MISSING_MASTERY_SOURCE",
+              "a direct prerequisite has no Mastery owner classification",
+            );
+          }
+          requiredString(classification, "projectionFence");
+          if (!Object.prototype.hasOwnProperty.call(classification, "projection")) {
+            fail("INVALID_OWNER_SOURCE", "Mastery prerequisite projection is missing");
+          }
+          const classified = calculatePrerequisiteSatisfaction(
+            {
+              competencyRef: prerequisiteRef,
+              projection: classification.projection ?? null,
+            },
+            PREREQUISITE_SATISFACTION_POLICY_V0_1,
+            { asOf: claimAsOf },
+          );
+          const { state } = classified;
+          const validity = classified.validUntil;
+          if (state === "SATISFIED") satisfied += 1;
+          else if (state === "BLOCKED") blocked += 1;
+          else if (state === "UNKNOWN") unknown += 1;
+          else fail("INVALID_OWNER_SOURCE", "Mastery prerequisite state is invalid");
+          if (state === "UNKNOWN" && validity !== null) {
+            fail("INVALID_OWNER_SOURCE", "Unknown prerequisite state cannot declare validity");
+          }
+          if (state !== "UNKNOWN" && validity === null) {
+            fail("INVALID_OWNER_SOURCE", "decisive prerequisite state requires validity");
+          }
+          if (validity !== null) {
+            if (Date.parse(validity) < asOfMs) {
+              fail("INVALID_OWNER_SOURCE", "Mastery prerequisite validity precedes claim clock");
+            }
+            prerequisiteValidityInstants.push(validity);
+          }
+        }
+        prerequisiteSummary = {
+          total: prerequisiteCount,
+          satisfied,
+          blocked,
+          unknown,
+        };
+      }
+      const prerequisiteState =
+        prerequisiteSummary.blocked > 0
+          ? "BLOCKED"
+          : prerequisiteSummary.unknown > 0
+            ? "UNKNOWN"
+            : "SATISFIED";
       const activityKey = requiredString(overlayItem, "activityKey");
       const customActivityId = requiredString(activity, "customActivityId");
       const repetitionEndedAtMs = workSessions
@@ -489,7 +635,8 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
             ) as PlanningCandidateInput["competencyImpacts"][number]["dimension"],
           },
         ],
-        prerequisiteState: integer(graph, "prerequisiteCount") === 0 ? "SATISFIED" : "UNKNOWN",
+        prerequisiteState,
+        prerequisiteSummary,
         unlockCount: integer(graph, "unlockCount"),
         repetitionsInLast7Days: Math.min(MAXIMUM_REPETITIONS, repetitionEndedAtMs.length),
         oldestRepetitionEndedAt:
@@ -508,6 +655,14 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     };
   }
 
+  if (
+    hasPrerequisiteSource &&
+    (usedPrerequisiteRefs.size !== masteryByCompetency.size ||
+      [...masteryByCompetency.keys()].some((key) => !usedPrerequisiteRefs.has(key)))
+  ) {
+    fail("OWNER_FENCE_CONFLICT", "Mastery returned an unrequested prerequisite classification");
+  }
+
   const sourceRevisions: PlanningSourceRevision[] = [
     ...objectArray(catalog.versions, "catalog.versions").map((version) =>
       sourceRevision(
@@ -519,7 +674,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     sourceRevision("EVIDENCE", "completed-work", requiredString(evidence, "revision")),
     sourceRevision("FOCUS", "completed-work", requiredString(completedWork, "revision")),
     sourceRevision("FOCUS", "workspace-focus", requiredString(focus, "revision")),
-    sourceRevision("MASTERY", "candidate-scope", requiredString(mastery, "revision")),
+    sourceRevision("MASTERY", "prerequisite-scope", requiredString(mastery, "revision")),
     sourceRevision("OVERLAY", "workspace-overlay", requiredString(overlay, "revision")),
     sourceRevision("REVIEW", "workspace-review", requiredString(review, "revision")),
   ].sort((left, right) =>
@@ -531,11 +686,14 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     calendarValidUntil,
     reviewValidUntil,
     ...repetitionCutoffInstants,
+    ...prerequisiteValidityInstants,
     ...readiness.map((item) => (item.availability === "CURRENT" ? item.validUntil : null)),
   ]);
   const unsigned: CalculatePlanInput = {
     inputFingerprint: "planning-input:" + "0".repeat(64),
     completedWorkPolicyVersion: COMPLETED_WORK_POLICY_VERSION,
+    prerequisiteEngineVersion: MASTERY_PREREQUISITE_ENGINE_VERSION,
+    prerequisitePolicyVersion: PREREQUISITE_POLICY_VERSION,
     evaluationHorizon: {
       asOf: claimAsOf,
       validUntil,

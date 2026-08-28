@@ -1,6 +1,8 @@
 {
-  "inputFingerprint": "planning-input:049948446d99180085a2ffe4220a3368705d9b3a55da90b134ca2e709bb8879a",
+  "inputFingerprint": "planning-input:8dbaffd03c6740d6c8352ee4e933a945a561cba8d9775e5e5570147c55b8c197",
   "completedWorkPolicyVersion": "planning-completed-work/0.1",
+  "prerequisiteEngineVersion": "mastery-prerequisite-engine/0.1.0",
+  "prerequisitePolicyVersion": "mastery-prerequisite-satisfaction/0.1",
   "evaluationHorizon": {
     "asOf": "2026-09-01T12:00:00Z",
     "validUntil": "2026-09-01T18:00:00Z",

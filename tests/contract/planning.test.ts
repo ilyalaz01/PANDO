@@ -90,6 +90,34 @@ describe("PlanningCalculationInputV1", () => {
     expect(planningInputSemanticViolations(changed)).toContain("PLANNING_INPUT_FINGERPRINT");
   });
 
+  it("requires the prerequisite policy and bounded engine-verifiable summaries", () => {
+    expect((planningGolden.input as RecordValue).prerequisiteEngineVersion).toBe(
+      "mastery-prerequisite-engine/0.1.0",
+    );
+    expect((planningGolden.input as RecordValue).prerequisitePolicyVersion).toBe(
+      "mastery-prerequisite-satisfaction/0.1",
+    );
+    const withoutPolicy = structuredClone(planningGolden.input) as RecordValue;
+    delete withoutPolicy.prerequisitePolicyVersion;
+    expect(validateSchema("planning-input-v1", withoutPolicy).valid).toBe(false);
+
+    const withoutEngine = structuredClone(planningGolden.input) as RecordValue;
+    delete withoutEngine.prerequisiteEngineVersion;
+    expect(validateSchema("planning-input-v1", withoutEngine).valid).toBe(false);
+
+    const changedPolicy = structuredClone(planningGolden.input) as RecordValue;
+    changedPolicy.prerequisitePolicyVersion = "mastery-prerequisite-satisfaction/0.2";
+    expect(planningInputFingerprint(changedPolicy)).not.toBe(planningGolden.input.inputFingerprint);
+
+    const changedEngine = structuredClone(planningGolden.input) as RecordValue;
+    changedEngine.prerequisiteEngineVersion = "mastery-prerequisite-engine/0.1.1";
+    expect(planningInputFingerprint(changedEngine)).not.toBe(planningGolden.input.inputFingerprint);
+
+    const withoutSummary = structuredClone(planningGolden.input) as RecordValue;
+    delete (withoutSummary.candidates as RecordValue[])[0]!.prerequisiteSummary;
+    expect(validateSchema("planning-input-v1", withoutSummary).valid).toBe(false);
+  });
+
   it("keeps the canonical fingerprint stable for set-like input permutations", () => {
     const changed = structuredClone(planningGolden.input);
     changed.candidates.reverse();

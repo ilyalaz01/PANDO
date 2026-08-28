@@ -1,6 +1,8 @@
 {
   "inputFingerprint": "planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "completedWorkPolicyVersion": "planning-completed-work/0.1",
+  "prerequisiteEngineVersion": "mastery-prerequisite-engine/0.1.0",
+  "prerequisitePolicyVersion": "mastery-prerequisite-satisfaction/0.1",
   "evaluationHorizon": {
     "asOf": "2026-09-01T12:00:00Z",
     "validUntil": "2026-09-01T18:00:00Z",

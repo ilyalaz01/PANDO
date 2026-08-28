@@ -1,7 +1,7 @@
 # Phase 4A Planning and Today status
 
-Status: Live calculation worker, owner-event routing, and the versioned completed-work policy
-implemented; Mastery prerequisite satisfaction and Today UI pending
+Status: Live calculation worker, owner-event routing, completed-work policy, and Mastery
+prerequisite satisfaction implemented; Today UI pending
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -82,8 +82,8 @@ and accepted design remain authoritative.
   types.
   Raw evidence append events remain outside this ledger; Focus completion supplies the immediate
   wake-up and later
-  Mastery/Targets events provide the convergence wake-ups that become calculable after the
-  meaningful-work policy is implemented;
+  Mastery/Targets events provide the convergence wake-ups that recalculate completed-work and
+  prerequisite-aware snapshots;
 - database proofs for router privilege isolation, real user-producer routing, pre-plan suppression,
   explicit historical repair, audited malformed-history recovery, replay uniqueness, user-command
   and Mastery-completion rollback on delivery failure, plan-enabled real Mastery/Review/Targets
@@ -104,14 +104,24 @@ and accepted design remain authoritative.
   missing or non-terminal Evidence attempt, a stopped session claiming evidence, a session outside
   the claim-scoped window, a window that does not cover the policy horizon, or derived totals that
   break the week/credit invariants — instead of every workspace with terminal sessions.
-  Prerequisite-bearing candidates still remain `UNKNOWN` until a versioned Mastery satisfaction rule
-  exists.
+  Prerequisite-bearing candidates are now classified by the rule below instead of remaining a
+  permanent placeholder `UNKNOWN`;
+- versioned [`mastery-prerequisite-satisfaction/0.1`](../policies/PLANNING_PREREQUISITE_SATISFACTION_POLICY_V0.1.md)
+  classification over exact direct blocking Catalog edges. A dedicated read-only Mastery source
+  returns one content-fenced, privacy-minimized projection per prerequisite without exposing
+  Evidence identifiers or granting Planning table access. The pure
+  `mastery-prerequisite-engine/0.1.0` TypeScript function validates the latest materialized state
+  published no later than the persisted claim clock and recalculates freshness at that clock:
+  Fresh Strong completion satisfies, Fresh Weak blocks when no positive witness exists, and
+  missing/post-claim/malformed/stale-only state remains Unknown. Planning aggregates the results;
+  its own engine verifies the counts, and the earliest decisive freshness boundary caps snapshot
+  validity. The Overlay owner boundary also refuses missing origin and an ambiguous legacy/import
+  row whose accepted personal competency reuses a competency reference from the exact Catalog
+  version, including a retired item;
 
 ## Not yet implemented
 
 - later plan/track/activity lifecycle and capacity commands;
-- the versioned Mastery prerequisite-satisfaction policy that would let prerequisite-bearing
-  candidates leave `UNKNOWN`;
 - campaign persistence, same-session duration/energy preference persistence, and Focus plan
   attribution columns;
 - live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed

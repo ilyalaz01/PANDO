@@ -9,7 +9,8 @@ the Phase 2 Focus/evidence/Mastery slice, and Phase 3 Review Core plus Target Re
 now has its pure deterministic Planning engine, policy, exact-input contracts, safe Today freshness
 envelope, Planning persistence, the snapshot projection worker, fixed owner-event routing, and the
 versioned completed-work policy that derives capacity, track cadence credit, and repetition from
-bounded Sessions/Evidence owner queries; the live Today route remains in progress.
+bounded Sessions/Evidence owner queries, plus versioned direct-prerequisite satisfaction from
+bounded Catalog/Mastery owner queries; the live Today route remains in progress.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted

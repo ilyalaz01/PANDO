@@ -366,7 +366,7 @@ select ok(
     'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
     'pando_identity_planning_source', 'pando_phase1_planning_source',
     'pando_phase2_planning_source', 'pando_evidence_planning_source',
-    'pando_review_planning_source'
+    'pando_review_planning_source', 'pando_mastery_planning_source'
   )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
@@ -401,7 +401,7 @@ where role.rolname in (
   'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
   'pando_identity_planning_source', 'pando_phase1_planning_source',
   'pando_phase2_planning_source', 'pando_evidence_planning_source',
-  'pando_review_planning_source'
+  'pando_review_planning_source', 'pando_mastery_planning_source'
 )
 order by role.rolname;
 
@@ -415,6 +415,7 @@ cross join (values
   ('pando_phase1_planning_source'),
   ('pando_phase2_planning_source'),
   ('pando_evidence_planning_source'),
+  ('pando_mastery_planning_source'),
   ('pando_review_planning_source'),
   ('pando_planning_router')
 ) as source_role(role_name)
@@ -429,14 +430,17 @@ select ok(
 )
 from (values
   ('identity', 'read_planning_calendar_source_v1', 'pando_identity_planning_source'),
+  ('overlay', 'assert_planning_candidate_origins_v1', 'pando_phase1_planning_source'),
   ('overlay', 'read_planning_candidate_source_v1', 'pando_phase1_planning_source'),
   ('targets', 'read_planning_readiness_source_v1', 'pando_phase1_planning_source'),
   ('catalog', 'read_planning_graph_source_v1', 'pando_phase1_planning_source'),
+  ('catalog', 'read_planning_graph_source_v2', 'pando_phase1_planning_source'),
   ('sessions', 'read_planning_focus_source_v1', 'pando_phase2_planning_source'),
   ('sessions', 'read_planning_completed_work_source_v1', 'pando_phase2_planning_source'),
   ('evidence', 'read_planning_completed_work_source_v1', 'pando_evidence_planning_source'),
   ('evidence', 'read_planning_completed_work_source_v2', 'pando_evidence_planning_source'),
   ('mastery', 'read_planning_mastery_source_v1', 'pando_mastery_worker'),
+  ('mastery', 'read_planning_prerequisite_source_v1', 'pando_mastery_planning_source'),
   ('review', 'read_planning_review_source_v1', 'pando_review_planning_source')
 ) as expected(schema_name, function_name, owner_name)
 join pg_catalog.pg_namespace as namespace on namespace.nspname = expected.schema_name

@@ -39,9 +39,18 @@ invariants. It stays a deliberate permanent failure: preserve history, diagnose 
 transaction, and fix it forward. `COMPLETED_WORK_SOURCE_BOUND` means the window holds more than 500
 terminal sessions and needs a reviewed continuation contract, never a truncated read.
 
+Direct blocking prerequisites are supported through
+[Planning Prerequisite Satisfaction Policy v0.1](../../policies/PLANNING_PREREQUISITE_SATISFACTION_POLICY_V0.1.md),
+`catalog.read_planning_graph_source_v2`, and
+`mastery.read_planning_prerequisite_source_v1`. SQL returns only a bounded, content-fenced,
+privacy-minimized Mastery projection; the pure `mastery-prerequisite-engine/0.1.0` TypeScript
+function validates and classifies it at the persisted claim clock. Its earliest decisive freshness
+boundary caps snapshot validity. Missing, post-claim, malformed, or stale-only state remains
+`UNKNOWN`; do not repair it by editing a Mastery snapshot or Planning input. `planning candidate
+exceeds 20 direct prerequisites` and `planning source exceeds 500 distinct prerequisites` require a
+reviewed policy/contract expansion, never truncation.
+
 Campaign and same-session duration/energy preferences are currently explicit null inputs.
-Prerequisite-bearing activities remain `UNKNOWN`; do not infer satisfaction from a Mastery level
-without a versioned policy.
 
 ## One-time hosted activation
 

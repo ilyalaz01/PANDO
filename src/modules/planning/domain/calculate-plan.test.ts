@@ -96,6 +96,7 @@ function growthCandidate(
       { competencyRef: `competency:${candidateKey.split(":").at(-1)}`, dimension: "APPLICATION" },
     ],
     prerequisiteState: "SATISFIED",
+    prerequisiteSummary: { total: 0, satisfied: 0, blocked: 0, unknown: 0 },
     unlockCount: 0,
     repetitionsInLast7Days: 0,
     oldestRepetitionEndedAt: null,
@@ -123,6 +124,7 @@ function reviewCandidate(
     trackId: null,
     competencyImpacts: [{ competencyRef: `competency:review-${suffix}`, dimension: "APPLICATION" }],
     prerequisiteState: "SATISFIED",
+    prerequisiteSummary: { total: 0, satisfied: 0, blocked: 0, unknown: 0 },
     unlockCount: 0,
     repetitionsInLast7Days: 0,
     oldestRepetitionEndedAt: null,
@@ -313,7 +315,10 @@ describe("calculatePlan", () => {
     input.campaign = null;
     input.energyPreference = null;
     input.candidates = [
-      growthCandidate("candidate:blocked", { prerequisiteState: "BLOCKED" }),
+      growthCandidate("candidate:blocked", {
+        prerequisiteState: "BLOCKED",
+        prerequisiteSummary: { total: 1, satisfied: 0, blocked: 1, unknown: 0 },
+      }),
       ...Array.from({ length: 8 }, (_unused, index) =>
         growthCandidate(`candidate:eligible-${index}`, { unlockCount: index }),
       ),
@@ -684,6 +689,49 @@ describe("calculatePlan", () => {
       ({ owner }) => owner !== "EVIDENCE",
     );
     expect(() => calculate(missingEvidence)).toThrow(/Evidence, Focus, and Review/u);
+  });
+
+  it("requires a versioned prerequisite policy and verifies every classification summary", () => {
+    const invalidEngine = verifiedInput({
+      ...baseInput(),
+      prerequisiteEngineVersion: "mastery-prerequisite-engine/0.1",
+    });
+    expect(() => calculatePlan(invalidEngine, PLANNING_POLICY_V0_1)).toThrow(PlanningInputError);
+    expect(() =>
+      calculateVerifiedPlan(invalidEngine as VerifiedCalculatePlanInput, PLANNING_POLICY_V0_1),
+    ).toThrow(/versioned prerequisite engine/u);
+
+    const invalidPolicy = verifiedInput({
+      ...baseInput(),
+      prerequisitePolicyVersion: "mastery-readiness-policy/0.1",
+    });
+    expect(() => calculatePlan(invalidPolicy, PLANNING_POLICY_V0_1)).toThrow(PlanningInputError);
+    expect(() =>
+      calculateVerifiedPlan(invalidPolicy as VerifiedCalculatePlanInput, PLANNING_POLICY_V0_1),
+    ).toThrow(/versioned prerequisite policy/u);
+
+    const inconsistent = baseInput();
+    inconsistent.candidates = inconsistent.candidates.map((candidate, index) =>
+      index === 0
+        ? {
+            ...candidate,
+            prerequisiteState: "SATISFIED",
+            prerequisiteSummary: { total: 1, satisfied: 0, blocked: 1, unknown: 0 },
+          }
+        : candidate,
+    );
+    expect(() => calculate(inconsistent)).toThrow(/must match its classification summary/u);
+
+    const incomplete = baseInput();
+    incomplete.candidates = incomplete.candidates.map((candidate, index) =>
+      index === 0
+        ? {
+            ...candidate,
+            prerequisiteSummary: { total: 2, satisfied: 1, blocked: 0, unknown: 0 },
+          }
+        : candidate,
+    );
+    expect(() => calculate(incomplete)).toThrow(/must sum/u);
   });
 
   it("binds a counted repetition to a verifiable window cutoff", () => {

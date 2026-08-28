@@ -4,6 +4,12 @@ Session date: 2026-08-28
 Agent: Claude Code (Opus 5)
 Branch: `claude/c4-meaningful-work`
 
+Current note (2026-08-29): this is the historical C4 report. Codex completed the independent
+hardening below, fast-forwarded C4 to `main` at `9c76f5f`, and pushed it to `origin/main`. C5 was
+implemented afterward and is documented separately in
+[`CODEX_C5_HANDOFF_REPORT.md`](CODEX_C5_HANDOFF_REPORT.md). Statements below that C5 was not started
+describe the original Claude handoff, not the current repository.
+
 ## 1. Outcome attempted
 
 Phase 4A **C4 — meaningful completed work**, as defined in `CLAUDE.md` under "Current bounded
@@ -14,7 +20,8 @@ The bounded outcome was to replace the blanket `UNSUPPORTED_MEANINGFUL_WORK_HIST
 a reviewed, versioned policy for completed meaningful minutes and recent candidate repetition, fed by
 bounded Sessions/Evidence owner queries, without fabricating any value.
 
-C5 (Mastery prerequisite satisfaction) and C6 (live Today read boundary) were **not** started.
+At this original C4 handoff, C5 (Mastery prerequisite satisfaction) and C6 (live Today read
+boundary) were **not** started.
 
 ## 2. User-visible result
 
@@ -284,19 +291,18 @@ These were needed to run any gate at all and are outside the repository:
 - Push status at Claude handoff: **not pushed.** The feature branch was left for explicit review
   and integration.
 - Codex integration decision: approved only after the corrective audit and all final Windows gates
-  above passed. The corrective review accompanies this report as the next commit after the original
-  three Claude commits.
+  above passed. The corrective review was committed as `9c76f5f`, fast-forwarded to `main`, and
+  pushed to `origin/main`.
 
 ## 8. Remaining work
 
-Next bounded outcome is **C5 — versioned Mastery prerequisite-satisfaction policy**. Candidates with
-any blocking prerequisite edge are still normalized to `prerequisiteState: "UNKNOWN"` in
-`assemble-plan-snapshot-input.ts`, which costs them the `PREREQUISITE_UNKNOWN` penalty and raises a
-warning. A reviewed policy plus a bounded Mastery owner query should resolve `SATISFIED` / `BLOCKED`.
-Do not infer satisfaction from a Mastery level without that policy.
+C5 was subsequently implemented as a pure, versioned Mastery classifier over privacy-minimized
+Mastery source state and exact direct blocking Catalog edges. Its current implementation,
+verification, and limits are recorded in
+[`CODEX_C5_HANDOFF_REPORT.md`](CODEX_C5_HANDOFF_REPORT.md).
 
-Then **C6** — live `TodayWorkspaceV1` query and the opaque action-selection resolver — before any
-`/today` UI.
+The next bounded outcome is **C6** — the live `TodayWorkspaceV1` read boundary and opaque
+action-selection resolver — before any `/today` UI.
 
 Known risks and limits, all recorded in the policy document §9:
 
@@ -309,20 +315,18 @@ Known risks and limits, all recorded in the policy document §9:
 ## 9. Codex resume prompt
 
 ```text
-Continue PANDO Phase 4A on branch claude/c4-meaningful-work (or after merging it to main).
+Continue PANDO Phase 4A from current main after C5.
 
-C4 (meaningful completed work) is done. Read, in order:
-  docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md
+C4 and C5 are done. Read, in order:
+  docs/README.md
   docs/implementation/PHASE_4A_PLANNING_TODAY_STATUS.md
+  docs/design/PHASE_4A_PLANNING_TODAY.md
   src/modules/planning/README.md
-  supabase/migrations/20260828000425_phase4a_planning_completed_work_sources.sql
-  src/modules/planning/application/assemble-plan-snapshot-input.ts
+  docs/implementation/CODEX_C5_HANDOFF_REPORT.md
 
-Resume at C5: the versioned Mastery prerequisite-satisfaction policy. The exact place to change is
-the prerequisiteState line in assemble-plan-snapshot-input.ts, which currently maps any blocking
-prerequisite edge to UNKNOWN. Add a bounded Mastery owner query beside
-mastery.read_planning_mastery_source_v1 and a versioned policy document, following the same shape
-C4 used: policy version carried in the calculation input so it enters the canonical fingerprint,
-owner-scoped query with its own revision fence, engine-verifiable invariants, and fail-closed
-handling for anything the policy cannot classify. Do not start C6 or /today before C5 is committed.
+Resume at C6: implement the live Today query boundary and opaque selection resolver/coordinator.
+Expose only schema-valid Today data and opaque action tokens; the browser must not receive internal
+candidate authority or write Planning tables. Preserve last-known-safe/pending/error semantics,
+workspace isolation, inclusive validity, and the ordinary command boundary. Do not start the
+`/today` UI until the read contract and database security tests are complete.
 ```

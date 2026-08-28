@@ -229,6 +229,41 @@ function validateCandidate(
     "candidate.durationSource",
   );
   requireEnum(candidate.prerequisiteState, PREREQUISITE_VALUES, "candidate.prerequisiteState");
+  requireInteger(candidate.prerequisiteSummary.total, 0, 20, "candidate.prerequisiteSummary.total");
+  requireInteger(
+    candidate.prerequisiteSummary.satisfied,
+    0,
+    20,
+    "candidate.prerequisiteSummary.satisfied",
+  );
+  requireInteger(
+    candidate.prerequisiteSummary.blocked,
+    0,
+    20,
+    "candidate.prerequisiteSummary.blocked",
+  );
+  requireInteger(
+    candidate.prerequisiteSummary.unknown,
+    0,
+    20,
+    "candidate.prerequisiteSummary.unknown",
+  );
+  const classifiedPrerequisites =
+    candidate.prerequisiteSummary.satisfied +
+    candidate.prerequisiteSummary.blocked +
+    candidate.prerequisiteSummary.unknown;
+  if (classifiedPrerequisites !== candidate.prerequisiteSummary.total) {
+    fail("candidate prerequisite classifications must sum to the direct prerequisite total");
+  }
+  const derivedPrerequisiteState =
+    candidate.prerequisiteSummary.blocked > 0
+      ? "BLOCKED"
+      : candidate.prerequisiteSummary.unknown > 0
+        ? "UNKNOWN"
+        : "SATISFIED";
+  if (candidate.prerequisiteState !== derivedPrerequisiteState) {
+    fail("candidate prerequisite state must match its classification summary");
+  }
   requireInteger(candidate.unlockCount, 0, 20, "candidate.unlockCount");
   requireInteger(candidate.repetitionsInLast7Days, 0, 50, "candidate.repetitionsInLast7Days");
   if (candidate.oldestRepetitionEndedAt === null || candidate.repetitionWindowEndsAt === null) {
@@ -355,6 +390,20 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
     !/^planning-completed-work\/[0-9]{1,3}\.[0-9]{1,3}$/u.test(input.completedWorkPolicyVersion)
   ) {
     fail("input.completedWorkPolicyVersion must name a versioned completed-work policy");
+  }
+  if (
+    !/^mastery-prerequisite-engine\/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/u.test(
+      input.prerequisiteEngineVersion,
+    )
+  ) {
+    fail("input.prerequisiteEngineVersion must name a versioned prerequisite engine");
+  }
+  if (
+    !/^mastery-prerequisite-satisfaction\/[0-9]{1,3}\.[0-9]{1,3}$/u.test(
+      input.prerequisitePolicyVersion,
+    )
+  ) {
+    fail("input.prerequisitePolicyVersion must name a versioned prerequisite policy");
   }
   const asOfMs = parsePlanningInstant(input.evaluationHorizon.asOf, "evaluationHorizon.asOf");
   const validUntilMs = parsePlanningInstant(

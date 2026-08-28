@@ -26,6 +26,17 @@ engine input.
 
 The domain directory still contains no database, transport, or worker dependencies.
 
+## Implemented prerequisite satisfaction engine
+
+`domain/calculate-prerequisite-satisfaction.ts` is the pure
+`mastery-prerequisite-engine/0.1.0` implementation of
+[`mastery-prerequisite-satisfaction/0.1`](../../../docs/policies/PLANNING_PREREQUISITE_SATISFACTION_POLICY_V0.1.md).
+It validates a privacy-minimized current Mastery projection against the original projection clock,
+then evaluates freshness at an explicit Planning claim clock. Contradictory, malformed,
+post-claim, unsupported, missing, and stale-only input remains Unknown. The Planning application
+uses the narrow public Mastery application facade; Planning domain code receives only bounded
+classification counts and never imports Mastery.
+
 ## Implemented Phase 2 projection boundary
 
 Evidence events enqueue only the fixed `mastery.evidence_projection_v1` consumer. The server-only

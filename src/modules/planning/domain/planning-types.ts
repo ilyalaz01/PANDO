@@ -124,6 +124,13 @@ export interface CandidateCompetencyImpact {
   readonly dimension: ObjectiveDimension;
 }
 
+export interface PrerequisiteSummaryInput {
+  readonly total: number;
+  readonly satisfied: number;
+  readonly blocked: number;
+  readonly unknown: number;
+}
+
 export interface PlanningCandidateInput {
   readonly candidateKey: string;
   readonly readinessGoalKey: string;
@@ -137,6 +144,8 @@ export interface PlanningCandidateInput {
   readonly trackId: string | null;
   readonly competencyImpacts: readonly CandidateCompetencyImpact[];
   readonly prerequisiteState: PrerequisiteState;
+  /** Bounded Mastery classifications that must exactly imply `prerequisiteState`. */
+  readonly prerequisiteSummary: PrerequisiteSummaryInput;
   readonly unlockCount: number;
   readonly repetitionsInLast7Days: number;
   /** Oldest terminal-session end included in the half-open 168-hour repetition window. */
@@ -189,6 +198,10 @@ export interface CalculatePlanInput {
   readonly inputFingerprint: string;
   /** Version of the input-normalization policy that produced every completed-work number. */
   readonly completedWorkPolicyVersion: string;
+  /** Version of the pure Mastery classifier used for direct prerequisite state. */
+  readonly prerequisiteEngineVersion: string;
+  /** Version of the Mastery-owned policy that classified direct Catalog prerequisites. */
+  readonly prerequisitePolicyVersion: string;
   readonly evaluationHorizon: PlanningEvaluationHorizon;
   readonly sourceRevisions: readonly PlanningSourceRevision[];
   readonly growthPlan: GrowthPlanInput | null;

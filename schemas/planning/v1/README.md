@@ -17,6 +17,15 @@ produced by the versioned input-normalization policy named in
 [Planning Completed Work Policy v0.1](../../../docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md).
 Changing that policy therefore changes the canonical fingerprint and writes a new snapshot.
 
+Direct blocking Catalog prerequisites are classified by the pure Mastery-owned engine and policy
+named in `prerequisiteEngineVersion` and `prerequisitePolicyVersion`, recorded in
+[Planning Prerequisite Satisfaction Policy v0.1](../../../docs/policies/PLANNING_PREREQUISITE_SATISFACTION_POLICY_V0.1.md).
+Each candidate carries bounded satisfied, blocked, and unknown counts that must exactly sum to its
+direct prerequisite total and imply its stated tri-state value. This lets the pure Planning engine
+verify the normalized answer without receiving Mastery state JSON or Evidence identifiers. The
+Planning application coordinator sees only the privacy-minimized Mastery source projection needed
+to call that pure engine; the normalized calculation input persists only counts and versions.
+
 `plan-snapshot.schema.json` is the immutable engine output persisted by Planning. It contains at
 most five exact Focus actions with reproducible integer score factors, bounded causal references,
 readiness provenance/freshness, and one explicit recommendation state. It cannot establish

@@ -8,6 +8,8 @@
   "required": [
     "inputFingerprint",
     "completedWorkPolicyVersion",
+    "prerequisiteEngineVersion",
+    "prerequisitePolicyVersion",
     "evaluationHorizon",
     "sourceRevisions",
     "growthPlan",
@@ -27,6 +29,14 @@
     "completedWorkPolicyVersion": {
       "type": "string",
       "pattern": "^planning-completed-work/[0-9]{1,3}\\.[0-9]{1,3}$"
+    },
+    "prerequisiteEngineVersion": {
+      "type": "string",
+      "pattern": "^mastery-prerequisite-engine/[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$"
+    },
+    "prerequisitePolicyVersion": {
+      "type": "string",
+      "pattern": "^mastery-prerequisite-satisfaction/[0-9]{1,3}\\.[0-9]{1,3}$"
     },
     "evaluationHorizon": { "$ref": "#/$defs/evaluationHorizon" },
     "sourceRevisions": {
@@ -369,6 +379,7 @@
         "trackId",
         "competencyImpacts",
         "prerequisiteState",
+        "prerequisiteSummary",
         "unlockCount",
         "repetitionsInLast7Days",
         "oldestRepetitionEndedAt",
@@ -399,6 +410,17 @@
           "items": { "$ref": "#/$defs/impact" }
         },
         "prerequisiteState": { "enum": ["SATISFIED", "UNKNOWN", "BLOCKED"] },
+        "prerequisiteSummary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "satisfied", "blocked", "unknown"],
+          "properties": {
+            "total": { "type": "integer", "minimum": 0, "maximum": 20 },
+            "satisfied": { "type": "integer", "minimum": 0, "maximum": 20 },
+            "blocked": { "type": "integer", "minimum": 0, "maximum": 20 },
+            "unknown": { "type": "integer", "minimum": 0, "maximum": 20 }
+          }
+        },
         "unlockCount": { "type": "integer", "minimum": 0, "maximum": 20 },
         "repetitionsInLast7Days": { "type": "integer", "minimum": 0, "maximum": 50 },
         "oldestRepetitionEndedAt": {

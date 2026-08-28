@@ -4,8 +4,10 @@
     "asOf": "2026-09-01T12:00:00Z"
   },
   "input": {
-    "inputFingerprint": "planning-input:ec943485c70524c0bf76e56541e0b6ce286a369c94001f0487dff2d22bae4aab",
+    "inputFingerprint": "planning-input:6c47bec1a3c953ff4baf002ba5a40eefe8887d8400cd214b9ccf7bf9ce629910",
     "completedWorkPolicyVersion": "planning-completed-work/0.1",
+    "prerequisiteEngineVersion": "mastery-prerequisite-engine/0.1.0",
+    "prerequisitePolicyVersion": "mastery-prerequisite-satisfaction/0.1",
     "evaluationHorizon": {
       "asOf": "2026-09-01T12:00:00Z",
       "validUntil": "2026-09-01T18:00:00Z",
@@ -135,6 +137,7 @@
           }
         ],
         "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": { "total": 0, "satisfied": 0, "blocked": 0, "unknown": 0 },
         "unlockCount": 2,
         "repetitionsInLast7Days": 0,
         "oldestRepetitionEndedAt": null,
@@ -159,6 +162,7 @@
           }
         ],
         "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": { "total": 0, "satisfied": 0, "blocked": 0, "unknown": 0 },
         "unlockCount": 0,
         "repetitionsInLast7Days": 1,
         "oldestRepetitionEndedAt": "2026-08-25T21:30:00.000Z",
@@ -187,6 +191,7 @@
           }
         ],
         "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": { "total": 0, "satisfied": 0, "blocked": 0, "unknown": 0 },
         "unlockCount": 0,
         "repetitionsInLast7Days": 0,
         "oldestRepetitionEndedAt": null,
@@ -215,6 +220,7 @@
           }
         ],
         "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": { "total": 0, "satisfied": 0, "blocked": 0, "unknown": 0 },
         "unlockCount": 3,
         "repetitionsInLast7Days": 0,
         "oldestRepetitionEndedAt": null,
@@ -226,7 +232,7 @@
   "expected": {
     "engineVersion": "planner-engine/0.1.0",
     "policyVersion": "planning-policy/0.1",
-    "inputFingerprint": "planning-input:ec943485c70524c0bf76e56541e0b6ce286a369c94001f0487dff2d22bae4aab",
+    "inputFingerprint": "planning-input:6c47bec1a3c953ff4baf002ba5a40eefe8887d8400cd214b9ccf7bf9ce629910",
     "calculatedAsOf": "2026-09-01T12:00:00.000Z",
     "validUntil": "2026-09-01T18:00:00.000Z",
     "timeZone": "Asia/Jerusalem",

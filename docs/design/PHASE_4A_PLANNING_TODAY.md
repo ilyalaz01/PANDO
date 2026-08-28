@@ -79,6 +79,8 @@ The pure engine receives:
 - the version of the completed-work input-normalization policy, so a change to how consumed
   capacity, per-track cadence credit, or recent repetition is counted always produces a new
   fingerprint and a new snapshot;
+- the versions of the pure Mastery-owned direct-prerequisite classifier and its satisfaction policy,
+  plus bounded satisfied/blocked/unknown counts that exactly imply each candidate tri-state value;
 - zero or one non-archived Growth Plan, its versioned tracks, weekly capacity, and work consumed in
   the current workspace-local week;
 - an optional explicit session limit and energy preference; null means Unknown and contributes no

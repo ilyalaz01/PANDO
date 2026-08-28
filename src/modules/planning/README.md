@@ -52,9 +52,26 @@ snapshot validity.
 `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` now covers only history this policy cannot classify: a missing
 or non-terminal Evidence attempt, a stopped session that claims evidence, a session outside the
 claim-scoped window, a window that does not cover the policy horizon, or derived totals that break
-the week and cadence-credit invariants. Candidates with structural prerequisites remain `UNKNOWN`
-until a versioned Mastery satisfaction rule exists. Campaign and same-session preference inputs
-remain explicitly null. Direct wake-up routing from Targets, Mastery, Review, Overlay, Focus, and Evidence
+the week and cadence-credit invariants.
+
+Direct blocking prerequisites now use the versioned
+[`mastery-prerequisite-satisfaction/0.1`](../../../docs/policies/PLANNING_PREREQUISITE_SATISFACTION_POLICY_V0.1.md)
+rule. Catalog returns canonical direct prerequisite references for each exact candidate/version
+pair. Mastery returns one privacy-minimized, content-fenced source projection per requested
+reference through a dedicated read-only owner role. The Planning application coordinator calls the
+pure Mastery-owned `mastery-prerequisite-engine/0.1.0`, then aggregates bounded counts; the pure
+Planning engine verifies those counts exactly imply the candidate state. Missing, post-claim,
+malformed, or stale-only Mastery remains `UNKNOWN`; Fresh Weak is `BLOCKED`; a Fresh Strong
+completion is `SATISFIED`. Snapshot validity is capped at the earliest decisive freshness boundary.
+Planning has no Catalog or Mastery table grant.
+
+Before those reads, an Overlay-owned bounded check requires exactly one origin: an accepted personal
+competency or a competency in the exact Catalog version, including retired Catalog items. C5 never
+guesses a missing origin or applies canonical prerequisites to an ambiguous personal node; future
+personal-content import must prevent such collisions at admission.
+
+Campaign and same-session preference inputs remain explicitly null. Direct wake-up routing from
+Targets, Mastery, Review, Overlay, Focus, and Evidence
 is now installed in the exact owner/coordinator transaction through a fixed, least-privilege
 Planning router. Routing begins only after the Planning sentinel exists, is idempotent under owner
 command replay, and includes a sentinel-scoped rollout backfill. Raw evidence append events do not
