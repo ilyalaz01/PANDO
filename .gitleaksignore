@@ -8,3 +8,7 @@
 
 # Deterministic pgTAP-only authentication fixture, never a deployed credential.
 3e4912c24cc5a27d10ec2236f2ffad07f542dee1:supabase/tests/database/007_catalog_targets_overlay_atomic_concurrency.test.sql:generic-api-key:48
+538ac220fe52f7c818b41aa8294f8b435eee9055:supabase/tests/database/007_catalog_targets_overlay_atomic_concurrency.test.sql:generic-api-key:48
+
+# Deterministic command idempotency key used only by the Phase 3B pgTAP capacity test.
+70f66165065eea88d6415d855667f7770805e70b:supabase/tests/database/015_phase3b_target_readiness.test.sql:generic-api-key:817
