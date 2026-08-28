@@ -1,0 +1,18 @@
+{
+  "contract": { "name": "TodayWorkspaceV1", "version": "1.0.0" },
+  "projectionState": "NOT_STARTED",
+  "reason": "INITIALIZING",
+  "lastKnownSafe": false,
+  "calculationClock": {
+    "asOf": "2026-09-01T12:00:00.000Z",
+    "timeZone": "Asia/Jerusalem",
+    "weekStart": "2026-08-30T21:00:00.000Z",
+    "weekEnd": "2026-09-06T21:00:00.000Z"
+  },
+  "currentInputFingerprint": null,
+  "snapshot": null,
+  "actionSelections": [],
+  "context": { "nearestDeadline": null },
+  "workspaceId": "caller-selected",
+  "serviceRoleKey": "not-a-real-key"
+}

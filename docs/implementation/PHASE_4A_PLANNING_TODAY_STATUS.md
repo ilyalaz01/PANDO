@@ -1,0 +1,51 @@
+# Phase 4A Planning and Today status
+
+Status: Engine and contract foundation implemented; live persistence and Today UI pending
+Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
+
+This supporting record describes incremental implementation status. The nine canonical documents
+and accepted design remain authoritative.
+
+## Implemented
+
+- pure `planner-engine/0.1.0` with an explicit clock and no database, framework, environment,
+  browser, network, or cross-context imports;
+- transparent `planning-policy/0.1` integer score factors, stable tie-breaking, one primary action,
+  and at most four alternatives;
+- active-Focus Resume precedence, weekly/session capacity filtering, paused-plan source removal,
+  independently due Review fallback, current-only target-gap scoring, campaign overlay inputs,
+  prerequisite filtering, repetition cost, and optional energy fit;
+- explicit no-plan, paused-plan, no-capacity, and no-candidate states plus fail-closed readiness and
+  Review warnings;
+- strict bounded Draft 2020-12 `PlanningCalculationInputV1`, `PlanSnapshotV1`, and
+  `TodayWorkspaceV1` schemas that reject unknown/private/authority-bearing fields;
+- canonical input fingerprinting over normalized set-like collections, exact evaluation/week
+  horizon, snapshot validity, multi-goal readiness identity/freshness/confidence, and explicit
+  last-known-safe Today state;
+- one verified application entry point for structural/fingerprint validation, inclusive validity
+  caps for week, readiness, Review, and Campaign clock transitions, and display-only degraded Today
+  snapshots;
+- fail-closed goal/profile eligibility, single-track attribution, protected-capacity reservation,
+  nullable energy, authoritative duration provenance, and bounded causal reason references;
+- semantic snapshot checks for rank continuity, score-factor arithmetic/order, action uniqueness,
+  non-zero factors, clock/Review/Campaign causal coherence, Start/Resume shape, capacity arithmetic,
+  recommendation state, warning order, and readiness shape;
+- bounded unique ReviewItem correlation, Campaign output-range safety, and transitive Today
+  validation of the embedded plan;
+- a versioned golden fixture, permutation/property tests, boundary fixtures, invalid fixtures, and
+  malicious fixtures.
+
+## Not yet implemented
+
+- Planning-owned Growth Plan, Learning Track, immutable snapshot, current-pointer, action-selection,
+  and delivery tables;
+- the idempotent Growth Plan initializer and later lifecycle/capacity commands;
+- owner-scoped normalized input queries, fixed outbox routing, leased worker, recovery, and
+  fingerprint-checked snapshot application;
+- live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed
+  Today-to-Focus journey, and responsive/accessibility acceptance;
+- campaign persistence/overrides, dated availability, Plan/Track editing, ChangeSet preview, and
+  Agent Control application.
+
+No live recommendation is claimed before the persistence and worker boundary exists. Fixtures and
+repository files are never used as live plan state.

@@ -11,6 +11,9 @@ import masteryEventSchema from "../../../schemas/events/v1/mastery-event.schema.
 import readinessEventSchema from "../../../schemas/events/v1/readiness-event.schema.json";
 import reviewEventSchema from "../../../schemas/events/v1/review-event.schema.json";
 import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-projection.schema.json";
+import planSnapshotSchema from "../../../schemas/planning/v1/plan-snapshot.schema.json";
+import planningInputSchema from "../../../schemas/planning/v1/planning-input.schema.json";
+import todayWorkspaceSchema from "../../../schemas/planning/v1/today-workspace.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
 import preparationContextSchema from "../../../schemas/preparation-pack/v1/preparation-context.schema.json";
 import preparationManifestSchema from "../../../schemas/preparation-pack/v1/manifest.schema.json";
@@ -32,6 +35,9 @@ export const schemaNames = [
   "mastery-event-v1",
   "readiness-event-v1",
   "review-event-v1",
+  "planning-input-v1",
+  "plan-snapshot-v1",
+  "today-workspace-v1",
   "preparation-context",
   "preparation-manifest",
   "preparation-plan",
@@ -56,6 +62,9 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "mastery-event-v1": masteryEventSchema,
   "readiness-event-v1": readinessEventSchema,
   "review-event-v1": reviewEventSchema,
+  "planning-input-v1": planningInputSchema,
+  "plan-snapshot-v1": planSnapshotSchema,
+  "today-workspace-v1": todayWorkspaceSchema,
   "preparation-context": preparationContextSchema,
   "preparation-manifest": preparationManifestSchema,
   "preparation-plan": preparationPlanSchema,

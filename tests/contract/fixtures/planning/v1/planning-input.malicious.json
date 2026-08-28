@@ -1,0 +1,26 @@
+{
+  "inputFingerprint": "planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "evaluationHorizon": {
+    "asOf": "2026-09-01T12:00:00Z",
+    "validUntil": "2026-09-01T18:00:00Z",
+    "timeZone": "Asia/Jerusalem",
+    "weekStart": "2026-08-30T21:00:00Z",
+    "weekEnd": "2026-09-06T21:00:00Z"
+  },
+  "sourceRevisions": [],
+  "growthPlan": null,
+  "campaign": null,
+  "sessionLimitMinutes": null,
+  "energyPreference": null,
+  "activeFocus": null,
+  "readiness": [],
+  "reviewSummary": {
+    "projectionState": "NOT_STARTED",
+    "overdueCount": 0,
+    "dueTodayCount": 0,
+    "validUntil": null
+  },
+  "candidates": [],
+  "databaseTable": "evidence.events",
+  "rawEvidence": "private body"
+}

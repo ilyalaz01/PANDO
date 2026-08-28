@@ -1,0 +1,27 @@
+{
+  "inputFingerprint": "planning-input:520a6d450f2dcb8fd7dd3ce782c9633d08d5d1e24f2dd9dbc4372b79f3fbcfc6",
+  "evaluationHorizon": {
+    "asOf": "2026-09-01T12:00:00Z",
+    "validUntil": "2026-09-01T18:00:00Z",
+    "timeZone": "Asia/Jerusalem",
+    "weekStart": "2026-08-30T21:00:00Z",
+    "weekEnd": "2026-09-06T21:00:00Z"
+  },
+  "sourceRevisions": [
+    { "owner": "FOCUS", "key": "focus:active", "revision": "0" },
+    { "owner": "REVIEW", "key": "review:schedule", "revision": "0" }
+  ],
+  "growthPlan": null,
+  "campaign": null,
+  "sessionLimitMinutes": null,
+  "energyPreference": null,
+  "activeFocus": null,
+  "readiness": [],
+  "reviewSummary": {
+    "projectionState": "NOT_STARTED",
+    "overdueCount": 0,
+    "dueTodayCount": 0,
+    "validUntil": null
+  },
+  "candidates": []
+}

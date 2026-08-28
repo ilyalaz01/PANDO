@@ -1,0 +1,16 @@
+{
+  "contract": { "name": "TodayWorkspaceV1", "version": "1.0.0" },
+  "projectionState": "READY",
+  "reason": null,
+  "lastKnownSafe": false,
+  "calculationClock": {
+    "asOf": "not-an-instant",
+    "timeZone": "Asia/Jerusalem",
+    "weekStart": "2026-08-30T21:00:00.000Z",
+    "weekEnd": "2026-09-06T21:00:00.000Z"
+  },
+  "currentInputFingerprint": null,
+  "snapshot": null,
+  "actionSelections": [],
+  "context": { "nearestDeadline": null }
+}

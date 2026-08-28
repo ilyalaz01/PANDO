@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v1/today-workspace.schema.json",
+  "title": "TodayWorkspaceV1",
+  "description": "Planning-owned freshness envelope for rendering Today without treating stale output as current.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract",
+    "projectionState",
+    "reason",
+    "lastKnownSafe",
+    "calculationClock",
+    "currentInputFingerprint",
+    "snapshot",
+    "actionSelections",
+    "context"
+  ],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "TodayWorkspaceV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "projectionState": { "enum": ["CURRENT", "PENDING", "ERROR", "NOT_STARTED"] },
+    "reason": {
+      "oneOf": [
+        {
+          "enum": ["INITIALIZING", "INPUTS_CHANGED", "CALCULATION_FAILED", "SNAPSHOT_EXPIRED"]
+        },
+        { "type": "null" }
+      ]
+    },
+    "lastKnownSafe": { "type": "boolean" },
+    "calculationClock": { "$ref": "#/$defs/calculationClock" },
+    "currentInputFingerprint": {
+      "oneOf": [{ "$ref": "#/$defs/planningFingerprint" }, { "type": "null" }]
+    },
+    "snapshot": { "oneOf": [{ "$ref": "#/$defs/snapshotPointer" }, { "type": "null" }] },
+    "actionSelections": {
+      "type": "array",
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/actionSelection" }
+    },
+    "context": { "$ref": "#/$defs/context" }
+  },
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "instant": { "type": "string", "format": "date-time", "maxLength": 40 },
+    "planningFingerprint": {
+      "type": "string",
+      "pattern": "^planning-input:[a-f0-9]{64}$"
+    },
+    "calculationClock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["asOf", "timeZone", "weekStart", "weekEnd"],
+      "properties": {
+        "asOf": { "$ref": "#/$defs/instant" },
+        "timeZone": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^(?:UTC|[A-Za-z_]+(?:/[A-Za-z0-9._+-]+)+)$"
+        },
+        "weekStart": { "$ref": "#/$defs/instant" },
+        "weekEnd": { "$ref": "#/$defs/instant" }
+      }
+    },
+    "snapshotPointer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["snapshotId", "inputFingerprint", "calculatedAsOf", "validUntil", "plan"],
+      "properties": {
+        "snapshotId": { "$ref": "#/$defs/uuid" },
+        "inputFingerprint": { "$ref": "#/$defs/planningFingerprint" },
+        "calculatedAsOf": { "$ref": "#/$defs/instant" },
+        "validUntil": { "$ref": "#/$defs/instant" },
+        "plan": {
+          "$ref": "https://pando.local/schemas/planning/v1/plan-snapshot.schema.json"
+        }
+      }
+    },
+    "actionSelection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selectionRef", "rank", "candidateKey"],
+      "properties": {
+        "selectionRef": {
+          "type": "string",
+          "pattern": "^plan-action:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        },
+        "rank": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "candidateKey": {
+          "type": "string",
+          "pattern": "^(?:candidate:[a-z0-9][a-z0-9-]{1,100}|active-focus:[0-9a-f-]{36})$"
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nearestDeadline"],
+      "properties": {
+        "nearestDeadline": {
+          "oneOf": [{ "$ref": "#/$defs/deadline" }, { "type": "null" }]
+        }
+      }
+    },
+    "deadline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "sourceId",
+        "sourceVersion",
+        "readinessGoalKey",
+        "title",
+        "deadlineAt"
+      ],
+      "properties": {
+        "kind": { "const": "CAMPAIGN" },
+        "sourceId": { "$ref": "#/$defs/uuid" },
+        "sourceVersion": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" },
+        "readinessGoalKey": {
+          "type": "string",
+          "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+        },
+        "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "deadlineAt": { "$ref": "#/$defs/instant" }
+      }
+    }
+  }
+}

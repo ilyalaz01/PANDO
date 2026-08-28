@@ -1,0 +1,29 @@
+{
+  "engineVersion": "planner-engine/0.1.0",
+  "policyVersion": "planning-policy/0.1",
+  "inputFingerprint": "planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "calculatedAsOf": "2026-09-01T12:00:00.000Z",
+  "validUntil": "2026-09-01T18:00:00.000Z",
+  "timeZone": "Asia/Jerusalem",
+  "weekStart": "2026-08-30T21:00:00.000Z",
+  "weekEnd": "2026-09-06T21:00:00.000Z",
+  "recommendationState": "NO_PLAN",
+  "warningCodes": [],
+  "capacity": {
+    "weeklyCapacityMinutes": null,
+    "consumedMinutesThisWeek": 0,
+    "remainingMinutesThisWeek": null,
+    "sessionLimitMinutes": null
+  },
+  "reviewSummary": {
+    "projectionState": "NOT_STARTED",
+    "overdueCount": 0,
+    "dueTodayCount": 0,
+    "validUntil": null
+  },
+  "nearestDeadline": null,
+  "readiness": [],
+  "actions": [],
+  "serviceRoleKey": "not-a-real-key",
+  "rawEvidence": "private body"
+}
