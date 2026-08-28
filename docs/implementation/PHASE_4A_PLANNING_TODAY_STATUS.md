@@ -1,7 +1,7 @@
 # Phase 4A Planning and Today status
 
-Status: Engine, contracts, and initial Planning persistence implemented; calculation worker and
-Today UI pending
+Status: First live calculation worker implemented for fresh plans; remaining event routing,
+meaningful-work policy, and Today UI pending
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -50,17 +50,45 @@ and accepted design remain authoritative.
   isolation, replay, changed-payload conflict, real concurrency, and database constraint tests;
 - a strict `planning.input_changed` v1 JSON contract for Growth Plan initialization and Track
   activity admission, with valid, boundary, invalid, and malicious fixtures.
+- a dedicated NOLOGIN Planning worker with bounded Identity, Targets, Overlay, Catalog, Focus,
+  Mastery, and Review owner queries that all receive one persisted `claimAsOf`; Planning has no
+  cross-context table grants;
+- durable immutable calculation-attempt provenance, an exact Planning delivery/source ledger,
+  immutable opaque action selections, and a real FK from the current pointer to its applied
+  attempt;
+- a fixed `planning.plan_snapshot_v1` leased worker that claims at most five deliveries and one per
+  workspace, persists the normalized canonical input before calculation, reuses only current
+  attempt generations, runs the verified pure engine, and fails stale source/pointer fences closed;
+- cross-wake workspace lease exclusion plus terminal eighth-attempt behavior that atomically closes
+  both delivery and attempt for expired leases and stale calculations;
+- atomic snapshot, pointer, selection, receipt, delivery-coverage, and deterministic scheduled
+  refresh application, including exact `validUntil + 1 millisecond` recovery delivery timing;
+- a constant-time secret-authenticated `/api/internal/planning-snapshot` route, aggregate health
+  RPC, and opt-in once-per-minute Supabase Cron recovery function;
+- live database coverage from authenticated goal/plan/activity creation through owner-source load,
+  immutable snapshot publication, pointer advance, exact multi-delivery coverage, and future
+  refresh scheduling, plus dispatcher and route unit tests;
+- an explicit safety gate for the first live slice: a workspace with terminal Focus sessions in
+  the current local week is rejected with `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` until a reviewed
+  meaningful-duration policy exists. No elapsed or planned minutes are fabricated as completed
+  work, and prerequisite-bearing candidates remain `UNKNOWN` until a versioned Mastery
+  satisfaction rule exists.
 
 ## Not yet implemented
 
 - later plan/track/activity lifecycle and capacity commands;
-- calculation-attempt, action-selection, and delivery-ledger persistence;
-- the remaining owner-scoped normalized input queries, leased worker, recovery, and
-  fingerprint-checked snapshot application;
+- the versioned meaningful-work duration/repetition query and Mastery prerequisite-satisfaction
+  policy needed to calculate workspaces with terminal sessions;
+- direct Planning wake-up insertion in Targets, Mastery, Review, Overlay, Focus, and Evidence
+  producer transactions; the current live worker is woken by `planning.input_changed` and its own
+  scheduled refresh deliveries;
+- campaign persistence, same-session duration/energy preference persistence, and Focus plan
+  attribution columns;
 - live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed
   Today-to-Focus journey, and responsive/accessibility acceptance;
-- campaign persistence/overrides, dated availability, Plan/Track editing, ChangeSet preview, and
-  Agent Control application.
+- campaign overrides, dated availability, Plan/Track editing, ChangeSet preview, and Agent Control
+  application.
 
-No live recommendation is claimed before the worker boundary applies a current snapshot. Fixtures
-and repository files are never used as live plan state.
+The worker now applies real snapshots for its supported fresh-plan envelope, but no live Today
+recommendation is exposed before the Today read boundary is implemented. Fixtures and repository
+files are never used as live plan state.

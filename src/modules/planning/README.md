@@ -29,6 +29,20 @@ pointer intact so a prior unexpired snapshot can remain display-only while the n
 Today pending. Active and paused plans/tracks are editable; terminal lifecycle and inactive goal or
 activity state fail closed. A Growth Plan cannot exceed 200 non-archived candidate activities.
 
-Live Today remains unavailable until the remaining owner-scoped input queries and the leased worker
-can calculate and apply the first current snapshot. A UI-only recommendation
-assembled from fixtures or direct cross-module table reads is not a Planning implementation.
+The first live `planning.plan_snapshot_v1` worker now persists a claim clock and normalized input,
+reads every cross-context source through bounded owner functions, calculates through the verified
+pure entry point, and atomically applies immutable snapshot history, the monotonic pointer, opaque
+action selections, exact delivery coverage, receipts, and the next scheduled refresh. Its internal
+route and optional once-per-minute Cron are wake-ups only; outbox rows remain the durable queue.
+
+This first safe envelope supports fresh plans without terminal Focus sessions in the current local
+week. It deliberately fails with `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` rather than inventing a
+completed-duration rule. Candidates with structural prerequisites remain `UNKNOWN` until a
+versioned Mastery satisfaction rule exists. Campaign and same-session preference inputs remain
+explicitly null. Direct wake-up routing from Targets, Mastery, Review, Overlay, Focus, and Evidence
+is the next worker increment; current calculation is woken by Planning input changes and scheduled
+refreshes.
+
+Live Today remains unavailable until its read model and opaque selection resolver are implemented.
+A UI-only recommendation assembled from fixtures or direct cross-module table reads is not a
+Planning implementation.

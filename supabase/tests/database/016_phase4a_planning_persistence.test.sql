@@ -747,6 +747,26 @@ select throws_like(
   'the current pointer cannot reference another workspace snapshot'
 );
 
+insert into planning.plan_snapshot_attempts (
+  attempt_id, workspace_id, delivery_id, event_id, event_position, generation,
+  attempt_state, claim_as_of, base_pointer_version, source_fence, normalized_input,
+  input_fingerprint, valid_until, covered_delivery_ids, applied_pointer_version
+)
+select '26000000-0000-4000-8000-000000000502',
+  (result.response->>'workspaceId')::uuid,
+  (result.response->>'planningDeliveryId')::uuid,
+  event.event_id, event.event_position, 1, 'APPLIED',
+  '2026-08-31T12:00:00.000Z'::timestamptz, 0,
+  'planning-source:test', '{}'::jsonb,
+  'planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  '2026-08-31T13:00:00.000Z'::timestamptz,
+  array[(result.response->>'planningDeliveryId')::uuid], 1
+from planning_results as result
+join outbox.deliveries as delivery
+  on delivery.delivery_id = (result.response->>'planningDeliveryId')::uuid
+join outbox.events as event on event.event_id = delivery.event_id
+where result.result_name = 'alice-init';
+
 update planning.current_plan_snapshots
 set snapshot_id = '26000000-0000-4000-8000-000000000301',
   pointer_version = 1,

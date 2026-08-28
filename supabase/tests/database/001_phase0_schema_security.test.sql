@@ -362,7 +362,10 @@ select ok(
   and owner.rolname in (
     'pando_rls_authorizer', 'pando_identity_api', 'pando_outbox_worker',
     'pando_mastery_worker', 'pando_mastery_scheduler', 'pando_review_worker',
-    'pando_review_scheduler', 'pando_readiness_worker', 'pando_readiness_scheduler'
+    'pando_review_scheduler', 'pando_readiness_worker', 'pando_readiness_scheduler',
+    'pando_planning_worker', 'pando_planning_scheduler',
+    'pando_identity_planning_source', 'pando_phase1_planning_source',
+    'pando_phase2_planning_source', 'pando_review_planning_source'
   )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
@@ -393,9 +396,47 @@ from pg_catalog.pg_roles as role
 where role.rolname in (
   'pando_identity_api', 'pando_outbox_worker', 'pando_mastery_worker',
   'pando_mastery_scheduler', 'pando_review_worker', 'pando_review_scheduler',
-  'pando_readiness_worker', 'pando_readiness_scheduler'
+  'pando_readiness_worker', 'pando_readiness_scheduler',
+  'pando_planning_worker', 'pando_planning_scheduler',
+  'pando_identity_planning_source', 'pando_phase1_planning_source',
+  'pando_phase2_planning_source', 'pando_review_planning_source'
 )
 order by role.rolname;
+
+select ok(
+  not pg_catalog.pg_has_role(runtime_role.role_name, source_role.role_name, 'MEMBER'),
+  format('%s cannot SET ROLE to %s', runtime_role.role_name, source_role.role_name)
+)
+from (values ('anon'), ('authenticated'), ('service_role')) as runtime_role(role_name)
+cross join (values
+  ('pando_identity_planning_source'),
+  ('pando_phase1_planning_source'),
+  ('pando_phase2_planning_source'),
+  ('pando_review_planning_source')
+) as source_role(role_name)
+order by runtime_role.role_name, source_role.role_name;
+
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname = expected.owner_name
+  and not owner.rolcanlogin and not owner.rolinherit and not owner.rolbypassrls,
+  format('%s.%s is pinned to its bounded NOLOGIN owner', expected.schema_name, expected.function_name)
+)
+from (values
+  ('identity', 'read_planning_calendar_source_v1', 'pando_identity_planning_source'),
+  ('overlay', 'read_planning_candidate_source_v1', 'pando_phase1_planning_source'),
+  ('targets', 'read_planning_readiness_source_v1', 'pando_phase1_planning_source'),
+  ('catalog', 'read_planning_graph_source_v1', 'pando_phase1_planning_source'),
+  ('sessions', 'read_planning_focus_source_v1', 'pando_phase2_planning_source'),
+  ('mastery', 'read_planning_mastery_source_v1', 'pando_mastery_worker'),
+  ('review', 'read_planning_review_source_v1', 'pando_review_planning_source')
+) as expected(schema_name, function_name, owner_name)
+join pg_catalog.pg_namespace as namespace on namespace.nspname = expected.schema_name
+join pg_catalog.pg_proc as procedure
+  on procedure.pronamespace = namespace.oid and procedure.proname = expected.function_name
+join pg_catalog.pg_roles as owner on owner.oid = procedure.proowner
+order by expected.schema_name, expected.function_name;
 
 select ok(
   not exists (

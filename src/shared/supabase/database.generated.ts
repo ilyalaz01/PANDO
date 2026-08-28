@@ -73,6 +73,21 @@ export type Database = {
           workspace_id: string
         }[]
       }
+      claim_plan_snapshot_projection_v1: {
+        Args: never
+        Returns: {
+          attempt_count: number
+          attempt_id: string
+          claim_as_of: string
+          delivery_id: string
+          event_id: string
+          event_position: number
+          generation: number
+          lease_expires_at: string
+          lease_token: string
+          workspace_id: string
+        }[]
+      }
       claim_review_item_projection_v1: {
         Args: never
         Returns: {
@@ -120,6 +135,15 @@ export type Database = {
           p_lease_token: string
         }
         Returns: boolean
+      }
+      complete_plan_snapshot_projection_v1: {
+        Args: {
+          p_attempt_id: string
+          p_delivery_id: string
+          p_lease_token: string
+          p_result: Json
+        }
+        Returns: string
       }
       complete_review_item_projection_v1: {
         Args: {
@@ -170,6 +194,16 @@ export type Database = {
       }
       fail_phase0_probe_delivery: {
         Args: {
+          p_delivery_id: string
+          p_error_code: string
+          p_failure_class: string
+          p_lease_token: string
+        }
+        Returns: string
+      }
+      fail_plan_snapshot_projection_v1: {
+        Args: {
+          p_attempt_id: string
           p_delivery_id: string
           p_error_code: string
           p_failure_class: string
@@ -231,6 +265,7 @@ export type Database = {
         Returns: Json
       }
       get_mastery_projection_health_v1: { Args: never; Returns: Json }
+      get_plan_snapshot_projection_health_v1: { Args: never; Returns: Json }
       get_readiness_goal: {
         Args: { p_readiness_goal_key: string; p_workspace_id: string }
         Returns: Json
@@ -271,6 +306,14 @@ export type Database = {
         Args: { p_delivery_id: string; p_lease_token: string }
         Returns: Json
       }
+      load_plan_snapshot_projection_v1: {
+        Args: {
+          p_attempt_id: string
+          p_delivery_id: string
+          p_lease_token: string
+        }
+        Returns: Json
+      }
       load_review_item_projection_v1: {
         Args: { p_delivery_id: string; p_lease_token: string }
         Returns: Json
@@ -278,6 +321,16 @@ export type Database = {
       load_target_readiness_projection_v1: {
         Args: { p_delivery_id: string; p_lease_token: string }
         Returns: Json
+      }
+      record_plan_snapshot_input_v1: {
+        Args: {
+          p_attempt_id: string
+          p_delivery_id: string
+          p_input: Json
+          p_lease_token: string
+          p_source_fence: string
+        }
+        Returns: boolean
       }
       reschedule_review_reason_v1: {
         Args: {
