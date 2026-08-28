@@ -1,6 +1,7 @@
 # Phase 4A Planning and Today status
 
-Status: Engine and contract foundation implemented; live persistence and Today UI pending
+Status: Engine, contracts, and initial Planning persistence implemented; calculation worker and
+Today UI pending
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -33,19 +34,27 @@ and accepted design remain authoritative.
 - bounded unique ReviewItem correlation, Campaign output-range safety, and transitive Today
   validation of the embedded plan;
 - a versioned golden fixture, permutation/property tests, boundary fixtures, invalid fixtures, and
-  malicious fixtures.
+  malicious fixtures;
+- a forced-RLS Planning-owned storage boundary for Growth Plan, Learning Track, track/activity
+  attribution, immutable PlanSnapshot, and validated current-snapshot sentinel records; the
+  initializer below currently writes the first plan, track, and sentinel;
+- an idempotent Growth Plan initializer that derives the personal workspace and actor from the
+  authenticated session, consumes a bounded Targets-owned initialization query, and atomically
+  creates the first plan and track;
+- a minimal `planning.input_changed` v1 event with a fixed `planning.plan_snapshot_v1` delivery,
+  transactional receipt/state/outbox behavior, rollback injection coverage, cross-workspace
+  isolation, replay, changed-payload conflict, and database constraint tests.
 
 ## Not yet implemented
 
-- Planning-owned Growth Plan, Learning Track, immutable snapshot, current-pointer, action-selection,
-  and delivery tables;
-- the idempotent Growth Plan initializer and later lifecycle/capacity commands;
-- owner-scoped normalized input queries, fixed outbox routing, leased worker, recovery, and
+- activity-admission and later plan/track lifecycle and capacity commands;
+- calculation-attempt, action-selection, and delivery-ledger persistence;
+- the remaining owner-scoped normalized input queries, leased worker, recovery, and
   fingerprint-checked snapshot application;
 - live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed
   Today-to-Focus journey, and responsive/accessibility acceptance;
 - campaign persistence/overrides, dated availability, Plan/Track editing, ChangeSet preview, and
   Agent Control application.
 
-No live recommendation is claimed before the persistence and worker boundary exists. Fixtures and
-repository files are never used as live plan state.
+No live recommendation is claimed before the worker boundary applies a current snapshot. Fixtures
+and repository files are never used as live plan state.

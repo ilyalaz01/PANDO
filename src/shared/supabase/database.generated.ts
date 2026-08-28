@@ -237,6 +237,17 @@ export type Database = {
       }
       get_target_selection_source_v1: { Args: never; Returns: Json }
       get_workspace: { Args: { p_workspace_id: string }; Returns: Json }
+      initialize_growth_plan_v1: {
+        Args: {
+          p_default_session_minutes: number
+          p_idempotency_key: string
+          p_protected_minimum_minutes: number
+          p_readiness_goal_key: string
+          p_track_priority: number
+          p_weekly_capacity_minutes: number
+        }
+        Returns: Json
+      }
       invalidate_evidence_v1: {
         Args: {
           p_evidence_id: string
