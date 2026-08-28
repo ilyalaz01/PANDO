@@ -46,7 +46,8 @@ activity and clipped to the plan week, so planned duration is never substituted 
 and an abandoned open session cannot claim a week of capacity. A completed session consumes
 capacity, an evidence-bearing completed session also earns track cadence credit, and a stopped
 session earns neither. Repetition counts completed sessions in the half-open 168-hour window and
-carries an engine-verifiable `repetitionWindowEndsAt` cutoff that also caps snapshot validity.
+carries an engine-verifiable oldest end plus exact `repetitionWindowEndsAt` cutoff that also caps
+snapshot validity.
 
 `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` now covers only history this policy cannot classify: a missing
 or non-terminal Evidence attempt, a stopped session that claims evidence, a session outside the

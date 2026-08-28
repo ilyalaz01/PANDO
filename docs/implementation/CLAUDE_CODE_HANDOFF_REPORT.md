@@ -18,9 +18,9 @@ C5 (Mastery prerequisite satisfaction) and C6 (live Today read boundary) were **
 
 ## 2. User-visible result
 
-No UI changed; `/today` still does not exist. The user-visible consequence is that Planning no longer
-refuses to publish a snapshot for a workspace that has completed Focus history in the current week.
-A workspace that has finished at least one Focus activity now gets a real snapshot whose
+No UI changed; `/today` still does not exist. The production Planning pipeline no longer refuses a
+snapshot solely because the workspace has completed Focus history in the current week. When its
+owner bundle is otherwise valid, a finished Focus activity is normalized into a snapshot whose
 `capacity.consumedMinutesThisWeek` reflects actual completed work, whose per-track cadence credit
 reflects evidence-bearing work only, and whose ranking applies a real recent-repetition penalty.
 
@@ -89,9 +89,10 @@ seven days to a UTC instant: a daylight-saving transition would otherwise resize
 
 A repetition leaving that window is a clock-derived ranking change, which Planning Policy v0.1 §4
 forbids a snapshot from outliving. The adapter therefore caps `validUntil` at
-`oldestCountedRepetitionEndedAt + 168h − 1ms`, and each candidate carries the exclusive
-`repetitionWindowEndsAt` so the **pure engine verifies the cap** rather than trusting the adapter.
-It is null exactly when no repetition is counted.
+`oldestCountedRepetitionEndedAt + 168h − 1ms`, and each candidate carries that oldest end plus the
+exclusive `repetitionWindowEndsAt`. The **pure engine verifies the exact 168-hour relationship and
+the cap** rather than trusting the adapter. Both instants are null exactly when no repetition is
+counted.
 
 ### 3.5 Ownership boundary
 
@@ -100,7 +101,7 @@ receiving the attempt's single persisted `claimAsOf`:
 
 - `sessions.read_planning_completed_work_source_v1` — terminal Focus duration facts inside
   `[least(weekStart, claimAsOf − 168h), claimAsOf]`, owned by `pando_phase2_planning_source`;
-- `evidence.read_planning_completed_work_source_v1` — **two booleans per session** (`attemptTerminal`,
+- `evidence.read_planning_completed_work_source_v2` — **two booleans per session** (`attemptTerminal`,
   `evidenceBearing`) plus the ledger fence, owned by a new least-privilege
   `pando_evidence_planning_source` role. No observation body, competency reference, outcome,
   engagement, hint, or correction reason reaches Planning.
@@ -119,14 +120,15 @@ Sessions/Evidence | bounded aggregate query").
 Two new source revisions enter the canonical fingerprint:
 
 - `FOCUS`/`completed-work` — SHA-256 of the exact returned session payload;
-- `EVIDENCE`/`workspace-ledger` — `evidence.subject_ledgers.ledger_version`, which advances on both
-  observation append and invalidation, so a correction always invalidates a stale snapshot.
+- `EVIDENCE`/`completed-work` — SHA-256 of the exact claim-scoped classification answer, so a
+  correction changes the fence without pairing pre-claim facts with a post-claim ledger watermark.
 
 `EVIDENCE` was added to the `sourceRevision.owner` enum and the engine now requires it
 unconditionally alongside `FOCUS` and `REVIEW`.
 
-`sessions.read_planning_focus_source_v1` no longer publishes `terminalCount`; the completed-work
-source is the authoritative terminal-session boundary and is bounded by the same claim clock.
+`sessions.read_planning_focus_source_v1` temporarily preserves its legacy `terminalCount` field for
+rolling-deploy compatibility. New workers ignore it: the completed-work source is their
+authoritative terminal-session boundary and is bounded by the same claim clock.
 
 ## 4. Files and migrations changed
 
@@ -134,16 +136,20 @@ source is the authoritative terminal-session boundary and is bounded by the same
 
 - `docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md` — the versioned policy.
 - `supabase/migrations/20260828000425_phase4a_planning_completed_work_sources.sql` — additive: new
-  `pando_evidence_planning_source` role, read-only grants and RLS policies on the four Evidence
+  `pando_evidence_planning_source` role, initial read-only grants and RLS policies on four Evidence
   tables, two new owner queries, `create or replace` of `sessions.read_planning_focus_source_v1`
-  (drops `terminalCount`) and `planning.load_plan_snapshot_source_bundle_v1` (adds `completedWork`
+  and `planning.load_plan_snapshot_source_bundle_v1` (adds `completedWork`
   and `evidence`, computes the 168-hour window).
+- `supabase/migrations/20260829000100_phase4a_planning_completed_work_hardening.sql` — forward-only
+  post-review hardening for bounded pre-aggregation reads, column-minimal grants, explicit Evidence
+  claim clock, source-fence recomputation, and rolling-worker compatibility. The already committed
+  `20260828000425` migration remains byte-for-byte unchanged.
 - `supabase/tests/database/023_phase4a_planning_completed_work.test.sql` — pgTAP.
 
 ### Contract
 
 - `schemas/planning/v1/planning-input.schema.json` — `completedWorkPolicyVersion`, `EVIDENCE` owner,
-  `repetitionWindowEndsAt`.
+  `oldestRepetitionEndedAt`, and `repetitionWindowEndsAt`.
 - `schemas/planning/v1/README.md`.
 
 ### Implementation
@@ -192,8 +198,8 @@ that file permits.
 
 ## 6. Verification
 
-Every command below was actually executed on this branch's final tree. Node 24.20.0, pnpm 11.19.0,
-WSL2 Linux.
+Claude executed the following gates on the original C4 handoff tree using Node 24.20.0, pnpm
+11.19.0, and WSL2 Linux. The authoritative post-review Windows results follow this historical table.
 
 | Command | Result |
 | --- | --- |
@@ -217,6 +223,44 @@ The two browser gates were initially blocked: Chromium could not start in this W
 `libnss3.so`, `libnssutil3.so`, and `libasound.so.2` unresolved. The owner installed those system
 packages, after which both gates were re-run and passed on this branch's final tree.
 
+### Codex post-handoff audit and Windows verification
+
+Codex then reviewed the TypeScript contract, database boundary, tests, and this report independently.
+That audit found and corrected seven issues before integration:
+
+- the public schema and pure engine accepted physically impossible weekly totals;
+- the engine trusted a supplied repetition cutoff without proving its relationship to the oldest
+  counted repetition;
+- the 500-session refusal happened after an unbounded aggregate;
+- the Evidence source role had table-wide rather than column-minimal read grants;
+- replacing the v1 Focus source removed `terminalCount` and would break an older worker during a
+  rolling deployment.
+- the initial correction rewrote an already committed migration instead of applying a forward-only
+  upgrade;
+- the first claim-scoped Evidence query paired old-claim facts with a current ledger revision rather
+  than an exact claim-scoped content fence.
+
+The Evidence query now also receives the persisted `claimAsOf` and applies it to observation and
+correction records. The central security suite covers the new role and both owner functions. The
+reviewed tree was verified on Windows with Node 24.19.0 and pnpm 11.19.0:
+
+| Command | Final reviewed result |
+| --- | --- |
+| `pnpm verify` | **PASS** — format, lint, typecheck, database-runner 13 pass/2 platform skips, backup-archive 3/3, contracts 306/306, performance 3/3, unit 674/674, build, Chromium E2E 21/21 |
+| `pnpm verify:db` | **PASS** — clean rebuild through `20260829000100`; 23 pgTAP files / 1869 tests; db lint `{"results":[]}` |
+| `pnpm verify:auth` | **PASS** — isolated auth, target selection, overlay persistence, reload, refresh, and sign-out |
+| focused C4 suite | **PASS** — 4 files / 70 tests |
+| `pnpm verify:backup` | **NOT RUN** — backup/storage behavior did not change; both archive tests in `pnpm verify` and the database rebuild did run |
+
+This post-handoff audit supersedes the original verification counts for the reviewed C4 tree.
+
+Verification is compositional at the process boundary: pgTAP exercises the real Sessions/Evidence
+owner queries and bundle loader, while TypeScript tests exercise that source shape through the real
+normalizer, pure engine, and dispatcher. The existing SQL worker test still constructs its
+normalized input explicitly; there is not yet one test process that crosses PostgreSQL → TypeScript
+→ PostgreSQL with completed history. The report does not treat that missing cross-runtime harness as
+executed coverage.
+
 ### Environment changes made during the session
 
 These were needed to run any gate at all and are outside the repository:
@@ -229,16 +273,19 @@ These were needed to run any gate at all and are outside the repository:
 - Node 24.14.1 was below `jsdom@30.0.1`'s `^24.15.0` engine floor; Node 24.20.0 was installed under
   `~/.n` via `n`. Add `~/.n/bin` to `PATH`.
 - Playwright's cached browser was build 1228 while `@playwright/test` 1.62.1 requires 1234;
-  `pnpm test:e2e:install` downloaded 1234. Its system libraries remain missing.
+  `pnpm test:e2e:install` downloaded 1234. The required system libraries were then installed and
+  both browser gates passed.
 
-## 7. Git state
+## 7. Git state at handoff and review
 
 - Branch: `claude/c4-meaningful-work`, created from `main` at `85c07db`.
 - Implementation commit: `72def41` — "feat: derive meaningful completed work from owner sources".
 - This report: committed separately on the same branch.
-- Push status: **not pushed.** All required checks now pass, so a push to `origin/main` is
-  permitted, but merging and pushing is left as the owner's explicit decision.
-- Final `git status --short`: clean.
+- Push status at Claude handoff: **not pushed.** The feature branch was left for explicit review
+  and integration.
+- Codex integration decision: approved only after the corrective audit and all final Windows gates
+  above passed. The corrective review accompanies this report as the next commit after the original
+  three Claude commits.
 
 ## 8. Remaining work
 

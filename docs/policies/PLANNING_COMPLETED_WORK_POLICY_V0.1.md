@@ -14,7 +14,8 @@ completed-work numbers of `PlanningCalculationInputV1`:
 
 - `growthPlan.consumedMinutesThisWeek`;
 - `growthPlan.tracks[].meaningfulMinutesThisWeek`;
-- `candidates[].repetitionsInLast7Days` and its `repetitionWindowEndsAt` cutoff.
+- `candidates[].repetitionsInLast7Days`, its `oldestRepetitionEndedAt` proof instant, and its
+  `repetitionWindowEndsAt` cutoff.
 
 It establishes no evidence, Mastery, readiness, or target requirement. It never ranks a candidate.
 It is an input-normalization rule owned by the Planning application adapter, not by the pure ranking
@@ -28,7 +29,7 @@ Planning reads only two bounded owner queries and never another module's private
 | Fact | Owner query | Fence |
 | --- | --- | --- |
 | terminal Focus Sessions in the window, with `startedAt`, `endedAt`, `plannedMinutes`, and activity identity | `sessions.read_planning_completed_work_source_v1` | `FOCUS`/`completed-work` revision |
-| per-session attempt terminality and whether a normalized, non-invalidated observation exists | `evidence.read_planning_completed_work_source_v1` | `EVIDENCE`/`workspace-ledger` revision from `evidence.subject_ledgers.ledger_version` |
+| per-session attempt terminality and whether a normalized, non-invalidated observation exists as of the claim clock | `evidence.read_planning_completed_work_source_v2` | `EVIDENCE`/`completed-work` SHA-256 of the exact claim-scoped answer |
 
 Session lifecycle facts remain operational history and never enter the evidence ledger. Raw
 observation bodies, competency references, outcomes, engagement, hints, and correction reasons are
@@ -47,8 +48,9 @@ The **repetition window** is the half-open elapsed interval `(claimAsOf − 168 
 It is expressed as 168 elapsed hours, never as "seven calendar days", so a daylight-saving
 transition cannot change its length.
 
-The owner query window is `[least(weekStart, claimAsOf − 168 hours), claimAsOf]`. More than 500
-terminal sessions in that window is refused rather than truncated.
+The owner query window is `[least(weekStart, claimAsOf − 168 hours), claimAsOf]`. The query reads at
+most 501 ordered rows before aggregation; more than 500 terminal sessions in that window is refused
+rather than truncated.
 
 ## 4. Session tiers
 
@@ -111,10 +113,12 @@ Total track cadence credit is therefore never greater than consumed capacity.
 
 A repetition leaves the window at a clock-derived instant, so the adapter caps the inclusive
 snapshot `validUntil` at `oldestCountedRepetitionEndedAt + 168 hours − 1 millisecond`, alongside the
-existing week, readiness, Review, and Campaign cutoffs. `repetitionWindowEndsAt` carries that
-exclusive instant per candidate so the pure engine can verify the cap instead of trusting the
-adapter. It is null exactly when the candidate has no counted repetition. When a count is clamped,
-the oldest in-window repetition is still used, which can only refresh earlier than required.
+existing week, readiness, Review, and Campaign cutoffs. Each repeated candidate carries both
+`oldestRepetitionEndedAt` and the exclusive `repetitionWindowEndsAt`. The pure engine verifies that
+the former lies inside `(claimAsOf − 168 hours, claimAsOf]`, that the latter is exactly 168 elapsed
+hours later, and that snapshot validity ends before it. Both are null exactly when the candidate has
+no counted repetition. When a count is clamped, the oldest in-window repetition is still used,
+which can only refresh earlier than required.
 
 ## 8. Fail-closed states
 

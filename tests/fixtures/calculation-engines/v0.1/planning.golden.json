@@ -4,7 +4,7 @@
     "asOf": "2026-09-01T12:00:00Z"
   },
   "input": {
-    "inputFingerprint": "planning-input:0a10272307b6bce3e420e118b14ec5664e2bc66d6bc0d4f816e0a1a7afa7a03e",
+    "inputFingerprint": "planning-input:ec943485c70524c0bf76e56541e0b6ce286a369c94001f0487dff2d22bae4aab",
     "completedWorkPolicyVersion": "planning-completed-work/0.1",
     "evaluationHorizon": {
       "asOf": "2026-09-01T12:00:00Z",
@@ -15,7 +15,11 @@
     },
     "sourceRevisions": [
       { "owner": "CATALOG", "key": "catalog:python", "revision": "7" },
-      { "owner": "EVIDENCE", "key": "evidence:ledger", "revision": "23" },
+      {
+        "owner": "EVIDENCE",
+        "key": "completed-work",
+        "revision": "evidence-completed-work:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
       { "owner": "FOCUS", "key": "focus:active", "revision": "11" },
       { "owner": "FOCUS", "key": "focus:completed-work", "revision": "12" },
       { "owner": "MASTERY", "key": "mastery:evidence", "revision": "42" },
@@ -27,7 +31,7 @@
       "version": "3",
       "lifecycle": "ACTIVE",
       "weeklyCapacityMinutes": 600,
-      "consumedMinutesThisWeek": 120,
+      "consumedMinutesThisWeek": 180,
       "tracks": [
         {
           "trackId": "11000000-0000-4000-8000-000000000001",
@@ -133,6 +137,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 2,
         "repetitionsInLast7Days": 0,
+        "oldestRepetitionEndedAt": null,
         "repetitionWindowEndsAt": null,
         "review": null
       },
@@ -156,6 +161,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 0,
         "repetitionsInLast7Days": 1,
+        "oldestRepetitionEndedAt": "2026-08-25T21:30:00.000Z",
         "repetitionWindowEndsAt": "2026-09-01T21:30:00.000Z",
         "review": {
           "reviewItemId": "13000000-0000-4000-8000-000000000001",
@@ -183,6 +189,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 0,
         "repetitionsInLast7Days": 0,
+        "oldestRepetitionEndedAt": null,
         "repetitionWindowEndsAt": null,
         "review": {
           "reviewItemId": "13000000-0000-4000-8000-000000000002",
@@ -210,6 +217,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 3,
         "repetitionsInLast7Days": 0,
+        "oldestRepetitionEndedAt": null,
         "repetitionWindowEndsAt": null,
         "review": null
       }
@@ -218,7 +226,7 @@
   "expected": {
     "engineVersion": "planner-engine/0.1.0",
     "policyVersion": "planning-policy/0.1",
-    "inputFingerprint": "planning-input:0a10272307b6bce3e420e118b14ec5664e2bc66d6bc0d4f816e0a1a7afa7a03e",
+    "inputFingerprint": "planning-input:ec943485c70524c0bf76e56541e0b6ce286a369c94001f0487dff2d22bae4aab",
     "calculatedAsOf": "2026-09-01T12:00:00.000Z",
     "validUntil": "2026-09-01T18:00:00.000Z",
     "timeZone": "Asia/Jerusalem",
@@ -228,8 +236,8 @@
     "warningCodes": [],
     "capacity": {
       "weeklyCapacityMinutes": 600,
-      "consumedMinutesThisWeek": 120,
-      "remainingMinutesThisWeek": 480,
+      "consumedMinutesThisWeek": 180,
+      "remainingMinutesThisWeek": 420,
       "sessionLimitMinutes": 120
     },
     "reviewSummary": {

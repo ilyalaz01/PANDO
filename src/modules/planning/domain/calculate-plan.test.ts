@@ -98,6 +98,7 @@ function growthCandidate(
     prerequisiteState: "SATISFIED",
     unlockCount: 0,
     repetitionsInLast7Days: 0,
+    oldestRepetitionEndedAt: null,
     repetitionWindowEndsAt: null,
     review: null,
     ...overrides,
@@ -124,6 +125,7 @@ function reviewCandidate(
     prerequisiteState: "SATISFIED",
     unlockCount: 0,
     repetitionsInLast7Days: 0,
+    oldestRepetitionEndedAt: null,
     repetitionWindowEndsAt: null,
     review: {
       reviewItemId: `13000000-0000-4000-8000-${index.toString().padStart(12, "0")}`,
@@ -213,6 +215,7 @@ describe("calculatePlan", () => {
           trackId: "11000000-0000-4000-8000-000000000099",
           trackKey: "track:other-target",
           readinessGoalKey: "goal:other-target",
+          meaningfulMinutesThisWeek: 0,
         },
       ],
     };
@@ -248,7 +251,7 @@ describe("calculatePlan", () => {
     expect(calculate(session)).toMatchObject({ recommendationState: "NO_CANDIDATES", actions: [] });
   });
 
-  it("keeps truthful observed minutes above the capacity ceiling", () => {
+  it("rejects physically impossible weekly completed-work totals", () => {
     const input = baseInput();
     input.growthPlan = {
       ...input.growthPlan!,
@@ -257,10 +260,20 @@ describe("calculatePlan", () => {
         index === 0 ? { ...track, meaningfulMinutesThisWeek: 10_081 } : track,
       ),
     };
-    expect(calculate(input)).toMatchObject({
-      recommendationState: "NO_CAPACITY",
-      capacity: { consumedMinutesThisWeek: 10_081, remainingMinutesThisWeek: 0 },
-    });
+    expect(() => calculate(input)).toThrow(/SCHEMA_MAXIMUM/u);
+    expect(() =>
+      calculateVerifiedPlan(input as VerifiedCalculatePlanInput, PLANNING_POLICY_V0_1),
+    ).toThrow(/between 0 and 10080/u);
+
+    const overCredited = baseInput();
+    overCredited.growthPlan = {
+      ...overCredited.growthPlan!,
+      consumedMinutesThisWeek: 20,
+      tracks: overCredited.growthPlan!.tracks.map((track, index) =>
+        index === 0 ? { ...track, meaningfulMinutesThisWeek: 21 } : track,
+      ),
+    };
+    expect(() => calculate(overCredited)).toThrow(/meaningful minutes exceed consumed/u);
   });
 
   it("reserves protected minima from campaign-only work", () => {
@@ -685,27 +698,47 @@ describe("calculatePlan", () => {
     );
     expect(() => calculate(withoutCutoff)).toThrow(/counted repetition requires/u);
 
+    const withoutOldest = baseInput();
+    withoutOldest.candidates = withoutOldest.candidates.map((candidate, index) =>
+      index === repeated ? { ...candidate, oldestRepetitionEndedAt: null } : candidate,
+    );
+    expect(() => calculate(withoutOldest)).toThrow(/counted repetition requires/u);
+
     const uncountedCutoff = baseInput();
     uncountedCutoff.candidates = uncountedCutoff.candidates.map((candidate, index) =>
-      index === repeated
-        ? { ...candidate, repetitionsInLast7Days: 0 }
-        : { ...candidate, repetitionWindowEndsAt: "2026-09-05T00:00:00Z" },
+      index === repeated ? { ...candidate, repetitionsInLast7Days: 0 } : candidate,
     );
-    expect(() => calculate(uncountedCutoff)).toThrow(/must not declare a repetition window/u);
+    expect(() => calculate(uncountedCutoff)).toThrow(/must not declare repetition-window/u);
 
-    const alreadyExpired = baseInput();
-    alreadyExpired.candidates = alreadyExpired.candidates.map((candidate, index) =>
+    const forgedCutoff = baseInput();
+    forgedCutoff.candidates = forgedCutoff.candidates.map((candidate, index) =>
       index === repeated
-        ? { ...candidate, repetitionWindowEndsAt: "2026-09-01T11:00:00Z" }
+        ? { ...candidate, repetitionWindowEndsAt: "2026-09-05T00:00:00Z" }
         : candidate,
     );
-    expect(() => calculate(alreadyExpired)).toThrow(/cannot end before clock.asOf/u);
+    expect(() => calculate(forgedCutoff)).toThrow(/exactly 168 hours/u);
+
+    const staleOldest = baseInput();
+    staleOldest.candidates = staleOldest.candidates.map((candidate, index) =>
+      index === repeated
+        ? {
+            ...candidate,
+            oldestRepetitionEndedAt: "2026-08-25T11:59:59.999Z",
+            repetitionWindowEndsAt: "2026-09-01T11:59:59.999Z",
+          }
+        : candidate,
+    );
+    expect(() => calculate(staleOldest)).toThrow(/inside the 168-hour window/u);
 
     // The snapshot may not outlive the instant at which the oldest counted repetition drops out.
     const outlivingWindow = baseInput();
     outlivingWindow.candidates = outlivingWindow.candidates.map((candidate, index) =>
       index === repeated
-        ? { ...candidate, repetitionWindowEndsAt: fixture.input.evaluationHorizon.validUntil }
+        ? {
+            ...candidate,
+            oldestRepetitionEndedAt: "2026-08-25T18:00:00Z",
+            repetitionWindowEndsAt: "2026-09-01T18:00:00Z",
+          }
         : candidate,
     );
     expect(() => calculate(outlivingWindow)).toThrow(/repetition window transition/u);

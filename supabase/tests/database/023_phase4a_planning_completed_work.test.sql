@@ -14,7 +14,12 @@ select ok(
   )
   and pg_catalog.has_function_privilege(
     'pando_planning_worker',
-    'evidence.read_planning_completed_work_source_v1(uuid,uuid[])',
+    'evidence.read_planning_completed_work_source_v2(uuid,uuid[],timestamptz)',
+    'EXECUTE'
+  )
+  and pg_catalog.has_function_privilege(
+    'pando_planning_worker',
+    'planning.load_plan_snapshot_source_bundle_v1(uuid,timestamptz)',
     'EXECUTE'
   )
   and not pg_catalog.has_table_privilege(
@@ -32,17 +37,22 @@ select ok(
 select ok(
   not pg_catalog.has_function_privilege(
     'authenticated',
-    'evidence.read_planning_completed_work_source_v1(uuid,uuid[])',
+    'evidence.read_planning_completed_work_source_v2(uuid,uuid[],timestamptz)',
     'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'anon',
-    'evidence.read_planning_completed_work_source_v1(uuid,uuid[])',
+    'evidence.read_planning_completed_work_source_v2(uuid,uuid[],timestamptz)',
     'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'service_role',
     'sessions.read_planning_completed_work_source_v1(uuid,timestamptz,timestamptz)',
+    'EXECUTE'
+  )
+  and not pg_catalog.has_function_privilege(
+    'authenticated',
+    'planning.load_plan_snapshot_source_bundle_pre_evidence_claim_v1(uuid,timestamptz)',
     'EXECUTE'
   ),
   'no runtime role can call the completed-work owner queries'
@@ -58,16 +68,49 @@ select ok(
   and not pg_catalog.has_table_privilege(
     'pando_evidence_planning_source', 'evidence.subject_ledgers', 'UPDATE'
   )
-  and pg_catalog.has_table_privilege(
+  and not pg_catalog.has_table_privilege(
     'pando_evidence_planning_source', 'evidence.observations', 'SELECT'
+  )
+  and pg_catalog.has_column_privilege(
+    'pando_evidence_planning_source', 'evidence.observations', 'evidence_id', 'SELECT'
+  )
+  and not pg_catalog.has_column_privilege(
+    'pando_evidence_planning_source', 'evidence.observations', 'outcome', 'SELECT'
+  )
+  and not pg_catalog.has_column_privilege(
+    'pando_evidence_planning_source', 'evidence.corrections', 'reason', 'SELECT'
   ),
-  'the Evidence planning source role is strictly read-only'
+  'the Evidence planning source role is read-only and limited to classification columns'
 );
 
 select ok(
   not pg_catalog.has_schema_privilege('pando_evidence_planning_source', 'evidence', 'CREATE')
   and not pg_catalog.has_schema_privilege('pando_planning_worker', 'planning', 'CREATE'),
   'the migration leaves no CREATE privilege behind on the touched schemas'
+);
+
+select ok(
+  pg_catalog.to_regclass('sessions.focus_sessions_workspace_terminal_ended') is not null
+  and exists (
+    select 1 from pg_catalog.pg_indexes
+    where schemaname = 'sessions'
+      and indexname = 'focus_sessions_workspace_terminal_ended'
+      and indexdef like '%WHERE (state = ANY (%completed%stopped%'
+  ),
+  'the forward migration installs the bounded terminal-session access path'
+);
+
+select ok(
+  pg_catalog.to_regprocedure(
+    'planning.load_plan_snapshot_source_bundle_pre_evidence_claim_v1(uuid,timestamptz)'
+  ) is not null
+  and pg_catalog.to_regprocedure(
+    'planning.load_plan_snapshot_source_bundle_v1(uuid,timestamptz)'
+  ) is not null
+  and pg_catalog.to_regprocedure(
+    'evidence.read_planning_completed_work_source_v2(uuid,uuid[],timestamptz)'
+  ) is not null,
+  'the forward upgrade retains the private legacy implementation behind the hardened v1 wrapper'
 );
 
 -- Isolate this scenario from seed-owned Planning wake-ups.
@@ -250,12 +293,16 @@ select ok(
 );
 
 -- Evidence answers only attempt terminality and non-invalidated observation existence.
+insert into work_results values (
+  'evidence-claim', pg_catalog.jsonb_build_object('asOf', clock_timestamp())
+);
 set local role pando_planning_worker;
 insert into work_results
-select 'evidence-source', evidence.read_planning_completed_work_source_v1(
+select 'evidence-source', evidence.read_planning_completed_work_source_v2(
   (select (response->>'workspaceId')::uuid from work_results where result_name = 'plan'),
   array[(select (response->>'focusSessionId')::uuid from work_results
-         where result_name = 'focus-start')]
+         where result_name = 'focus-start')],
+  (select (response->>'asOf')::timestamptz from work_results where result_name = 'evidence-claim')
 );
 reset role;
 
@@ -282,10 +329,11 @@ select ok(
 -- A stopped session is terminal history that never becomes evidence-bearing work.
 set local role pando_planning_worker;
 insert into work_results
-select 'other-evidence-source', evidence.read_planning_completed_work_source_v1(
+select 'other-evidence-source', evidence.read_planning_completed_work_source_v2(
   (select (response->>'workspace_id')::uuid from work_results where result_name = 'other-bootstrap'),
   array[(select (response->>'focusSessionId')::uuid from work_results
-         where result_name = 'other-focus-start')]
+         where result_name = 'other-focus-start')],
+  clock_timestamp()
 );
 reset role;
 
@@ -317,10 +365,18 @@ select set_config('request.jwt.claims', null, true);
 
 set local role pando_planning_worker;
 insert into work_results
-select 'evidence-after', evidence.read_planning_completed_work_source_v1(
+select 'evidence-after', evidence.read_planning_completed_work_source_v2(
   (select (response->>'workspaceId')::uuid from work_results where result_name = 'plan'),
   array[(select (response->>'focusSessionId')::uuid from work_results
-         where result_name = 'focus-start')]
+         where result_name = 'focus-start')],
+  clock_timestamp()
+);
+insert into work_results
+select 'evidence-at-old-claim', evidence.read_planning_completed_work_source_v2(
+  (select (response->>'workspaceId')::uuid from work_results where result_name = 'plan'),
+  array[(select (response->>'focusSessionId')::uuid from work_results
+         where result_name = 'focus-start')],
+  (select (response->>'asOf')::timestamptz from work_results where result_name = 'evidence-claim')
 );
 reset role;
 
@@ -328,6 +384,17 @@ select is(
   (select response#>>'{items,0,evidenceBearing}' from work_results where result_name = 'evidence-after'),
   'false',
   'an invalidated observation removes the evidence-bearing classification'
+);
+select is(
+  (select response#>>'{items,0,evidenceBearing}'
+   from work_results where result_name = 'evidence-at-old-claim'),
+  'true',
+  'Evidence classification is bounded by the persisted claim clock'
+);
+select is(
+  (select response->>'revision' from work_results where result_name = 'evidence-at-old-claim'),
+  (select response->>'revision' from work_results where result_name = 'evidence-source'),
+  'post-claim invalidation cannot alter the old-claim classification fence'
 );
 select isnt(
   (select response->>'revision' from work_results where result_name = 'evidence-after'),
@@ -339,9 +406,10 @@ select isnt(
 set local role pando_planning_worker;
 select throws_ok(
   pg_catalog.format(
-    'select evidence.read_planning_completed_work_source_v1(%L::uuid, array[%L::uuid])',
+    'select evidence.read_planning_completed_work_source_v2(%L::uuid, array[%L::uuid], %L::timestamptz)',
     (select response->>'workspaceId' from work_results where result_name = 'plan'),
-    '2c000000-0000-4000-8000-000000000099'
+    '2c000000-0000-4000-8000-000000000099',
+    clock_timestamp()
   ),
   '22023',
   'planning Evidence source is not authoritative',
@@ -352,9 +420,10 @@ reset role;
 set local role pando_planning_worker;
 select throws_ok(
   pg_catalog.format(
-    'select evidence.read_planning_completed_work_source_v1(%L::uuid, array[%L::uuid])',
+    'select evidence.read_planning_completed_work_source_v2(%L::uuid, array[%L::uuid], %L::timestamptz)',
     (select response->>'workspaceId' from work_results where result_name = 'plan'),
-    (select response->>'focusSessionId' from work_results where result_name = 'other-focus-start')
+    (select response->>'focusSessionId' from work_results where result_name = 'other-focus-start'),
+    clock_timestamp()
   ),
   '22023',
   'planning Evidence source is not authoritative',
@@ -365,10 +434,11 @@ reset role;
 set local role pando_planning_worker;
 select throws_ok(
   pg_catalog.format(
-    'select evidence.read_planning_completed_work_source_v1(%L::uuid, array[%L::uuid, %L::uuid])',
+    'select evidence.read_planning_completed_work_source_v2(%L::uuid, array[%L::uuid, %L::uuid], %L::timestamptz)',
     (select response->>'workspaceId' from work_results where result_name = 'plan'),
     (select response->>'focusSessionId' from work_results where result_name = 'focus-start'),
-    (select response->>'focusSessionId' from work_results where result_name = 'focus-start')
+    (select response->>'focusSessionId' from work_results where result_name = 'focus-start'),
+    clock_timestamp()
   ),
   '22023',
   'planning Evidence source input is invalid',
@@ -391,8 +461,8 @@ select ok(
   and (select response#>'{evidence,items}' from work_results where result_name = 'bundle')
     is not null
   and (select response#>'{focus,terminalCount}' from work_results where result_name = 'bundle')
-    is null,
-  'the bundle exposes both completed-work sources and no legacy terminal count'
+    is not null,
+  'the bundle exposes both completed-work sources and preserves the rollout compatibility field'
 );
 select ok(
   (select (response#>>'{completedWork,windowStart}')::timestamptz

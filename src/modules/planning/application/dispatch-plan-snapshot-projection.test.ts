@@ -67,7 +67,7 @@ function sourceBundle(unclassifiableHistory = false) {
         : [],
     },
     evidence: {
-      revision: "evidence-ledger:0",
+      revision: `evidence-completed-work:${"0".repeat(64)}`,
       items: unclassifiableHistory
         ? // A terminal session whose Evidence attempt never reached a terminal state cannot be
           // classified by planning-completed-work/0.1 and must not publish invented minutes.

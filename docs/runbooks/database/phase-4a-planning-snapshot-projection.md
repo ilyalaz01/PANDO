@@ -27,7 +27,7 @@ Growth Plans with completed Focus history are supported. Consumed capacity, per-
 credit, and recent repetition come from the versioned
 [Planning Completed Work Policy v0.1](../../policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md) through
 two bounded owner queries: `sessions.read_planning_completed_work_source_v1` and
-`evidence.read_planning_completed_work_source_v1`. Never substitute planned minutes for completed
+`evidence.read_planning_completed_work_source_v2`. Never substitute planned minutes for completed
 work, and never credit unbounded wall-clock elapsed time; the counted duration is always
 `min(floor(observed elapsed), plannedMinutes)` clipped to the plan week.
 

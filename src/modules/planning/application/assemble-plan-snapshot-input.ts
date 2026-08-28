@@ -492,6 +492,8 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         prerequisiteState: integer(graph, "prerequisiteCount") === 0 ? "SATISFIED" : "UNKNOWN",
         unlockCount: integer(graph, "unlockCount"),
         repetitionsInLast7Days: Math.min(MAXIMUM_REPETITIONS, repetitionEndedAtMs.length),
+        oldestRepetitionEndedAt:
+          oldestRepetitionMs === null ? null : new Date(oldestRepetitionMs).toISOString(),
         repetitionWindowEndsAt,
         review: reviewSignal,
       };
@@ -514,7 +516,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         `catalog-version:${integer(version, "versionNumber")}`,
       ),
     ),
-    sourceRevision("EVIDENCE", "workspace-ledger", requiredString(evidence, "revision")),
+    sourceRevision("EVIDENCE", "completed-work", requiredString(evidence, "revision")),
     sourceRevision("FOCUS", "completed-work", requiredString(completedWork, "revision")),
     sourceRevision("FOCUS", "workspace-focus", requiredString(focus, "revision")),
     sourceRevision("MASTERY", "candidate-scope", requiredString(mastery, "revision")),

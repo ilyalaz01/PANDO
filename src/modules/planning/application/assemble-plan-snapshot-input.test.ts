@@ -167,7 +167,7 @@ function sourceBundle() {
       sessions: [] as WorkSession[],
     },
     evidence: {
-      revision: "evidence-ledger:4",
+      revision: `evidence-completed-work:${"4".repeat(64)}`,
       items: [] as EvidenceAnswer[],
     },
     mastery: { revision: `mastery-scope:${"c".repeat(64)}` },
@@ -195,7 +195,7 @@ describe("assemblePlanSnapshotInput", () => {
     });
     expect(input.sourceRevisions.map(({ owner, key }) => `${owner}/${key}`)).toEqual([
       "CATALOG/catalog:v1",
-      "EVIDENCE/workspace-ledger",
+      "EVIDENCE/completed-work",
       "FOCUS/completed-work",
       "FOCUS/workspace-focus",
       "MASTERY/candidate-scope",
@@ -210,7 +210,11 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.completedWorkPolicyVersion).toBe("planning-completed-work/0.1");
     expect(input.sourceRevisions).toEqual(
       expect.arrayContaining([
-        { owner: "EVIDENCE", key: "workspace-ledger", revision: "evidence-ledger:4" },
+        {
+          owner: "EVIDENCE",
+          key: "completed-work",
+          revision: `evidence-completed-work:${"4".repeat(64)}`,
+        },
         { owner: "FOCUS", key: "completed-work", revision: `completed-work:${"f".repeat(64)}` },
       ]),
     );
@@ -225,6 +229,7 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.growthPlan?.tracks[0]?.meaningfulMinutesThisWeek).toBe(25);
     expect(input.candidates[0]).toMatchObject({
       repetitionsInLast7Days: 1,
+      oldestRepetitionEndedAt: "2026-08-31T09:25:00.000Z",
       repetitionWindowEndsAt: "2026-09-07T09:25:00.000Z",
     });
     expect(() => calculatePlan(input, PLANNING_POLICY_V0_1)).not.toThrow();
@@ -283,6 +288,7 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.growthPlan?.consumedMinutesThisWeek).toBe(0);
     expect(input.candidates[0]).toMatchObject({
       repetitionsInLast7Days: 1,
+      oldestRepetitionEndedAt: "2026-08-30T10:00:00.000Z",
       repetitionWindowEndsAt: "2026-09-06T10:00:00.000Z",
     });
     expect(input.evaluationHorizon.validUntil).toBe("2026-09-06T09:59:59.999Z");
@@ -301,6 +307,7 @@ describe("assemblePlanSnapshotInput", () => {
       ]),
     );
     expect(expired.candidates[0]?.repetitionsInLast7Days).toBe(0);
+    expect(expired.candidates[0]?.oldestRepetitionEndedAt).toBeNull();
     expect(expired.candidates[0]?.repetitionWindowEndsAt).toBeNull();
 
     const untracked = assemblePlanSnapshotInput(
@@ -521,8 +528,16 @@ describe("assemblePlanSnapshotInput", () => {
         );
         const candidate = input.candidates[0]!;
         expect(candidate.repetitionsInLast7Days).toBe(expectedRepetitions);
+        expect(candidate.oldestRepetitionEndedAt === null).toBe(expectedRepetitions === 0);
         expect(candidate.repetitionWindowEndsAt === null).toBe(expectedRepetitions === 0);
-        if (candidate.repetitionWindowEndsAt !== null) {
+        if (
+          candidate.oldestRepetitionEndedAt !== null &&
+          candidate.repetitionWindowEndsAt !== null
+        ) {
+          expect(
+            Date.parse(candidate.repetitionWindowEndsAt) -
+              Date.parse(candidate.oldestRepetitionEndedAt),
+          ).toBe(604_800_000);
           expect(Date.parse(input.evaluationHorizon.validUntil)).toBeLessThan(
             Date.parse(candidate.repetitionWindowEndsAt),
           );

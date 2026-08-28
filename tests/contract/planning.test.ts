@@ -77,6 +77,10 @@ describe("PlanningCalculationInputV1", () => {
     const withoutCutoff = structuredClone(planningGolden.input) as RecordValue;
     delete (withoutCutoff.candidates as RecordValue[])[0]!.repetitionWindowEndsAt;
     expect(validateSchema("planning-input-v1", withoutCutoff).valid).toBe(false);
+
+    const withoutOldest = structuredClone(planningGolden.input) as RecordValue;
+    delete (withoutOldest.candidates as RecordValue[])[0]!.oldestRepetitionEndedAt;
+    expect(validateSchema("planning-input-v1", withoutOldest).valid).toBe(false);
   });
 
   it("changes the canonical fingerprint when the completed-work policy version changes", () => {

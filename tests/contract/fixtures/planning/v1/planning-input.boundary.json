@@ -1,5 +1,5 @@
 {
-  "inputFingerprint": "planning-input:3704cd03c442a68f8f75b0cc8029b667f5c2ad8ba2024ede49964beb38d6a3f9",
+  "inputFingerprint": "planning-input:049948446d99180085a2ffe4220a3368705d9b3a55da90b134ca2e709bb8879a",
   "completedWorkPolicyVersion": "planning-completed-work/0.1",
   "evaluationHorizon": {
     "asOf": "2026-09-01T12:00:00Z",
@@ -9,7 +9,11 @@
     "weekEnd": "2026-09-06T21:00:00Z"
   },
   "sourceRevisions": [
-    { "owner": "EVIDENCE", "key": "evidence:ledger", "revision": "0" },
+    {
+      "owner": "EVIDENCE",
+      "key": "completed-work",
+      "revision": "evidence-completed-work:0000000000000000000000000000000000000000000000000000000000000000"
+    },
     { "owner": "FOCUS", "key": "focus:active", "revision": "0" },
     { "owner": "FOCUS", "key": "focus:completed-work", "revision": "0" },
     { "owner": "REVIEW", "key": "review:schedule", "revision": "0" }

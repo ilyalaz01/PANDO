@@ -51,8 +51,8 @@ and accepted design remain authoritative.
 - a strict `planning.input_changed` v1 JSON contract for Growth Plan initialization and Track
   activity admission, with valid, boundary, invalid, and malicious fixtures.
 - a dedicated NOLOGIN Planning worker with bounded Identity, Targets, Overlay, Catalog, Focus,
-  Mastery, and Review owner queries that all receive one persisted `claimAsOf`; Planning has no
-  cross-context table grants;
+  Mastery, and Review owner queries; clock-sensitive reads share one persisted `claimAsOf`, and
+  Planning has no cross-context table grants;
 - durable immutable calculation-attempt provenance, an exact Planning delivery/source ledger,
   immutable opaque action selections, and a real FK from the current pointer to its applied
   attempt;
@@ -99,7 +99,7 @@ and accepted design remain authoritative.
   only ever an upper bound and no unbounded page-open time is credited. A completed session consumes
   capacity, an evidence-bearing completed session also earns track cadence credit, a stopped session
   earns neither, and repetition counts completed sessions in the half-open 168-hour window with a
-  verifiable `repetitionWindowEndsAt` cutoff that also caps snapshot validity;
+  verifiable oldest end and exact `repetitionWindowEndsAt` cutoff that also caps snapshot validity;
 - `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` now rejects only genuinely unclassifiable history — a
   missing or non-terminal Evidence attempt, a stopped session claiming evidence, a session outside
   the claim-scoped window, a window that does not cover the policy horizon, or derived totals that

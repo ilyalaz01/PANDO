@@ -135,7 +135,7 @@
         "lifecycle": { "enum": ["ACTIVE", "PAUSED", "COMPLETED"] },
         "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
         "protectedMinimumMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
-        "meaningfulMinutesThisWeek": { "type": "integer", "minimum": 0, "maximum": 10000000 },
+        "meaningfulMinutesThisWeek": { "type": "integer", "minimum": 0, "maximum": 10080 },
         "defaultSessionMinutes": { "type": "integer", "minimum": 1, "maximum": 480 }
       }
     },
@@ -155,7 +155,7 @@
         "version": { "$ref": "#/$defs/positiveBigint" },
         "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
         "weeklyCapacityMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
-        "consumedMinutesThisWeek": { "type": "integer", "minimum": 0, "maximum": 10000000 },
+        "consumedMinutesThisWeek": { "type": "integer", "minimum": 0, "maximum": 10080 },
         "tracks": {
           "type": "array",
           "minItems": 1,
@@ -371,6 +371,7 @@
         "prerequisiteState",
         "unlockCount",
         "repetitionsInLast7Days",
+        "oldestRepetitionEndedAt",
         "repetitionWindowEndsAt",
         "review"
       ],
@@ -400,6 +401,9 @@
         "prerequisiteState": { "enum": ["SATISFIED", "UNKNOWN", "BLOCKED"] },
         "unlockCount": { "type": "integer", "minimum": 0, "maximum": 20 },
         "repetitionsInLast7Days": { "type": "integer", "minimum": 0, "maximum": 50 },
+        "oldestRepetitionEndedAt": {
+          "oneOf": [{ "$ref": "#/$defs/instant" }, { "type": "null" }]
+        },
         "repetitionWindowEndsAt": {
           "oneOf": [{ "$ref": "#/$defs/instant" }, { "type": "null" }]
         },

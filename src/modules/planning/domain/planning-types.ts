@@ -139,6 +139,8 @@ export interface PlanningCandidateInput {
   readonly prerequisiteState: PrerequisiteState;
   readonly unlockCount: number;
   readonly repetitionsInLast7Days: number;
+  /** Oldest terminal-session end included in the half-open 168-hour repetition window. */
+  readonly oldestRepetitionEndedAt: string | null;
   /**
    * Exclusive instant at which the oldest counted repetition leaves the 168-hour window under
    * `planning-completed-work/0.1`. Null exactly when no repetition is counted.

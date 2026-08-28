@@ -365,7 +365,8 @@ select ok(
     'pando_review_scheduler', 'pando_readiness_worker', 'pando_readiness_scheduler',
     'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
     'pando_identity_planning_source', 'pando_phase1_planning_source',
-    'pando_phase2_planning_source', 'pando_review_planning_source'
+    'pando_phase2_planning_source', 'pando_evidence_planning_source',
+    'pando_review_planning_source'
   )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
@@ -399,7 +400,8 @@ where role.rolname in (
   'pando_readiness_worker', 'pando_readiness_scheduler',
   'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
   'pando_identity_planning_source', 'pando_phase1_planning_source',
-  'pando_phase2_planning_source', 'pando_review_planning_source'
+  'pando_phase2_planning_source', 'pando_evidence_planning_source',
+  'pando_review_planning_source'
 )
 order by role.rolname;
 
@@ -412,6 +414,7 @@ cross join (values
   ('pando_identity_planning_source'),
   ('pando_phase1_planning_source'),
   ('pando_phase2_planning_source'),
+  ('pando_evidence_planning_source'),
   ('pando_review_planning_source'),
   ('pando_planning_router')
 ) as source_role(role_name)
@@ -430,6 +433,9 @@ from (values
   ('targets', 'read_planning_readiness_source_v1', 'pando_phase1_planning_source'),
   ('catalog', 'read_planning_graph_source_v1', 'pando_phase1_planning_source'),
   ('sessions', 'read_planning_focus_source_v1', 'pando_phase2_planning_source'),
+  ('sessions', 'read_planning_completed_work_source_v1', 'pando_phase2_planning_source'),
+  ('evidence', 'read_planning_completed_work_source_v1', 'pando_evidence_planning_source'),
+  ('evidence', 'read_planning_completed_work_source_v2', 'pando_evidence_planning_source'),
   ('mastery', 'read_planning_mastery_source_v1', 'pando_mastery_worker'),
   ('review', 'read_planning_review_source_v1', 'pando_review_planning_source')
 ) as expected(schema_name, function_name, owner_name)

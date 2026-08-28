@@ -31,6 +31,7 @@ const GAP_VALUES = [
   "KNOWN_SHORTFALL",
 ] as const;
 const DIMENSION_VALUES = ["KNOWLEDGE", "RECALL", "APPLICATION", "INTERVIEW_EXECUTION"] as const;
+const REPETITION_WINDOW_MILLISECONDS = 168 * 60 * 60 * 1000;
 
 interface ScoredCandidate {
   readonly candidate: PlanningCandidateInput;
@@ -135,7 +136,7 @@ function validateTrack(track: PlanningTrackInput): void {
   requireEnum(track.lifecycle, ["ACTIVE", "PAUSED", "COMPLETED"] as const, "track.lifecycle");
   requireInteger(track.priority, 0, 100, "track.priority");
   requireInteger(track.protectedMinimumMinutes, 0, 10_080, "track.protectedMinimumMinutes");
-  requireInteger(track.meaningfulMinutesThisWeek, 0, 10_000_000, "track.meaningfulMinutesThisWeek");
+  requireInteger(track.meaningfulMinutesThisWeek, 0, 10_080, "track.meaningfulMinutesThisWeek");
   requireInteger(track.defaultSessionMinutes, 1, 480, "track.defaultSessionMinutes");
 }
 
@@ -230,18 +231,32 @@ function validateCandidate(
   requireEnum(candidate.prerequisiteState, PREREQUISITE_VALUES, "candidate.prerequisiteState");
   requireInteger(candidate.unlockCount, 0, 20, "candidate.unlockCount");
   requireInteger(candidate.repetitionsInLast7Days, 0, 50, "candidate.repetitionsInLast7Days");
-  if (candidate.repetitionWindowEndsAt === null) {
-    if (candidate.repetitionsInLast7Days !== 0) {
-      fail("a counted repetition requires an explicit repetition window cutoff");
+  if (candidate.oldestRepetitionEndedAt === null || candidate.repetitionWindowEndsAt === null) {
+    if (
+      candidate.repetitionsInLast7Days !== 0 ||
+      candidate.oldestRepetitionEndedAt !== null ||
+      candidate.repetitionWindowEndsAt !== null
+    ) {
+      fail("a counted repetition requires its oldest end and exact window cutoff");
     }
   } else {
     if (candidate.repetitionsInLast7Days === 0) {
-      fail("an uncounted candidate must not declare a repetition window cutoff");
+      fail("an uncounted candidate must not declare repetition-window instants");
     }
+    const oldestEndedMs = parsePlanningInstant(
+      candidate.oldestRepetitionEndedAt,
+      "candidate.oldestRepetitionEndedAt",
+    );
     const windowEndsMs = parsePlanningInstant(
       candidate.repetitionWindowEndsAt,
       "candidate.repetitionWindowEndsAt",
     );
+    if (oldestEndedMs <= asOfMs - REPETITION_WINDOW_MILLISECONDS || oldestEndedMs > asOfMs) {
+      fail("the oldest counted repetition must be inside the 168-hour window");
+    }
+    if (windowEndsMs !== oldestEndedMs + REPETITION_WINDOW_MILLISECONDS) {
+      fail("the repetition window cutoff must be exactly 168 hours after its oldest repetition");
+    }
     if (windowEndsMs <= asOfMs) fail("a counted repetition window cannot end before clock.asOf");
     if (validUntilMs >= windowEndsMs) {
       fail("evaluation validity cannot reach the next repetition window transition");
@@ -449,7 +464,7 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
     requireInteger(
       input.growthPlan.consumedMinutesThisWeek,
       0,
-      10_000_000,
+      10_080,
       "growthPlan.consumedMinutesThisWeek",
     );
     if (input.growthPlan.tracks.length < 1 || input.growthPlan.tracks.length > 30) {
@@ -465,6 +480,13 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
       .reduce((total, track) => total + track.protectedMinimumMinutes, 0);
     if (protectedTotal > input.growthPlan.weeklyCapacityMinutes) {
       fail("active protected track minimums exceed weekly capacity");
+    }
+    const meaningfulTotal = input.growthPlan.tracks.reduce(
+      (total, track) => total + track.meaningfulMinutesThisWeek,
+      0,
+    );
+    if (meaningfulTotal > input.growthPlan.consumedMinutesThisWeek) {
+      fail("track meaningful minutes exceed consumed weekly capacity");
     }
   }
 
