@@ -7,8 +7,8 @@ Branch: `claude/c4-meaningful-work`
 ## 1. Outcome attempted
 
 Phase 4A **C4 — meaningful completed work**, as defined in `CLAUDE.md` under "Current bounded
-outcome". Status: **complete**, with two browser-dependent gates unrun for an environment reason
-recorded in §6.
+outcome". Status: **complete and verified** — every gate proportionate to the change was run and
+passed (§6).
 
 The bounded outcome was to replace the blanket `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` safety gate with
 a reviewed, versioned policy for completed meaningful minutes and recent candidate repetition, fed by
@@ -206,27 +206,16 @@ WSL2 Linux.
 | `pnpm test:contracts` | PASS — 15 files, 306 tests |
 | `pnpm test:performance` | PASS — 1 file, 3 tests |
 | `pnpm test:unit:coverage` | PASS — 69 files, 674 tests; statements 87.91%, branches 80.41%, functions 93.46%, lines 89.72% |
-| `pnpm test:e2e` | **NOT RUN** — environment |
-| `pnpm verify` | **FAILED at its `test:e2e` stage only.** The eight preceding stages passed inside the same run |
-| `pnpm verify:auth` | **NOT RUN** — environment; it started Supabase successfully and failed at browser launch |
+| `pnpm test:e2e` | PASS — 21 Chromium specs passed, including the axe WCAG A/AA checks |
+| `pnpm verify` | **PASS end to end**, all nine stages including `test:e2e` |
+| `pnpm verify:auth` | PASS — "isolated auth, target selection, overlay note/activity persistence, reload, refresh, and sign-out gate passed" |
 | `pnpm verify:backup` | **NOT RUN** — deliberately skipped; no backup or storage behavior changed. `test:backup-archive` did run |
-| `pnpm verify:phase0` | **NOT RUN** — it aggregates `verify` and `verify:auth`, both blocked by the same cause |
+| `pnpm verify:phase0` | **NOT RUN** as one command; it aggregates `verify`, `verify:db`, `verify:backup`, and `verify:auth`, and all except `verify:backup` were run individually above |
 
-### Why the two browser gates did not run
-
-Chromium cannot start in this WSL2 distribution:
-
-```text
-chrome-headless-shell: error while loading shared libraries: libnspr4.so:
-cannot open shared object file: No such file or directory
-```
-
-`ldd` reports four missing libraries: `libnspr4.so`, `libnss3.so`, `libnssutil3.so`,
-`libasound.so.2`. Installing them needs root (`sudo pnpm exec playwright install-deps chromium`),
-which this session did not have. All 21 e2e specs failed at browser launch with zero assertions
-evaluated. This is an environment gap on this machine, not a regression: every e2e spec targets
-`/sign-in`, `/explore`, `/focus`, `/review`, and `/`, and C4 adds no UI and changes no route.
-**Run both gates before pushing.**
+The two browser gates were initially blocked: Chromium could not start in this WSL2 distribution
+(`chrome-headless-shell: error while loading shared libraries: libnspr4.so`), with `libnspr4.so`,
+`libnss3.so`, `libnssutil3.so`, and `libasound.so.2` unresolved. The owner installed those system
+packages, after which both gates were re-run and passed on this branch's final tree.
 
 ### Environment changes made during the session
 
@@ -247,8 +236,8 @@ These were needed to run any gate at all and are outside the repository:
 - Branch: `claude/c4-meaningful-work`, created from `main` at `85c07db`.
 - Implementation commit: `72def41` — "feat: derive meaningful completed work from owner sources".
 - This report: committed separately on the same branch.
-- Push status: **not pushed.** `CLAUDE.md` permits a push to `origin/main` only after all required
-  checks pass; two gates did not run, so the branch is left local for the owner to decide.
+- Push status: **not pushed.** All required checks now pass, so a push to `origin/main` is
+  permitted, but merging and pushing is left as the owner's explicit decision.
 - Final `git status --short`: clean.
 
 ## 8. Remaining work
