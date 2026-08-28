@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/events/v1/planning-event.schema.json",
+  "title": "PANDO Planning Input Event V1",
+  "oneOf": [
+    { "$ref": "#/$defs/growthPlanInitialized" },
+    { "$ref": "#/$defs/trackActivityAdmitted" }
+  ],
+  "$defs": {
+    "growthPlanInitialized": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "planning.input_changed" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "growth_plan_id",
+            "growth_plan_version",
+            "learning_track_id",
+            "learning_track_version",
+            "readiness_goal_id",
+            "profile_version_id"
+          ],
+          "properties": {
+            "change_kind": { "const": "INITIALIZED" },
+            "growth_plan_id": { "$ref": "#/$defs/uuid" },
+            "growth_plan_version": { "$ref": "#/$defs/safePositiveInteger" },
+            "learning_track_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_version": { "$ref": "#/$defs/safePositiveInteger" },
+            "readiness_goal_id": { "$ref": "#/$defs/uuid" },
+            "profile_version_id": { "$ref": "#/$defs/uuid" }
+          }
+        }
+      }
+    },
+    "trackActivityAdmitted": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "planning.input_changed" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "growth_plan_id",
+            "learning_track_id",
+            "learning_track_version",
+            "custom_activity_id",
+            "candidate_key"
+          ],
+          "properties": {
+            "change_kind": { "const": "TRACK_ACTIVITY_ADMITTED" },
+            "growth_plan_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
+            "custom_activity_id": { "$ref": "#/$defs/uuid" },
+            "candidate_key": {
+              "type": "string",
+              "pattern": "^candidate:[a-z0-9][a-z0-9-]{1,100}$"
+            }
+          }
+        }
+      }
+    },
+    "uuid": { "type": "string", "format": "uuid" },
+    "safePositiveInteger": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "positiveBigint": { "type": "string", "pattern": "^[1-9][0-9]{0,18}$" }
+  }
+}

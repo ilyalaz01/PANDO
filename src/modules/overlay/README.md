@@ -46,3 +46,11 @@ dimension, fixed mapping confidence, expected-evidence guidance, and an optional
 The activity type deterministically derives the dimension and guidance on insert, including for
 pre-existing rows. Focus reads that mapping through its authorized target/profile route; the browser
 cannot raise confidence or redirect evidence to another competency.
+
+## Implemented Planning admission source
+
+`overlay.get_planning_activity_admission_source_v1` is executable only by the Planning application
+role. It takes a trusted workspace/profile/activity selector, shares the Overlay workspace mutation
+fence, and returns only accepted active activity identity and mapping status. Planning receives no
+direct Overlay table grant and no title, note, expected-evidence body, URL, or unrelated personal
+content through this boundary.

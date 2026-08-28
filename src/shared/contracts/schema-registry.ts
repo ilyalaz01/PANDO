@@ -8,6 +8,7 @@ import exploreStructuralProjectionSchema from "../../../schemas/explore-structur
 import exploreTargetContextSchema from "../../../schemas/explore-target-context/v1/explore-target-context.schema.json";
 import evidenceEventSchema from "../../../schemas/events/v1/evidence-event.schema.json";
 import masteryEventSchema from "../../../schemas/events/v1/mastery-event.schema.json";
+import planningEventSchema from "../../../schemas/events/v1/planning-event.schema.json";
 import readinessEventSchema from "../../../schemas/events/v1/readiness-event.schema.json";
 import reviewEventSchema from "../../../schemas/events/v1/review-event.schema.json";
 import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-projection.schema.json";
@@ -33,6 +34,7 @@ export const schemaNames = [
   "explore-target-context",
   "evidence-event-v1",
   "mastery-event-v1",
+  "planning-event-v1",
   "readiness-event-v1",
   "review-event-v1",
   "planning-input-v1",
@@ -60,6 +62,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "explore-target-context": exploreTargetContextSchema,
   "evidence-event-v1": evidenceEventSchema,
   "mastery-event-v1": masteryEventSchema,
+  "planning-event-v1": planningEventSchema,
   "readiness-event-v1": readinessEventSchema,
   "review-event-v1": reviewEventSchema,
   "planning-input-v1": planningInputSchema,
