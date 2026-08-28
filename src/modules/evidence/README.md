@@ -13,3 +13,5 @@ The client cannot supply workspace, user, competency, mapping confidence, source
 outbox consumer. The Focus coordinator derives them server-side and commits an evidence observation,
 ledger advance, privacy-minimized event, fixed Mastery delivery, and command receipt atomically.
 Observation and correction rows reject updates and deletes; invalidation preserves the original.
+The routed public invalidation wrapper remains in `api`; its unrouteable implementation resides in
+the private `evidence` schema and is absent from generated browser types.

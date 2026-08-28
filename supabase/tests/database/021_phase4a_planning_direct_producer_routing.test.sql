@@ -61,25 +61,25 @@ select ok(
 select ok(
   not pg_catalog.has_function_privilege(
     'authenticated',
-    'api.add_current_custom_activity_without_planning_v1(text,text,text,text,text,text,text)',
+    'overlay.add_current_custom_activity_without_planning_v1(text,text,text,text,text,text,text)',
     'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'authenticated',
-    'api.start_focus_activity_without_planning_v1(text,text,smallint,text)',
+    'sessions.start_focus_activity_without_planning_v1(text,text,smallint,text)',
     'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'authenticated',
-    'api.finish_focus_activity_without_planning_v1(uuid,bigint,text,text,boolean,text)',
+    'sessions.finish_focus_activity_without_planning_v1(uuid,bigint,text,text,boolean,text)',
     'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'authenticated',
-    'api.invalidate_evidence_without_planning_v1(uuid,text,text)',
+    'evidence.invalidate_evidence_without_planning_v1(uuid,text,text)',
     'EXECUTE'
   ),
-  'application coordinators remain private inside the API boundary'
+  'application coordinator implementations remain private in their owner schemas'
 );
 
 select ok(

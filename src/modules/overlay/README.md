@@ -37,7 +37,8 @@ workspace/profile transports and their cross-context implementation are absent. 
 API coordinators are pinned `SECURITY DEFINER` functions owned by the `NOLOGIN/NOBYPASSRLS`
 Phase 1 role; authenticated callers cannot execute their Overlay bridges directly. JWT-backed
 membership and forced RLS therefore remain in force while caller-selected profile identities
-cannot bypass the exact target-closure check.
+cannot bypass the exact target-closure check. The routed custom-activity coordinator keeps only its
+public wrapper in `api`; its unrouteable implementation resides in the private `overlay` schema.
 
 ## Implemented personal evidence mapping
 

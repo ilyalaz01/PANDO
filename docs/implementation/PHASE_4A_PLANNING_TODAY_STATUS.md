@@ -76,7 +76,10 @@ and accepted design remain authoritative.
   call, reports progress, is replay-safe, and rejects malformed envelopes. Reviewed malformed
   immutable history has an administrator-only append-only quarantine path that atomically emits a
   valid Planning-owned current-state repair wake-up under its own idempotent command receipt; valid
-  events, changed-request replays, and audit rewrites are refused.
+  events, changed-request replays, and audit rewrites are refused. Public coordinator signatures
+  remain in the exposed `api` schema, while their unrouteable implementations live only in the
+  authoritative `overlay`, `sessions`, and `evidence` schemas and stay out of generated client
+  types.
   Raw evidence append events remain outside this ledger; Focus completion supplies the immediate
   wake-up and later
   Mastery/Targets events provide the convergence wake-ups that become calculable after the
