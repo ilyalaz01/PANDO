@@ -16,18 +16,28 @@ initializer wake-up loads the owners' current state. The explicit rollout repair
 accepted history, including pre-plan events, once a sentinel exists. This is a conservative wake-up:
 the worker always reloads current authoritative owner state rather than replaying old payload state.
 `evidence.observation_appended` is not a Planning source event. Focus completion is the immediate
-wake-up; subsequent Mastery and Targets projection events become convergence inputs after the
-meaningful-work policy supports terminal session history.
+wake-up; subsequent Mastery and Targets projection events are the convergence inputs.
 
 Do not repair a plan through direct snapshot, pointer, attempt, selector, ledger, delivery, fixture,
 export, Graphify, or repository-file edits. Old snapshots and attempt generations are audit history.
 
 ## Current supported envelope
 
-The first live increment supports fresh Growth Plans with no terminal Focus sessions in the current
-workspace-local week. Until a reviewed meaningful-duration/repetition policy is implemented,
-`UNSUPPORTED_MEANINGFUL_WORK_HISTORY` is a deliberate permanent failure: preserve history and ship
-the missing policy/query increment. Never substitute planned minutes or wall-clock elapsed time.
+Growth Plans with completed Focus history are supported. Consumed capacity, per-track cadence
+credit, and recent repetition come from the versioned
+[Planning Completed Work Policy v0.1](../../policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md) through
+two bounded owner queries: `sessions.read_planning_completed_work_source_v1` and
+`evidence.read_planning_completed_work_source_v1`. Never substitute planned minutes for completed
+work, and never credit unbounded wall-clock elapsed time; the counted duration is always
+`min(floor(observed elapsed), plannedMinutes)` clipped to the plan week.
+
+`UNSUPPORTED_MEANINGFUL_WORK_HISTORY` now means the two owner sources disagree or describe history
+the policy cannot classify — a missing or non-terminal Evidence attempt, a stopped session that
+claims evidence, a session outside the claim-scoped window, a window that does not cover the plan
+week and 168-hour repetition horizon, or derived totals that break the week and cadence-credit
+invariants. It stays a deliberate permanent failure: preserve history, diagnose the producing
+transaction, and fix it forward. `COMPLETED_WORK_SOURCE_BOUND` means the window holds more than 500
+terminal sessions and needs a reviewed continuation contract, never a truncated read.
 
 Campaign and same-session duration/energy preferences are currently explicit null inputs.
 Prerequisite-bearing activities remain `UNKNOWN`; do not infer satisfaction from a Mastery level
@@ -123,8 +133,8 @@ order by attempt_state, failure_class, error_code;
 - an obsolete scheduled refresh succeeds as `SUPERSEDED` and never moves the pointer;
 - the eighth exhausted lease becomes `dead_letter`, and its active attempt becomes `FAILED` in the
   same transaction;
-- `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` requires the reviewed duration-policy increment described
-  above, not data deletion or manual pointer movement;
+- `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` and `COMPLETED_WORK_SOURCE_BOUND` require the reviewed
+  source or policy fix described above, not data deletion or manual pointer movement;
 - fingerprint, result, bound, or owner-contract failures require a reviewed producer/consumer fix.
 - a missing direct source delivery after the workspace already had a Planning sentinel is a
   producer-transaction defect; do not manufacture it by editing `outbox.deliveries`. Correct the

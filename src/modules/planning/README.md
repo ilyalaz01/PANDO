@@ -35,17 +35,30 @@ pure entry point, and atomically applies immutable snapshot history, the monoton
 action selections, exact delivery coverage, receipts, and the next scheduled refresh. Its internal
 route and optional once-per-minute Cron are wake-ups only; outbox rows remain the durable queue.
 
-This first safe envelope supports fresh plans without terminal Focus sessions in the current local
-week. It deliberately fails with `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` rather than inventing a
-completed-duration rule. Candidates with structural prerequisites remain `UNKNOWN` until a
-versioned Mastery satisfaction rule exists. Campaign and same-session preference inputs remain
-explicitly null. Direct wake-up routing from Targets, Mastery, Review, Overlay, Focus, and Evidence
+Completed work is normalized by the versioned
+[`planning-completed-work/0.1`](../../../docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md)
+policy, whose version travels in the calculation input and therefore in every snapshot fingerprint.
+Sessions supplies terminal Focus duration facts for the plan week and the 168-hour repetition
+horizon; Evidence supplies only attempt terminality and whether a normalized observation exists and
+has not been invalidated. Planning holds no Sessions or Evidence table grant. Counted duration is
+the observed elapsed time floored to whole minutes, bounded by the minutes the user planned for that
+activity and clipped to the plan week, so planned duration is never substituted for completed work
+and an abandoned open session cannot claim a week of capacity. A completed session consumes
+capacity, an evidence-bearing completed session also earns track cadence credit, and a stopped
+session earns neither. Repetition counts completed sessions in the half-open 168-hour window and
+carries an engine-verifiable `repetitionWindowEndsAt` cutoff that also caps snapshot validity.
+
+`UNSUPPORTED_MEANINGFUL_WORK_HISTORY` now covers only history this policy cannot classify: a missing
+or non-terminal Evidence attempt, a stopped session that claims evidence, a session outside the
+claim-scoped window, a window that does not cover the policy horizon, or derived totals that break
+the week and cadence-credit invariants. Candidates with structural prerequisites remain `UNKNOWN`
+until a versioned Mastery satisfaction rule exists. Campaign and same-session preference inputs
+remain explicitly null. Direct wake-up routing from Targets, Mastery, Review, Overlay, Focus, and Evidence
 is now installed in the exact owner/coordinator transaction through a fixed, least-privilege
 Planning router. Routing begins only after the Planning sentinel exists, is idempotent under owner
 command replay, and includes a sentinel-scoped rollout backfill. Raw evidence append events do not
 route directly: Focus completion provides the fast wake-up, while later Mastery and Targets changes
-provide the convergence wake-ups that become calculable after the meaningful-work policy supports
-terminal session history. Planning input changes and scheduled refreshes remain first-class
+provide the convergence wake-ups. Planning input changes and scheduled refreshes remain first-class
 wake-ups. A cursor-driven administrator repair can idempotently route accepted historical events
 in observable batches of at most 500 after a sentinel exists. A malformed immutable historical
 event blocks the cursor until an administrator records a reviewed append-only quarantine; that

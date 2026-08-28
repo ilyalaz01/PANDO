@@ -26,7 +26,10 @@ function claim() {
   };
 }
 
-function sourceBundle(terminalCount = 0) {
+const focusSessionId = "60000000-0000-4000-8000-000000000001";
+const customActivityId = "70000000-0000-4000-8000-000000000001";
+
+function sourceBundle(unclassifiableHistory = false) {
   return {
     claimAsOf: "2026-09-01T12:00:00.000Z",
     sourceFence: `planning-source:${"a".repeat(64)}`,
@@ -43,8 +46,33 @@ function sourceBundle(terminalCount = 0) {
     catalog: { versions: [], items: [] },
     focus: {
       revision: `focus-scope:${"b".repeat(64)}`,
-      terminalCount,
       activeFocus: null,
+    },
+    completedWork: {
+      revision: `completed-work:${"e".repeat(64)}`,
+      windowStart: "2026-08-25T12:00:00.000Z",
+      sessions: unclassifiableHistory
+        ? [
+            {
+              focusSessionId,
+              customActivityId,
+              activityKey: "activity:debug-api",
+              readinessGoalKey: "goal:backend",
+              state: "COMPLETED",
+              startedAt: "2026-09-01T11:00:00.000Z",
+              endedAt: "2026-09-01T11:30:00.000Z",
+              plannedMinutes: 30,
+            },
+          ]
+        : [],
+    },
+    evidence: {
+      revision: "evidence-ledger:0",
+      items: unclassifiableHistory
+        ? // A terminal session whose Evidence attempt never reached a terminal state cannot be
+          // classified by planning-completed-work/0.1 and must not publish invented minutes.
+          [{ focusSessionId, attemptTerminal: false, evidenceBearing: false }]
+        : [],
     },
     mastery: { revision: `mastery-scope:${"c".repeat(64)}` },
     review: {
@@ -116,7 +144,7 @@ describe("Planning snapshot dispatcher", () => {
     ]);
   });
 
-  it("dead-letters unsupported historical work instead of fabricating consumed minutes", async () => {
+  it("dead-letters unclassifiable history instead of fabricating consumed minutes", async () => {
     const rpc = vi.fn(async (name: string) => {
       if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };
       if (name === "load_plan_snapshot_projection_v1") {
@@ -124,7 +152,7 @@ describe("Planning snapshot dispatcher", () => {
           data: {
             attemptId,
             sourceFence: `planning-source:${"a".repeat(64)}`,
-            sourceBundle: sourceBundle(1),
+            sourceBundle: sourceBundle(true),
             storedInput: null,
           },
           error: null,

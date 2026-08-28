@@ -4,7 +4,8 @@
     "asOf": "2026-09-01T12:00:00Z"
   },
   "input": {
-    "inputFingerprint": "planning-input:af822cce45a31ab6e80b13d8cf504e18929e14a889b21831fefdd33b5201adc0",
+    "inputFingerprint": "planning-input:0a10272307b6bce3e420e118b14ec5664e2bc66d6bc0d4f816e0a1a7afa7a03e",
+    "completedWorkPolicyVersion": "planning-completed-work/0.1",
     "evaluationHorizon": {
       "asOf": "2026-09-01T12:00:00Z",
       "validUntil": "2026-09-01T18:00:00Z",
@@ -14,7 +15,9 @@
     },
     "sourceRevisions": [
       { "owner": "CATALOG", "key": "catalog:python", "revision": "7" },
+      { "owner": "EVIDENCE", "key": "evidence:ledger", "revision": "23" },
       { "owner": "FOCUS", "key": "focus:active", "revision": "11" },
+      { "owner": "FOCUS", "key": "focus:completed-work", "revision": "12" },
       { "owner": "MASTERY", "key": "mastery:evidence", "revision": "42" },
       { "owner": "OVERLAY", "key": "overlay:activities", "revision": "9" },
       { "owner": "REVIEW", "key": "review:schedule", "revision": "15" }
@@ -130,6 +133,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 2,
         "repetitionsInLast7Days": 0,
+        "repetitionWindowEndsAt": null,
         "review": null
       },
       {
@@ -152,6 +156,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 0,
         "repetitionsInLast7Days": 1,
+        "repetitionWindowEndsAt": "2026-09-01T21:30:00.000Z",
         "review": {
           "reviewItemId": "13000000-0000-4000-8000-000000000001",
           "bucket": "OVERDUE",
@@ -178,6 +183,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 0,
         "repetitionsInLast7Days": 0,
+        "repetitionWindowEndsAt": null,
         "review": {
           "reviewItemId": "13000000-0000-4000-8000-000000000002",
           "bucket": "DUE_TODAY",
@@ -204,6 +210,7 @@
         "prerequisiteState": "SATISFIED",
         "unlockCount": 3,
         "repetitionsInLast7Days": 0,
+        "repetitionWindowEndsAt": null,
         "review": null
       }
     ]
@@ -211,7 +218,7 @@
   "expected": {
     "engineVersion": "planner-engine/0.1.0",
     "policyVersion": "planning-policy/0.1",
-    "inputFingerprint": "planning-input:af822cce45a31ab6e80b13d8cf504e18929e14a889b21831fefdd33b5201adc0",
+    "inputFingerprint": "planning-input:0a10272307b6bce3e420e118b14ec5664e2bc66d6bc0d4f816e0a1a7afa7a03e",
     "calculatedAsOf": "2026-09-01T12:00:00.000Z",
     "validUntil": "2026-09-01T18:00:00.000Z",
     "timeZone": "Asia/Jerusalem",

@@ -40,6 +40,11 @@ energy are present. Either null is Unknown and contributes neither reward nor pe
 duration comes from Planning-owned activity metadata or the explicit Review policy source; an
 adapter may not infer it from the title or evidence.
 
+Remaining weekly capacity, the protected-minimum deficit, and the recent-repetition count are not
+defined here. They are normalized from bounded Sessions and Evidence owner facts by
+[Planning Completed Work Policy v0.1](PLANNING_COMPLETED_WORK_POLICY_V0.1.md), whose version travels
+in the calculation input and therefore in every snapshot fingerprint.
+
 ## 3. Score factors
 
 | Factor | Points |

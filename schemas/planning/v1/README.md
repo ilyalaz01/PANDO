@@ -10,6 +10,12 @@ collection order. It
 excludes evidence bodies, notes, provider payloads, arbitrary table/file references, and workspace
 identifiers supplied by a client.
 
+Consumed capacity, per-track cadence credit, `repetitionsInLast7Days`, and its exclusive
+`repetitionWindowEndsAt` cutoff are produced by the versioned input-normalization policy named in
+`completedWorkPolicyVersion` and recorded in
+[Planning Completed Work Policy v0.1](../../../docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md).
+Changing that policy therefore changes the canonical fingerprint and writes a new snapshot.
+
 `plan-snapshot.schema.json` is the immutable engine output persisted by Planning. It contains at
 most five exact Focus actions with reproducible integer score factors, bounded causal references,
 readiness provenance/freshness, and one explicit recommendation state. It cannot establish

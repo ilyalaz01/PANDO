@@ -1,7 +1,7 @@
 # Phase 4A Planning and Today status
 
-Status: First live calculation worker and owner-event routing implemented for fresh plans;
-meaningful-work policy and Today UI pending
+Status: Live calculation worker, owner-event routing, and the versioned completed-work policy
+implemented; Mastery prerequisite satisfaction and Today UI pending
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -88,17 +88,30 @@ and accepted design remain authoritative.
   explicit historical repair, audited malformed-history recovery, replay uniqueness, user-command
   and Mastery-completion rollback on delivery failure, plan-enabled real Mastery/Review/Targets
   completion routing, and strict valid/boundary/invalid/malicious envelope handling;
-- an explicit safety gate for the first live slice: a workspace with terminal Focus sessions in
-  the current local week is rejected with `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` until a reviewed
-  meaningful-duration policy exists. No elapsed or planned minutes are fabricated as completed
-  work, and prerequisite-bearing candidates remain `UNKNOWN` until a versioned Mastery
-  satisfaction rule exists.
+- a versioned [`planning-completed-work/0.1`](../policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md)
+  input-normalization policy carried in `completedWorkPolicyVersion`, so a rule change always
+  produces a new canonical fingerprint and a new snapshot rather than silently reinterpreting an
+  existing one. Two new bounded owner queries supply its facts: Sessions returns terminal Focus
+  duration facts inside `[least(weekStart, claimAsOf − 168 hours), claimAsOf]`, and Evidence returns
+  only attempt terminality plus whether a normalized observation exists and has not been
+  invalidated. Planning gained no Sessions or Evidence table grant. Counted duration is
+  `min(floor(observed elapsed), plannedMinutes)` clipped to the plan week, so planned duration is
+  only ever an upper bound and no unbounded page-open time is credited. A completed session consumes
+  capacity, an evidence-bearing completed session also earns track cadence credit, a stopped session
+  earns neither, and repetition counts completed sessions in the half-open 168-hour window with a
+  verifiable `repetitionWindowEndsAt` cutoff that also caps snapshot validity;
+- `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` now rejects only genuinely unclassifiable history — a
+  missing or non-terminal Evidence attempt, a stopped session claiming evidence, a session outside
+  the claim-scoped window, a window that does not cover the policy horizon, or derived totals that
+  break the week/credit invariants — instead of every workspace with terminal sessions.
+  Prerequisite-bearing candidates still remain `UNKNOWN` until a versioned Mastery satisfaction rule
+  exists.
 
 ## Not yet implemented
 
 - later plan/track/activity lifecycle and capacity commands;
-- the versioned meaningful-work duration/repetition query and Mastery prerequisite-satisfaction
-  policy needed to calculate workspaces with terminal sessions;
+- the versioned Mastery prerequisite-satisfaction policy that would let prerequisite-bearing
+  candidates leave `UNKNOWN`;
 - campaign persistence, same-session duration/energy preference persistence, and Focus plan
   attribution columns;
 - live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed
@@ -106,6 +119,7 @@ and accepted design remain authoritative.
 - campaign overrides, dated availability, Plan/Track editing, ChangeSet preview, and Agent Control
   application.
 
-The worker now applies real snapshots for its supported fresh-plan envelope, but no live Today
-recommendation is exposed before the Today read boundary is implemented. Fixtures and repository
-files are never used as live plan state.
+The worker now applies real snapshots for workspaces that already have completed Focus history, with
+capacity, per-track cadence credit, and repetition derived from the reviewed completed-work policy.
+No live Today recommendation is exposed before the Today read boundary is implemented. Fixtures and
+repository files are never used as live plan state.

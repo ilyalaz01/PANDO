@@ -73,8 +73,12 @@ Planning domain imports no other bounded context and performs no I/O.
 The pure engine receives:
 
 - one explicit workspace-local week/evaluation horizon and one canonical SHA-256 input fingerprint;
-- bounded owner source revisions for Catalog, Focus, Mastery, Overlay, and Review; the fingerprint is
-  computed over the whole normalized contract with set-like collections in canonical order;
+- bounded owner source revisions for Catalog, Evidence, Focus, Mastery, Overlay, and Review; the
+  fingerprint is computed over the whole normalized contract with set-like collections in canonical
+  order;
+- the version of the completed-work input-normalization policy, so a change to how consumed
+  capacity, per-track cadence credit, or recent repetition is counted always produces a new
+  fingerprint and a new snapshot;
 - zero or one non-archived Growth Plan, its versioned tracks, weekly capacity, and work consumed in
   the current workspace-local week;
 - an optional explicit session limit and energy preference; null means Unknown and contributes no
@@ -198,6 +202,8 @@ offset. `validUntil` is an inclusive instant. The adapter chooses the earliest a
 cutoff:
 
 - one millisecond before the exclusive workspace week end;
+- one millisecond before the exclusive instant at which a candidate's oldest counted repetition
+  leaves the 168-hour completed-work window;
 - every consumed current Targets readiness `validUntil`;
 - Review's owner-declared summary validity, including the next local-midnight bucket transition,
   and the `dueAt` of each currently due-today candidate;

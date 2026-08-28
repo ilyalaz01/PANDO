@@ -139,6 +139,11 @@ export interface PlanningCandidateInput {
   readonly prerequisiteState: PrerequisiteState;
   readonly unlockCount: number;
   readonly repetitionsInLast7Days: number;
+  /**
+   * Exclusive instant at which the oldest counted repetition leaves the 168-hour window under
+   * `planning-completed-work/0.1`. Null exactly when no repetition is counted.
+   */
+  readonly repetitionWindowEndsAt: string | null;
   readonly review: ReviewSignalInput | null;
 }
 
@@ -173,13 +178,15 @@ export interface PlanningEvaluationHorizon {
 }
 
 export interface PlanningSourceRevision {
-  readonly owner: "CATALOG" | "FOCUS" | "MASTERY" | "OVERLAY" | "REVIEW";
+  readonly owner: "CATALOG" | "EVIDENCE" | "FOCUS" | "MASTERY" | "OVERLAY" | "REVIEW";
   readonly key: string;
   readonly revision: string;
 }
 
 export interface CalculatePlanInput {
   readonly inputFingerprint: string;
+  /** Version of the input-normalization policy that produced every completed-work number. */
+  readonly completedWorkPolicyVersion: string;
   readonly evaluationHorizon: PlanningEvaluationHorizon;
   readonly sourceRevisions: readonly PlanningSourceRevision[];
   readonly growthPlan: GrowthPlanInput | null;

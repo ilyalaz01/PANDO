@@ -6,8 +6,10 @@ by the [PolyForm Noncommercial License 1.0.0](LICENSE) and the required attribut
 [COMMERCIAL.md](COMMERCIAL.md) for non-binding information about requesting a separate agreement.
 PANDO has completed its Phase 0 technical foundation, the first usable Phase 1 vertical slice,
 the Phase 2 Focus/evidence/Mastery slice, and Phase 3 Review Core plus Target Readiness. Phase 4A
-now has its pure deterministic Planning engine, policy, exact-input contracts, and safe Today
-freshness envelope; Planning persistence, its worker, and the live Today route remain in progress.
+now has its pure deterministic Planning engine, policy, exact-input contracts, safe Today freshness
+envelope, Planning persistence, the snapshot projection worker, fixed owner-event routing, and the
+versioned completed-work policy that derives capacity, track cadence credit, and repetition from
+bounded Sessions/Evidence owner queries; the live Today route remains in progress.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -23,9 +25,10 @@ now create or update a private note and add a personal activity; both persist ac
 authenticated, optimistic, idempotent commands that atomically emit outbox events. `/focus` now
 records meaningful manual evidence and projects explainable Mastery; `/review` provides one
 deduplicated item per competency dimension with auditable retention, verification, and personal
-reminder reasons plus reschedule, skip-once, suppress, and restore commands. No live Planning
-recommendation is claimed before its database/current-pointer boundary exists, and the live Agent
-Control plane remains a later phase.
+reminder reasons plus reschedule, skip-once, suppress, and restore commands. Planning publishes
+immutable snapshots behind its current-pointer boundary, but no live Today recommendation is claimed
+before its read model and opaque action selectors exist, and the live Agent Control plane remains a
+later phase.
 
 ## Prerequisites
 
@@ -74,9 +77,9 @@ unit tests, coverage, representative graph payload/layout budgets, the productio
 Chromium end-to-end/accessibility and graph-interaction budgets.
 
 The Planning unit/contract suites additionally prove deterministic ranking, canonical source
-fingerprints, protected capacity, fail-closed readiness, causal explanations, and safe Today
-freshness shapes. They do not substitute for the pending live Planning persistence and browser
-journey.
+fingerprints, protected capacity, fail-closed readiness, causal explanations, safe Today freshness
+shapes, and the completed-work invariants that bound consumed capacity, track cadence credit, and
+recent repetition. They do not substitute for the pending live Today browser journey.
 
 The complete Phase 0 aggregate also proves migrations, every database pgTAP file, database lint,
 and encrypted clean restore in separate randomly named local Supabase stacks:

@@ -1,7 +1,7 @@
 {
   "engineVersion": "planner-engine/0.1.0",
   "policyVersion": "planning-policy/0.1",
-  "inputFingerprint": "planning-input:520a6d450f2dcb8fd7dd3ce782c9633d08d5d1e24f2dd9dbc4372b79f3fbcfc6",
+  "inputFingerprint": "planning-input:3704cd03c442a68f8f75b0cc8029b667f5c2ad8ba2024ede49964beb38d6a3f9",
   "calculatedAsOf": "2026-09-01T12:00:00.000Z",
   "validUntil": "2026-09-01T18:00:00.000Z",
   "timeZone": "Asia/Jerusalem",

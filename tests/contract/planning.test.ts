@@ -56,6 +56,36 @@ describe("PlanningCalculationInputV1", () => {
     expect(validateSchema("planning-input-v1", base).valid).toBe(false);
   });
 
+  it("requires the completed-work policy version and the repetition window cutoff", () => {
+    expect((planningGolden.input as RecordValue).completedWorkPolicyVersion).toBe(
+      "planning-completed-work/0.1",
+    );
+    expect((inputBoundary as RecordValue).completedWorkPolicyVersion).toBe(
+      "planning-completed-work/0.1",
+    );
+
+    for (const version of ["", "planning-completed-work", "planning-completed-work/latest"]) {
+      const changed = structuredClone(planningGolden.input) as RecordValue;
+      changed.completedWorkPolicyVersion = version;
+      expect(validateSchema("planning-input-v1", changed).valid).toBe(false);
+    }
+
+    const withoutPolicy = structuredClone(planningGolden.input) as RecordValue;
+    delete withoutPolicy.completedWorkPolicyVersion;
+    expect(validateSchema("planning-input-v1", withoutPolicy).valid).toBe(false);
+
+    const withoutCutoff = structuredClone(planningGolden.input) as RecordValue;
+    delete (withoutCutoff.candidates as RecordValue[])[0]!.repetitionWindowEndsAt;
+    expect(validateSchema("planning-input-v1", withoutCutoff).valid).toBe(false);
+  });
+
+  it("changes the canonical fingerprint when the completed-work policy version changes", () => {
+    const changed = structuredClone(planningGolden.input) as RecordValue;
+    changed.completedWorkPolicyVersion = "planning-completed-work/0.2";
+    expect(planningInputFingerprint(changed)).not.toBe(planningGolden.input.inputFingerprint);
+    expect(planningInputSemanticViolations(changed)).toContain("PLANNING_INPUT_FINGERPRINT");
+  });
+
   it("keeps the canonical fingerprint stable for set-like input permutations", () => {
     const changed = structuredClone(planningGolden.input);
     changed.candidates.reverse();

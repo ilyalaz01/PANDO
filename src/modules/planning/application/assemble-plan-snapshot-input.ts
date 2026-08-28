@@ -17,6 +17,21 @@ import type {
   ReviewSignalInput,
 } from "../domain/planning-types";
 
+/**
+ * Version of `planning-completed-work`, the input-normalization policy recorded in
+ * `docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md`. It converts bounded Sessions and
+ * Evidence owner facts into consumed capacity, per-track cadence credit, and recent repetition.
+ */
+export const COMPLETED_WORK_POLICY_VERSION = "planning-completed-work/0.1";
+
+/** 168 elapsed hours, never seven calendar days: a local offset change cannot resize the window. */
+const REPETITION_WINDOW_MILLISECONDS = 604_800_000;
+const MILLISECONDS_PER_MINUTE = 60_000;
+const MAXIMUM_TERMINAL_SESSIONS = 500;
+const MAXIMUM_REPETITIONS = 50;
+const MAXIMUM_SESSION_MINUTES = 480;
+const MINUTES_PER_WEEK = 10_080;
+
 export class PlanningProjectionSourceError extends TypeError {
   constructor(
     readonly code: string,
@@ -25,6 +40,16 @@ export class PlanningProjectionSourceError extends TypeError {
     super(message);
     this.name = "PlanningProjectionSourceError";
   }
+}
+
+interface CompletedWorkSession {
+  readonly focusSessionId: string;
+  readonly customActivityId: string;
+  readonly completed: boolean;
+  readonly evidenceBearing: boolean;
+  readonly startedAtMs: number;
+  readonly endedAtMs: number;
+  readonly plannedMinutes: number;
 }
 
 function fail(code: string, message: string): never {
@@ -54,6 +79,16 @@ function instant(value: JsonValue | undefined, label: string): string {
 
 function optionalInstant(value: JsonValue | undefined, label: string): string | null {
   return value === null ? null : instant(value, label);
+}
+
+function instantMilliseconds(value: JsonValue | undefined, label: string): number {
+  return Date.parse(instant(value, label));
+}
+
+function requiredBoolean(object: JsonObject, key: string): boolean {
+  const value = object[key];
+  if (typeof value !== "boolean") fail("INVALID_OWNER_SOURCE", `${key} must be a boolean`);
+  return value;
 }
 
 function objectArray(value: JsonValue | undefined, label: string): JsonObject[] {
@@ -138,6 +173,113 @@ function readinessInput(item: JsonObject): PlanningReadinessInput {
   };
 }
 
+/**
+ * `planning-completed-work/0.1` classification. Sessions supplies terminal duration facts and
+ * Evidence supplies only attempt terminality plus whether a non-invalidated observation exists.
+ * Anything this policy cannot classify fails closed instead of publishing an invented number.
+ */
+function completedWorkSessions(
+  bundle: JsonObject,
+  weekStartMs: number,
+  asOfMs: number,
+): readonly CompletedWorkSession[] {
+  const completedWork = asJsonObject(bundle.completedWork, "completedWork");
+  const evidence = asJsonObject(bundle.evidence, "evidence");
+  const windowStartMs = instantMilliseconds(completedWork.windowStart, "completedWork.windowStart");
+  if (windowStartMs > Math.min(weekStartMs, asOfMs - REPETITION_WINDOW_MILLISECONDS)) {
+    fail(
+      "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+      "the completed-work window does not cover the plan week and repetition horizon",
+    );
+  }
+  const rawSessions = objectArray(completedWork.sessions, "completedWork.sessions");
+  if (rawSessions.length > MAXIMUM_TERMINAL_SESSIONS) {
+    fail(
+      "COMPLETED_WORK_SOURCE_BOUND",
+      `completed-work source exceeds ${MAXIMUM_TERMINAL_SESSIONS} terminal sessions`,
+    );
+  }
+  const evidenceBySession = new Map<string, JsonObject>();
+  for (const item of objectArray(evidence.items, "evidence.items")) {
+    const key = requiredString(item, "focusSessionId");
+    if (evidenceBySession.has(key)) {
+      fail("OWNER_FENCE_CONFLICT", "Evidence source repeats a Focus session");
+    }
+    evidenceBySession.set(key, item);
+  }
+
+  const seen = new Set<string>();
+  const sessions = rawSessions.map((raw) => {
+    const focusSessionId = requiredString(raw, "focusSessionId");
+    if (seen.has(focusSessionId)) {
+      fail("OWNER_FENCE_CONFLICT", "Sessions source repeats a Focus session");
+    }
+    seen.add(focusSessionId);
+    const answer = evidenceBySession.get(focusSessionId);
+    if (answer === undefined) {
+      fail(
+        "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+        "a terminal Focus Session has no Evidence attempt answer",
+      );
+    }
+    if (!requiredBoolean(answer, "attemptTerminal")) {
+      fail(
+        "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+        "a terminal Focus Session still has a non-terminal attempt",
+      );
+    }
+    const state = requiredString(raw, "state");
+    if (state !== "COMPLETED" && state !== "STOPPED") {
+      fail("INVALID_OWNER_SOURCE", "terminal Focus state is invalid");
+    }
+    const evidenceBearing = requiredBoolean(answer, "evidenceBearing");
+    if (state === "STOPPED" && evidenceBearing) {
+      fail(
+        "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+        "a stopped Focus Session cannot carry normalized evidence",
+      );
+    }
+    const startedAtMs = instantMilliseconds(raw.startedAt, "completedWork.startedAt");
+    const endedAtMs = instantMilliseconds(raw.endedAt, "completedWork.endedAt");
+    if (endedAtMs < startedAtMs || endedAtMs > asOfMs || endedAtMs < windowStartMs) {
+      fail(
+        "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+        "a terminal Focus Session lies outside its claim-scoped window",
+      );
+    }
+    const plannedMinutes = integer(raw, "plannedMinutes");
+    if (plannedMinutes < 1 || plannedMinutes > MAXIMUM_SESSION_MINUTES) {
+      fail("INVALID_OWNER_SOURCE", "terminal Focus planned minutes are out of range");
+    }
+    return {
+      focusSessionId,
+      customActivityId: requiredString(raw, "customActivityId"),
+      completed: state === "COMPLETED",
+      evidenceBearing,
+      startedAtMs,
+      endedAtMs,
+      plannedMinutes,
+    } satisfies CompletedWorkSession;
+  });
+  if (evidenceBySession.size !== sessions.length) {
+    fail("MISSING_SESSION_SOURCE", "Evidence answered about an unreturned Focus session");
+  }
+  return sessions;
+}
+
+/**
+ * Observed length, floored to whole minutes, bounded by the minutes the user planned for that
+ * activity and clipped to the part of the session inside the current plan week. Planned duration is
+ * only ever an upper bound, so completed work is never fabricated from an unfinished intention and
+ * an abandoned open session cannot claim a week of capacity.
+ */
+function countedMinutes(session: CompletedWorkSession, weekStartMs: number): number {
+  const fromMs = Math.max(session.startedAtMs, weekStartMs);
+  if (session.endedAtMs <= fromMs) return 0;
+  const elapsedMinutes = Math.floor((session.endedAtMs - fromMs) / MILLISECONDS_PER_MINUTE);
+  return Math.max(0, Math.min(elapsedMinutes, session.plannedMinutes));
+}
+
 function uniqueBy<T>(items: readonly T[], key: (item: T) => string, label: string): T[] {
   const result = new Map<string, T>();
   for (const item of items) {
@@ -162,12 +304,12 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
   const weekEnd = instant(calendar.weekEnd, "calendar.weekEnd");
   const calendarValidUntil = instant(calendar.validUntil, "calendar.validUntil");
   const focus = asJsonObject(bundle.focus, "focus");
-  if (integer(focus, "terminalCount") !== 0) {
-    fail(
-      "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
-      "Planning cannot publish until the meaningful-work duration policy is implemented",
-    );
-  }
+  const completedWork = asJsonObject(bundle.completedWork, "completedWork");
+  const evidence = asJsonObject(bundle.evidence, "evidence");
+  const asOfMs = Date.parse(claimAsOf);
+  const weekStartMs = Date.parse(weekStart);
+  const workSessions = completedWorkSessions(bundle, weekStartMs, asOfMs);
+  const repetitionCutoffMs = asOfMs - REPETITION_WINDOW_MILLISECONDS;
   const review = asJsonObject(bundle.review, "review");
   const overlay = asJsonObject(bundle.overlay, "overlay");
   const targets = asJsonObject(bundle.targets, "targets");
@@ -210,16 +352,61 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     });
   }
 
+  // Consumed capacity is plan-wide and provably at most one week, because a workspace has at most
+  // one active Focus Session at a time, so counted durations cannot overlap.
+  const consumedMinutesThisWeek = workSessions.reduce(
+    (total, session) => (session.completed ? total + countedMinutes(session, weekStartMs) : total),
+    0,
+  );
+  if (consumedMinutesThisWeek > MINUTES_PER_WEEK) {
+    fail(
+      "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+      "derived completed work exceeds the minutes available in one week",
+    );
+  }
+
+  const repetitionCutoffInstants: string[] = [];
   const rawPlan = bundle.plan === null ? null : asJsonObject(bundle.plan, "plan");
   let growthPlan: CalculatePlanInput["growthPlan"] = null;
   let candidates: PlanningCandidateInput[] = [];
   if (rawPlan !== null) {
     const rawTracks = objectArray(rawPlan.tracks, "plan.tracks");
+    const rawActivities = objectArray(rawPlan.activities, "plan.activities");
+    const trackByActivityId = new Map(
+      rawActivities.map((activity) => [
+        requiredString(activity, "customActivityId"),
+        requiredString(activity, "trackId"),
+      ]),
+    );
+    const meaningfulMinutesByTrack = new Map<string, number>();
+    for (const session of workSessions) {
+      if (!session.completed || !session.evidenceBearing) continue;
+      const attributedTrackId = trackByActivityId.get(session.customActivityId);
+      // Work on an activity that no longer belongs to a track still consumed plan capacity, but it
+      // earns no cadence credit rather than a fabricated attribution.
+      if (attributedTrackId === undefined) continue;
+      meaningfulMinutesByTrack.set(
+        attributedTrackId,
+        (meaningfulMinutesByTrack.get(attributedTrackId) ?? 0) +
+          countedMinutes(session, weekStartMs),
+      );
+    }
+    const creditedMinutes = [...meaningfulMinutesByTrack.values()].reduce(
+      (total, minutes) => total + minutes,
+      0,
+    );
+    if (creditedMinutes > consumedMinutesThisWeek) {
+      fail(
+        "UNSUPPORTED_MEANINGFUL_WORK_HISTORY",
+        "track cadence credit cannot exceed consumed capacity",
+      );
+    }
     const tracks: PlanningTrackInput[] = rawTracks.map((track) => {
       const target = targetByGoalId.get(requiredString(track, "readinessGoalId"));
       if (target === undefined) fail("MISSING_TARGET_SOURCE", "Track readiness source is missing");
+      const trackId = requiredString(track, "trackId");
       return {
-        trackId: requiredString(track, "trackId"),
+        trackId,
         trackKey: requiredString(track, "trackKey"),
         title: requiredString(track, "title"),
         version: requiredString(track, "version"),
@@ -228,7 +415,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         lifecycle: requiredString(track, "lifecycle") as PlanningTrackInput["lifecycle"],
         priority: integer(track, "priority"),
         protectedMinimumMinutes: integer(track, "protectedMinimumMinutes"),
-        meaningfulMinutesThisWeek: 0,
+        meaningfulMinutesThisWeek: meaningfulMinutesByTrack.get(trackId) ?? 0,
         defaultSessionMinutes: integer(track, "defaultSessionMinutes"),
       };
     });
@@ -236,7 +423,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     const rawTrackById = new Map(
       rawTracks.map((track) => [requiredString(track, "trackId"), track]),
     );
-    candidates = objectArray(rawPlan.activities, "plan.activities").map((activity) => {
+    candidates = rawActivities.map((activity) => {
       const trackId = requiredString(activity, "trackId");
       const track = trackById.get(trackId);
       const rawTrack = rawTrackById.get(trackId);
@@ -255,6 +442,28 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
       if (graph === undefined)
         fail("MISSING_CATALOG_SOURCE", "Candidate Catalog source is missing");
       const activityKey = requiredString(overlayItem, "activityKey");
+      const customActivityId = requiredString(activity, "customActivityId");
+      const repetitionEndedAtMs = workSessions
+        .filter(
+          (session) =>
+            session.completed &&
+            session.customActivityId === customActivityId &&
+            session.endedAtMs > repetitionCutoffMs,
+        )
+        .map(({ endedAtMs }) => endedAtMs);
+      const oldestRepetitionMs =
+        repetitionEndedAtMs.length === 0 ? null : Math.min(...repetitionEndedAtMs);
+      const repetitionWindowEndsAt =
+        oldestRepetitionMs === null
+          ? null
+          : new Date(oldestRepetitionMs + REPETITION_WINDOW_MILLISECONDS).toISOString();
+      if (oldestRepetitionMs !== null) {
+        // The oldest counted repetition leaves the window at a clock-derived instant, so the
+        // snapshot must expire one millisecond earlier.
+        repetitionCutoffInstants.push(
+          new Date(oldestRepetitionMs + REPETITION_WINDOW_MILLISECONDS - 1).toISOString(),
+        );
+      }
       const reviewSignal =
         reviewByPair.get(`${track.readinessGoalKey}\u001f${activityKey}`) ?? null;
       return {
@@ -282,7 +491,8 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         ],
         prerequisiteState: integer(graph, "prerequisiteCount") === 0 ? "SATISFIED" : "UNKNOWN",
         unlockCount: integer(graph, "unlockCount"),
-        repetitionsInLast7Days: 0,
+        repetitionsInLast7Days: Math.min(MAXIMUM_REPETITIONS, repetitionEndedAtMs.length),
+        repetitionWindowEndsAt,
         review: reviewSignal,
       };
     });
@@ -291,7 +501,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
       version: requiredString(rawPlan, "version"),
       lifecycle: requiredString(rawPlan, "lifecycle") as "ACTIVE" | "PAUSED",
       weeklyCapacityMinutes: integer(rawPlan, "weeklyCapacityMinutes"),
-      consumedMinutesThisWeek: 0,
+      consumedMinutesThisWeek,
       tracks,
     };
   }
@@ -304,6 +514,8 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         `catalog-version:${integer(version, "versionNumber")}`,
       ),
     ),
+    sourceRevision("EVIDENCE", "workspace-ledger", requiredString(evidence, "revision")),
+    sourceRevision("FOCUS", "completed-work", requiredString(completedWork, "revision")),
     sourceRevision("FOCUS", "workspace-focus", requiredString(focus, "revision")),
     sourceRevision("MASTERY", "candidate-scope", requiredString(mastery, "revision")),
     sourceRevision("OVERLAY", "workspace-overlay", requiredString(overlay, "revision")),
@@ -316,10 +528,12 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
   const validUntil = minimumInstant([
     calendarValidUntil,
     reviewValidUntil,
+    ...repetitionCutoffInstants,
     ...readiness.map((item) => (item.availability === "CURRENT" ? item.validUntil : null)),
   ]);
   const unsigned: CalculatePlanInput = {
     inputFingerprint: "planning-input:" + "0".repeat(64),
+    completedWorkPolicyVersion: COMPLETED_WORK_POLICY_VERSION,
     evaluationHorizon: {
       asOf: claimAsOf,
       validUntil,

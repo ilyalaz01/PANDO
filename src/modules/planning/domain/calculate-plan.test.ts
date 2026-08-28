@@ -7,12 +7,14 @@ import {
   planSnapshotSemanticViolations,
 } from "../../../shared/contracts/planning-semantics";
 import { calculatePlan } from "../application/calculate-plan";
+import { calculateVerifiedPlan } from "./calculate-plan";
 import { PLANNING_POLICY_V0_1 } from "./planning-policy-v0.1";
 import {
   PlanningInputError,
   type CalculatePlanInput,
   type PlanningCandidateInput,
   type PlanningPolicy,
+  type VerifiedCalculatePlanInput,
 } from "./planning-types";
 
 const fixture = planningGolden as unknown as {
@@ -96,6 +98,7 @@ function growthCandidate(
     prerequisiteState: "SATISFIED",
     unlockCount: 0,
     repetitionsInLast7Days: 0,
+    repetitionWindowEndsAt: null,
     review: null,
     ...overrides,
   };
@@ -121,6 +124,7 @@ function reviewCandidate(
     prerequisiteState: "SATISFIED",
     unlockCount: 0,
     repetitionsInLast7Days: 0,
+    repetitionWindowEndsAt: null,
     review: {
       reviewItemId: `13000000-0000-4000-8000-${index.toString().padStart(12, "0")}`,
       bucket,
@@ -649,5 +653,61 @@ describe("calculatePlan", () => {
     expect(() =>
       calculatePlan(verifiedInput(), { ...PLANNING_POLICY_V0_1, maximumActions: 6 }),
     ).toThrow(PlanningInputError);
+  });
+
+  it("requires a versioned completed-work policy and its Evidence fence", () => {
+    // The contract entry point rejects the malformed version structurally, and the pure engine
+    // rejects it again so a caller cannot bypass the schema.
+    for (const version of ["planning-completed-work", "mastery-readiness-policy/0.1"]) {
+      const input = verifiedInput({ ...baseInput(), completedWorkPolicyVersion: version });
+      expect(() => calculatePlan(input, PLANNING_POLICY_V0_1)).toThrow(PlanningInputError);
+      expect(() =>
+        calculateVerifiedPlan(input as VerifiedCalculatePlanInput, PLANNING_POLICY_V0_1),
+      ).toThrow(/versioned completed-work policy/u);
+    }
+
+    const missingEvidence = baseInput();
+    missingEvidence.sourceRevisions = missingEvidence.sourceRevisions.filter(
+      ({ owner }) => owner !== "EVIDENCE",
+    );
+    expect(() => calculate(missingEvidence)).toThrow(/Evidence, Focus, and Review/u);
+  });
+
+  it("binds a counted repetition to a verifiable window cutoff", () => {
+    const repeated = fixture.input.candidates.findIndex(
+      ({ repetitionsInLast7Days }) => repetitionsInLast7Days > 0,
+    );
+    expect(repeated).toBeGreaterThanOrEqual(0);
+
+    const withoutCutoff = baseInput();
+    withoutCutoff.candidates = withoutCutoff.candidates.map((candidate, index) =>
+      index === repeated ? { ...candidate, repetitionWindowEndsAt: null } : candidate,
+    );
+    expect(() => calculate(withoutCutoff)).toThrow(/counted repetition requires/u);
+
+    const uncountedCutoff = baseInput();
+    uncountedCutoff.candidates = uncountedCutoff.candidates.map((candidate, index) =>
+      index === repeated
+        ? { ...candidate, repetitionsInLast7Days: 0 }
+        : { ...candidate, repetitionWindowEndsAt: "2026-09-05T00:00:00Z" },
+    );
+    expect(() => calculate(uncountedCutoff)).toThrow(/must not declare a repetition window/u);
+
+    const alreadyExpired = baseInput();
+    alreadyExpired.candidates = alreadyExpired.candidates.map((candidate, index) =>
+      index === repeated
+        ? { ...candidate, repetitionWindowEndsAt: "2026-09-01T11:00:00Z" }
+        : candidate,
+    );
+    expect(() => calculate(alreadyExpired)).toThrow(/cannot end before clock.asOf/u);
+
+    // The snapshot may not outlive the instant at which the oldest counted repetition drops out.
+    const outlivingWindow = baseInput();
+    outlivingWindow.candidates = outlivingWindow.candidates.map((candidate, index) =>
+      index === repeated
+        ? { ...candidate, repetitionWindowEndsAt: fixture.input.evaluationHorizon.validUntil }
+        : candidate,
+    );
+    expect(() => calculate(outlivingWindow)).toThrow(/repetition window transition/u);
   });
 });

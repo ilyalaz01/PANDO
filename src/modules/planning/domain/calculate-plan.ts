@@ -230,6 +230,23 @@ function validateCandidate(
   requireEnum(candidate.prerequisiteState, PREREQUISITE_VALUES, "candidate.prerequisiteState");
   requireInteger(candidate.unlockCount, 0, 20, "candidate.unlockCount");
   requireInteger(candidate.repetitionsInLast7Days, 0, 50, "candidate.repetitionsInLast7Days");
+  if (candidate.repetitionWindowEndsAt === null) {
+    if (candidate.repetitionsInLast7Days !== 0) {
+      fail("a counted repetition requires an explicit repetition window cutoff");
+    }
+  } else {
+    if (candidate.repetitionsInLast7Days === 0) {
+      fail("an uncounted candidate must not declare a repetition window cutoff");
+    }
+    const windowEndsMs = parsePlanningInstant(
+      candidate.repetitionWindowEndsAt,
+      "candidate.repetitionWindowEndsAt",
+    );
+    if (windowEndsMs <= asOfMs) fail("a counted repetition window cannot end before clock.asOf");
+    if (validUntilMs >= windowEndsMs) {
+      fail("evaluation validity cannot reach the next repetition window transition");
+    }
+  }
   if (candidate.sourceSignals.length < 1 || candidate.sourceSignals.length > 3) {
     fail("candidate.sourceSignals must contain 1 to 3 values");
   }
@@ -319,6 +336,11 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
   if (!/^planning-input:[a-f0-9]{64}$/u.test(input.inputFingerprint)) {
     fail("input.inputFingerprint must be a canonical SHA-256 fingerprint");
   }
+  if (
+    !/^planning-completed-work\/[0-9]{1,3}\.[0-9]{1,3}$/u.test(input.completedWorkPolicyVersion)
+  ) {
+    fail("input.completedWorkPolicyVersion must name a versioned completed-work policy");
+  }
   const asOfMs = parsePlanningInstant(input.evaluationHorizon.asOf, "evaluationHorizon.asOf");
   const validUntilMs = parsePlanningInstant(
     input.evaluationHorizon.validUntil,
@@ -344,7 +366,7 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
   const revisionKeys = input.sourceRevisions.map(({ owner, key, revision }) => {
     requireEnum(
       owner,
-      ["CATALOG", "FOCUS", "MASTERY", "OVERLAY", "REVIEW"] as const,
+      ["CATALOG", "EVIDENCE", "FOCUS", "MASTERY", "OVERLAY", "REVIEW"] as const,
       "sourceRevision.owner",
     );
     requireIdentifier(key, "sourceRevision.key");
@@ -360,8 +382,12 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
     fail("sourceRevisions must be in canonical code-point order");
   }
   const revisionOwners = new Set(input.sourceRevisions.map(({ owner }) => owner));
-  if (!revisionOwners.has("FOCUS") || !revisionOwners.has("REVIEW")) {
-    fail("sourceRevisions must identify Focus and Review state");
+  if (
+    !revisionOwners.has("EVIDENCE") ||
+    !revisionOwners.has("FOCUS") ||
+    !revisionOwners.has("REVIEW")
+  ) {
+    fail("sourceRevisions must identify Evidence, Focus, and Review state");
   }
   if (
     input.candidates.length > 0 &&
