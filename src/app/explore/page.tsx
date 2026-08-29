@@ -135,6 +135,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Expl
           </Link>
           <nav className={styles.headerNav} aria-label="Workspace">
             <p>Live target structure</p>
+            <Link href="/today">Today</Link>
             <Link href="/review">Review</Link>
           </nav>
         </div>

@@ -8,11 +8,13 @@ import {
   FocusConflictError,
   FocusInputError,
   FocusUnavailableError,
+  GET_FOCUS_FROM_PLAN_RPC_V1,
   GET_FOCUS_WORKSPACE_RPC_V1,
   INVALIDATE_EVIDENCE_RPC_V1,
   START_FOCUS_ACTIVITY_RPC_V1,
   finishFocusActivityV1,
   invalidateEvidenceV1,
+  loadFocusFromPlanWorkspaceV1,
   loadFocusWorkspaceV1,
   startFocusActivityV1,
 } from "./database-focus-workspace";
@@ -21,6 +23,7 @@ const commandId = "10000000-0000-4000-8000-000000000001";
 const sessionId = "10000000-0000-4000-8000-000000000002";
 const evidenceId = "20000000-0000-4000-8000-000000000001";
 const eventId = "30000000-0000-4000-8000-000000000001";
+const selectionRef = "plan-action:40000000-0000-4000-8000-000000000001";
 
 function client(rpc: ReturnType<typeof vi.fn>): PandoSupabaseClient {
   return { rpc } as unknown as PandoSupabaseClient;
@@ -47,6 +50,82 @@ function workspace() {
 }
 
 describe("Focus database boundary", () => {
+  it("loads a plan-selected Focus view with only the opaque selector", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        contract: { name: "FocusFromPlanWorkspaceV1", version: "1.0.0" },
+        selectionRef,
+        entryState: "READY_TO_START",
+        plannedMinutes: 45,
+        workspace: workspace(),
+      },
+      error: null,
+    });
+    await expect(loadFocusFromPlanWorkspaceV1(client(rpc), selectionRef)).resolves.toMatchObject({
+      entryState: "READY_TO_START",
+      plannedMinutes: 45,
+      workspace: { activity: { activityKey: "activity:typing-practice" } },
+    });
+    expect(rpc).toHaveBeenCalledWith(GET_FOCUS_FROM_PLAN_RPC_V1, {
+      p_selection_ref: selectionRef,
+    });
+    expect(rpc.mock.calls[0]?.[1]).not.toHaveProperty("p_workspace_id");
+    expect(rpc.mock.calls[0]?.[1]).not.toHaveProperty("p_activity_key");
+  });
+
+  it("rejects malformed, mismatched, and authority-bearing plan responses", async () => {
+    const rpc = vi.fn();
+    await expect(
+      loadFocusFromPlanWorkspaceV1(client(rpc), "plan-action:not-valid"),
+    ).rejects.toThrow(FocusInputError);
+    expect(rpc).not.toHaveBeenCalled();
+
+    rpc.mockResolvedValueOnce({
+      data: {
+        contract: { name: "FocusFromPlanWorkspaceV1", version: "1.0.0" },
+        selectionRef: "plan-action:40000000-0000-4000-8000-000000000002",
+        entryState: "READY_TO_START",
+        plannedMinutes: 45,
+        workspace: workspace(),
+      },
+      error: null,
+    });
+    await expect(loadFocusFromPlanWorkspaceV1(client(rpc), selectionRef)).rejects.toThrow(
+      FocusUnavailableError,
+    );
+
+    rpc.mockResolvedValueOnce({
+      data: {
+        contract: { name: "FocusFromPlanWorkspaceV1", version: "1.0.0" },
+        selectionRef,
+        entryState: "READY_TO_START",
+        plannedMinutes: 45,
+        workspace: workspace(),
+        planSnapshotId: "attacker-visible-authority",
+      },
+      error: null,
+    });
+    await expect(loadFocusFromPlanWorkspaceV1(client(rpc), selectionRef)).rejects.toThrow(
+      FocusUnavailableError,
+    );
+  });
+
+  it("requires an exact active Focus projection for plan continuity", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        contract: { name: "FocusFromPlanWorkspaceV1", version: "1.0.0" },
+        selectionRef,
+        entryState: "ACTIVE",
+        plannedMinutes: 45,
+        workspace: workspace(),
+      },
+      error: null,
+    });
+    await expect(loadFocusFromPlanWorkspaceV1(client(rpc), selectionRef)).rejects.toThrow(
+      FocusUnavailableError,
+    );
+  });
+
   it("loads a current-personal Focus DTO without caller-selected authority fields", async () => {
     const rpc = vi.fn().mockResolvedValue({ data: workspace(), error: null });
     await expect(

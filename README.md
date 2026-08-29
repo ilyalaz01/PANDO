@@ -12,8 +12,9 @@ versioned completed-work policy that derives capacity, track cadence credit, and
 bounded Sessions/Evidence owner queries, plus versioned direct-prerequisite satisfaction from
 bounded Catalog/Mastery owner queries. Its authenticated Today read boundary now exposes only the
 strict freshness envelope and opaque selections, and its idempotent start coordinator persists exact
-plan attribution without trusting browser-supplied action fields; the `/today` UI remains in
-progress.
+plan attribution without trusting browser-supplied action fields. The live `/today` page now renders
+every freshness state, explains the primary recommendation and bounded alternatives, and opens or
+resumes the exact attributed Focus session through opaque selectors.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -31,8 +32,8 @@ records meaningful manual evidence and projects explainable Mastery; `/review` p
 deduplicated item per competency dimension with auditable retention, verification, and personal
 reminder reasons plus reschedule, skip-once, suppress, and restore commands. Planning publishes
 immutable snapshots behind its current-pointer boundary. The live server boundary can now read a
-current recommendation and safely start Focus from its opaque selector, but the user-facing Today
-page and the live Agent Control plane remain later increments.
+current recommendation and safely run the authenticated Today-to-Focus journey. The remaining Phase
+4 lifecycle/editing commands and the live Agent Control plane remain later increments.
 
 ## Prerequisites
 
@@ -57,9 +58,9 @@ One command starts the development application:
 pnpm dev
 ```
 
-Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/start`, then follow
-`Explore this target`. Select a competency to keep a private note or add a personal activity, run it
-through Focus, inspect the resulting readiness changes, and open Review from the authenticated header. The
+Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/start`, add a personal
+activity from Explore, initialize its Growth Plan, then use Today to start or resume the ranked
+Focus action. Inspect the resulting readiness changes and open Review from the authenticated header. The
 live `/explore?goal=...` route requires the configured authenticated Supabase boundary; it never
 substitutes demo data after a failed or unauthorized read.
 
@@ -83,7 +84,8 @@ Chromium end-to-end/accessibility and graph-interaction budgets.
 The Planning unit/contract suites additionally prove deterministic ranking, canonical source
 fingerprints, protected capacity, fail-closed readiness, causal explanations, safe Today freshness
 shapes, and the completed-work invariants that bound consumed capacity, track cadence credit, and
-recent repetition. They do not substitute for the pending live Today browser journey.
+recent repetition. The Docker-backed auth gate separately proves the live Today browser journey
+against a disposable migrated stack.
 
 The complete Phase 0 aggregate also proves migrations, every database pgTAP file, database lint,
 and encrypted clean restore in separate randomly named local Supabase stacks:
@@ -96,8 +98,9 @@ Use `pnpm verify:db`, `pnpm verify:backup`, or `pnpm verify:auth` for an individ
 gate. These commands copy the required Supabase files to OS-created temporary directories and stop
 only their own random project IDs, so they do not reset or remove an ordinary local development
 stack. The auth gate creates one synthetic owner inside its disposable stack, exercises sign-in,
-workspace bootstrap, target selection, note/activity persistence, Focus evidence, Mastery,
-Readiness and Review projection/invalidation, reload, responsive accessibility, and sign-out
+workspace bootstrap, target selection, note/activity persistence, Today current/degraded/error
+states, opaque planned Focus Start/Resume/completion, Mastery, Readiness and Review
+projection/invalidation, reload, responsive accessibility, and sign-out
 through a real browser, and checks that generated `api` schema types have not drifted. CI runs the four
 expensive suites as separate jobs from the same frozen lockfile and combines their results in a
 cheap `phase0` status; it does not rerun them in the aggregate job. Committed history is scanned for

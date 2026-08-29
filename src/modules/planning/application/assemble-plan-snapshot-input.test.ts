@@ -117,7 +117,7 @@ function withWork(
 
 function sourceBundle() {
   return {
-    claimAsOf: "2026-08-31 12:00:00+00",
+    claimAsOf: "2026-08-31T12:00:00+00:00",
     sourceFence: `planning-source:${"a".repeat(64)}`,
     calendar: {
       timeZone: "UTC",
@@ -249,7 +249,7 @@ function sourceBundle() {
 describe("assemblePlanSnapshotInput", () => {
   it("builds a canonical, engine-valid input without inventing unresolved mastery semantics", () => {
     const input = assemblePlanSnapshotInput(sourceBundle());
-    expect(input.evaluationHorizon.asOf).toBe("2026-08-31T12:00:00.000Z");
+    expect(input.evaluationHorizon.asOf).toBe("2026-08-31T12:00:00+00:00");
     expect(input.candidates[0]).toMatchObject({
       candidateKey: "candidate:debug-api",
       prerequisiteState: "UNKNOWN",
@@ -267,6 +267,16 @@ describe("assemblePlanSnapshotInput", () => {
       "REVIEW/workspace-review",
     ]);
     expect(calculatePlan(input, PLANNING_POLICY_V0_1).recommendationState).toBe("NO_CANDIDATES");
+  });
+
+  it("preserves the owner claim clock including PostgreSQL microseconds", () => {
+    const source = sourceBundle();
+    const claimAsOf = "2026-08-31T12:00:00.123456+00:00";
+
+    const input = assemblePlanSnapshotInput({ ...source, claimAsOf });
+
+    expect(input.evaluationHorizon.asOf).toBe(claimAsOf);
+    expect(calculatePlan(input, PLANNING_POLICY_V0_1).calculatedAsOf).toBe(claimAsOf);
   });
 
   it("accepts the C5 owner contract for an empty no-plan bundle", () => {

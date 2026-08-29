@@ -83,8 +83,11 @@ event blocks the cursor until an administrator records a reviewed append-only qu
 idempotent command refuses valid events and atomically emits a Planning-owned current-state repair
 wake-up with separate command provenance and causation back to the malformed event.
 
-The live Today read model and opaque selection resolver are now implemented behind authenticated,
+The live Today read model and opaque selection resolver are implemented behind authenticated,
 current-personal server boundaries. Degraded output is display-only, selector authority is resolved
 only in the database transaction, and attributed Focus start uses the ordinary idempotent Sessions
-command path. The `/today` page and its authenticated browser journey remain; they must consume this
-boundary rather than fixtures or direct cross-module table reads.
+command path. The server-rendered `/today` route consumes this boundary, correlates actions to
+selectors fail-closed, and returns planned completion to Today before the old selector becomes
+stale. Its authenticated browser gate covers error, pending, current, Start, Resume, reload,
+completion, stale-selector refusal, recalculation, responsive layouts, reduced motion, forced
+colors, and automated accessibility.

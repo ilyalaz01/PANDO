@@ -312,7 +312,12 @@ select load.workspace_id, load.delivery_id, load.lease_token, load.event_positio
       'targetThreshold', goal.value->'targetThreshold',
       'lower', 0, 'upper', 1, 'coverage', 0,
       'status', 'INSUFFICIENT_EVIDENCE', 'confidence', 'LOW',
-      'blockers', '[]'::jsonb,
+      'blockers', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'code', 'AGGREGATE_BELOW_THRESHOLD',
+        'ruleId', goal.value->>'rootRuleKey',
+        'lower', 0,
+        'upper', 1
+      )),
       'ruleEvaluations', (
         select pg_catalog.jsonb_agg(pg_catalog.jsonb_build_object(
           'ruleId', rule.value->>'ruleKey',
@@ -406,6 +411,47 @@ select ok(api.complete_target_readiness_projection_v1(
 ), 'completion replay returns the stored receipt result')
 from readiness_completions as completion;
 reset role;
+
+do $planning_role$
+begin
+  execute pg_catalog.format(
+    'grant pando_planning_worker to %I with set true',
+    current_user
+  );
+end
+$planning_role$;
+grant select, insert on readiness_results to pando_planning_worker;
+grant select on readiness_loads, readiness_completions to pando_planning_worker;
+set local role pando_planning_worker;
+insert into readiness_results values (
+  'alice-planning-owner-source',
+  targets.read_planning_readiness_source_v1(
+    (select (response->>'workspace_id')::uuid from readiness_results
+     where result_name = 'alice-bootstrap'),
+    array[(select (response#>>'{goals,0,readinessGoalId}')::uuid from readiness_loads
+           where workspace_id = (select (response->>'workspace_id')::uuid
+             from readiness_results where result_name = 'alice-bootstrap'))],
+    array[(select (response#>>'{goals,0,profileVersionId}')::uuid from readiness_loads
+           where workspace_id = (select (response->>'workspace_id')::uuid
+             from readiness_results where result_name = 'alice-bootstrap'))],
+    clock_timestamp()
+  )
+);
+reset role;
+
+select is(
+  (select response#>'{items,0,blockers,0}' from readiness_results
+   where result_name = 'alice-planning-owner-source'),
+  pg_catalog.jsonb_build_object(
+    'code', 'AGGREGATE_BELOW_THRESHOLD',
+    'ruleKey', (
+      select response#>>'{0,readiness,blockers,0,ruleId}' from readiness_completions
+      where workspace_id = (select (response->>'workspace_id')::uuid
+        from readiness_results where result_name = 'alice-bootstrap')
+    )
+  ),
+  'the Targets-to-Planning owner query renames ruleId and removes readiness interval details'
+);
 
 select is(
   (select count(*)::bigint from targets.readiness_snapshots), 1::bigint,

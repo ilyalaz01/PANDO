@@ -1,0 +1,296 @@
+.page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--color-canvas);
+}
+
+.header {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.header > div,
+.main {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+
+.header > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 4rem;
+}
+
+.brand,
+.eyebrow {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.headerNav,
+.stateActions,
+.contextLinks,
+.actionFooter {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.headerNav {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.headerNav a {
+  min-height: var(--size-control-min);
+  padding-block: 0.8rem;
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.headerNav span {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.main {
+  display: grid;
+  gap: 1rem;
+  padding-block: 2rem 5rem;
+  outline: none;
+}
+
+.currentIntro,
+.primaryCard,
+.alternatives,
+.contextPanel,
+.stateCard,
+.degraded,
+.fallback {
+  min-width: 0;
+  padding: clamp(1.15rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+
+.currentIntro h1,
+.stateCard h1,
+.fallback h1 {
+  max-width: 18ch;
+  margin: 0.35rem 0 1rem;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.currentIntro p:last-child,
+.stateCard p,
+.degraded p,
+.reason,
+.fallback p {
+  color: var(--color-text-muted);
+  line-height: 1.55;
+}
+
+.primaryCard {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent-soft) 58%, var(--color-surface));
+}
+
+.actionCard,
+.readOnlyCard {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.readOnlyCard {
+  border-style: dashed;
+}
+
+.actionHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.actionHeading h2,
+.actionHeading h3,
+.alternatives h2,
+.contextPanel h2,
+.degraded h2 {
+  margin: 0.25rem 0 0;
+}
+
+.duration {
+  flex: 0 0 auto;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.benefit {
+  margin: 1rem 0 0;
+  color: var(--color-accent-strong);
+  font-weight: 800;
+}
+
+.reason {
+  margin: 0.4rem 0 1rem;
+}
+
+.actionFooter {
+  justify-content: space-between;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: var(--size-control-min);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-weight: 800;
+}
+
+.primaryLink {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: white;
+}
+
+.secondaryLink {
+  border: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-accent-strong);
+}
+
+.alternativeGrid,
+.readOnlyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.metrics div {
+  min-width: 0;
+  padding: 0.85rem;
+  border-left: 0.25rem solid var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.metrics dt {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.metrics dd {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.contextLinks a,
+.backLink {
+  min-height: var(--size-control-min);
+  padding-block: 0.7rem;
+  color: var(--color-accent-strong);
+  font-weight: 750;
+  text-decoration: underline;
+}
+
+.readOnlyLabel {
+  margin-bottom: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.fallback {
+  width: min(100% - 2rem, 52rem);
+  margin: 4rem auto;
+}
+
+@media (max-width: 48rem) {
+  .header > div,
+  .main {
+    width: min(100% - 1rem, 72rem);
+  }
+
+  .alternativeGrid,
+  .readOnlyGrid,
+  .metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .header > div {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: 0.5rem;
+  }
+
+  .headerNav {
+    justify-content: flex-start;
+    gap: 0.75rem;
+  }
+
+  .actionHeading,
+  .actionFooter,
+  .stateActions,
+  .contextLinks {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .duration,
+  .actionFooter a,
+  .stateActions a {
+    width: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  .currentIntro,
+  .primaryCard,
+  .alternatives,
+  .contextPanel,
+  .stateCard,
+  .degraded,
+  .actionCard,
+  .readOnlyCard,
+  .duration,
+  .primaryLink,
+  .secondaryLink {
+    border-color: CanvasText;
+  }
+}

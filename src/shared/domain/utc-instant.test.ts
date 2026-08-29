@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseInstant, toCanonicalInstant, utcDateKey } from "./utc-instant";
+import { parseInstant, sameInstant, toCanonicalInstant, utcDateKey } from "./utc-instant";
 
 describe("UTC instant primitives", () => {
   it("canonicalizes explicit offsets and extracts the UTC date", () => {
@@ -13,6 +13,14 @@ describe("UTC instant primitives", () => {
     const epoch = parseInstant("2026-08-27T13:45:10.123456+00:00", "database instant");
 
     expect(toCanonicalInstant(epoch)).toBe("2026-08-27T13:45:10.123Z");
+  });
+
+  it("compares equivalent offset forms without hiding sub-millisecond drift", () => {
+    expect(
+      sameInstant("2026-08-27T13:45:10.123456+00:00", "2026-08-27T15:45:10.123456+02:00"),
+    ).toBe(true);
+    expect(sameInstant("2026-08-27T13:45:10.123456Z", "2026-08-27T13:45:10.123457Z")).toBe(false);
+    expect(sameInstant("not-an-instant", "2026-08-27T13:45:10Z")).toBe(false);
   });
 
   it("rejects local timestamps and impossible calendar instants", () => {

@@ -260,6 +260,10 @@ export type Database = {
         Args: { p_readiness_goal_key: string }
         Returns: Json
       }
+      get_focus_from_plan_v1: {
+        Args: { p_selection_ref: string }
+        Returns: Json
+      }
       get_focus_workspace_v1: {
         Args: { p_activity_key?: string; p_readiness_goal_key: string }
         Returns: Json

@@ -86,6 +86,15 @@ function instant(value: JsonValue | undefined, label: string): string {
   return new Date(milliseconds).toISOString();
 }
 
+function provenanceInstant(value: JsonValue | undefined, label: string): string {
+  if (typeof value !== "string") fail("INVALID_OWNER_SOURCE", `${label} must be an instant`);
+  const milliseconds = Date.parse(value);
+  if (!Number.isFinite(milliseconds)) fail("INVALID_OWNER_SOURCE", `${label} must be an instant`);
+  // Keep the owner's exact representation. PostgreSQL claim clocks carry microseconds;
+  // round-tripping through Date would truncate them and break the attempt provenance fence.
+  return value;
+}
+
 function optionalInstant(value: JsonValue | undefined, label: string): string | null {
   return value === null ? null : instant(value, label);
 }
@@ -376,7 +385,7 @@ function uniqueBy<T>(items: readonly T[], key: (item: T) => string, label: strin
 
 export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
   const bundle = asJsonObject(source, "Planning source bundle");
-  const claimAsOf = instant(bundle.claimAsOf, "claimAsOf");
+  const claimAsOf = provenanceInstant(bundle.claimAsOf, "claimAsOf");
   const calendar = asJsonObject(bundle.calendar, "calendar");
   const weekStart = instant(calendar.weekStart, "calendar.weekStart");
   const weekEnd = instant(calendar.weekEnd, "calendar.weekEnd");

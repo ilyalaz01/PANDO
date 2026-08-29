@@ -49,6 +49,24 @@ export function toCanonicalInstant(epochMilliseconds: number): string {
   return new Date(epochMilliseconds).toISOString();
 }
 
+function epochNanoseconds(value: string): bigint {
+  const epochMilliseconds = parseInstant(value, "instant");
+  const fraction = /\.(\d{1,9})(?:Z|[+-]\d{2}:\d{2})$/u.exec(value)?.[1] ?? "";
+  const parsedFractionMilliseconds = Number(fraction.slice(0, 3).padEnd(3, "0"));
+  const wholeSecondMilliseconds = epochMilliseconds - parsedFractionMilliseconds;
+  const fractionalNanoseconds = BigInt(fraction.padEnd(9, "0"));
+  return BigInt(wholeSecondMilliseconds) * 1_000_000n + fractionalNanoseconds;
+}
+
+/** Compares valid explicit-offset instants without discarding PostgreSQL sub-millisecond precision. */
+export function sameInstant(left: string, right: string): boolean {
+  try {
+    return epochNanoseconds(left) === epochNanoseconds(right);
+  } catch {
+    return false;
+  }
+}
+
 export function utcDateKey(epochMilliseconds: number): string {
   return toCanonicalInstant(epochMilliseconds).slice(0, 10);
 }

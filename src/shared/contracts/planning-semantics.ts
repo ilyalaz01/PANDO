@@ -8,6 +8,7 @@ import {
   type JsonObject,
   type JsonValue,
 } from "./json";
+import { sameInstant } from "../domain/utc-instant";
 
 function integer(value: JsonValue | undefined): number | null {
   const number = asNumber(value);
@@ -533,8 +534,12 @@ export function todayWorkspaceSemanticViolations(value: unknown): readonly strin
     if (
       !plan ||
       snapshot.inputFingerprint !== plan.inputFingerprint ||
-      snapshot.calculatedAsOf !== plan.calculatedAsOf ||
-      snapshot.validUntil !== plan.validUntil
+      typeof snapshot.calculatedAsOf !== "string" ||
+      typeof plan.calculatedAsOf !== "string" ||
+      !sameInstant(snapshot.calculatedAsOf, plan.calculatedAsOf) ||
+      typeof snapshot.validUntil !== "string" ||
+      typeof plan.validUntil !== "string" ||
+      !sameInstant(snapshot.validUntil, plan.validUntil)
     ) {
       violations.push("TODAY_WORKSPACE_SNAPSHOT_IDENTITY");
     }
@@ -548,8 +553,12 @@ export function todayWorkspaceSemanticViolations(value: unknown): readonly strin
       plan &&
       clock &&
       (plan.timeZone !== clock.timeZone ||
-        plan.weekStart !== clock.weekStart ||
-        plan.weekEnd !== clock.weekEnd)
+        typeof plan.weekStart !== "string" ||
+        typeof clock.weekStart !== "string" ||
+        !sameInstant(plan.weekStart, clock.weekStart) ||
+        typeof plan.weekEnd !== "string" ||
+        typeof clock.weekEnd !== "string" ||
+        !sameInstant(plan.weekEnd, clock.weekEnd))
     ) {
       violations.push("TODAY_WORKSPACE_CLOCK_MISMATCH");
     }

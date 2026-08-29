@@ -11,13 +11,22 @@ select ok(
   and pg_catalog.has_function_privilege(
     'authenticated', 'api.start_focus_from_plan_v1(text,text)', 'EXECUTE'
   )
+  and pg_catalog.has_function_privilege(
+    'authenticated', 'api.get_focus_from_plan_v1(text)', 'EXECUTE'
+  )
   and not pg_catalog.has_function_privilege(
     'anon', 'api.get_today_workspace_v1()', 'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'service_role', 'api.start_focus_from_plan_v1(text,text)', 'EXECUTE'
+  )
+  and not pg_catalog.has_function_privilege(
+    'anon', 'api.get_focus_from_plan_v1(text)', 'EXECUTE'
+  )
+  and not pg_catalog.has_function_privilege(
+    'service_role', 'api.get_focus_from_plan_v1(text)', 'EXECUTE'
   ),
-  'Today read and start boundaries are authenticated-only'
+  'Today read, Focus entry, and start boundaries are authenticated-only'
 );
 
 select ok(
@@ -29,6 +38,12 @@ select ok(
   )
   and not pg_catalog.has_function_privilege(
     'service_role', 'planning.resolve_today_action_v1(text)', 'EXECUTE'
+  )
+  and not pg_catalog.has_function_privilege(
+    'authenticated', 'planning.read_plan_action_selection_for_focus_v1(text)', 'EXECUTE'
+  )
+  and not pg_catalog.has_function_privilege(
+    'service_role', 'planning.read_plan_action_selection_for_focus_v1(text)', 'EXECUTE'
   )
   and not pg_catalog.has_function_privilege(
     'authenticated',
@@ -112,6 +127,7 @@ select ok(
 from (values
   ('planning', 'read_today_workspace_v1', 'pando_today_reader'),
   ('planning', 'resolve_today_action_v1', 'pando_planning_api'),
+  ('planning', 'read_plan_action_selection_for_focus_v1', 'pando_planning_api'),
   ('sessions', 'is_exact_active_focus_for_planning_v1', 'pando_phase2_planning_source'),
   ('sessions', 'start_focus_session_from_plan_impl', 'pando_phase2_api')
 ) as expected(schema_name, function_name, owner_name)
@@ -328,6 +344,11 @@ reset role;
 
 set local role authenticated;
 insert into today_results values ('today-current', api.get_today_workspace_v1());
+insert into today_results
+select 'focus-entry-current', api.get_focus_from_plan_v1(
+  (select response#>>'{actionSelections,0,selectionRef}'
+   from today_results where result_name = 'today-current')
+);
 reset role;
 
 select ok(
@@ -344,6 +365,20 @@ select is(
    from today_results where result_name = 'today-current'),
   (select response->>'candidateKey' from today_results where result_name = 'admission-a'),
   'the safe candidate correlation matches the embedded action'
+);
+select ok(
+  (select response#>>'{contract,name}' = 'FocusFromPlanWorkspaceV1'
+     and response#>>'{contract,version}' = '1.0.0'
+     and response->>'entryState' = 'READY_TO_START'
+     and (response->>'plannedMinutes')::integer = 25
+     and response#>>'{workspace,readinessGoalKey}' = 'goal:today-a'
+     and response#>>'{workspace,activity,activityKey}' = 'activity:today-debug'
+     and response#>'{workspace,activeSession}' = 'null'::jsonb
+     and not (response ? 'planSnapshotId')
+     and not (response ? 'candidateKey')
+     and not (response ? 'learningTrackId')
+   from today_results where result_name = 'focus-entry-current'),
+  'the Focus entry exposes only a display-safe current START projection'
 );
 
 -- Internal query clocks prove the inclusive expiry boundary without exposing an asOf argument.
@@ -487,6 +522,15 @@ select throws_ok(
   '42501', 'plan action selection is unavailable',
   'a foreign workspace receives the same unavailable selector error'
 );
+select throws_ok(
+  pg_catalog.format(
+    'select api.get_focus_from_plan_v1(%L)',
+    (select response#>>'{actionSelections,0,selectionRef}'
+     from today_results where result_name = 'today-current')
+  ),
+  '42501', 'plan action selection is unavailable',
+  'a foreign workspace cannot preview or enumerate the Focus selector'
+);
 reset role;
 
 -- Owner START persists exact attribution and makes the previous Today snapshot display-only.
@@ -564,6 +608,11 @@ select 'start-one', api.start_focus_from_plan_v1(
 );
 insert into today_results values ('today-pending', api.get_today_workspace_v1());
 insert into today_results
+select 'focus-entry-after-start', api.get_focus_from_plan_v1(
+  (select response#>>'{actionSelections,0,selectionRef}'
+   from today_results where result_name = 'today-current')
+);
+insert into today_results
 select 'start-replay', api.start_focus_from_plan_v1(
   (select response#>>'{actionSelections,0,selectionRef}'
    from today_results where result_name = 'today-current'),
@@ -600,6 +649,15 @@ select ok(
      and response->'actionSelections' = '[]'::jsonb
    from today_results where result_name = 'today-pending'),
   'pending Today returns the prior snapshot for display only'
+);
+select ok(
+  (select response->>'entryState' = 'ACTIVE'
+     and response#>>'{workspace,activeSession,focusSessionId}' = (
+       select response->>'focusSessionId' from today_results where result_name = 'start-one'
+     )
+     and (response#>>'{workspace,activeSession,plannedMinutes}')::integer = 25
+   from today_results where result_name = 'focus-entry-after-start'),
+  'the original START selector reloads only its exact attributed active Focus session'
 );
 select ok(
   exists (
@@ -711,6 +769,11 @@ reset role;
 
 set local role authenticated;
 insert into today_results values ('today-resume', api.get_today_workspace_v1());
+insert into today_results
+select 'focus-entry-resume', api.get_focus_from_plan_v1(
+  (select response#>>'{actionSelections,0,selectionRef}'
+   from today_results where result_name = 'today-resume')
+);
 reset role;
 set local role pando_phase2_api;
 insert into today_results
@@ -727,6 +790,14 @@ select ok(
    from today_results where result_name = 'resolved-resume'),
   'RESUME resolves only to the exact still-active Focus session'
 );
+select ok(
+  (select response->>'entryState' = 'ACTIVE'
+     and response#>>'{workspace,activeSession,focusSessionId}' = (
+       select response->>'focusSessionId' from today_results where result_name = 'start-one'
+     )
+   from today_results where result_name = 'focus-entry-resume'),
+  'RESUME opens the exact existing Focus session without a mutation'
+);
 
 -- A normalized terminal failure returns ERROR with the current fingerprint and display-only plan.
 update outbox.deliveries as delivery
@@ -738,6 +809,17 @@ where delivery.event_id = event.event_id
   and delivery.delivery_state = 'pending'
   and event.event_name = 'planning.snapshot_refresh_scheduled'
   and event.payload->>'source_snapshot_id' = pointer.snapshot_id::text;
+set local role authenticated;
+select throws_ok(
+  pg_catalog.format(
+    'select api.get_focus_from_plan_v1(%L)',
+    (select response#>>'{actionSelections,0,selectionRef}'
+     from today_results where result_name = 'today-resume')
+  ),
+  '40001', 'plan action selection is not current',
+  'a RESUME selector is refused as soon as Today becomes non-current'
+);
+reset role;
 set local role service_role;
 insert into today_results
 select 'claim-error', pg_catalog.to_jsonb(claim)
@@ -860,6 +942,15 @@ select 'finish-for-recovery', api.finish_focus_activity_v1(
   1, 'STOP', null, null, 'today-finish-for-recovery'
 );
 insert into today_results values ('today-recovery-pending', api.get_today_workspace_v1());
+select throws_ok(
+  pg_catalog.format(
+    'select api.get_focus_from_plan_v1(%L)',
+    (select response#>>'{actionSelections,0,selectionRef}'
+     from today_results where result_name = 'today-current')
+  ),
+  '40001', 'plan action selection is not current',
+  'an ended attributed session removes post-start selector continuity'
+);
 reset role;
 select ok(
   (select response->>'projectionState' = 'PENDING'

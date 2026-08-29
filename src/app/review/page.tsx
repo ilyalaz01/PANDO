@@ -42,6 +42,7 @@ export default async function ReviewPage() {
           </Link>
           <nav className={styles.headerNav} aria-label="Workspace">
             <span>Review</span>
+            <Link href="/today">Today</Link>
             <Link href="/start">Targets</Link>
           </nav>
         </div>

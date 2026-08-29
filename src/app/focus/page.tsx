@@ -9,7 +9,10 @@ import {
 } from "../../shared/supabase/session";
 import { FocusWorkspace } from "../../ui/focus/focus-workspace";
 import styles from "../../ui/focus/focus.module.css";
-import { loadFocusWorkspaceV1 } from "../../ui/focus/server/database-focus-workspace";
+import {
+  loadFocusFromPlanWorkspaceV1,
+  loadFocusWorkspaceV1,
+} from "../../ui/focus/server/database-focus-workspace";
 import type { FocusWorkspaceV1 } from "../../ui/focus/server/focus-workspace-v1";
 import { SkipLink } from "../../ui/primitives/skip-link";
 
@@ -24,6 +27,7 @@ export const metadata: Metadata = {
 type FocusSearchParams = Promise<{
   goal?: string | string[];
   activity?: string | string[];
+  selection?: string | string[];
 }>;
 
 function one(value: string | string[] | undefined): string | undefined {
@@ -47,27 +51,51 @@ export default async function FocusPage({ searchParams }: { searchParams: FocusS
   const query = await searchParams;
   const goal = one(query.goal);
   const activity = one(query.activity) ?? null;
-  if (goal === undefined || Array.isArray(query.goal) || Array.isArray(query.activity)) {
+  const selection = one(query.selection);
+  const invalidQuery =
+    Array.isArray(query.goal) ||
+    Array.isArray(query.activity) ||
+    Array.isArray(query.selection) ||
+    (selection !== undefined && (query.goal !== undefined || query.activity !== undefined));
+  if (invalidQuery || (selection === undefined && goal === undefined)) {
     return (
       <main className={styles.fallback}>
-        <h1>Open Focus from an activity.</h1>
-        <p>Select an activity in Explore so PANDO can preserve its exact target mapping.</p>
-        <Link href="/start">Choose a target</Link>
+        <h1>Open Focus from Today or an activity.</h1>
+        <p>Choose a current recommendation or an accepted Explore activity.</p>
+        <Link href="/today">Return to Today</Link>
       </main>
     );
   }
   let workspace: FocusWorkspaceV1;
+  let planEntry: { readonly selectionRef: string; readonly plannedMinutes: number } | undefined;
   try {
-    workspace = await loadFocusWorkspaceV1(client, {
-      readinessGoalKey: goal,
-      activityKey: activity,
-    });
+    if (selection !== undefined) {
+      const entry = await loadFocusFromPlanWorkspaceV1(client, selection);
+      workspace = entry.workspace;
+      planEntry = { selectionRef: entry.selectionRef, plannedMinutes: entry.plannedMinutes };
+    } else {
+      workspace = await loadFocusWorkspaceV1(client, {
+        readinessGoalKey: goal!,
+        activityKey: activity,
+      });
+    }
   } catch {
+    if (selection !== undefined) {
+      return (
+        <main className={styles.fallback} role="alert">
+          <h1>This Today action is no longer available.</h1>
+          <p>Nothing was changed. Reload Today and choose a current recommendation.</p>
+          <Link href="/today">Reload Today</Link>
+        </main>
+      );
+    }
     return (
       <main className={styles.fallback} role="alert">
         <h1>Focus could not load this activity.</h1>
         <p>Nothing was changed. Return to the authorized Explore view and try again.</p>
-        <Link href={`/explore?${new URLSearchParams({ goal }).toString()}`}>Return to Explore</Link>
+        <Link href={`/explore?${new URLSearchParams({ goal: goal! }).toString()}`}>
+          Return to Explore
+        </Link>
       </main>
     );
   }
@@ -81,12 +109,13 @@ export default async function FocusPage({ searchParams }: { searchParams: FocusS
           </Link>
           <nav className={styles.headerNav} aria-label="Workspace">
             <span>Focus</span>
+            <Link href="/today">Today</Link>
             <Link href="/review">Review</Link>
           </nav>
         </div>
       </header>
       <main className={styles.main} id="focus-main" tabIndex={-1}>
-        <FocusWorkspace workspace={workspace} />
+        <FocusWorkspace {...(planEntry === undefined ? {} : { planEntry })} workspace={workspace} />
       </main>
     </div>
   );

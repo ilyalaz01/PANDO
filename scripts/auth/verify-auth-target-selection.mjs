@@ -177,6 +177,28 @@ async function loadCurrentTargetReadiness({
   return result.data;
 }
 
+async function loadCurrentToday({ client, baseUrl, dispatchSecret, label }) {
+  const dispatches = [];
+  let result = await client.rpc("get_today_workspace_v1", {});
+  assert.equal(result.error, null, `${label} Today workspace must load`);
+  for (let attempt = 0; attempt < 4 && result.data?.projectionState !== "CURRENT"; attempt += 1) {
+    const response = await fetch(`${baseUrl}/api/internal/planning-snapshot`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${dispatchSecret}` },
+    });
+    assert.equal(response.status, 200, `${label} Planning recovery wake-up must succeed`);
+    dispatches.push(await response.json());
+    result = await client.rpc("get_today_workspace_v1", {});
+    assert.equal(result.error, null, `${label} recovered Today workspace must load`);
+  }
+  assert.equal(
+    result.data?.projectionState,
+    "CURRENT",
+    `${label} Today must become current; dispatches=${JSON.stringify(dispatches)} state=${JSON.stringify(result.data)}`,
+  );
+  return result.data;
+}
+
 function requireStatusValue(status, key) {
   const value = status[key];
   if (typeof value !== "string" || value.length < 1) {
@@ -377,7 +399,7 @@ try {
   await page.getByLabel("Password").fill(ownerPassword);
   await page.getByRole("button", { name: "Sign in" }).click();
   const signInOutcome = await Promise.race([
-    page.waitForURL(/\/start$/u).then(() => "authenticated"),
+    page.waitForURL(/\/today$/u).then(() => "authenticated"),
     page
       .locator('form [role="status"]')
       .filter({ hasText: /\S/u })
@@ -390,7 +412,7 @@ try {
       `browser sign-in failed with public status: ${publicStatus?.trim() || "empty"}`,
     );
   }
-  await page.getByRole("heading", { name: /Choose the outcome/u }).waitFor();
+  await page.getByRole("heading", { name: "Set up your first daily plan." }).waitFor();
   const authCookiesBeforeRefresh = (await context.cookies())
     .filter((cookie) => cookie.name.includes("-auth-token"))
     .map((cookie) => `${cookie.name}=${cookie.value}`)
@@ -565,27 +587,186 @@ try {
   await page.reload();
   await page.getByRole("heading", { level: 2, name: activityTitle }).waitFor();
 
-  const focusLink = page.getByRole("link", { name: "Start focus session" });
-  const focusHref = await focusLink.getAttribute("href");
-  assert.ok(focusHref?.startsWith("/focus?"), "Explore must expose a real Focus route");
-  assert.equal(new URL(focusHref, page.url()).searchParams.get("activity"), activityKey);
-  await Promise.all([
-    page.waitForURL(/\/focus\?goal=.*&activity=/u).catch((error) => {
-      throw new Error(`Explore did not navigate to Focus; current URL: ${page.url()}`, {
-        cause: error,
-      });
-    }),
-    focusLink.click(),
-  ]);
-  assert.equal(new URL(page.url()).searchParams.get("activity"), activityKey);
+  const initializedPlan = await readinessVerifier.rpc("initialize_growth_plan_v1", {
+    p_readiness_goal_key: readinessGoalKey,
+    p_weekly_capacity_minutes: 300,
+    p_default_session_minutes: 25,
+    p_track_priority: 100,
+    p_protected_minimum_minutes: 100,
+    p_idempotency_key: "auth-gate-growth-plan-v1",
+  });
+  assert.equal(
+    initializedPlan.error,
+    null,
+    "authenticated Growth Plan initialization must succeed",
+  );
+  assert.match(initializedPlan.data?.learningTrackKey ?? "", /^track:[0-9a-f-]{36}$/u);
+  assert.equal(initializedPlan.data?.learningTrackAggregateVersion, 1);
+
+  const planningWorkerAdmin = createClient(apiUrl, serviceRoleKey, {
+    db: { schema: "api" },
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+  const failureClaim = await planningWorkerAdmin.rpc("claim_plan_snapshot_projection_v1");
+  assert.equal(failureClaim.error, null, "Planning failure probe must claim the initialized plan");
+  assert.equal(failureClaim.data?.length, 1, "Planning failure probe must claim one workspace");
+  const claimedFailure = failureClaim.data?.[0];
+  assert.ok(claimedFailure, "Planning failure probe must return its lease");
+  const failedPlan = await planningWorkerAdmin.rpc("fail_plan_snapshot_projection_v1", {
+    p_delivery_id: claimedFailure.delivery_id,
+    p_lease_token: claimedFailure.lease_token,
+    p_attempt_id: claimedFailure.attempt_id,
+    p_failure_class: "INVALID_CONTRACT",
+    p_error_code: "AUTH_GATE_FAILURE_PROBE",
+  });
+  assert.equal(failedPlan.error, null, "Planning failure probe must use the worker boundary");
+  assert.equal(failedPlan.data, "dead_letter");
+
+  await page.goto(`${baseUrl}/today`);
+  await page.getByRole("heading", { name: "Today could not refresh the plan." }).waitFor();
+  assert.equal(
+    await page.getByRole("link", { name: /Open in Focus|Resume Focus/u }).count(),
+    0,
+    "failed Today must not expose actionable plan selectors",
+  );
+
+  const admittedActivity = await readinessVerifier.rpc("add_learning_track_activity_v1", {
+    p_learning_track_key: initializedPlan.data.learningTrackKey,
+    p_activity_key: activityKey,
+    p_estimated_minutes: 25,
+    p_expected_learning_track_version: "1",
+    p_idempotency_key: "auth-gate-track-activity-v1",
+    p_energy: "MEDIUM",
+  });
+  assert.equal(admittedActivity.error, null, "authenticated Track activity admission must succeed");
+  assert.equal(admittedActivity.data?.activityKey, activityKey);
+
+  await page.goto(`${baseUrl}/today`);
+  await page.getByRole("heading", { name: "Today is checking changed inputs." }).waitFor();
+  assert.equal(
+    await page.getByRole("link", { name: /Open in Focus|Resume Focus/u }).count(),
+    0,
+    "pending Today must not expose actionable plan selectors",
+  );
+
+  const currentToday = await loadCurrentToday({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    label: "initial live plan",
+  });
+  assert.equal(currentToday.snapshot?.plan?.actions?.[0]?.activityKey, activityKey);
+  await page.reload();
+  await page.getByRole("heading", { name: "Choose useful work with a clear reason." }).waitFor();
+  const todayFocusLink = page.getByRole("link", { name: "Open in Focus" }).first();
+  const todayFocusHref = await todayFocusLink.getAttribute("href");
+  assert.ok(todayFocusHref, "current Today must expose its primary Focus link");
+  const todayFocusUrl = new URL(todayFocusHref, page.url());
+  assert.deepEqual([...todayFocusUrl.searchParams.keys()], ["selection"]);
+  const startSelection = todayFocusUrl.searchParams.get("selection") ?? "";
+  assert.match(startSelection, /^plan-action:[0-9a-f-]{36}$/u);
+
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    const dimensions = await page.evaluate(() => ({
+      clientWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    assert.ok(
+      dimensions.scrollWidth <= dimensions.clientWidth,
+      `authenticated Today must not overflow a ${width}px viewport`,
+    );
+  }
+  const todayAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  assert.deepEqual(todayAccessibility.violations, [], "authenticated /today must pass axe");
+  await page.emulateMedia({ forcedColors: "active", reducedMotion: "reduce" });
+  assert.equal(
+    await page.evaluate(() => matchMedia("(forced-colors: active)").matches),
+    true,
+    "authenticated Today must render under forced colors",
+  );
+  await page.emulateMedia({ forcedColors: "none", reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 1280, height: 900 });
+
+  await Promise.all([page.waitForURL(/\/focus\?selection=/u), todayFocusLink.click()]);
   await page.getByRole("heading", { level: 1, name: activityTitle }).waitFor();
-  await page.getByText(/Produce a working result/iu).waitFor();
-  await page.getByRole("button", { name: "Start focus session" }).click();
+  const plannedForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Start planned focus" }),
+  });
+  assert.deepEqual(
+    await plannedForm.locator("input").evaluateAll((inputs) => inputs.map((input) => input.name)),
+    ["selectionRef"],
+    "planned Focus form must carry only the opaque selector",
+  );
+  await page.getByRole("button", { name: "Start planned focus" }).click();
   await page.getByText("Focus is active").waitFor();
-  await page.getByRole("heading", { level: 1, name: activityTitle }).waitFor();
-  await page.getByText(/Produce a working result/iu).waitFor();
+  const startedEntry = await readinessVerifier.rpc("get_focus_from_plan_v1", {
+    p_selection_ref: startSelection,
+  });
+  assert.equal(startedEntry.error, null, "the START selector must retain post-start continuity");
+  const plannedFocusSessionId = startedEntry.data?.workspace?.activeSession?.focusSessionId;
+  assert.match(plannedFocusSessionId ?? "", /^[0-9a-f-]{36}$/u);
+  await page.reload();
+  await page.getByText("Focus is active").waitFor();
+
+  await page.goto(`${baseUrl}/today`);
+  await page.getByRole("heading", { name: "Today is checking changed inputs." }).waitFor();
+  await page.getByText("Reference only — reload before starting").waitFor();
+  assert.equal(
+    await page.getByRole("link", { name: /Open in Focus|Resume Focus/u }).count(),
+    0,
+    "degraded Today must remove every action link",
+  );
+
+  await loadCurrentToday({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    label: "active Focus resume plan",
+  });
+  await page.reload();
+  const resumeLink = page.getByRole("link", { name: "Resume Focus" }).first();
+  const resumeHref = await resumeLink.getAttribute("href");
+  assert.ok(resumeHref, "current Today must expose the active Focus session as Resume");
+  const resumeUrl = new URL(resumeHref, page.url());
+  assert.deepEqual([...resumeUrl.searchParams.keys()], ["selection"]);
+  const resumeSelection = resumeUrl.searchParams.get("selection") ?? "";
+  assert.notEqual(resumeSelection, startSelection, "recalculation must publish a new selector");
+  await Promise.all([page.waitForURL(/\/focus\?selection=/u), resumeLink.click()]);
+  await page.getByText("Focus is active").waitFor();
+  const resumedEntry = await readinessVerifier.rpc("get_focus_from_plan_v1", {
+    p_selection_ref: resumeSelection,
+  });
+  assert.equal(resumedEntry.error, null, "the current RESUME selector must load");
+  assert.equal(
+    resumedEntry.data?.workspace?.activeSession?.focusSessionId,
+    plannedFocusSessionId,
+    "Resume must open the exact existing Focus session",
+  );
+  await page.reload();
+  await page.getByText("Focus is active").waitFor();
+  const staleResumeUrl = page.url();
   await page.getByRole("button", { name: "Complete and save result" }).click();
-  await page.getByText("observed success", { exact: false }).waitFor();
+  await page.waitForURL(/\/today$/u);
+  await page.getByRole("heading", { name: "Today is checking changed inputs." }).waitFor();
+  assert.equal(
+    await page.getByRole("link", { name: /Open in Focus|Resume Focus/u }).count(),
+    0,
+    "completion must make the prior Today snapshot display-only",
+  );
+  await page.goto(staleResumeUrl);
+  await page.getByRole("heading", { name: "This Today action is no longer available." }).waitFor();
+  await loadCurrentToday({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    label: "post-completion recalculation",
+  });
+  await page.goto(`${baseUrl}/today`);
+  await page.getByRole("heading", { name: "Choose useful work with a clear reason." }).waitFor();
 
   const phase2Verifier = createClient(apiUrl, publishableKey, {
     db: { schema: "api" },
@@ -689,7 +870,10 @@ try {
     "one qualifying completion must expose both current Review reasons",
   );
 
-  const focusUrl = page.url();
+  const focusUrl = `${baseUrl}/focus?${new URLSearchParams({
+    goal: readinessGoalKey,
+    activity: activityKey,
+  }).toString()}`;
   await page.goto(`${baseUrl}/review`);
   await page.getByRole("heading", { name: "Refresh what needs proof." }).waitFor();
   await page.getByRole("heading", { level: 3, name: activityTitle }).waitFor();
@@ -928,6 +1112,6 @@ if (receivedSignal) {
   throw finalError;
 } else {
   process.stdout.write(
-    "isolated auth, target selection, overlay note/activity persistence, reload, refresh, and sign-out gate passed\n",
+    "isolated auth, target selection, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
   );
 }

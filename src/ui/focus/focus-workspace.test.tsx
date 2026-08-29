@@ -3,15 +3,20 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
+  replace: vi.fn(),
   start: vi.fn(),
+  startPlan: vi.fn(),
   complete: vi.fn(),
   stop: vi.fn(),
   invalidate: vi.fn(),
 }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: mocks.refresh }) }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: mocks.refresh, replace: mocks.replace }),
+}));
 vi.mock("../../app/focus/actions", () => ({
   startFocusAction: mocks.start,
+  startFocusFromPlanAction: mocks.startPlan,
   completeFocusAction: mocks.complete,
   stopFocusAction: mocks.stop,
   invalidateEvidenceAction: mocks.invalidate,
@@ -95,7 +100,13 @@ describe("FocusWorkspace", () => {
     vi.stubGlobal("crypto", {
       randomUUID: vi.fn(() => `90000000-0000-4000-8000-${String(++request).padStart(12, "0")}`),
     });
-    for (const action of [mocks.start, mocks.complete, mocks.stop, mocks.invalidate]) {
+    for (const action of [
+      mocks.start,
+      mocks.startPlan,
+      mocks.complete,
+      mocks.stop,
+      mocks.invalidate,
+    ]) {
       action.mockResolvedValue({ status: "idle", message: "" });
     }
   });
@@ -116,6 +127,29 @@ describe("FocusWorkspace", () => {
     const formData = mocks.start.mock.calls[0]?.[1] as FormData;
     expect(formData.get("activityKey")).toBe("activity:typing-practice");
     expect(formData.get("plannedMinutes")).toBe("25");
+  });
+
+  it("starts a Today recommendation with only its opaque selector", async () => {
+    const { container } = render(
+      <FocusWorkspace
+        planEntry={{
+          selectionRef: "plan-action:40000000-0000-4000-8000-000000000001",
+          plannedMinutes: 45,
+        }}
+        workspace={workspace()}
+      />,
+    );
+    expect(screen.getByText("45 minutes")).toBeVisible();
+    expect(screen.getByRole("link", { name: "← Back to Today" })).toHaveAttribute("href", "/today");
+    expect(container.querySelector('[name="readinessGoalKey"]')).toBeNull();
+    expect(container.querySelector('[name="activityKey"]')).toBeNull();
+    expect(container.querySelector('[name="plannedMinutes"]')).toBeNull();
+    expect(container.querySelector('[name="requestId"]')).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Start planned focus" }));
+    await waitFor(() => expect(mocks.startPlan).toHaveBeenCalled());
+    const formData = mocks.startPlan.mock.calls[0]?.[1] as FormData;
+    expect([...formData.keys()]).toEqual(["selectionRef"]);
+    expect(formData.get("selectionRef")).toBe("plan-action:40000000-0000-4000-8000-000000000001");
   });
 
   it("provides a local scratch area and explicit evidence result choices", async () => {
@@ -147,6 +181,27 @@ describe("FocusWorkspace", () => {
     const formData = mocks.stop.mock.calls[0]?.[1] as FormData;
     expect(formData.get("focusSessionId")).toBe("10000000-0000-4000-8000-000000000001");
     expect(formData.get("resultKind")).toBeNull();
+  });
+
+  it("returns a completed planned session to Today instead of refreshing a stale selector", async () => {
+    mocks.complete.mockResolvedValueOnce({
+      status: "updated",
+      message: "Result saved. Competency state is recalculating.",
+    });
+    render(
+      <FocusWorkspace
+        planEntry={{
+          selectionRef: "plan-action:40000000-0000-4000-8000-000000000001",
+          plannedMinutes: 25,
+        }}
+        workspace={activeWorkspace()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Complete and save result" }));
+
+    await waitFor(() => expect(mocks.replace).toHaveBeenCalledWith("/today"));
+    expect(mocks.refresh).not.toHaveBeenCalled();
   });
 
   it("renders explainable history and requires a reason before invalidation", async () => {

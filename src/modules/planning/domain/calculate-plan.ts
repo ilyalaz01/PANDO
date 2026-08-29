@@ -80,6 +80,12 @@ function parsePlanningInstant(value: string, fieldName: string): number {
   }
 }
 
+function toLosslessPlanningInstant(value: string, milliseconds: number): string {
+  // JavaScript Date is millisecond-only. Keep a validated owner instant when canonicalization
+  // would discard PostgreSQL's additional fractional-second precision.
+  return /\.\d{4,}(?:Z|[+-]\d{2}:\d{2})$/u.test(value) ? value : toCanonicalInstant(milliseconds);
+}
+
 function requireUnique(values: readonly string[], fieldName: string): void {
   if (new Set(values).size !== values.length) {
     fail(`${fieldName} must not contain duplicates`);
@@ -1122,7 +1128,7 @@ export function calculateVerifiedPlan(
     engineVersion: PLANNER_ENGINE_VERSION,
     policyVersion: policy.version,
     inputFingerprint: input.inputFingerprint,
-    calculatedAsOf: toCanonicalInstant(asOfMs),
+    calculatedAsOf: toLosslessPlanningInstant(input.evaluationHorizon.asOf, asOfMs),
     validUntil: toCanonicalInstant(validUntilMs),
     timeZone: input.evaluationHorizon.timeZone,
     weekStart: toCanonicalInstant(weekStartMs),

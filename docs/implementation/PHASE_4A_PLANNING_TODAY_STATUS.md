@@ -1,7 +1,6 @@
 # Phase 4A Planning and Today status
 
-Status: Live calculation worker, owner-event routing, completed-work and prerequisite policies,
-Today read/selection boundary, and attributed Focus start implemented; Today UI pending
+Status: Complete first Planning/Today vertical slice, including live Today-to-Focus browser journey
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -138,18 +137,34 @@ and accepted design remain authoritative.
   zero-argument read adapter, and an opaque-only start adapter that collapse private database
   failures before browser code. The non-empty snapshot worker path now creates immutable selectors
   directly; its former redundant update of an immutable row is removed and regression-tested;
+- a server-rendered `/today` route that renders `NOT_STARTED`, `PENDING`, `ERROR`, and `CURRENT`
+  explicitly; correlates every embedded action to its unique opaque selector by position, rank, and
+  candidate; exposes one primary action plus bounded alternatives only while current; and keeps a
+  last-known-safe snapshot strictly display-only while recalculation is pending or failed;
+- an opaque planned-Focus read path that accepts only the selector, preserves historical START
+  continuity for the exact still-active attributed session, accepts RESUME only from the current
+  snapshot, and refuses stale selectors after completion or pointer movement. Planned completion
+  and stop return server-side to Today before the old route can become invalid;
+- a privacy-minimizing Targets-to-Planning readiness adapter that converts the Targets-owned
+  blocker shape into Planning's exact `{code, ruleKey}` input without leaking interval detail;
+- lossless Planning attempt clocks across PostgreSQL microseconds. The engine preserves
+  sub-millisecond provenance while ordinary instants remain canonical, and Today compares
+  equivalent offset forms without hiding even one microsecond of drift;
+- authenticated Chromium acceptance for initial, failed, pending, current, degraded, Start,
+  post-start reload, recalculated Resume, exact-session continuity, completion, stale refusal, and
+  post-completion recalculation, including 320/390-pixel no-overflow, reduced motion, forced colors,
+  and WCAG A/AA automation.
 
 ## Not yet implemented
 
 - later plan/track/activity lifecycle and capacity commands;
 - campaign persistence and same-session duration/energy preference persistence;
-- `/today`, the server-rendered selection-to-Focus journey, and responsive/accessibility browser
-  acceptance;
 - campaign overrides, dated availability, Plan/Track editing, ChangeSet preview, and Agent Control
   application.
 
 The worker now applies real snapshots for workspaces that already have completed Focus history, with
 capacity, per-track cadence credit, and repetition derived from the reviewed completed-work policy.
-The authenticated Today boundary exposes live recommendations only through the strict freshness
-envelope and opaque selections; no user-facing `/today` route is claimed yet. Fixtures and
-repository files are never used as live plan state.
+The authenticated Today boundary and user-facing route expose live recommendations only through the
+strict freshness envelope and opaque selections. Fixtures and repository files are never used as
+live plan state. Phase 4A is complete; later lifecycle/editing and Campaign work remains Phase
+4B/4C.

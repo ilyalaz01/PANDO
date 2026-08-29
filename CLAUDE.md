@@ -58,42 +58,39 @@ Human roadmap position:
 - C6 — live Today read boundary, opaque action resolver, and attributed idempotent Focus start:
   complete.
 - C7–C9 — `/today`, server-rendered selection-to-Focus journey, and
-  responsive/accessibility/authenticated browser acceptance: pending.
+  responsive/accessibility/authenticated browser acceptance: complete.
 - D — plan/capacity/campaign lifecycle and editing: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The authenticated Today API boundary exists, but there is no `/today` page yet. Do not describe the
-absence of the page as an absent read model, and do not describe the API boundary as a completed
-browser journey.
+The first complete Today-to-Focus browser journey is implemented and verified. The next product gap
+is not another Today shell: it is the versioned Phase 4 lifecycle/editing command surface required
+before Agent Control can safely manage plans.
 
-## Current bounded outcome: C7 live Today page
+## Current bounded outcome: D0 Phase 4B lifecycle design
 
-Build the first user-facing `/today` route on top of the completed C6 boundary. Read the installed
-Next.js 16 guide under `node_modules/next/dist/docs/` before writing route code.
+Design the smallest coherent command sequence for the remaining Phase 4 lifecycle surface before
+adding another public mutation. Trace every decision to the canonical Domain Model, Product and UX
+Specification, MVP Delivery Plan, ADR-0003, module topology, and the existing Planning/Targets
+aggregate contracts.
 
 Required outcome:
 
-- load `TodayWorkspaceV1` only through the zero-argument generated-type-backed server adapter;
-- render explicit `NOT_STARTED`, `PENDING`, `ERROR`, and `CURRENT` states without presenting a
-  degraded snapshot as actionable;
-- show a clear primary recommendation and bounded alternatives only from the embedded snapshot,
-  correlating each action to its opaque selector by rank and candidate key;
-- preserve the designed `/today → /focus?selection=<opaque>` journey. Add the smallest safe
-  server-owned Focus read/redirect boundary needed for that selection; never resolve the
-  authority-bearing action tuple in browser code;
-- start new work only through `start_focus_from_plan_v1(selectionRef, idempotencyKey)` and preserve
-  exact retry behavior. Resume must return the existing active session without creating a new one;
-- use semantic `main`, skip link, headings, ordinary navigation, 44-pixel targets, visible focus,
-  reduced-motion and forced-colors support, and stacked 320/390-pixel layouts without overflow;
-- add unit/component tests plus authenticated Chromium coverage for current, degraded, failure,
-  Start, Resume, reload, and stale/recalculation behavior before claiming the journey complete;
-- do not add plan editing, campaigns, Agent Control, or fixture fallbacks to this outcome.
+- specify aggregate owners, expected-version fences, idempotency identities, lifecycle transition
+  tables, atomic receipt/state/outbox effects, and history-preserving terminal behavior;
+- order the vertical slices so manual UI and Agent Control can later call the same commands;
+- cover at least Growth Plan capacity plus pause/resume/complete and Learning Track
+  priority/cadence plus pause/resume/complete before designing Campaign overrides;
+- define deterministic before/after preview inputs without letting a preview become authority;
+- keep Campaign ownership/cardinality and target changes consistent with the canonical model;
+- do not expose inert controls, add an embedded model, or start Agent Control transport code before
+  the owning commands exist.
 
-Keep C7 focused on a useful vertical slice. C8/C9 may remain separate when the authenticated
-journey or full responsive/accessibility matrix cannot be completed in the same reviewed commit.
+The design must end with one narrowly named first implementation outcome and its database,
+contract, concurrency, and browser acceptance gates. If it selects a hard-to-reverse technical
+decision not already accepted, add a superseding or new ADR before implementation.
 
 ## Architecture and safety rules
 

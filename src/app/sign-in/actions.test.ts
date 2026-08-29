@@ -42,14 +42,14 @@ describe("sign-in Server Action", () => {
     );
   });
 
-  it("redirects authenticated sessions only to the fixed start route", async () => {
+  it("redirects authenticated sessions only to the fixed daily Today route", async () => {
     mocks.signIn.mockResolvedValue({ status: "authenticated" });
     const form = new FormData();
     form.set("email", "owner@pando.test");
     form.set("password", "strong-password");
 
     await expect(signInAction(initialSignInActionState, form)).rejects.toThrow(
-      "NEXT_REDIRECT:/start",
+      "NEXT_REDIRECT:/today",
     );
   });
 

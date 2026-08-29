@@ -23,7 +23,7 @@ export async function signInAction(
     result = { status: "unavailable" };
   }
 
-  if (result.status === "authenticated") redirect("/start");
+  if (result.status === "authenticated") redirect("/today");
   if (result.status === "invalid_credentials") {
     return {
       status: "invalid_credentials",

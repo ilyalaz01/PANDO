@@ -66,7 +66,10 @@ export default async function StartPage({
           >
             PANDO
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/today">
+              Today
+            </Link>
             <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/review">
               Review
             </Link>

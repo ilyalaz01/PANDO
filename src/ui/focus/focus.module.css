@@ -247,6 +247,23 @@
   font-weight: 800;
 }
 
+.plannedTime {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+}
+
+.plannedTime span {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
 .choice {
   display: flex;
   align-items: flex-start;
@@ -375,7 +392,8 @@
 
   .cardHeading,
   .historyHeader,
-  .inlineActions {
+  .inlineActions,
+  .plannedTime {
     align-items: stretch;
     flex-direction: column;
   }
@@ -399,5 +417,9 @@
   .projectionCard,
   .history {
     border: 1px solid CanvasText;
+  }
+
+  .plannedTime {
+    border-color: CanvasText;
   }
 }

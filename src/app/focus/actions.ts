@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect, RedirectType } from "next/navigation";
 
 import { dispatchMasteryEvidenceProjectionIfConfigured } from "../../modules/mastery/application/dispatch-evidence-projection";
 import { dispatchReviewItemProjectionIfConfigured } from "../../modules/review/application/dispatch-review-projection";
@@ -16,6 +17,11 @@ import {
   startFocusActivityV1,
 } from "../../ui/focus/server/database-focus-workspace";
 import { FOCUS_RESULT_KINDS, type FocusResultKind } from "../../ui/focus/server/focus-workspace-v1";
+import {
+  TodayConflictError,
+  TodayInputError,
+  startFocusFromPlanV1,
+} from "../../ui/today/server/database-today-workspace";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 
@@ -31,19 +37,43 @@ function requestId(formData: FormData): string {
 }
 
 function failure(error: unknown): FocusActionState {
-  if (error instanceof FocusConflictError) {
+  if (error instanceof FocusConflictError || error instanceof TodayConflictError) {
     return {
       status: "conflict",
       message: "Focus changed in another request. Your draft is still here; reload and review it.",
     };
   }
-  if (error instanceof FocusInputError) {
+  if (error instanceof FocusInputError || error instanceof TodayInputError) {
     return { status: "invalid", message: "Check this form. Nothing was changed." };
   }
   return {
     status: "unavailable",
     message: "PANDO could not apply this Focus change. Nothing was lost; try again.",
   };
+}
+
+export async function startFocusFromPlanAction(
+  _previousState: FocusActionState,
+  formData: FormData,
+): Promise<FocusActionState> {
+  void _previousState;
+  const selectionRef = stringValue(formData, "selectionRef");
+  try {
+    const client = await createPandoServerActionClient();
+    const session = await verifyPandoSession(client);
+    await startFocusFromPlanV1(session.client, {
+      selectionRef,
+      idempotencyKey: `today-focus-start:v1:${selectionRef.replace(/^plan-action:/u, "")}`,
+    });
+  } catch (error) {
+    return failure(error);
+  }
+  revalidatePath("/focus");
+  revalidatePath("/today");
+  redirect(
+    `/focus?${new URLSearchParams({ selection: selectionRef }).toString()}`,
+    RedirectType.replace,
+  );
 }
 
 export async function startFocusAction(
@@ -74,6 +104,7 @@ export async function completeFocusAction(
   formData: FormData,
 ): Promise<FocusActionState> {
   void _previousState;
+  let successMessage: string;
   try {
     const commandRequestId = requestId(formData);
     const resultKind = stringValue(formData, "resultKind");
@@ -100,16 +131,18 @@ export async function completeFocusAction(
     revalidatePath("/focus");
     revalidatePath("/review");
     revalidatePath("/explore");
-    return {
-      status: "updated",
-      message:
-        result.evidenceId === null
-          ? "Completion saved without evidence."
-          : "Result saved. Competency state is recalculating.",
-    };
+    revalidatePath("/today");
+    successMessage =
+      result.evidenceId === null
+        ? "Completion saved without evidence."
+        : "Result saved. Competency state is recalculating.";
   } catch (error) {
     return failure(error);
   }
+  if (stringValue(formData, "returnToToday") === "true") {
+    return redirect("/today", RedirectType.replace);
+  }
+  return { status: "updated", message: successMessage };
 }
 
 export async function stopFocusAction(
@@ -130,10 +163,14 @@ export async function stopFocusAction(
       idempotencyKey: `focus-stop:v1:${commandRequestId}`,
     });
     revalidatePath("/focus");
-    return { status: "updated", message: "Focus session stopped. No evidence was added." };
+    revalidatePath("/today");
   } catch (error) {
     return failure(error);
   }
+  if (stringValue(formData, "returnToToday") === "true") {
+    return redirect("/today", RedirectType.replace);
+  }
+  return { status: "updated", message: "Focus session stopped. No evidence was added." };
 }
 
 export async function invalidateEvidenceAction(

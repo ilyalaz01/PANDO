@@ -8,6 +8,7 @@ import {
   completeFocusAction,
   invalidateEvidenceAction,
   startFocusAction,
+  startFocusFromPlanAction,
   stopFocusAction,
 } from "../../app/focus/actions";
 import { initialFocusActionState, type FocusActionState } from "./focus-action-state";
@@ -30,12 +31,13 @@ function ActionStatus({ state }: { readonly state: FocusActionState }) {
   );
 }
 
-function useRefreshOnUpdate(state: FocusActionState): void {
+function useRefreshOnUpdate(state: FocusActionState, destination?: string): void {
   const router = useRouter();
   useEffect(() => {
     if (state.status !== "updated") return;
-    router.refresh();
-  }, [router, state.status]);
+    if (destination === undefined) router.refresh();
+    else router.replace(destination);
+  }, [destination, router, state.status]);
 }
 
 function ElapsedTime({ startedAt }: { readonly startedAt: string }) {
@@ -77,7 +79,40 @@ function StartForm({ workspace }: { readonly workspace: FocusWorkspaceV1 }) {
   );
 }
 
-function ActiveSession({ workspace }: { readonly workspace: FocusWorkspaceV1 }) {
+function PlannedStartForm({
+  selectionRef,
+  plannedMinutes,
+}: {
+  readonly selectionRef: string;
+  readonly plannedMinutes: number;
+}) {
+  const [state, action, pending] = useActionState(
+    startFocusFromPlanAction,
+    initialFocusActionState,
+  );
+  return (
+    <form action={action} className={styles.form}>
+      <input name="selectionRef" type="hidden" value={selectionRef} />
+      <div className={styles.plannedTime}>
+        <span>Planned focus time</span>
+        <strong>{plannedMinutes} minutes</strong>
+      </div>
+      <p className={styles.hint}>The current Today plan owns this time box.</p>
+      <ActionStatus state={state} />
+      <button className={styles.primaryButton} disabled={pending} type="submit">
+        {pending ? "Starting…" : "Start planned focus"}
+      </button>
+    </form>
+  );
+}
+
+function ActiveSession({
+  workspace,
+  returnToToday,
+}: {
+  readonly workspace: FocusWorkspaceV1;
+  readonly returnToToday: boolean;
+}) {
   const active = workspace.activeSession;
   const activity = workspace.activity;
   const [completeRequestId] = useState(newRequestId);
@@ -90,8 +125,8 @@ function ActiveSession({ workspace }: { readonly workspace: FocusWorkspaceV1 }) 
     stopFocusAction,
     initialFocusActionState,
   );
-  useRefreshOnUpdate(completeState);
-  useRefreshOnUpdate(stopState);
+  useRefreshOnUpdate(completeState, returnToToday ? "/today" : undefined);
+  useRefreshOnUpdate(stopState, returnToToday ? "/today" : undefined);
   if (active === null) return null;
   return (
     <section className={styles.activeCard} aria-labelledby="active-focus-title">
@@ -135,6 +170,7 @@ function ActiveSession({ workspace }: { readonly workspace: FocusWorkspaceV1 }) 
         <input name="requestId" type="hidden" value={completeRequestId} />
         <input name="focusSessionId" type="hidden" value={active.focusSessionId} />
         <input name="expectedVersion" type="hidden" value={active.sessionVersion} />
+        {returnToToday ? <input name="returnToToday" type="hidden" value="true" /> : null}
         <fieldset>
           <legend>What happened?</legend>
           <label className={styles.choice}>
@@ -167,6 +203,7 @@ function ActiveSession({ workspace }: { readonly workspace: FocusWorkspaceV1 }) 
         <input name="requestId" type="hidden" value={stopRequestId} />
         <input name="focusSessionId" type="hidden" value={active.focusSessionId} />
         <input name="expectedVersion" type="hidden" value={active.sessionVersion} />
+        {returnToToday ? <input name="returnToToday" type="hidden" value="true" /> : null}
         <ActionStatus state={stopState} />
         <button
           className={styles.secondaryButton}
@@ -256,13 +293,27 @@ function History({ history }: { readonly history: readonly FocusHistoryItemV1[] 
   );
 }
 
-export function FocusWorkspace({ workspace }: { readonly workspace: FocusWorkspaceV1 }) {
+export interface FocusPlanEntryViewV1 {
+  readonly selectionRef: string;
+  readonly plannedMinutes: number;
+}
+
+export function FocusWorkspace({
+  workspace,
+  planEntry,
+}: {
+  readonly workspace: FocusWorkspaceV1;
+  readonly planEntry?: FocusPlanEntryViewV1;
+}) {
   const exploreQuery = new URLSearchParams({ goal: workspace.readinessGoalKey });
   if (workspace.activity !== null) exploreQuery.set("activity", workspace.activity.activityKey);
   return (
     <div className={styles.workspace}>
-      <Link className={styles.backLink} href={`/explore?${exploreQuery.toString()}`}>
-        ← Back to Explore
+      <Link
+        className={styles.backLink}
+        href={planEntry === undefined ? `/explore?${exploreQuery.toString()}` : "/today"}
+      >
+        ← Back to {planEntry === undefined ? "Explore" : "Today"}
       </Link>
 
       {workspace.activity === null ? (
@@ -289,10 +340,17 @@ export function FocusWorkspace({ workspace }: { readonly workspace: FocusWorkspa
               Open activity resource in a new tab
             </a>
           )}
-          <StartForm workspace={workspace} />
+          {planEntry === undefined ? (
+            <StartForm workspace={workspace} />
+          ) : (
+            <PlannedStartForm
+              plannedMinutes={planEntry.plannedMinutes}
+              selectionRef={planEntry.selectionRef}
+            />
+          )}
         </section>
       ) : (
-        <ActiveSession workspace={workspace} />
+        <ActiveSession returnToToday={planEntry !== undefined} workspace={workspace} />
       )}
 
       <section className={styles.projectionCard} aria-labelledby="mastery-summary-title">

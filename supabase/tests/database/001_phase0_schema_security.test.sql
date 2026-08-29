@@ -277,6 +277,7 @@ where namespace.nspname = 'api'
     'finish_focus_activity_v1',
     'invalidate_evidence_v1',
     'get_focus_workspace_v1',
+    'get_focus_from_plan_v1',
     'get_today_workspace_v1',
     'start_focus_from_plan_v1',
     'create_personal_review_reminder_v1',
@@ -355,6 +356,7 @@ where namespace.nspname = 'api'
     'finish_focus_activity_v1',
     'invalidate_evidence_v1',
     'get_focus_workspace_v1',
+    'get_focus_from_plan_v1',
     'start_focus_from_plan_v1'
   )
 order by procedure.proname;

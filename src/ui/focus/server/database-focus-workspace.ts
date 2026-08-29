@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asArray, asJsonObject, asString } from "../../../shared/contracts/json";
+import { asArray, asJsonObject, asNumber, asString } from "../../../shared/contracts/json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   FOCUS_RESULT_KINDS,
@@ -10,6 +10,7 @@ import {
 } from "./focus-workspace-v1";
 
 export const GET_FOCUS_WORKSPACE_RPC_V1 = "get_focus_workspace_v1" as const;
+export const GET_FOCUS_FROM_PLAN_RPC_V1 = "get_focus_from_plan_v1" as const;
 export const START_FOCUS_ACTIVITY_RPC_V1 = "start_focus_activity_v1" as const;
 export const FINISH_FOCUS_ACTIVITY_RPC_V1 = "finish_focus_activity_v1" as const;
 export const INVALIDATE_EVIDENCE_RPC_V1 = "invalidate_evidence_v1" as const;
@@ -17,6 +18,8 @@ export const INVALIDATE_EVIDENCE_RPC_V1 = "invalidate_evidence_v1" as const;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const ACTIVITY_KEY = /^activity:[a-z0-9][a-z0-9-]{1,100}$/u;
 const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
+const SELECTION_REF =
+  /^plan-action:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 export class FocusInputError extends Error {
   constructor() {
@@ -80,6 +83,14 @@ export interface EvidenceInvalidationResultV1 {
   readonly emittedEventIds: readonly string[];
 }
 
+export interface FocusFromPlanWorkspaceV1 {
+  readonly contract: { readonly name: "FocusFromPlanWorkspaceV1"; readonly version: "1.0.0" };
+  readonly selectionRef: string;
+  readonly entryState: "READY_TO_START" | "ACTIVE";
+  readonly plannedMinutes: number;
+  readonly workspace: FocusWorkspaceV1;
+}
+
 function validIdempotencyKey(value: string): boolean {
   return value.length >= 1 && value.length <= 128 && value.trim() === value;
 }
@@ -96,10 +107,17 @@ function collapseRpcError(error: unknown): never {
   throw new FocusUnavailableError();
 }
 
+function exactKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+  const actual = Object.keys(value).sort();
+  const expected = [...keys].sort();
+  return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
     | typeof GET_FOCUS_WORKSPACE_RPC_V1
+    | typeof GET_FOCUS_FROM_PLAN_RPC_V1
     | typeof START_FOCUS_ACTIVITY_RPC_V1
     | typeof FINISH_FOCUS_ACTIVITY_RPC_V1
     | typeof INVALIDATE_EVIDENCE_RPC_V1,
@@ -116,6 +134,63 @@ async function rpc(
   }
   if (result.error !== null) collapseRpcError(result.error);
   return result.data;
+}
+
+export async function loadFocusFromPlanWorkspaceV1(
+  client: PandoSupabaseClient,
+  selectionRef: string,
+): Promise<FocusFromPlanWorkspaceV1> {
+  if (!SELECTION_REF.test(selectionRef)) throw new FocusInputError();
+  const value = await rpc(client, GET_FOCUS_FROM_PLAN_RPC_V1, {
+    p_selection_ref: selectionRef,
+  });
+  try {
+    const response = asJsonObject(value, "Focus from plan response");
+    const contract = asJsonObject(response.contract, "Focus from plan contract");
+    const returnedSelection = asString(response.selectionRef);
+    const entryState = asString(response.entryState);
+    const plannedMinutes = asNumber(response.plannedMinutes);
+    if (
+      !exactKeys(response, [
+        "contract",
+        "selectionRef",
+        "entryState",
+        "plannedMinutes",
+        "workspace",
+      ]) ||
+      !exactKeys(contract, ["name", "version"]) ||
+      contract.name !== "FocusFromPlanWorkspaceV1" ||
+      contract.version !== "1.0.0" ||
+      returnedSelection !== selectionRef ||
+      (entryState !== "READY_TO_START" && entryState !== "ACTIVE") ||
+      plannedMinutes === undefined ||
+      !Number.isSafeInteger(plannedMinutes) ||
+      plannedMinutes < 1 ||
+      plannedMinutes > 480
+    ) {
+      throw new TypeError("Focus from plan response is invalid");
+    }
+    const workspace = decodeFocusWorkspaceV1(response.workspace);
+    if (
+      workspace.activity === null ||
+      (entryState === "READY_TO_START" && workspace.activeSession !== null) ||
+      (entryState === "ACTIVE" &&
+        (workspace.activeSession === null ||
+          workspace.activeSession.plannedMinutes !== plannedMinutes))
+    ) {
+      throw new TypeError("Focus from plan relationships are inconsistent");
+    }
+    return {
+      contract: { name: "FocusFromPlanWorkspaceV1", version: "1.0.0" },
+      selectionRef: returnedSelection,
+      entryState,
+      plannedMinutes,
+      workspace,
+    };
+  } catch (error) {
+    if (error instanceof FocusInputError) throw error;
+    throw new FocusUnavailableError();
+  }
 }
 
 function commandBase(value: unknown): {
