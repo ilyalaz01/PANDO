@@ -38,6 +38,8 @@ const MAXIMUM_REPETITIONS = 50;
 const MAXIMUM_SESSION_MINUTES = 480;
 const MINUTES_PER_WEEK = 10_080;
 const MAXIMUM_DIRECT_PREREQUISITES = 20;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+const CANDIDATE_KEY = /^candidate:[a-z0-9][a-z0-9-]{1,100}$/u;
 
 export class PlanningProjectionSourceError extends TypeError {
   constructor(
@@ -96,6 +98,56 @@ function requiredBoolean(object: JsonObject, key: string): boolean {
   const value = object[key];
   if (typeof value !== "boolean") fail("INVALID_OWNER_SOURCE", `${key} must be a boolean`);
   return value;
+}
+
+function exactKeys(object: JsonObject, expected: readonly string[], label: string): void {
+  const actual = Object.keys(object).sort(compareCodePoints);
+  const canonicalExpected = [...expected].sort(compareCodePoints);
+  if (
+    actual.length !== canonicalExpected.length ||
+    actual.some((key, index) => key !== canonicalExpected[index])
+  ) {
+    fail("INVALID_OWNER_SOURCE", `${label} must contain exactly ${canonicalExpected.join(", ")}`);
+  }
+}
+
+function requiredUuid(object: JsonObject, key: string, label: string): string {
+  const value = requiredString(object, key);
+  if (!UUID.test(value)) fail("INVALID_OWNER_SOURCE", `${label}.${key} must be a UUID`);
+  return value;
+}
+
+function activePlanAttribution(value: JsonValue | undefined) {
+  if (value === null) return null;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    fail("INVALID_OWNER_SOURCE", "focus.activeFocus.planAttribution must be an object or null");
+  }
+  const attribution = value as JsonObject;
+  exactKeys(
+    attribution,
+    ["planSnapshotId", "candidateKey", "trackId"],
+    "focus.activeFocus.planAttribution",
+  );
+  const candidateKey = requiredString(attribution, "candidateKey");
+  if (!CANDIDATE_KEY.test(candidateKey)) {
+    fail(
+      "INVALID_OWNER_SOURCE",
+      "focus.activeFocus.planAttribution.candidateKey must be a candidate key",
+    );
+  }
+  const trackId =
+    attribution.trackId === null
+      ? null
+      : requiredUuid(attribution, "trackId", "focus.activeFocus.planAttribution");
+  return {
+    planSnapshotId: requiredUuid(
+      attribution,
+      "planSnapshotId",
+      "focus.activeFocus.planAttribution",
+    ),
+    candidateKey,
+    trackId,
+  };
 }
 
 function objectArray(value: JsonValue | undefined, label: string): JsonObject[] {
@@ -718,7 +770,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
               title: requiredString(active, "title"),
               plannedMinutes: integer(active, "plannedMinutes"),
               startedAt: instant(active.startedAt, "focus.startedAt"),
-              planAttribution: null,
+              planAttribution: activePlanAttribution(active.planAttribution),
             };
           })(),
     readiness,

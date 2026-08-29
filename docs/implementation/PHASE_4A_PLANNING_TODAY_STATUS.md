@@ -1,7 +1,7 @@
 # Phase 4A Planning and Today status
 
-Status: Live calculation worker, owner-event routing, completed-work policy, and Mastery
-prerequisite satisfaction implemented; Today UI pending
+Status: Live calculation worker, owner-event routing, completed-work and prerequisite policies,
+Today read/selection boundary, and attributed Focus start implemented; Today UI pending
 Design: [Phase 4A Planning and Today](../design/PHASE_4A_PLANNING_TODAY.md)
 
 This supporting record describes incremental implementation status. The nine canonical documents
@@ -118,18 +118,38 @@ and accepted design remain authoritative.
   validity. The Overlay owner boundary also refuses missing origin and an ambiguous legacy/import
   row whose accepted personal competency reuses a competency reference from the exact Catalog
   version, including a retired item;
+- an authenticated zero-argument `get_today_workspace_v1()` boundary that derives the personal
+  workspace and one query clock, then returns the strict `TodayWorkspaceV1` state precedence:
+  `NOT_STARTED`, relevant `PENDING`, relevant terminal `ERROR`, expired `PENDING`, or exact
+  unexpired `CURRENT`. A dedicated read-only Today role can see only the required Planning/outbox
+  projection rows through forced workspace RLS and a bounded Identity calendar source; it receives
+  no cross-context table grant. Future and obsolete scheduled refreshes are ignored, degraded
+  snapshots are display-only, and only `CURRENT` returns opaque selectors;
+- a backend-only resolver that shares the Planning workspace lock, reuses the same Today
+  classifier, and requires exact current snapshot, applied attempt, inclusive expiry, rank,
+  candidate, full action tuple, and — for Resume — the exact still-active Sessions-owned Focus
+  session. Browser code receives no resolved authority tuple;
+- an authenticated idempotent `start_focus_from_plan_v1(selectionRef, idempotencyKey)` coordinator
+  that checks a completed receipt before selector resolution, derives actor/workspace/activity,
+  accepts only `START`, and atomically persists the Focus Session, attempt, snapshot/candidate/track
+  attribution, `sessions.focus_started`, fixed Planning delivery, receipt, and response. Exact
+  replay remains valid after selector expiry or pointer change; changed-key payloads conflict;
+- a strict server-side TypeScript decoder for `TodayWorkspaceV1`, a generated-type-backed
+  zero-argument read adapter, and an opaque-only start adapter that collapse private database
+  failures before browser code. The non-empty snapshot worker path now creates immutable selectors
+  directly; its former redundant update of an immutable row is removed and regression-tested;
 
 ## Not yet implemented
 
 - later plan/track/activity lifecycle and capacity commands;
-- campaign persistence, same-session duration/energy preference persistence, and Focus plan
-  attribution columns;
-- live `TodayWorkspaceV1` query, opaque selection resolver/coordinator, `/today`, attributed
-  Today-to-Focus journey, and responsive/accessibility acceptance;
+- campaign persistence and same-session duration/energy preference persistence;
+- `/today`, the server-rendered selection-to-Focus journey, and responsive/accessibility browser
+  acceptance;
 - campaign overrides, dated availability, Plan/Track editing, ChangeSet preview, and Agent Control
   application.
 
 The worker now applies real snapshots for workspaces that already have completed Focus history, with
 capacity, per-track cadence credit, and repetition derived from the reviewed completed-work policy.
-No live Today recommendation is exposed before the Today read boundary is implemented. Fixtures and
+The authenticated Today boundary exposes live recommendations only through the strict freshness
+envelope and opaque selections; no user-facing `/today` route is claimed yet. Fixtures and
 repository files are never used as live plan state.

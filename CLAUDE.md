@@ -42,8 +42,8 @@ reinterpret product semantics.
 
 ## Current position
 
-At handoff creation, the code baseline before this instruction file was commit `00ffaca` on `main`,
-matching `origin/main`. Recheck this instead of assuming it remains true.
+Never assume a stored commit is current. Recheck `main`, `origin/main`, the active branch, and the
+latest implementation report before editing.
 
 Human roadmap position:
 
@@ -53,60 +53,47 @@ Human roadmap position:
 - C2 — Growth Plan, Learning Track, candidate, snapshot, and current-pointer persistence: complete.
 - C3 — snapshot worker, exact owner reads, fixed source-event routing, recovery, and quarantine:
   complete.
-- C4 — meaningful completed-work duration and recent-repetition policy/query: next.
-- C5 — versioned Mastery prerequisite-satisfaction policy/query: pending.
-- C6–C9 — live Today read boundary, `/today`, Today-to-Focus, responsive/accessibility/browser
-  acceptance: pending.
+- C4 — meaningful completed-work duration and recent-repetition policy/query: complete.
+- C5 — versioned Mastery prerequisite-satisfaction policy/query: complete.
+- C6 — live Today read boundary, opaque action resolver, and attributed idempotent Focus start:
+  complete.
+- C7–C9 — `/today`, server-rendered selection-to-Focus journey, and
+  responsive/accessibility/authenticated browser acceptance: pending.
 - D — plan/capacity/campaign lifecycle and editing: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The root `README.md` currently contains stale wording that says Planning persistence and its worker
-are still pending. The implementation status, migrations, tests, and commits show that they are
-implemented; the live Today route is still pending. Correct that sentence only in a focused docs
-commit or alongside an accurately completed Phase 4A status update.
+The authenticated Today API boundary exists, but there is no `/today` page yet. Do not describe the
+absence of the page as an absent read model, and do not describe the API boundary as a completed
+browser journey.
 
-## Current bounded outcome: C4 meaningful completed work
+## Current bounded outcome: C7 live Today page
 
-Finish C4 before starting C5 or Today UI. The present worker intentionally fails with
-`UNSUPPORTED_MEANINGFUL_WORK_HISTORY` when the current workspace-local week contains terminal
-Focus sessions. This safety gate must remain until a reviewed, versioned policy and owner-scoped
-query replace it.
+Build the first user-facing `/today` route on top of the completed C6 boundary. Read the installed
+Next.js 16 guide under `node_modules/next/dist/docs/` before writing route code.
 
 Required outcome:
 
-- define a small, explicit, versioned policy for what counts as completed meaningful minutes and
-  how recent candidate repetition is counted;
-- preserve the canonical evidence boundary: raw provider events and session lifecycle events are
-  not evidence;
-- obtain source facts through bounded Sessions/Evidence owner queries; Planning must not read
-  another module's private tables or import its infrastructure;
-- use the same explicit `claimAsOf` and workspace-local week semantics as the existing Planning
-  attempt;
-- populate `completedMinutesThisWeek`, per-track consumption where supported, and
-  `repetitionsInLast7Days` without fabricating values;
-- remove `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` only for the exact history now supported by the
-  policy; keep unsupported or ambiguous states fail-closed;
-- preserve source revisions/fences, canonical input fingerprinting, deterministic replay,
-  idempotency, RLS isolation, and atomic outbox behavior;
-- add boundary, invalid, malicious, invariant/property, database, and worker-path tests appropriate
-  to the changed contracts;
-- update the Phase 4A status and runbook only when the executable behavior genuinely changed.
+- load `TodayWorkspaceV1` only through the zero-argument generated-type-backed server adapter;
+- render explicit `NOT_STARTED`, `PENDING`, `ERROR`, and `CURRENT` states without presenting a
+  degraded snapshot as actionable;
+- show a clear primary recommendation and bounded alternatives only from the embedded snapshot,
+  correlating each action to its opaque selector by rank and candidate key;
+- preserve the designed `/today → /focus?selection=<opaque>` journey. Add the smallest safe
+  server-owned Focus read/redirect boundary needed for that selection; never resolve the
+  authority-bearing action tuple in browser code;
+- start new work only through `start_focus_from_plan_v1(selectionRef, idempotencyKey)` and preserve
+  exact retry behavior. Resume must return the existing active session without creating a new one;
+- use semantic `main`, skip link, headings, ordinary navigation, 44-pixel targets, visible focus,
+  reduced-motion and forced-colors support, and stacked 320/390-pixel layouts without overflow;
+- add unit/component tests plus authenticated Chromium coverage for current, degraded, failure,
+  Start, Resume, reload, and stale/recalculation behavior before claiming the journey complete;
+- do not add plan editing, campaigns, Agent Control, or fixture fallbacks to this outcome.
 
-Never substitute planned duration for completed work. Never count naive page-open time or raw
-wall-clock elapsed time without a reviewed rule. Never mutate evidence, snapshots, pointers,
-fixtures, exports, or Graphify output to make the worker pass.
-
-The exact technical shape is yours to decide after reading the owner models. If no accepted policy
-defines the semantic threshold or evidence relationship, record a focused supporting policy/design
-increment before implementing it. Do not alter a canonical product rule without the required
-review/superseding ADR.
-
-After C4 is complete, verified, and committed, continue sequentially with C5 and then C6. Use a
-separate plan item and commit for each outcome. Do not begin `/today` UI while the live Today query
-and opaque action-selection boundary are absent.
+Keep C7 focused on a useful vertical slice. C8/C9 may remain separate when the authenticated
+journey or full responsive/accessibility matrix cannot be completed in the same reviewed commit.
 
 ## Architecture and safety rules
 

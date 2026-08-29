@@ -277,6 +277,8 @@ where namespace.nspname = 'api'
     'finish_focus_activity_v1',
     'invalidate_evidence_v1',
     'get_focus_workspace_v1',
+    'get_today_workspace_v1',
+    'start_focus_from_plan_v1',
     'create_personal_review_reminder_v1',
     'reschedule_review_reason_v1',
     'skip_review_reason_once_v1',
@@ -352,9 +354,27 @@ where namespace.nspname = 'api'
     'start_focus_activity_v1',
     'finish_focus_activity_v1',
     'invalidate_evidence_v1',
-    'get_focus_workspace_v1'
+    'get_focus_workspace_v1',
+    'start_focus_from_plan_v1'
   )
 order by procedure.proname;
+
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname = 'pando_planning_api'
+  and not owner.rolcanlogin
+  and not owner.rolinherit
+  and not owner.rolbypassrls,
+  format('scoped api definer %s is pinned and owned by the Planning NOLOGIN role', procedure.proname)
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner
+  on owner.oid = procedure.proowner
+where namespace.nspname = 'api'
+  and procedure.proname = 'get_today_workspace_v1';
 
 select ok(
   procedure.prosecdef
@@ -401,7 +421,8 @@ where role.rolname in (
   'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
   'pando_identity_planning_source', 'pando_phase1_planning_source',
   'pando_phase2_planning_source', 'pando_evidence_planning_source',
-  'pando_review_planning_source', 'pando_mastery_planning_source'
+  'pando_review_planning_source', 'pando_mastery_planning_source',
+  'pando_today_reader'
 )
 order by role.rolname;
 
@@ -417,7 +438,8 @@ cross join (values
   ('pando_evidence_planning_source'),
   ('pando_mastery_planning_source'),
   ('pando_review_planning_source'),
-  ('pando_planning_router')
+  ('pando_planning_router'),
+  ('pando_today_reader')
 ) as source_role(role_name)
 order by runtime_role.role_name, source_role.role_name;
 

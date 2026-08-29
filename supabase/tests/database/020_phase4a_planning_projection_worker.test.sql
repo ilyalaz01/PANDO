@@ -233,7 +233,7 @@ select 'complete', pg_catalog.to_jsonb(api.complete_plan_snapshot_projection_v1(
       from worker_results where result_name = 'load'),
     'weekEnd', (select response#>'{sourceBundle,calendar,weekEnd}'
       from worker_results where result_name = 'load'),
-    'recommendationState', 'NO_CANDIDATES',
+    'recommendationState', 'CURRENT',
     'warningCodes', '[]'::jsonb,
     'capacity', pg_catalog.jsonb_build_object(
       'weeklyCapacityMinutes', 300, 'consumedMinutesThisWeek', 0,
@@ -245,7 +245,28 @@ select 'complete', pg_catalog.to_jsonb(api.complete_plan_snapshot_projection_v1(
     ),
     'nearestDeadline', null,
     'readiness', '[]'::jsonb,
-    'actions', '[]'::jsonb
+    'actions', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+      'rank', 1,
+      'actionKind', 'START',
+      'candidateKey', (select response->>'candidateKey'
+        from worker_results where result_name = 'admission'),
+      'focusSessionId', null,
+      'readinessGoalKey', 'goal:planning-worker',
+      'activityKey', 'activity:planning-worker-debug',
+      'trackId', (select response->>'learningTrackId'
+        from worker_results where result_name = 'plan'),
+      'planAttribution', null,
+      'title', 'Debug a Python failure',
+      'durationMinutes', 25,
+      'durationSource', 'PLANNING_ACTIVITY',
+      'energy', 'MEDIUM',
+      'sourceSignals', pg_catalog.jsonb_build_array('GROWTH_PLAN'),
+      'score', 0,
+      'scoreFactors', '[]'::jsonb,
+      'reasonRefs', '[]'::jsonb,
+      'expectedBenefit', 'ADVANCE_GROWTH_TRACK',
+      'reason', 'Advances the active growth track.'
+    ))
   )
 ));
 reset role;
@@ -298,28 +319,8 @@ select ok(
 );
 select is(
   (select count(*)::integer from planning.plan_action_selections),
-  0,
-  'a zero-action snapshot creates no action selectors'
-);
-
-insert into planning.plan_action_selections (
-  selection_id, selection_ref, workspace_id, snapshot_id, attempt_id, rank,
-  candidate_key, action_kind, readiness_goal_key, activity_key,
-  learning_track_id, focus_session_id, planned_minutes, expires_at
-)
-select '2a000000-0000-4000-8000-000000000095',
-  'plan-action:2a000000-0000-4000-8000-000000000095', pointer.workspace_id,
-  pointer.snapshot_id, pointer.applied_attempt_id, 1,
-  (select response->>'candidateKey' from worker_results where result_name = 'admission'),
-  'START', 'goal:planning-worker', 'activity:planning-worker-debug',
-  track.learning_track_id, null, 25, snapshot.valid_until
-from planning.current_plan_snapshots as pointer
-join planning.plan_snapshots as snapshot
-  on snapshot.workspace_id = pointer.workspace_id and snapshot.snapshot_id = pointer.snapshot_id
-join planning.learning_tracks as track
-  on track.workspace_id = pointer.workspace_id
-where pointer.workspace_id = (
-  select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+  1,
+  'a real non-zero-action snapshot creates its immutable opaque selector'
 );
 
 do $test_role_membership$

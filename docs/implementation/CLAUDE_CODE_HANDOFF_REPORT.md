@@ -5,10 +5,11 @@ Agent: Claude Code (Opus 5)
 Branch: `claude/c4-meaningful-work`
 
 Current note (2026-08-29): this is the historical C4 report. Codex completed the independent
-hardening below, fast-forwarded C4 to `main` at `9c76f5f`, and pushed it to `origin/main`. C5 was
-implemented afterward and is documented separately in
-[`CODEX_C5_HANDOFF_REPORT.md`](CODEX_C5_HANDOFF_REPORT.md). Statements below that C5 was not started
-describe the original Claude handoff, not the current repository.
+hardening below, fast-forwarded C4 to `main` at `9c76f5f`, and pushed it to `origin/main`. C5 and C6
+were implemented afterward and are documented separately in
+[`CODEX_C5_HANDOFF_REPORT.md`](CODEX_C5_HANDOFF_REPORT.md) and
+[`CODEX_C6_HANDOFF_REPORT.md`](CODEX_C6_HANDOFF_REPORT.md). Statements below that C5 or the live
+Today boundary had not started describe the original Claude handoff, not the current repository.
 
 ## 1. Outcome attempted
 

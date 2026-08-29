@@ -282,6 +282,7 @@ export type Database = {
         Returns: Json
       }
       get_target_selection_source_v1: { Args: never; Returns: Json }
+      get_today_workspace_v1: { Args: never; Returns: Json }
       get_workspace: { Args: { p_workspace_id: string }; Returns: Json }
       initialize_growth_plan_v1: {
         Args: {
@@ -402,6 +403,10 @@ export type Database = {
           p_planned_minutes: number
           p_readiness_goal_key: string
         }
+        Returns: Json
+      }
+      start_focus_from_plan_v1: {
+        Args: { p_idempotency_key: string; p_selection_ref: string }
         Returns: Json
       }
       suppress_review_reason_v1: {

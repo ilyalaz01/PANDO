@@ -29,7 +29,7 @@ function claim() {
 const focusSessionId = "60000000-0000-4000-8000-000000000001";
 const customActivityId = "70000000-0000-4000-8000-000000000001";
 
-function sourceBundle(unclassifiableHistory = false) {
+function sourceBundle(unclassifiableHistory = false, attributedActiveFocus = false) {
   return {
     claimAsOf: "2026-09-01T12:00:00.000Z",
     sourceFence: `planning-source:${"a".repeat(64)}`,
@@ -46,7 +46,21 @@ function sourceBundle(unclassifiableHistory = false) {
     catalog: { versions: [], items: [] },
     focus: {
       revision: `focus-scope:${"b".repeat(64)}`,
-      activeFocus: null,
+      activeFocus: attributedActiveFocus
+        ? {
+            focusSessionId,
+            readinessGoalKey: "goal:backend",
+            activityKey: "activity:debug-api",
+            title: "Debug an API",
+            plannedMinutes: 25,
+            startedAt: "2026-09-01T11:55:00.000Z",
+            planAttribution: {
+              planSnapshotId: "80000000-0000-4000-8000-000000000001",
+              candidateKey: "candidate:debug-api",
+              trackId: "90000000-0000-4000-8000-000000000001",
+            },
+          }
+        : null,
     },
     completedWork: {
       revision: `completed-work:${"e".repeat(64)}`,
@@ -147,6 +161,61 @@ describe("Planning snapshot dispatcher", () => {
       "record_plan_snapshot_input_v1",
       "complete_plan_snapshot_projection_v1",
     ]);
+  });
+
+  it("preserves Sessions-owned plan attribution through the real worker input", async () => {
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };
+      if (name === "load_plan_snapshot_projection_v1") {
+        return {
+          data: {
+            attemptId,
+            sourceFence: `planning-source:${"a".repeat(64)}`,
+            sourceBundle: sourceBundle(false, true),
+            storedInput: null,
+          },
+          error: null,
+        };
+      }
+      if (name === "record_plan_snapshot_input_v1") return { data: true, error: null };
+      if (name === "complete_plan_snapshot_projection_v1") return { data: "APPLIED", error: null };
+      throw new Error(`unexpected ${name}`);
+    });
+
+    await expect(dispatchPlanSnapshotProjection(client(rpc))).resolves.toMatchObject({
+      completed: 1,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "record_plan_snapshot_input_v1",
+      expect.objectContaining({
+        p_input: expect.objectContaining({
+          activeFocus: expect.objectContaining({
+            planAttribution: {
+              planSnapshotId: "80000000-0000-4000-8000-000000000001",
+              candidateKey: "candidate:debug-api",
+              trackId: "90000000-0000-4000-8000-000000000001",
+            },
+          }),
+        }),
+      }),
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "complete_plan_snapshot_projection_v1",
+      expect.objectContaining({
+        p_result: expect.objectContaining({
+          actions: [
+            expect.objectContaining({
+              actionKind: "RESUME",
+              planAttribution: {
+                planSnapshotId: "80000000-0000-4000-8000-000000000001",
+                candidateKey: "candidate:debug-api",
+                trackId: "90000000-0000-4000-8000-000000000001",
+              },
+            }),
+          ],
+        }),
+      }),
+    );
   });
 
   it("dead-letters unclassifiable history instead of fabricating consumed minutes", async () => {

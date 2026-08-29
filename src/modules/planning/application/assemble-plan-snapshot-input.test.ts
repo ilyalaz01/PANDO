@@ -515,6 +515,11 @@ describe("assemblePlanSnapshotInput", () => {
           title: "Debug an API",
           plannedMinutes: 25,
           startedAt: "2026-08-31T11:55:00Z",
+          planAttribution: {
+            planSnapshotId: "26000000-0000-4000-8000-000000000111",
+            candidateKey: "candidate:debug-api",
+            trackId: "26000000-0000-4000-8000-000000000102",
+          },
         },
       },
       review: {
@@ -543,7 +548,11 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.activeFocus).toMatchObject({
       focusSessionId: "26000000-0000-4000-8000-000000000109",
       startedAt: "2026-08-31T11:55:00.000Z",
-      planAttribution: null,
+      planAttribution: {
+        planSnapshotId: "26000000-0000-4000-8000-000000000111",
+        candidateKey: "candidate:debug-api",
+        trackId: "26000000-0000-4000-8000-000000000102",
+      },
     });
     expect(input.candidates[0]).toMatchObject({
       energy: null,
@@ -553,6 +562,53 @@ describe("assemblePlanSnapshotInput", () => {
       review: { bucket: "OVERDUE", dueAt: "2026-08-30T12:00:00.000Z" },
     });
     expect(calculatePlan(input, PLANNING_POLICY_V0_1).recommendationState).toBe("CURRENT");
+  });
+
+  it.each([
+    ["missing attribution", undefined],
+    [
+      "partial attribution",
+      {
+        planSnapshotId: "26000000-0000-4000-8000-000000000111",
+        candidateKey: "candidate:debug-api",
+      },
+    ],
+    [
+      "additional attribution data",
+      {
+        planSnapshotId: "26000000-0000-4000-8000-000000000111",
+        candidateKey: "candidate:debug-api",
+        trackId: null,
+        privateNote: "must not cross the owner boundary",
+      },
+    ],
+    [
+      "malformed attribution",
+      { planSnapshotId: "not-a-uuid", candidateKey: "active-focus:forged", trackId: null },
+    ],
+  ])("fails closed on active Focus %s", (_label, planAttribution) => {
+    const source = sourceBundle();
+    expect(() =>
+      assemblePlanSnapshotInput({
+        ...source,
+        focus: {
+          ...source.focus,
+          activeFocus: {
+            focusSessionId: "26000000-0000-4000-8000-000000000109",
+            readinessGoalKey: "goal:backend",
+            activityKey: "activity:debug-api",
+            title: "Debug an API",
+            plannedMinutes: 25,
+            startedAt: "2026-08-31T11:55:00Z",
+            planAttribution,
+          },
+        },
+      }),
+    ).toThrowError(
+      expect.objectContaining<Partial<PlanningProjectionSourceError>>({
+        code: "INVALID_OWNER_SOURCE",
+      }),
+    );
   });
 
   it("aggregates Mastery classifications with Blocked precedence and caps validity", () => {

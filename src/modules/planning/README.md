@@ -83,6 +83,8 @@ event blocks the cursor until an administrator records a reviewed append-only qu
 idempotent command refuses valid events and atomically emits a Planning-owned current-state repair
 wake-up with separate command provenance and causation back to the malformed event.
 
-Live Today remains unavailable until its read model and opaque selection resolver are implemented.
-A UI-only recommendation assembled from fixtures or direct cross-module table reads is not a
-Planning implementation.
+The live Today read model and opaque selection resolver are now implemented behind authenticated,
+current-personal server boundaries. Degraded output is display-only, selector authority is resolved
+only in the database transaction, and attributed Focus start uses the ordinary idempotent Sessions
+command path. The `/today` page and its authenticated browser journey remain; they must consume this
+boundary rather than fixtures or direct cross-module table reads.

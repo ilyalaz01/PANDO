@@ -10,7 +10,10 @@ now has its pure deterministic Planning engine, policy, exact-input contracts, s
 envelope, Planning persistence, the snapshot projection worker, fixed owner-event routing, and the
 versioned completed-work policy that derives capacity, track cadence credit, and repetition from
 bounded Sessions/Evidence owner queries, plus versioned direct-prerequisite satisfaction from
-bounded Catalog/Mastery owner queries; the live Today route remains in progress.
+bounded Catalog/Mastery owner queries. Its authenticated Today read boundary now exposes only the
+strict freshness envelope and opaque selections, and its idempotent start coordinator persists exact
+plan attribution without trusting browser-supplied action fields; the `/today` UI remains in
+progress.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -27,9 +30,9 @@ authenticated, optimistic, idempotent commands that atomically emit outbox event
 records meaningful manual evidence and projects explainable Mastery; `/review` provides one
 deduplicated item per competency dimension with auditable retention, verification, and personal
 reminder reasons plus reschedule, skip-once, suppress, and restore commands. Planning publishes
-immutable snapshots behind its current-pointer boundary, but no live Today recommendation is claimed
-before its read model and opaque action selectors exist, and the live Agent Control plane remains a
-later phase.
+immutable snapshots behind its current-pointer boundary. The live server boundary can now read a
+current recommendation and safely start Focus from its opaque selector, but the user-facing Today
+page and the live Agent Control plane remain later increments.
 
 ## Prerequisites
 
