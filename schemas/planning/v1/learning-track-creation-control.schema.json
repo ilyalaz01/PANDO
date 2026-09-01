@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v1/learning-track-creation-control.schema.json",
+  "title": "PANDO Learning Track Creation Control V1",
+  "oneOf": [
+    { "$ref": "#/$defs/sourceReady" },
+    { "$ref": "#/$defs/sourceUnavailableWithPlan" },
+    { "$ref": "#/$defs/sourceUnavailableWithoutPlan" },
+    { "$ref": "#/$defs/preview" },
+    { "$ref": "#/$defs/applyResult" }
+  ],
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "uuidV8": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "positiveBigint": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7])$"
+    },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "readinessGoalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "profileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "trackKey": {
+      "type": "string",
+      "pattern": "^track:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,198}\\S)$"
+    },
+    "trackTitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,158}\\S)$"
+    },
+    "safeLabel": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,198}\\S)$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,498}\\S)$"
+    },
+    "contractSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "LearningTrackCreationSourceV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "contractPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "LearningTrackCreationPreviewV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "contractApply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "LearningTrackCreationApplyResultV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "growthPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "lifecycle", "weeklyCapacityMinutes", "aggregateVersion"],
+      "properties": {
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
+        "weeklyCapacityMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "trackPortfolio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currentTrackCount", "currentTrackLimit"],
+      "properties": {
+        "currentTrackCount": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "currentTrackLimit": { "const": 30 }
+      }
+    },
+    "goalChoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoalKey",
+        "title",
+        "profileLabel",
+        "profileVersionKey",
+        "roadmapPresent",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "profileLabel": { "$ref": "#/$defs/safeLabel" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "roadmapPresent": { "type": "boolean" },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "sourceReady": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "state", "capabilities", "growthPlan", "trackPortfolio", "goals"],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractSource" },
+        "state": { "const": "READY" },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "const": "create_learning_track" }
+        },
+        "growthPlan": { "$ref": "#/$defs/growthPlan" },
+        "trackPortfolio": { "$ref": "#/$defs/trackPortfolio" },
+        "goals": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/goalChoice" }
+        }
+      }
+    },
+    "sourceUnavailableWithPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "state", "capabilities", "growthPlan", "trackPortfolio", "goals"],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractSource" },
+        "state": {
+          "enum": [
+            "TRACK_PORTFOLIO_LIMIT_REACHED",
+            "NO_ACTIVE_GOALS",
+            "GOAL_PORTFOLIO_OVERFLOW"
+          ]
+        },
+        "capabilities": { "type": "array", "maxItems": 0 },
+        "growthPlan": { "$ref": "#/$defs/growthPlan" },
+        "trackPortfolio": { "$ref": "#/$defs/trackPortfolio" },
+        "goals": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "sourceUnavailableWithoutPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "state", "capabilities", "growthPlan", "trackPortfolio", "goals"],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractSource" },
+        "state": { "const": "NO_CURRENT_PLAN" },
+        "capabilities": { "type": "array", "maxItems": 0 },
+        "growthPlan": { "type": "null" },
+        "trackPortfolio": { "type": "null" },
+        "goals": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "resolvedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoalId",
+        "readinessGoalKey",
+        "readinessGoalTitle",
+        "readinessGoalLifecycle",
+        "readinessGoalVersion",
+        "profileVersionId",
+        "profileVersionKey",
+        "sourceKind",
+        "sourceRef",
+        "roadmapVersionId",
+        "sourceOwnerRevision"
+      ],
+      "properties": {
+        "readinessGoalId": { "$ref": "#/$defs/uuid" },
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "readinessGoalTitle": { "$ref": "#/$defs/title" },
+        "readinessGoalLifecycle": { "const": "ACTIVE" },
+        "readinessGoalVersion": { "$ref": "#/$defs/positiveBigint" },
+        "profileVersionId": { "$ref": "#/$defs/uuid" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "sourceKind": {
+          "enum": ["ROADMAP_TEMPLATE_VERSION", "TARGET_PROFILE_REQUIREMENT_COLLECTION"]
+        },
+        "sourceRef": { "$ref": "#/$defs/uuid" },
+        "roadmapVersionId": {
+          "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }]
+        },
+        "sourceOwnerRevision": {
+          "type": "string",
+          "pattern": "^readiness-goal:[1-9][0-9]{0,18}$"
+        }
+      }
+    },
+    "createdTrack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learningTrackId",
+        "trackKey",
+        "title",
+        "lifecycle",
+        "priority",
+        "protectedMinimumMinutes",
+        "defaultSessionMinutes",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "learningTrackId": { "$ref": "#/$defs/uuidV8" },
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/trackTitle" },
+        "lifecycle": { "const": "ACTIVE" },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "protectedMinimumMinutes": { "const": 0 },
+        "defaultSessionMinutes": { "type": "integer", "minimum": 1, "maximum": 480 },
+        "aggregateVersion": { "const": "1" }
+      }
+    },
+    "constraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "currentTrackCountBefore",
+        "currentTrackCountAfter",
+        "currentTrackLimit",
+        "activeProtectedMinimumMinutesBefore",
+        "activeProtectedMinimumMinutesAfter",
+        "flexibleMinutesBefore",
+        "flexibleMinutesAfter",
+        "currentTrackOrderFingerprintBefore",
+        "currentTrackOrderFingerprintAfter",
+        "newTrackPosition"
+      ],
+      "properties": {
+        "currentTrackCountBefore": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "currentTrackCountAfter": { "type": "integer", "minimum": 1, "maximum": 31 },
+        "currentTrackLimit": { "const": 30 },
+        "activeProtectedMinimumMinutesBefore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "activeProtectedMinimumMinutesAfter": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "flexibleMinutesBefore": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "flexibleMinutesAfter": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "currentTrackOrderFingerprintBefore": { "$ref": "#/$defs/digest" },
+        "currentTrackOrderFingerprintAfter": { "$ref": "#/$defs/digest" },
+        "newTrackPosition": { "type": "integer", "minimum": 1, "maximum": 31 }
+      }
+    },
+    "blockingReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "enum": ["TRACK_PORTFOLIO_LIMIT_REACHED", "PLANNING_CREATE_IDENTITY_COLLISION"]
+        }
+      }
+    },
+    "warning": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code"],
+          "properties": { "code": { "const": "PARENT_GROWTH_PLAN_PAUSED" } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code"],
+          "properties": { "code": { "const": "TRACK_STARTS_EMPTY" } }
+        }
+      ]
+    },
+    "retained": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planHistory",
+        "trackHistory",
+        "activitiesAndEvidence",
+        "masteryAndReadiness",
+        "reviewQueue",
+        "planSnapshots"
+      ],
+      "properties": {
+        "planHistory": { "const": true },
+        "trackHistory": { "const": true },
+        "activitiesAndEvidence": { "const": true },
+        "masteryAndReadiness": { "const": true },
+        "reviewQueue": { "const": true },
+        "planSnapshots": { "const": true }
+      }
+    },
+    "recalculationAfterApply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectionState", "eventChangeKind", "consumerName"],
+      "properties": {
+        "projectionState": { "const": "PENDING" },
+        "eventChangeKind": { "const": "TRACK_CREATED" },
+        "consumerName": { "const": "planning.plan_snapshot_v1" }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "digestVersion",
+        "identityVersion",
+        "operation",
+        "commandType",
+        "requestId",
+        "reason",
+        "expectedGrowthPlanVersion",
+        "expectedReadinessGoalVersion",
+        "growthPlan",
+        "source",
+        "constraint",
+        "learningTrack",
+        "canApply",
+        "blockingReasons",
+        "warnings",
+        "retained",
+        "recalculationAfterApply",
+        "previewDigest"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractPreview" },
+        "digestVersion": { "const": "learning-track-creation-preview-digest/1.0.0" },
+        "identityVersion": { "const": "planning-create-identity/1.0.0" },
+        "operation": { "const": "create_learning_track" },
+        "commandType": { "const": "planning.create_learning_track_v1" },
+        "requestId": { "$ref": "#/$defs/uuid" },
+        "reason": { "$ref": "#/$defs/reason" },
+        "expectedGrowthPlanVersion": { "$ref": "#/$defs/positiveBigint" },
+        "expectedReadinessGoalVersion": { "$ref": "#/$defs/positiveBigint" },
+        "growthPlan": { "$ref": "#/$defs/growthPlan" },
+        "source": { "$ref": "#/$defs/resolvedSource" },
+        "constraint": { "$ref": "#/$defs/constraint" },
+        "learningTrack": { "$ref": "#/$defs/createdTrack" },
+        "canApply": { "type": "boolean" },
+        "blockingReasons": {
+          "type": "array",
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/blockingReason" }
+        },
+        "warnings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/warning" }
+        },
+        "retained": { "$ref": "#/$defs/retained" },
+        "recalculationAfterApply": { "$ref": "#/$defs/recalculationAfterApply" },
+        "previewDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "applyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "commandId",
+        "createdTrack",
+        "projectionState",
+        "planningDeliveryId",
+        "emittedEventIds"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractApply" },
+        "commandId": { "$ref": "#/$defs/uuid" },
+        "createdTrack": { "$ref": "#/$defs/createdTrack" },
+        "projectionState": { "const": "PENDING" },
+        "planningDeliveryId": { "$ref": "#/$defs/uuid" },
+        "emittedEventIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/uuid" }
+        }
+      }
+    }
+  }
+}

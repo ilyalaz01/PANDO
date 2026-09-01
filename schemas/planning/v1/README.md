@@ -57,6 +57,13 @@ carries empty capabilities and choices. The preview exposes server-derived UUIDv
 identity, exact Targets-owned source bindings, zero-minimum first-Track state, retained facts, and
 pending recalculation without accepting workspace or aggregate UUID authority from the browser.
 
+`learning-track-creation-control.schema.json` adds the separate current-Plan source, deterministic
+preview, and applied-command result for creating one additional active Learning Track. The source
+exposes only the current Plan summary, current Track count against the fixed limit of 30, and one
+to 20 active Goal choices in stable order. The preview binds the exact resolved Goal/profile
+source, server-derived Track UUIDv8 identity, stable current-order fingerprints before and after,
+zero protected minimum at creation, retained history, and pending recalculation.
+
 `learning-track-lifecycle-control.schema.json` contains the compact current Track read plus exact
 pause/resume preview and apply result. `learning-track-priority-minimum-control.schema.json` reuses
 that read unchanged and atomically proposes both resulting settings. Its preview binds both the

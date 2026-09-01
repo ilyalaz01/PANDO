@@ -4,6 +4,7 @@
   "title": "PANDO Planning Input Event V1",
   "oneOf": [
     { "$ref": "#/$defs/growthPlanInitialized" },
+    { "$ref": "#/$defs/trackCreated" },
     { "$ref": "#/$defs/trackActivityAdmitted" },
     { "$ref": "#/$defs/planLifecycleChanged" },
     { "$ref": "#/$defs/planCapacityChanged" },
@@ -180,6 +181,36 @@
               "minimum": 0,
               "maximum": 10080
             }
+          }
+        }
+      }
+    },
+    "trackCreated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "planning.input_changed" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "growth_plan_id",
+            "learning_track_id",
+            "learning_track_version",
+            "readiness_goal_id",
+            "profile_version_id"
+          ],
+          "properties": {
+            "change_kind": { "const": "TRACK_CREATED" },
+            "growth_plan_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
+            "readiness_goal_id": { "$ref": "#/$defs/uuid" },
+            "profile_version_id": { "$ref": "#/$defs/uuid" }
           }
         }
       }

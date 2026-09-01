@@ -1,0 +1,13 @@
+{
+  "event_name": "planning.input_changed",
+  "event_schema_version": 1,
+  "workspace_id": "7fffffff-ffff-4fff-bfff-fffffffffff1",
+  "payload": {
+    "change_kind": "TRACK_CREATED",
+    "growth_plan_id": "7fffffff-ffff-4fff-bfff-fffffffffff2",
+    "learning_track_id": "7fffffff-ffff-8fff-bfff-fffffffffff3",
+    "learning_track_version": "9223372036854775807",
+    "readiness_goal_id": "7fffffff-ffff-4fff-bfff-fffffffffff4",
+    "profile_version_id": "7fffffff-ffff-4fff-bfff-fffffffffff5"
+  }
+}

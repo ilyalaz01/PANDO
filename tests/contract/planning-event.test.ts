@@ -21,6 +21,10 @@ import trackPriorityMinimumBoundaryFixture from "./fixtures/events/v1/planning-t
 import trackPriorityMinimumInvalidFixture from "./fixtures/events/v1/planning-track-priority-minimum.invalid.json";
 import trackPriorityMinimumMaliciousFixture from "./fixtures/events/v1/planning-track-priority-minimum.malicious.json";
 import trackPriorityMinimumValidFixture from "./fixtures/events/v1/planning-track-priority-minimum.valid.json";
+import trackCreatedBoundaryFixture from "./fixtures/events/v1/planning-track-created.boundary.json";
+import trackCreatedInvalidFixture from "./fixtures/events/v1/planning-track-created.invalid.json";
+import trackCreatedMaliciousFixture from "./fixtures/events/v1/planning-track-created.malicious.json";
+import trackCreatedValidFixture from "./fixtures/events/v1/planning-track-created.valid.json";
 
 describe("Planning Input Event V1", () => {
   it("keeps valid, boundary, invalid, and malicious fixtures executable", () => {
@@ -50,6 +54,10 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", trackPriorityMinimumMaliciousFixture).valid).toBe(
       false,
     );
+    expect(validateSchema("planning-event-v1", trackCreatedValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackCreatedBoundaryFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackCreatedInvalidFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", trackCreatedMaliciousFixture).valid).toBe(false);
   });
 
   it("covers only the registered initialization, admission, lifecycle, capacity, and Track-input variants", () => {

@@ -1,0 +1,26 @@
+{
+  "contract": { "name": "LearningTrackCreationSourceV1", "version": "1.0.0" },
+  "state": "READY",
+  "capabilities": ["create_learning_track"],
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4",
+    "workspaceId": "forbidden"
+  },
+  "trackPortfolio": {
+    "currentTrackCount": 2,
+    "currentTrackLimit": 30
+  },
+  "goals": [
+    {
+      "readinessGoalKey": "goal:backend-readiness",
+      "title": "Backend readiness",
+      "profileLabel": "Backend profile",
+      "profileVersionKey": "target:backend-engineer-v1",
+      "roadmapPresent": true,
+      "aggregateVersion": "7"
+    }
+  ]
+}

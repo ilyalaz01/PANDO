@@ -1,0 +1,69 @@
+{
+  "contract": { "name": "LearningTrackCreationPreviewV1", "version": "1.0.0" },
+  "digestVersion": "learning-track-creation-preview-digest/1.0.0",
+  "identityVersion": "planning-create-identity/1.0.0",
+  "operation": "create_learning_track",
+  "commandType": "planning.create_learning_track_v1",
+  "requestId": "10000000-0000-4000-8000-000000000002",
+  "reason": "Create one more lane after hitting the cap.",
+  "expectedGrowthPlanVersion": "4",
+  "expectedReadinessGoalVersion": "7",
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "source": {
+    "readinessGoalId": "20000000-0000-4000-8000-000000000002",
+    "readinessGoalKey": "goal:backend-readiness",
+    "readinessGoalTitle": "Backend readiness",
+    "readinessGoalLifecycle": "ACTIVE",
+    "readinessGoalVersion": "7",
+    "profileVersionId": "30000000-0000-4000-8000-000000000002",
+    "profileVersionKey": "target:backend-engineer-v1",
+    "sourceKind": "TARGET_PROFILE_REQUIREMENT_COLLECTION",
+    "sourceRef": "30000000-0000-4000-8000-000000000002",
+    "roadmapVersionId": null,
+    "sourceOwnerRevision": "readiness-goal:7"
+  },
+  "constraint": {
+    "currentTrackCountBefore": 30,
+    "currentTrackCountAfter": 31,
+    "currentTrackLimit": 30,
+    "activeProtectedMinimumMinutesBefore": 180,
+    "activeProtectedMinimumMinutesAfter": 180,
+    "flexibleMinutesBefore": 420,
+    "flexibleMinutesAfter": 420,
+    "currentTrackOrderFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "currentTrackOrderFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "newTrackPosition": 31
+  },
+  "learningTrack": {
+    "learningTrackId": "50000000-0000-8000-8000-000000000002",
+    "trackKey": "track:50000000-0000-8000-8000-000000000002",
+    "title": "Overflow lane",
+    "lifecycle": "ACTIVE",
+    "priority": 75,
+    "protectedMinimumMinutes": 0,
+    "defaultSessionMinutes": 30,
+    "aggregateVersion": "1"
+  },
+  "canApply": false,
+  "blockingReasons": [{ "code": "TRACK_PORTFOLIO_LIMIT_REACHED" }],
+  "warnings": [{ "code": "PARENT_GROWTH_PLAN_PAUSED" }, { "code": "TRACK_STARTS_EMPTY" }],
+  "retained": {
+    "planHistory": true,
+    "trackHistory": true,
+    "activitiesAndEvidence": true,
+    "masteryAndReadiness": true,
+    "reviewQueue": true,
+    "planSnapshots": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "TRACK_CREATED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}
