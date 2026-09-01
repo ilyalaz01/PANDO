@@ -1,0 +1,13 @@
+{
+  "event_name": "planning.input_changed",
+  "event_schema_version": 1,
+  "workspace_id": "30000000-0000-4000-8000-000000000001",
+  "payload": {
+    "change_kind": "TRACK_PRIORITY_MINIMUM_CHANGED",
+    "growth_plan_id": "30000000-0000-4000-8000-000000000020",
+    "learning_track_id": "30000000-0000-4000-8000-000000000021",
+    "learning_track_version": "0",
+    "priority": 101,
+    "protected_minimum_minutes": 10081
+  }
+}

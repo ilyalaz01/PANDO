@@ -17,6 +17,10 @@ import trackLifecycleBoundaryFixture from "./fixtures/events/v1/planning-track-l
 import trackLifecycleInvalidFixture from "./fixtures/events/v1/planning-track-lifecycle.invalid.json";
 import trackLifecycleMaliciousFixture from "./fixtures/events/v1/planning-track-lifecycle.malicious.json";
 import trackLifecycleValidFixture from "./fixtures/events/v1/planning-track-lifecycle.valid.json";
+import trackPriorityMinimumBoundaryFixture from "./fixtures/events/v1/planning-track-priority-minimum.boundary.json";
+import trackPriorityMinimumInvalidFixture from "./fixtures/events/v1/planning-track-priority-minimum.invalid.json";
+import trackPriorityMinimumMaliciousFixture from "./fixtures/events/v1/planning-track-priority-minimum.malicious.json";
+import trackPriorityMinimumValidFixture from "./fixtures/events/v1/planning-track-priority-minimum.valid.json";
 
 describe("Planning Input Event V1", () => {
   it("keeps valid, boundary, invalid, and malicious fixtures executable", () => {
@@ -36,9 +40,19 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", trackLifecycleBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", trackLifecycleInvalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", trackLifecycleMaliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", trackPriorityMinimumValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackPriorityMinimumBoundaryFixture).valid).toBe(
+      true,
+    );
+    expect(validateSchema("planning-event-v1", trackPriorityMinimumInvalidFixture).valid).toBe(
+      false,
+    );
+    expect(validateSchema("planning-event-v1", trackPriorityMinimumMaliciousFixture).valid).toBe(
+      false,
+    );
   });
 
-  it("covers exactly the initialized, Track-admission, lifecycle, capacity, and Track lifecycle variants", () => {
+  it("covers only the registered initialization, admission, lifecycle, capacity, and Track-input variants", () => {
     for (const changeKind of ["CAPACITY_CHANGED", "ACTIVITY_COMPLETED", "RAW_SQL"]) {
       expect(
         validateSchema("planning-event-v1", {
@@ -61,6 +75,38 @@ describe("Planning Input Event V1", () => {
       validateSchema("planning-event-v1", {
         ...trackLifecycleValidFixture,
         payload: { ...trackLifecycleValidFixture.payload, learning_track_version: 8 },
+      }).valid,
+    ).toBe(false);
+  });
+
+  it("keeps Track priority/minimum wake-ups exact, minimal, bounded, and bigint-safe", () => {
+    expect(trackPriorityMinimumValidFixture.payload).toEqual({
+      change_kind: "TRACK_PRIORITY_MINIMUM_CHANGED",
+      growth_plan_id: "30000000-0000-4000-8000-000000000020",
+      learning_track_id: "30000000-0000-4000-8000-000000000021",
+      learning_track_version: "8",
+      priority: 80,
+      protected_minimum_minutes: 120,
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...trackPriorityMinimumValidFixture,
+        payload: { ...trackPriorityMinimumValidFixture.payload, learning_track_version: 8 },
+      }).valid,
+    ).toBe(false);
+    const missingResultingValue = structuredClone(trackPriorityMinimumValidFixture);
+    Reflect.deleteProperty(missingResultingValue.payload, "protected_minimum_minutes");
+    expect(validateSchema("planning-event-v1", missingResultingValue).valid).toBe(false);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...trackPriorityMinimumBoundaryFixture,
+        payload: { ...trackPriorityMinimumBoundaryFixture.payload, priority: 100 },
+      }).valid,
+    ).toBe(true);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...trackPriorityMinimumBoundaryFixture,
+        payload: { ...trackPriorityMinimumBoundaryFixture.payload, priority: -1 },
       }).valid,
     ).toBe(false);
   });

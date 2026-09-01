@@ -1,0 +1,69 @@
+{
+  "contract": { "name": "LearningTrackPriorityMinimumPreviewV1", "version": "1.0.0" },
+  "operation": "set_track_priority_minimum",
+  "reason": "Store the paused track boundary settings.",
+  "expectedGrowthPlanVersion": "9223372036854775806",
+  "expectedLearningTrackVersion": "9223372036854775806",
+  "growthPlan": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 10080,
+    "aggregateVersion": "9223372036854775806"
+  },
+  "before": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "PAUSED",
+    "priority": 0,
+    "protectedMinimumMinutes": 0,
+    "aggregateVersion": "9223372036854775806"
+  },
+  "after": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "PAUSED",
+    "priority": 100,
+    "protectedMinimumMinutes": 10080,
+    "aggregateVersion": "9223372036854775807"
+  },
+  "constraint": {
+    "activeTrackCountBefore": 1,
+    "activeTrackCountAfter": 1,
+    "activeProtectedMinimumMinutesBefore": 10080,
+    "activeProtectedMinimumMinutesAfter": 10080,
+    "flexibleMinutesBefore": 0,
+    "flexibleMinutesAfter": 0,
+    "activeTrackFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "activeTrackFingerprintAfter": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "activeTrackCountIfTargetActiveAfter": 2,
+    "minimumCapacityIfTargetActiveAfter": 20160,
+    "targetActiveStateFitsCapacity": false,
+    "currentTrackPositionBefore": 2,
+    "currentTrackPositionAfter": 1,
+    "currentTrackOrderFingerprintBefore": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "currentTrackOrderFingerprintAfter": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [
+    { "code": "PARENT_GROWTH_PLAN_PAUSED" },
+    { "code": "LEARNING_TRACK_PAUSED" },
+    {
+      "code": "PAUSED_TRACK_RESUME_WOULD_EXCEED_CAPACITY",
+      "minimumCapacityMinutes": 20160
+    }
+  ],
+  "retained": {
+    "learningTrackActivities": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}

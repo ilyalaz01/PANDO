@@ -62,6 +62,10 @@ describe("strict Draft 2020-12 schema registry", () => {
       "learning-track-lifecycle-control-v1",
       "../contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json",
     ],
+    [
+      "learning-track-priority-minimum-control-v1",
+      "../contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json",
+    ],
     ["target-readiness-v1", "../contract/fixtures/target-readiness/v1/target-readiness.valid.json"],
     [
       "target-readiness-v1",

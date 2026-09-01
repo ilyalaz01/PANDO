@@ -1,0 +1,64 @@
+{
+  "contract": { "name": "LearningTrackPriorityMinimumPreviewV1", "version": "1.0.0" },
+  "operation": "set_track_priority_minimum",
+  "reason": "Increase the protected weekly algorithms time.",
+  "expectedGrowthPlanVersion": "4",
+  "expectedLearningTrackVersion": "7",
+  "growthPlan": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 300,
+    "aggregateVersion": "4"
+  },
+  "before": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 90,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "7"
+  },
+  "after": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 90,
+    "protectedMinimumMinutes": 240,
+    "aggregateVersion": "8"
+  },
+  "constraint": {
+    "activeTrackCountBefore": 2,
+    "activeTrackCountAfter": 2,
+    "activeProtectedMinimumMinutesBefore": 240,
+    "activeProtectedMinimumMinutesAfter": 360,
+    "flexibleMinutesBefore": 60,
+    "flexibleMinutesAfter": -60,
+    "activeTrackFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "activeTrackFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "activeTrackCountIfTargetActiveAfter": 2,
+    "minimumCapacityIfTargetActiveAfter": 360,
+    "targetActiveStateFitsCapacity": false,
+    "currentTrackPositionBefore": 1,
+    "currentTrackPositionAfter": 1,
+    "currentTrackOrderFingerprintBefore": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "currentTrackOrderFingerprintAfter": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "canApply": false,
+  "blockingReasons": [
+    { "code": "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", "minimumCapacityMinutes": 360 }
+  ],
+  "warnings": [],
+  "retained": {
+    "learningTrackActivities": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

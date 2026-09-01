@@ -16,6 +16,7 @@ import planSnapshotSchema from "../../../schemas/planning/v1/plan-snapshot.schem
 import growthPlanControlSchema from "../../../schemas/planning/v1/growth-plan-control.schema.json";
 import growthPlanCapacityControlSchema from "../../../schemas/planning/v1/growth-plan-capacity-control.schema.json";
 import learningTrackLifecycleControlSchema from "../../../schemas/planning/v1/learning-track-lifecycle-control.schema.json";
+import learningTrackPriorityMinimumControlSchema from "../../../schemas/planning/v1/learning-track-priority-minimum-control.schema.json";
 import planningInputSchema from "../../../schemas/planning/v1/planning-input.schema.json";
 import todayWorkspaceSchema from "../../../schemas/planning/v1/today-workspace.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
@@ -44,6 +45,7 @@ export const schemaNames = [
   "growth-plan-control-v1",
   "growth-plan-capacity-control-v1",
   "learning-track-lifecycle-control-v1",
+  "learning-track-priority-minimum-control-v1",
   "plan-snapshot-v1",
   "today-workspace-v1",
   "preparation-context",
@@ -75,6 +77,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "growth-plan-control-v1": growthPlanControlSchema,
   "growth-plan-capacity-control-v1": growthPlanCapacityControlSchema,
   "learning-track-lifecycle-control-v1": learningTrackLifecycleControlSchema,
+  "learning-track-priority-minimum-control-v1": learningTrackPriorityMinimumControlSchema,
   "plan-snapshot-v1": planSnapshotSchema,
   "today-workspace-v1": todayWorkspaceSchema,
   "preparation-context": preparationContextSchema,

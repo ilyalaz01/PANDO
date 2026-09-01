@@ -1,0 +1,62 @@
+{
+  "contract": { "name": "LearningTrackPriorityMinimumPreviewV1", "version": "1.0.0" },
+  "operation": "set_track_priority_minimum",
+  "reason": "Keep the current settings.",
+  "expectedGrowthPlanVersion": "4",
+  "expectedLearningTrackVersion": "7",
+  "growthPlan": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "before": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 90,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "7"
+  },
+  "after": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 90,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "8"
+  },
+  "constraint": {
+    "activeTrackCountBefore": 2,
+    "activeTrackCountAfter": 2,
+    "activeProtectedMinimumMinutesBefore": 180,
+    "activeProtectedMinimumMinutesAfter": 180,
+    "flexibleMinutesBefore": 420,
+    "flexibleMinutesAfter": 420,
+    "activeTrackFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "activeTrackFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "activeTrackCountIfTargetActiveAfter": 2,
+    "minimumCapacityIfTargetActiveAfter": 180,
+    "targetActiveStateFitsCapacity": true,
+    "currentTrackPositionBefore": 1,
+    "currentTrackPositionAfter": 1,
+    "currentTrackOrderFingerprintBefore": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "currentTrackOrderFingerprintAfter": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "retained": {
+    "learningTrackActivities": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}
