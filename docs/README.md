@@ -49,6 +49,8 @@ The completed Learning Track lifecycle slice is defined by
 [Phase 4B D2b1 Learning Track pause/resume](design/PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE.md) and
 recorded in the
 [Phase 4B D2b1 implementation status](implementation/PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md).
+The next accepted bounded slice is
+[Phase 4B D2b2 Learning Track priority and protected minimum](design/PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM.md).
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 

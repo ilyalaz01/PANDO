@@ -41,6 +41,13 @@ produces an honest Today warning rather than blocking the saved Track state. App
 target Track and atomically commits its receipt, minimal event, and fixed snapshot delivery. See
 [`PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md).
 
+D2b2 is accepted as a separate priority/protected-minimum command that reuses the D2b1 current
+read without broadening its lifecycle contract. It atomically proposes both resulting values,
+enforces active-only capacity, reports paused-Track resume consequences without blocking the saved
+edit, and binds both the active-capacity and current-order fingerprints. Cadence remains deferred.
+See
+[`PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM.md`](../../../docs/design/PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM.md).
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure
