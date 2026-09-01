@@ -293,18 +293,16 @@ function previewSemanticViolations(root: JsonObject): ContractViolation[] {
       ),
     );
   }
+  const actualBlocker =
+    blockers.length === 1 ? asString(asJsonObject(blockers[0], "blocking reason").code) : undefined;
   const expectedBlocker =
     current === 1
       ? "CURRENT_GROWTH_PLAN_EXISTS"
-      : lifetime === 1
-        ? "GROWTH_PLAN_HISTORY_REQUIRES_REPLACEMENT"
-        : blockers.length === 1 &&
-            asString(asJsonObject(blockers[0], "blocking reason").code) ===
-              "PLANNING_CREATE_IDENTITY_COLLISION"
-          ? "PLANNING_CREATE_IDENTITY_COLLISION"
+      : actualBlocker === "PLANNING_CREATE_IDENTITY_COLLISION"
+        ? "PLANNING_CREATE_IDENTITY_COLLISION"
+        : lifetime === 1
+          ? "GROWTH_PLAN_HISTORY_REQUIRES_REPLACEMENT"
           : undefined;
-  const actualBlocker =
-    blockers.length === 1 ? asString(asJsonObject(blockers[0], "blocking reason").code) : undefined;
   const shouldApply =
     lifetime === 0 && current === 0 && sentinel === 0 && expectedBlocker === undefined;
   if (

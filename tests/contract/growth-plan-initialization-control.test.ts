@@ -201,6 +201,22 @@ describe("PANDO Growth Plan Initialization Control V1", () => {
     ).toContain("GROWTH_PLAN_INITIALIZATION_CARDINALITY");
   });
 
+  it("keeps an exact derived collision visible ahead of archived history", () => {
+    const collision = {
+      ...structuredClone(valid),
+      before: { ...valid.before, lifetimePlanCount: 1 },
+      canApply: false,
+      blockingReasons: [{ code: "PLANNING_CREATE_IDENTITY_COLLISION" }],
+    };
+    expect(validateGrowthPlanInitializationControlV1(collision).valid).toBe(true);
+
+    const history = {
+      ...collision,
+      blockingReasons: [{ code: "GROWTH_PLAN_HISTORY_REQUIRES_REPLACEMENT" }],
+    };
+    expect(validateGrowthPlanInitializationControlV1(history).valid).toBe(true);
+  });
+
   it("enforces lowercase UUID representation for every preview authority and derived identity", () => {
     const uppercase = structuredClone(valid);
     uppercase.source.sourceRef = "A0000000-0000-4000-8000-000000000001";
