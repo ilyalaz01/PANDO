@@ -219,7 +219,7 @@ insert into today_results values (
   )
 );
 insert into today_results values (
-  'admission-a', api.add_learning_track_activity_v1(
+  'admission-a', pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from today_results where result_name = 'plan-a'),
     'activity:today-debug', 25, '1', 'today-a-admission', 'MEDIUM'
   )

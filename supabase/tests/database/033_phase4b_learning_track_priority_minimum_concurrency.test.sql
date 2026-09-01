@@ -747,7 +747,7 @@ select is(
   extensions.dblink_send_query(
     'settings_c2',
     pg_catalog.format(
-      'select api.add_learning_track_activity_v1(%L,%L,%s,%L,%L,null)',
+      'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,%s,%L,%L,null)',
       (select track_key from priority_minimum_concurrency_fixture),
       'activity:settings-admission-proof', 45, '4',
       'phase4b-settings-admission-non-overfenced'

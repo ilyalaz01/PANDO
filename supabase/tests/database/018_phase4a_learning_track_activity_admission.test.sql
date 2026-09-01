@@ -44,7 +44,7 @@ select is(
 )
 from (values ('anon'), ('authenticated'), ('service_role')) as runtime_role(role_name)
 cross join (values
-  ('api.add_learning_track_activity_v1(text,text,integer,text,text,text)', true),
+  ('api.add_learning_track_activity_v1(text,text,integer,text,text,text)', false),
   ('planning.add_learning_track_activity_impl_v1(text,text,integer,text,bigint,text)', false)
 ) as boundary(signature, is_public_api)
 order by runtime_role.role_name, boundary.signature;
@@ -227,7 +227,7 @@ insert into admission_results values (
 );
 insert into admission_results values (
   'alice-admit-first',
-  api.add_learning_track_activity_v1(
+  pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from admission_results
      where result_name = 'alice-plan'),
     'activity:admission-alice-first', 45, '1',
@@ -236,7 +236,7 @@ insert into admission_results values (
 );
 insert into admission_results values (
   'alice-admit-first-replay',
-  api.add_learning_track_activity_v1(
+  pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from admission_results
      where result_name = 'alice-plan'),
     'activity:admission-alice-first', 45, '1',
@@ -298,7 +298,7 @@ insert into admission_results values (
 );
 insert into admission_results values (
   'bob-admit-first',
-  api.add_learning_track_activity_v1(
+  pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from admission_results
      where result_name = 'bob-plan'),
     'activity:admission-bob-first', 480, '1',
@@ -447,7 +447,7 @@ select set_config(
 set local role authenticated;
 insert into admission_results values (
   'alice-admit-paused',
-  api.add_learning_track_activity_v1(
+  pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from admission_results
      where result_name = 'alice-plan'),
     'activity:admission-alice-second', 1, '2',
@@ -498,7 +498,7 @@ select set_config(
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,46,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,46,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-first', '1', 'phase4a-admission-alice-first'
   ),
@@ -508,7 +508,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-third', '2', 'phase4a-admission-stale'
   ),
@@ -518,7 +518,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-first', '3', 'phase4a-admission-duplicate'
   ),
@@ -528,7 +528,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-bob-first', '3', 'phase4a-admission-foreign'
   ),
@@ -538,7 +538,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-third', '3', 'phase4a-admission-inactive-activity'
   ),
@@ -548,7 +548,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,0,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,0,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-third', '3', 'phase4a-admission-zero-minutes'
   ),
@@ -558,7 +558,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,481,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,481,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-third', '3', 'phase4a-admission-long'
   ),
@@ -568,7 +568,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,%L)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,%L)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-third', '3', 'phase4a-admission-energy', 'IMPOSSIBLE'
   ),
@@ -578,7 +578,7 @@ select throws_ok(
 );
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-third', '9223372036854775808', 'phase4a-admission-overflow'
   ),
@@ -598,7 +598,7 @@ where readiness_goal_id = (
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-second', '3', 'phase4a-admission-inactive-goal'
   ),
@@ -622,7 +622,7 @@ where learning_track_id = (
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-second', '3', 'phase4a-admission-completed-track'
   ),
@@ -645,7 +645,7 @@ where growth_plan_id = (
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-alice-second', '3', 'phase4a-admission-archived-plan'
   ),
@@ -701,7 +701,7 @@ insert into overlay.custom_activities (
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-wrong-profile', '3', 'phase4a-admission-wrong-profile'
   ),
@@ -880,7 +880,7 @@ select set_config(
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,%L)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,%L)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-rollback', '3', 'phase4a-admission-rollback', 'MEDIUM'
   ),
@@ -1024,7 +1024,7 @@ insert into overlay.custom_activities (
 set local role authenticated;
 select throws_ok(
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_results where result_name = 'alice-plan'),
     'activity:admission-over-limit', '3', 'phase4a-admission-over-limit'
   ),

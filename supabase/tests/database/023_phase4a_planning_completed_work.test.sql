@@ -210,7 +210,7 @@ insert into work_results values (
   )
 );
 insert into work_results values (
-  'admission', api.add_learning_track_activity_v1(
+  'admission', pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from work_results where result_name = 'plan'),
     'activity:planning-work-debug', 25, '1', 'phase4a-work-admission', 'MEDIUM'
   )

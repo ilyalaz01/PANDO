@@ -555,7 +555,7 @@ insert into c5_results values (
   )
 );
 insert into c5_results values (
-  'bundle-admission', api.add_learning_track_activity_v1(
+  'bundle-admission', pando_test.add_learning_track_activity_fixture_v1(
     (select response->>'learningTrackKey' from c5_results where result_name = 'bundle-plan'),
     'activity:c5-data-model', 25, '1', 'c5-bundle-admission', 'MEDIUM'
   )

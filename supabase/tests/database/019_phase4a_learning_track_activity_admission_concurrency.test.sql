@@ -278,7 +278,7 @@ select 'same-key', 'c1', command.response
 from extensions.dblink(
   'admission_c1',
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
     (select response->>'learningTrackKey' from admission_concurrency_results
      where result_name = 'same-plan'),
     'activity:admission-concurrency-same', '1',
@@ -290,7 +290,7 @@ select is(
   extensions.dblink_send_query(
     'admission_c2',
     pg_catalog.format(
-      'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,null)',
+      'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,null)',
       (select response->>'learningTrackKey' from admission_concurrency_results
        where result_name = 'same-plan'),
       'activity:admission-concurrency-same', '1',
@@ -373,7 +373,7 @@ select 'stale-version', 'c1', command.response
 from extensions.dblink(
   'admission_c1',
   pg_catalog.format(
-    'select api.add_learning_track_activity_v1(%L,%L,45,%L,%L,%L)',
+    'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,45,%L,%L,%L)',
     (select response->>'learningTrackKey' from admission_concurrency_results
      where result_name = 'stale-plan'),
     'activity:admission-concurrency-stale-first', '1',
@@ -385,7 +385,7 @@ select is(
   extensions.dblink_send_query(
     'admission_c2',
     pg_catalog.format(
-      'select api.add_learning_track_activity_v1(%L,%L,30,%L,%L,%L)',
+      'select pando_test.add_learning_track_activity_fixture_v1(%L,%L,30,%L,%L,%L)',
       (select response->>'learningTrackKey' from admission_concurrency_results
        where result_name = 'stale-plan'),
       'activity:admission-concurrency-stale-second', '1',

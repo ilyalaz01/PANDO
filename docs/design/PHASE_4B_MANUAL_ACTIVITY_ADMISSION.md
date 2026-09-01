@@ -70,10 +70,11 @@ opaque Track key and current Plan/Track versions plus each activity's key, title
 competency reference, ordered by `activityKey COLLATE "C"`. It exposes no workspace, aggregate,
 Goal, profile or custom-activity UUID, note, resource, evidence guidance or unrelated Overlay data.
 
-Overlay owns a purpose-specific bounded query. Planning supplies the exact profile and at most 200
-server-derived already-attributed custom-activity UUIDs; Overlay returns at most 201 eligible rows
-plus its workspace-overlay revision. The 201st row produces the overflow state rather than silent
-truncation. Planning receives no direct Overlay table grant.
+Overlay owns a purpose-specific bounded-result query. Planning supplies the exact profile and the
+complete server-derived set of already-attributed custom-activity UUIDs, including archived
+history; callers cannot supply this set. Overlay returns details only when at most 200 eligible
+rows remain, plus its workspace-overlay revision. A larger count produces the overflow state rather
+than silent truncation. Planning receives no direct Overlay table grant.
 
 ## 4. Exact preview contract
 

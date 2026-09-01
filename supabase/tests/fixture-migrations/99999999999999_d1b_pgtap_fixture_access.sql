@@ -21,6 +21,46 @@ grant execute on function
   to postgres;
 reset role;
 
+-- Historical Planning fixtures still need to construct attributed activities after the runtime
+-- v1 mutation is retired. This scratch-only wrapper preserves their setup semantics without
+-- reopening a production bypass around preview/confirmation.
+create schema pando_test authorization pando_planning_api;
+grant usage on schema pando_test to authenticated;
+create function pando_test.add_learning_track_activity_fixture_v1(
+  p_learning_track_key text,
+  p_activity_key text,
+  p_estimated_minutes integer,
+  p_expected_learning_track_version text,
+  p_idempotency_key text,
+  p_energy text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+begin
+  if p_expected_learning_track_version is null
+     or p_expected_learning_track_version !~ '^[1-9][0-9]{0,18}$'
+     or p_expected_learning_track_version::numeric > 9223372036854775807 then
+    raise exception using errcode = '22023', message = 'expected Learning Track version is invalid';
+  end if;
+  return planning.add_learning_track_activity_impl_v1(
+    p_learning_track_key, p_activity_key, p_estimated_minutes, p_energy,
+    p_expected_learning_track_version::bigint, p_idempotency_key
+  );
+end
+$function$;
+alter function pando_test.add_learning_track_activity_fixture_v1(
+  text, text, integer, text, text, text
+) owner to pando_planning_api;
+revoke all on function pando_test.add_learning_track_activity_fixture_v1(
+  text, text, integer, text, text, text
+) from public, anon, authenticated, service_role;
+grant execute on function pando_test.add_learning_track_activity_fixture_v1(
+  text, text, integer, text, text, text
+) to authenticated;
+
 -- The accepted D1b concurrency proof needs a scratch-only stand-in for the
 -- future Targets lifecycle writer. Its table trigger is the production lock
 -- boundary under test; no runtime role receives this UPDATE path in production.
