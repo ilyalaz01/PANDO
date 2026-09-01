@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command design
 
-Status: implementation design (D0); D1, D2a, D2b1, and D2b2 implemented; remaining D2 and D3–D5 pending
+Status: implementation design (D0); D1, D2a, D2b1, and D2b2 implemented; D1b accepted; remaining D2 and D3–D5 pending
 Date: 2026-08-29  
 Canonical basis: `docs/00_PRODUCT_CONSTITUTION.md` through `docs/06_PROMPT_LIBRARY_UX.md`
 
@@ -221,6 +221,9 @@ idempotency key; clients cannot replace the previewed body at apply time.
    the remaining Track commands. The next accepted increment is
    [D2b2 Learning Track priority and protected minimum](PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM.md),
    which deliberately leaves cadence undefined.
+   Fresh-user review then exposed a manual setup gap hidden by test fixtures. The accepted
+   [D1b first Growth Plan setup](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md) must close that gap before
+   activity-admission UI and additional Track creation continue.
 3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
    plan archive/new-plan replacement, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals

@@ -53,6 +53,9 @@ The completed settings slice is defined by
 [Phase 4B D2b2 Learning Track priority and protected minimum](design/PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM.md)
 and recorded in the
 [Phase 4B D2b2 implementation status](implementation/PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md).
+The accepted next implementation slice closes the fresh-user setup gap through
+[Phase 4B D1b first Growth Plan setup](design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md) before manual
+activity admission and additional Track creation.
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 

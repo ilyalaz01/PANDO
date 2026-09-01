@@ -66,6 +66,7 @@ Human roadmap position:
   complete.
 - D2b2 — authenticated Learning Track priority/protected-minimum preview/apply and `/plan` control:
   complete.
+- D1b — first Growth Plan preview/confirm setup design: accepted; implementation current.
 - Remaining D2–D5 — Track creation/terminal/cadence, availability, and Campaign commands: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
@@ -73,37 +74,36 @@ Human roadmap position:
 - H — deployment and release hardening: pending.
 
 The first complete Today-to-Focus browser journey plus Growth Plan lifecycle/capacity and Learning
-Track pause/resume/settings commands are implemented and verified. The next gap is a separately
-settled Learning Track creation command before Agent Control can safely manage the same operations.
+Track pause/resume/settings commands are implemented and verified for seeded state. Fresh-user
+review found that `/start` cannot yet preview/confirm the first Plan and that the auth gate bypasses
+the missing UI with a legacy direct RPC. Close that real manual-flow gap before adding more Tracks.
 
-## Current bounded outcome: D2b3 Learning Track creation design
+## Current bounded outcome: D1b first Growth Plan setup
 
-Continue the D2 slice selected by `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`, but do not implement
-Track creation until a focused D2b3 design is accepted. Read the D2a, D2b1, and D2b2 designs and
-implementation records, then reuse their active-capacity, stable locking, exact-preview,
-idempotency, outbox, server, and UI discipline.
+Implement the accepted
+`docs/design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md`. Reuse the established exact-preview,
+idempotency, stable locking, outbox, server and UI discipline, but preserve its create-specific
+zero-lifetime-Plan sentinel and deterministic server-derived identities.
 
 Required outcome:
 
-- settle which bounded source the new Track represents and how Planning derives its opaque key,
-  title, readiness-goal/profile/roadmap bindings, and UUID without accepting authority-bearing IDs
-  from the browser;
-- settle initial lifecycle, priority, protected minimum, default session minutes, and whether every
-  field is user-selected or copied from an accepted source;
-- preserve one current Plan, at most 30 active-or-paused Tracks, and the active protected-minimum
-  capacity invariant without truncation or clamping;
-- define an exact preview, Plan/portfolio freshness fences, idempotent atomic apply, minimal event,
-  fixed Planning delivery, and shared workspace lock compatibility with D2a, D2b1, D2b2, and
-  activity admission;
-- define duplicate/source-collision behavior, privacy-minimized UI inputs, retained history, error
-  states, and the database/concurrency/auth/accessibility proof matrix;
-- record the focused design and stop if canonical ownership does not determine a safe source or
-  binding rule. Do not silently invent cadence, terminal transitions, Plan replacement,
-  availability, Campaign, or Agent Control V2 semantics.
+- add the bounded Planning setup-source read over a Targets-owned active-Goal query, including exact
+  overflow, source-revision and zero-lifetime-Plan/sentinel behavior;
+- add the versioned contract, pure digest/UUID derivation, fixed SQL/TypeScript oracle and strict
+  semantic validation before database or UI code trusts a preview;
+- add preview/apply with exact Goal fence, deterministic Plan/Track IDs, fixed empty-Track minimum
+  zero, one receipt/event/delivery transaction, legacy initializer revocation and broad caller
+  migration;
+- expose the native `/start -> /plan -> preview -> confirm -> reload` flow with no authority IDs,
+  exact blocked/stale/error states and honest action-empty pending behavior;
+- prove isolation, privileges, idempotency, rollback, source and first-Plan races, retained v1
+  artifacts, keyboard/responsive/accessibility behavior and the real authenticated journey;
+- do not add activity admission UI, additional Track creation, cadence, terminal transitions, Plan
+  replacement, availability, Campaigns or Agent Control transport in D1b.
 
-After the design is accepted, implement it as a separate bounded outcome and run the complete
-Windows verification gates before handoff. D2b3 must not silently decide later cadence,
-archive/replacement, or Campaign rules blocked by the focused decisions in the Phase 4B design.
+Run every gate required by the accepted design before handoff. Then implement deterministic
+preview/confirm for manual activity admission; only after the initial Track can receive useful work
+should D2b3 additional Track creation begin.
 
 ## Architecture and safety rules
 

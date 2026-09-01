@@ -76,9 +76,10 @@ transactional outbox, and UI parity decisions.
 ## Next bounded outcome
 
 D2b1, its separate activity-admission owner-boundary hardening, and D2b2 settings are complete.
-Continue D2 with a separate D2b3 Learning Track creation design before implementation. It must
-settle creation identity, bindings, initial defaults, portfolio/capacity invariants, preview and
-event semantics, and shared-workspace serialization. Terminal lifecycle commands follow as
-bounded increments; cadence must be defined before it is persisted. Do not enter D3
-availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
-design are recorded.
+Fresh-user review found that tests directly initialize the first Plan while `/plan` exposes no
+equivalent setup. Implement the accepted
+[D1b first Growth Plan setup](../design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md), then expose manual
+activity admission with exact preview/confirmation before designing additional Track creation.
+Terminal lifecycle commands follow as bounded increments; cadence must be defined before it is
+persisted. Do not enter D3 availability/replacement or D4–D5 Campaign work before the focused
+decisions required by the D0 design are recorded.

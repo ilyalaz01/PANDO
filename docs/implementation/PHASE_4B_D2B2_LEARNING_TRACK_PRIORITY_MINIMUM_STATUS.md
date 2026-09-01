@@ -98,9 +98,9 @@ Planning ownership and ranking/capacity inputs without redefining their calculat
 
 ## Next bounded outcome
 
-Continue D2 with a separate D2b3 Learning Track creation design before implementation. The design
-must settle server-derived identity and key generation, title and source inputs, immutable
-goal/profile/roadmap bindings, initial lifecycle and defaults, the 30-current-Track and active
-capacity invariants, exact preview/version fences, minimal event, and serialization with D2a,
-D2b1, D2b2, and activity admission. Terminal Track transitions and cadence remain later bounded
+Fresh-user review found that test fixtures directly initialize the first Plan while `/plan` exposes
+no equivalent setup, and that activity admission has no manual UI. Implement the accepted
+[D1b first Growth Plan setup](../design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md), then add exact
+preview/confirmation for manual activity admission. Additional Track creation follows only when a
+new Track can receive useful work. Terminal Track transitions and cadence remain later bounded
 increments; D3 availability/replacement and Campaign work remain behind their recorded decisions.
