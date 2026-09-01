@@ -164,10 +164,11 @@ D2b1 is complete only when tests prove:
 - a real isolated signed-in pause/resume/reload/persistence journey; and full repository,
   database, auth, and relevant backup release gates before merge.
 
-## 8. Recorded adjacent security follow-up
+## 8. Resolved adjacent security follow-up
 
-The older `planning.add_learning_track_activity_impl_v1` still grants direct execute to
-`authenticated` because its public wrapper is `SECURITY INVOKER`. This predates the D0 rule that
-private owner helpers are not alternate public surfaces. D2b1 does not copy or silently redesign
-that existing API. A separate bounded hardening outcome should convert the wrapper/ownership model,
-revoke the direct helper grant, and rerun its authorization/concurrency gates.
+The older `planning.add_learning_track_activity_impl_v1` previously granted direct execute to
+`authenticated` because its public wrapper was `SECURITY INVOKER`. That predated the D0 rule that
+private owner helpers are not alternate public surfaces. The separate
+[activity-admission owner-boundary hardening](../implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md)
+now makes the unchanged public wrapper a pinned Planning-owned `SECURITY DEFINER` and removes direct
+runtime-role access to the helper.

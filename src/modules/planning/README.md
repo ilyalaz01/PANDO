@@ -67,6 +67,11 @@ emits the strict Track input event, and creates one fixed delivery. It keeps the
 pointer intact so a prior unexpired snapshot can remain display-only while the new delivery makes
 Today pending. Active and paused plans/tracks are editable; terminal lifecycle and inactive goal or
 activity state fail closed. A Growth Plan cannot exceed 200 non-archived candidate activities.
+The released public RPC now runs as a pinned Planning-owned `SECURITY DEFINER`; its implementation
+helper is not executable by `public`, `anon`, `authenticated`, or `service_role`. This closes the
+alternate database surface without changing the public signature, validation, idempotency,
+mutation, response, event, or delivery semantics. See the
+[`Phase 4B activity-admission owner-boundary hardening record`](../../../docs/implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 
 The first live `planning.plan_snapshot_v1` worker now persists a claim clock and normalized input,
 reads every cross-context source through bounded owner functions, calculates through the verified

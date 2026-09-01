@@ -4,41 +4,79 @@ create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 select no_plan();
 
-select ok(
+select is(
   pg_catalog.has_function_privilege(
-    'authenticated',
-    'api.add_learning_track_activity_v1(text,text,integer,text,text,text)',
-    'EXECUTE'
-  )
-  and not pg_catalog.has_function_privilege(
-    'anon',
-    'api.add_learning_track_activity_v1(text,text,integer,text,text,text)',
-    'EXECUTE'
-  )
-  and not pg_catalog.has_function_privilege(
-    'service_role',
-    'api.add_learning_track_activity_v1(text,text,integer,text,text,text)',
+    runtime_role.role_name,
+    boundary.signature,
     'EXECUTE'
   ),
-  'only authenticated callers can invoke Learning Track activity admission'
-);
+  boundary.is_public_api and runtime_role.role_name = 'authenticated',
+  pg_catalog.format(
+    '%s has the exact EXECUTE privilege for %s',
+    runtime_role.role_name,
+    boundary.signature
+  )
+)
+from (values ('anon'), ('authenticated'), ('service_role')) as runtime_role(role_name)
+cross join (values
+  ('api.add_learning_track_activity_v1(text,text,integer,text,text,text)', true),
+  ('planning.add_learning_track_activity_impl_v1(text,text,integer,text,bigint,text)', false)
+) as boundary(signature, is_public_api)
+order by runtime_role.role_name, boundary.signature;
+
+select is(
+  exists (
+    select 1
+    from pg_catalog.pg_proc as procedure
+    cross join lateral pg_catalog.aclexplode(
+      coalesce(
+        procedure.proacl,
+        pg_catalog.acldefault('f', procedure.proowner)
+      )
+    ) as privilege
+    where procedure.oid = pg_catalog.to_regprocedure(boundary.signature)
+      and privilege.grantee = 0
+      and privilege.privilege_type = 'EXECUTE'
+  ),
+  false,
+  pg_catalog.format('public cannot execute %s', boundary.signature)
+)
+from (values
+  ('api.add_learning_track_activity_v1(text,text,integer,text,text,text)'),
+  ('planning.add_learning_track_activity_impl_v1(text,text,integer,text,bigint,text)')
+) as boundary(signature)
+order by boundary.signature;
 
 select ok(
-  not procedure.prosecdef
-    and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
-    and owner.rolname = 'pando_planning_api'
-    and pg_catalog.has_function_privilege(
-      'authenticated',
-      'planning.add_learning_track_activity_impl_v1(text,text,integer,text,bigint,text)',
-      'EXECUTE'
-    ),
-  'the exposed API is a pinned SECURITY INVOKER wrapper over the Planning implementation'
+  count(*) = 2
+    and bool_and(procedure.prosecdef)
+    and bool_and('search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[])))
+    and bool_and(owner.rolname = 'pando_planning_api')
+    and not pg_catalog.has_schema_privilege('pando_planning_api', 'api', 'USAGE'),
+  'activity admission boundaries are pinned to their owner without retaining api schema access'
 )
 from pg_catalog.pg_proc as procedure
-join pg_catalog.pg_namespace as namespace on namespace.oid = procedure.pronamespace
 join pg_catalog.pg_roles as owner on owner.oid = procedure.proowner
-where namespace.nspname = 'api'
-  and procedure.proname = 'add_learning_track_activity_v1';
+where procedure.oid in (
+  pg_catalog.to_regprocedure(
+    'api.add_learning_track_activity_v1(text,text,integer,text,text,text)'
+  ),
+  pg_catalog.to_regprocedure(
+    'planning.add_learning_track_activity_impl_v1(text,text,integer,text,bigint,text)'
+  )
+);
+
+set local role authenticated;
+select throws_ok(
+  $$select planning.add_learning_track_activity_impl_v1(
+    'track:private-denied', 'activity:private-denied', 45, null, 1,
+    'phase4a-private-admission-denied'
+  )$$,
+  '42501',
+  'permission denied for function add_learning_track_activity_impl_v1',
+  'authenticated cannot call the private activity-admission implementation'
+);
+reset role;
 
 select ok(
   count(*) = 2

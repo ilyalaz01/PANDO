@@ -49,6 +49,8 @@ The completed Learning Track lifecycle slice is defined by
 [Phase 4B D2b1 Learning Track pause/resume](design/PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE.md) and
 recorded in the
 [Phase 4B D2b1 implementation status](implementation/PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md).
+The adjacent activity-admission permission cleanup is recorded in the
+[Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 
 If documents conflict, earlier product documents in this list have precedence over later product documents. `SOFTWARE_PROJECT_GUIDELINES.md` governs implementation and delivery but must not silently contradict product semantics. Stop and record the conflict instead of guessing.
 

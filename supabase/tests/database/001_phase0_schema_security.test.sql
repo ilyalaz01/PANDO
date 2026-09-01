@@ -279,6 +279,7 @@ where namespace.nspname = 'api'
     'get_focus_workspace_v1',
     'get_focus_from_plan_v1',
     'get_today_workspace_v1',
+    'add_learning_track_activity_v1',
     'get_current_growth_plan_v1',
     'preview_growth_plan_lifecycle_v1',
     'apply_growth_plan_lifecycle_v1',
@@ -386,6 +387,7 @@ join pg_catalog.pg_roles as owner
 where namespace.nspname = 'api'
   and procedure.proname in (
     'get_today_workspace_v1',
+    'add_learning_track_activity_v1',
     'get_current_growth_plan_v1',
     'preview_growth_plan_lifecycle_v1',
     'apply_growth_plan_lifecycle_v1',

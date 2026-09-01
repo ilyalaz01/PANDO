@@ -72,9 +72,8 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D2b1 is complete. First close the pre-existing direct-helper grant recorded in the D2b1 design as a
-separate owner-boundary hardening outcome without changing the released activity-attribution
-contract. Then continue D2 with a separate priority/protected-minimum edit command. Track creation
-and terminal lifecycle commands follow as bounded increments; cadence must be defined before it is
-persisted. Do not enter D3 availability/replacement or D4–D5 Campaign work before the focused
-decisions required by the D0 design are recorded.
+D2b1 and its separate activity-admission owner-boundary hardening are complete. Continue D2 with a
+separate priority/protected-minimum edit command. Track creation and terminal lifecycle commands
+follow as bounded increments; cadence must be defined before it is persisted. Do not enter D3
+availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
+design are recorded.

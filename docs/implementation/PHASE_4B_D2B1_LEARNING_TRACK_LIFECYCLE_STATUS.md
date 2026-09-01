@@ -42,7 +42,8 @@ portfolio above 30 active-or-paused Tracks.
 - Public functions derive authority from the authenticated session. D2b1's private builders and
   validators remain non-executable to browser and service roles, and Planning gains no grant on
   Sessions, Evidence, or another bounded context's owner tables. The older activity-attribution
-  helper exception is recorded below as a separate hardening outcome.
+  helper exception is now closed by the separate
+  [owner-boundary hardening outcome](PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 
 ## Application and UI
 
@@ -92,10 +93,7 @@ capacity rules without changing ranking semantics.
 
 ## Next bounded outcome
 
-Before expanding the Track editor, close the adjacent pre-existing owner-boundary gap recorded by
-the D2b1 design: replace authenticated direct execution of
-`planning.add_learning_track_activity_impl_v1` with a narrow public `SECURITY DEFINER` wrapper and
-private helper ownership, preserving the released command contract and behavior. Then continue D2b
-with a separate priority/protected-minimum edit design and command. Track creation, terminal
-transitions, and cadence remain later increments; D3 availability/replacement and Campaign work
-remain behind their recorded focused decisions.
+The adjacent pre-existing activity-admission owner-boundary gap is closed. Continue D2b with a
+separate priority/protected-minimum edit design and command. Track creation, terminal transitions,
+and cadence remain later increments; D3 availability/replacement and Campaign work remain behind
+their recorded focused decisions.
