@@ -61,6 +61,12 @@ longer executable by runtime roles. `/plan` renders the exact comparison and fai
 states; a failed additive source read does not disable unrelated Plan controls. See
 [`PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md`](../../../docs/implementation/PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md).
 
+The accepted next D2 increment is
+[`PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md`](../../../docs/design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
+It keeps the current one-Track admission contract unchanged, adds a separate Targets-backed Track
+creation flow, and introduces a destination-aware admission contract once the current portfolio can
+contain more than one Track. Different Tracks may share or use different exact Goal/profile sources.
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure

@@ -77,8 +77,9 @@ transactional outbox, and UI parity decisions.
 ## Next bounded outcome
 
 D1b, D2b1, D2b2 settings, and exact manual activity admission are complete. The current admission
-record is [here](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md). Design additional Track creation and
-its destination-selector protocol next.
+record is [here](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md). The accepted design for the next
+bounded increment is [D2b3 additional Learning Tracks and destination-aware admission](../design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
+Implement Track creation first, then its separately versioned destination-aware admission command.
 Terminal lifecycle commands follow as bounded increments; cadence must be defined before it is
 persisted. Do not enter D3 availability/replacement or D4–D5 Campaign work before the focused
 decisions required by the D0 design are recorded.

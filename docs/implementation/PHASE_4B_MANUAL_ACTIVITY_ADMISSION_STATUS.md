@@ -78,9 +78,9 @@ without installing a substitute or remote backend.
 
 ## Next bounded outcome
 
-Write the accepted design for additional Learning Track creation and the destination-Track
-selector it requires for later activity admission. Preserve the one-current-Plan invariant,
-protected-capacity rules, stable Track ordering, owner-derived identities, exact preview/apply
-discipline, and retained history. Terminal Track transitions and cadence remain separate bounded
-outcomes; D3 availability/replacement and D4–D5 Campaign work still require the focused decisions
-recorded in the Phase 4B lifecycle design.
+The accepted next-step design is
+[D2b3 additional Learning Tracks and destination-aware admission](../design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
+Implement Track creation first, then the destination-aware admission command. Terminal Track
+transitions and cadence remain separate
+bounded outcomes; D3 availability/replacement and D4–D5 Campaign work still require the focused
+decisions recorded in the Phase 4B lifecycle design.

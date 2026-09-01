@@ -100,7 +100,7 @@ Planning ownership and ranking/capacity inputs without redefining their calculat
 
 D1b first-Plan setup and manual activity admission are now complete; see their current
 [setup](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md) and
-[admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md) records. Additional Track creation is the
-next bounded increment and must define the destination selector before admission is broadened.
+[admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md) records. The accepted next bounded
+increment is [D2b3 additional Learning Tracks and destination-aware admission](../design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
 Terminal Track transitions and cadence remain later bounded increments; D3
 availability/replacement and Campaign work remain behind their recorded decisions.

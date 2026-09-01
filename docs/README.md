@@ -60,7 +60,9 @@ Manual activity admission is defined by the accepted
 [Phase 4B manual activity admission design](design/PHASE_4B_MANUAL_ACTIVITY_ADMISSION.md) and
 recorded in the
 [manual activity admission implementation status](implementation/PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md).
-Additional Track creation follows now that the initial Track can receive useful work.
+Additional Track creation is defined by the accepted
+[Phase 4B D2b3 additional Learning Track creation and destination-track admission design](design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md)
+and is the next implementation outcome now that the initial Track can receive useful work.
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 

@@ -223,8 +223,8 @@ idempotency key; clients cannot replace the previewed body at apply time.
    which deliberately leaves cadence undefined.
    Fresh-user review then exposed a manual setup gap hidden by test fixtures. The accepted
    [D1b first Growth Plan setup](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md) closed that gap, followed by
-   the accepted [manual activity admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION.md). Additional Track
-   creation is the next bounded D2 outcome.
+   the accepted [manual activity admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION.md). The next bounded
+   D2 outcome is [additional Learning Track creation and destination-track admission](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
 3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
    plan archive/new-plan replacement, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
