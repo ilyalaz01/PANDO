@@ -172,6 +172,16 @@ describe("PANDO Growth Plan Initialization Control V1", () => {
     );
   });
 
+  it("rejects an orphan snapshot sentinel instead of presenting corruption as a blocker", () => {
+    const orphaned = structuredClone(valid);
+    orphaned.before.snapshotSentinelCount = 1;
+    orphaned.canApply = false;
+    expect(validateSchema("growth-plan-initialization-control-v1", orphaned).valid).toBe(true);
+    expect(
+      growthPlanInitializationControlSemanticViolations(orphaned).map((item) => item.code),
+    ).toContain("GROWTH_PLAN_INITIALIZATION_CARDINALITY");
+  });
+
   it("accepts only the exact derived first-Track title at 160, 161, and 200 characters", () => {
     const title160 = `${"界".repeat(159)} `;
     const title161 = `${"界".repeat(159)} X`;
@@ -208,6 +218,12 @@ describe("PANDO Growth Plan Initialization Control V1", () => {
           ...result.createdTrack,
           trackKey: "track:60000000-0000-8000-8000-000000000002",
         },
+      }),
+    ).toThrow(GrowthPlanInitializationContractError);
+    expect(() =>
+      decodeGrowthPlanInitializationApplyResultV1({
+        ...result,
+        createdTrack: { ...result.createdTrack, title: "A forged Track title" },
       }),
     ).toThrow(GrowthPlanInitializationContractError);
   });

@@ -43,18 +43,98 @@ export type GrowthPlanSetupSourceV1 =
       readonly goals: readonly [];
     };
 
-export interface GrowthPlanInitializationPreviewV1 extends JsonObject {
-  readonly contract: JsonObject & {
+export interface GrowthPlanInitializationPlanStateV1 {
+  readonly growthPlanId: string;
+  readonly title: string;
+  readonly lifecycle: "ACTIVE";
+  readonly weeklyCapacityMinutes: number;
+  readonly aggregateVersion: "1";
+}
+
+export interface GrowthPlanInitializationTrackStateV1 {
+  readonly learningTrackId: string;
+  readonly trackKey: string;
+  readonly title: string;
+  readonly lifecycle: "ACTIVE";
+  readonly priority: number;
+  readonly protectedMinimumMinutes: 0;
+  readonly defaultSessionMinutes: number;
+  readonly aggregateVersion: "1";
+}
+
+export interface GrowthPlanInitializationPreviewV1 {
+  readonly contract: {
     readonly name: "GrowthPlanInitializationPreviewV1";
     readonly version: "1.0.0";
   };
+  readonly digestVersion: "growth-plan-initialization-preview-digest/1.0.0";
+  readonly identityVersion: "planning-create-identity/1.0.0";
+  readonly operation: "initialize_growth_plan";
+  readonly commandType: "planning.initialize_growth_plan_v2";
+  readonly idempotencyKey: string;
+  readonly reason: string;
+  readonly expectedReadinessGoalVersion: string;
+  readonly source: {
+    readonly readinessGoalId: string;
+    readonly readinessGoalKey: string;
+    readonly readinessGoalTitle: string;
+    readonly readinessGoalLifecycle: "ACTIVE";
+    readonly readinessGoalVersion: string;
+    readonly profileVersionId: string;
+    readonly profileVersionKey: string;
+    readonly sourceKind: "ROADMAP_TEMPLATE_VERSION" | "TARGET_PROFILE_REQUIREMENT_COLLECTION";
+    readonly sourceRef: string;
+    readonly roadmapVersionId: string | null;
+    readonly sourceOwnerRevision: string;
+  };
+  readonly before: {
+    readonly lifetimePlanCount: number;
+    readonly currentPlanCount: number;
+    readonly snapshotSentinelCount: number;
+  };
+  readonly after: {
+    readonly lifetimePlanCount: 1;
+    readonly currentPlanCount: 1;
+    readonly currentPlanLimit: 1;
+    readonly snapshotSentinelCount: 1;
+    readonly growthPlan: GrowthPlanInitializationPlanStateV1;
+    readonly learningTrack: GrowthPlanInitializationTrackStateV1;
+  };
+  readonly canApply: boolean;
+  readonly blockingReasons: readonly {
+    readonly code:
+      | "CURRENT_GROWTH_PLAN_EXISTS"
+      | "GROWTH_PLAN_HISTORY_REQUIRES_REPLACEMENT"
+      | "PLANNING_CREATE_IDENTITY_COLLISION";
+  }[];
+  readonly warnings: readonly { readonly code: "INITIAL_TRACK_HAS_NO_ACTIVITIES" }[];
+  readonly retained: {
+    readonly readinessGoal: true;
+    readonly competencyOverlay: true;
+    readonly activitiesAndEvidence: true;
+    readonly mastery: true;
+    readonly reviews: true;
+    readonly history: true;
+  };
+  readonly recalculationAfterApply: {
+    readonly projectionState: "PENDING";
+    readonly eventChangeKind: "INITIALIZED";
+    readonly consumerName: "planning.plan_snapshot_v1";
+  };
+  readonly previewDigest: string;
 }
 
-export interface GrowthPlanInitializationApplyResultV1 extends JsonObject {
-  readonly contract: JsonObject & {
+export interface GrowthPlanInitializationApplyResultV1 {
+  readonly contract: {
     readonly name: "GrowthPlanInitializationApplyResultV1";
     readonly version: "1.0.0";
   };
+  readonly commandId: string;
+  readonly createdPlan: GrowthPlanInitializationPlanStateV1;
+  readonly createdTrack: GrowthPlanInitializationTrackStateV1;
+  readonly projectionState: "PENDING";
+  readonly planningDeliveryId: string;
+  readonly emittedEventIds: readonly [string];
 }
 
 function semanticViolation(code: string, path: string, message: string): ContractViolation {
@@ -183,12 +263,12 @@ function previewSemanticViolations(root: JsonObject): ContractViolation[] {
   const lifetime = asNumber(before.lifetimePlanCount)!;
   const current = asNumber(before.currentPlanCount)!;
   const sentinel = asNumber(before.snapshotSentinelCount)!;
-  if (current > lifetime) {
+  if (current > lifetime || (lifetime === 0 && sentinel !== 0)) {
     violations.push(
       semanticViolation(
         "GROWTH_PLAN_INITIALIZATION_CARDINALITY",
         "/before",
-        "Current Plan count cannot exceed lifetime Plan count.",
+        "Current Plan count cannot exceed lifetime history and a sentinel cannot exist without a Plan.",
       ),
     );
   }
@@ -246,6 +326,15 @@ function applySemanticViolations(root: JsonObject): ContractViolation[] {
         "GROWTH_PLAN_INITIALIZATION_TRACK_KEY",
         "/createdTrack/trackKey",
         "The created Track key must bind its derived UUID.",
+      ),
+    );
+  }
+  if (track.title !== initialLearningTrackTitle(String(plan.title))) {
+    violations.push(
+      semanticViolation(
+        "GROWTH_PLAN_INITIALIZATION_TRACK_TITLE",
+        "/createdTrack/title",
+        "The created Track title must be derived from the created Plan title.",
       ),
     );
   }
