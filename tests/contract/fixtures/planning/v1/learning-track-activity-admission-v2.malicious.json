@@ -1,0 +1,32 @@
+{
+  "contract": { "name": "LearningTrackActivityAdmissionSourceV2", "version": "2.0.0" },
+  "state": "READY",
+  "capabilities": ["admit_activity_to_learning_track"],
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4",
+    "growthPlanId": "80000000-0000-4000-8000-000000000001"
+  },
+  "selectedTrack": {
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 80,
+    "protectedMinimumMinutes": 120,
+    "defaultSessionMinutes": 45,
+    "aggregateVersion": "7",
+    "learningTrackId": "70000000-0000-4000-8000-000000000001"
+  },
+  "activities": [
+    {
+      "activityKey": "activity:graph-practice",
+      "title": "Graph practice",
+      "activityType": "PROJECT",
+      "targetCompetencyRef": "competency:graphs",
+      "customActivityId": "60000000-0000-4000-8000-000000000001"
+    }
+  ],
+  "workspaceId": "90000000-0000-4000-8000-000000000001"
+}

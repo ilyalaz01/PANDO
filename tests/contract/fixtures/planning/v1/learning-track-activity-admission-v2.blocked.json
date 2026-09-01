@@ -1,0 +1,21 @@
+{
+  "contract": { "name": "LearningTrackActivityAdmissionSourceV2", "version": "2.0.0" },
+  "state": "PLAN_ACTIVITY_LIMIT_REACHED",
+  "capabilities": [],
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "selectedTrack": {
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 80,
+    "protectedMinimumMinutes": 120,
+    "defaultSessionMinutes": 45,
+    "aggregateVersion": "7"
+  },
+  "activities": []
+}

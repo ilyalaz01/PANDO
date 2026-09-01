@@ -1,0 +1,56 @@
+{
+  "contract": { "name": "LearningTrackActivityAdmissionPreviewV2", "version": "2.0.0" },
+  "digestVersion": "learning-track-activity-admission-preview-digest/2.0.0",
+  "operation": "admit_activity_to_learning_track",
+  "commandType": "planning.add_learning_track_activity_v3",
+  "requestId": "21000000-0000-4000-8000-000000000001",
+  "reason": "Add graph practice to the algorithms Track.",
+  "expectedGrowthPlanVersion": "4",
+  "expectedLearningTrackVersion": "7",
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "learningTrack": {
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 80,
+    "protectedMinimumMinutes": 120,
+    "defaultSessionMinutes": 45,
+    "aggregateVersionBefore": "7",
+    "aggregateVersionAfter": "8"
+  },
+  "activity": {
+    "activityKey": "activity:graph-practice",
+    "title": "Graph practice",
+    "activityType": "PROJECT",
+    "targetCompetencyRef": "competency:graphs",
+    "candidateKey": "candidate:21000000-0000-4000-8000-000000000001",
+    "estimatedMinutes": 60,
+    "energy": "HIGH"
+  },
+  "constraint": {
+    "planActivityCountBefore": 2,
+    "planActivityCountAfter": 3,
+    "planActivityLimit": 200,
+    "currentTrackOrderFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "retained": {
+    "activitiesAndEvidence": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "masteryAndReadiness": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "TRACK_ACTIVITY_ADMITTED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}
