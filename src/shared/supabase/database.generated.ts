@@ -58,6 +58,18 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_learning_track_lifecycle_v1: {
+        Args: {
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_idempotency_key: string
+          p_operation: string
+          p_preview_digest: string
+          p_reason: string
+          p_track_key: string
+        }
+        Returns: Json
+      }
       bootstrap_personal_workspace: {
         Args: { p_idempotency_key: string; p_workspace_name?: string }
         Returns: Json
@@ -273,6 +285,7 @@ export type Database = {
         Returns: Json
       }
       get_current_growth_plan_v1: { Args: never; Returns: Json }
+      get_current_learning_tracks_v1: { Args: never; Returns: Json }
       get_current_planning_readiness_input_v1: {
         Args: { p_readiness_goal_key: string }
         Returns: Json
@@ -361,6 +374,16 @@ export type Database = {
           p_expected_growth_plan_version: string
           p_operation: string
           p_reason: string
+        }
+        Returns: Json
+      }
+      preview_learning_track_lifecycle_v1: {
+        Args: {
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_operation: string
+          p_reason: string
+          p_track_key: string
         }
         Returns: Json
       }
