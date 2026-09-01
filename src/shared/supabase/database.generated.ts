@@ -299,6 +299,7 @@ export type Database = {
       }
       get_current_growth_plan_v1: { Args: never; Returns: Json }
       get_current_learning_tracks_v1: { Args: never; Returns: Json }
+      get_growth_plan_setup_source_v1: { Args: never; Returns: Json }
       get_current_planning_readiness_input_v1: {
         Args: { p_readiness_goal_key: string }
         Returns: Json
@@ -341,6 +342,31 @@ export type Database = {
           p_idempotency_key: string
           p_protected_minimum_minutes: number
           p_readiness_goal_key: string
+          p_track_priority: number
+          p_weekly_capacity_minutes: number
+        }
+        Returns: Json
+      }
+      preview_growth_plan_initialization_v1: {
+        Args: {
+          p_default_session_minutes: number
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_readiness_goal_key: string
+          p_reason: string
+          p_track_priority: number
+          p_weekly_capacity_minutes: number
+        }
+        Returns: Json
+      }
+      apply_growth_plan_initialization_v1: {
+        Args: {
+          p_default_session_minutes: number
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_readiness_goal_key: string
+          p_reason: string
           p_track_priority: number
           p_weekly_capacity_minutes: number
         }

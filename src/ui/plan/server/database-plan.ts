@@ -3,6 +3,9 @@ import "server-only";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   decodeCurrentGrowthPlanV1,
+  decodeGrowthPlanInitializationApplyResultV1,
+  decodeGrowthPlanInitializationPreviewV1,
+  decodeGrowthPlanSetupSourceV1,
   decodeGrowthPlanCapacityApplyResultV1,
   decodeGrowthPlanCapacityPreviewV1,
   decodeGrowthPlanLifecycleApplyResultV1,
@@ -16,6 +19,9 @@ import {
   type CurrentGrowthPlanV1,
   type GrowthPlanCapacityApplyResultV1,
   type GrowthPlanCapacityPreviewV1,
+  type GrowthPlanInitializationApplyResultV1,
+  type GrowthPlanInitializationPreviewV1,
+  type GrowthPlanSetupSourceV1,
   type GrowthPlanLifecycleApplyResultV1,
   type GrowthPlanLifecycleOperationV1,
   type GrowthPlanLifecyclePreviewV1,
@@ -39,12 +45,19 @@ export const PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
   "preview_learning_track_priority_minimum_v1" as const;
 export const APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
   "apply_learning_track_priority_minimum_v1" as const;
+export const GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1 = "get_growth_plan_setup_source_v1" as const;
+export const PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
+  "preview_growth_plan_initialization_v1" as const;
+export const APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
+  "apply_growth_plan_initialization_v1" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
 const CONTROL_CHARACTER = /[\p{Cc}]/u;
 const MAX_POSTGRES_BIGINT = BigInt("9223372036854775807");
 const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
+const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
+const LOWERCASE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 export class PlanInputError extends Error {
   constructor() {
@@ -116,6 +129,20 @@ export interface LearningTrackPriorityMinimumApplyCommandV1 extends LearningTrac
   readonly idempotencyKey: string;
 }
 
+export interface GrowthPlanInitializationPreviewCommandV1 {
+  readonly readinessGoalKey: string;
+  readonly expectedReadinessGoalVersion: string;
+  readonly weeklyCapacityMinutes: number;
+  readonly defaultSessionMinutes: number;
+  readonly trackPriority: number;
+  readonly reason: string;
+  readonly idempotencyKey: string;
+}
+
+export interface GrowthPlanInitializationApplyCommandV1 extends GrowthPlanInitializationPreviewCommandV1 {
+  readonly previewDigest: string;
+}
+
 function errorCode(error: unknown): string | undefined {
   if (typeof error !== "object" || error === null || !("code" in error)) return undefined;
   return typeof error.code === "string" ? error.code : undefined;
@@ -139,8 +166,8 @@ function validVersion(value: string): boolean {
 
 function validReason(value: string): boolean {
   return (
-    value.length >= 1 &&
-    value.length <= 500 &&
+    Array.from(value).length >= 1 &&
+    Array.from(value).length <= 500 &&
     value.trim() === value &&
     !CONTROL_CHARACTER.test(value)
   );
@@ -208,6 +235,24 @@ function validTrackPriorityMinimumPreview(
   );
 }
 
+function validInitializationPreview(command: GrowthPlanInitializationPreviewCommandV1): boolean {
+  return (
+    GOAL_KEY.test(command.readinessGoalKey) &&
+    validVersion(command.expectedReadinessGoalVersion) &&
+    Number.isInteger(command.weeklyCapacityMinutes) &&
+    command.weeklyCapacityMinutes >= 0 &&
+    command.weeklyCapacityMinutes <= 10_080 &&
+    Number.isInteger(command.defaultSessionMinutes) &&
+    command.defaultSessionMinutes >= 1 &&
+    command.defaultSessionMinutes <= 480 &&
+    Number.isInteger(command.trackPriority) &&
+    command.trackPriority >= 0 &&
+    command.trackPriority <= 100 &&
+    validReason(command.reason) &&
+    LOWERCASE_UUID.test(command.idempotencyKey)
+  );
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
@@ -220,7 +265,10 @@ async function rpc(
     | typeof PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1
     | typeof APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
-    | typeof APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
+    | typeof APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
+    | typeof GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1
+    | typeof PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1
+    | typeof APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1,
   parameters?: Record<string, string | number>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
@@ -512,6 +560,87 @@ export async function applyLearningTrackPriorityMinimumV1(
         p_preview_digest: command.previewDigest,
         p_reason: command.reason,
         p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads the session-resolved, capability-bounded selector for the first Growth Plan. */
+export async function loadGrowthPlanSetupSourceV1(
+  client: PandoSupabaseClient,
+): Promise<GrowthPlanSetupSourceV1> {
+  try {
+    return decodeGrowthPlanSetupSourceV1(await rpc(client, GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1));
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Previews the exact first Plan and Track that Planning will create. */
+export async function previewGrowthPlanInitializationV1(
+  client: PandoSupabaseClient,
+  command: GrowthPlanInitializationPreviewCommandV1,
+): Promise<GrowthPlanInitializationPreviewV1> {
+  if (!validInitializationPreview(command)) throw new PlanInputError();
+  try {
+    return decodeGrowthPlanInitializationPreviewV1(
+      await rpc(client, PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1, {
+        p_readiness_goal_key: command.readinessGoalKey,
+        p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_weekly_capacity_minutes: command.weeklyCapacityMinutes,
+        p_default_session_minutes: command.defaultSessionMinutes,
+        p_track_priority: command.trackPriority,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the first-Plan creation that matches the confirmed preview digest. */
+export async function applyGrowthPlanInitializationV1(
+  client: PandoSupabaseClient,
+  command: GrowthPlanInitializationApplyCommandV1,
+): Promise<GrowthPlanInitializationApplyResultV1> {
+  if (!validInitializationPreview(command) || !SHA_256_HEX.test(command.previewDigest)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeGrowthPlanInitializationApplyResultV1(
+      await rpc(client, APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1, {
+        p_readiness_goal_key: command.readinessGoalKey,
+        p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_weekly_capacity_minutes: command.weeklyCapacityMinutes,
+        p_default_session_minutes: command.defaultSessionMinutes,
+        p_track_priority: command.trackPriority,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+        p_preview_digest: command.previewDigest,
       }),
     );
   } catch (error) {

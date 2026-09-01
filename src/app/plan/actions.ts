@@ -9,12 +9,14 @@ import type { PlanOperation, TrackOperation } from "../../ui/plan/plan-types";
 import {
   applyLearningTrackLifecycleV1,
   applyLearningTrackPriorityMinimumV1,
+  applyGrowthPlanInitializationV1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
   previewLearningTrackPriorityMinimumV1,
+  previewGrowthPlanInitializationV1,
   PlanConflictError,
   PlanInputError,
 } from "../../ui/plan/server/database-plan";
@@ -24,8 +26,20 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const OPERATIONS = ["pause_growth_plan", "resume_growth_plan"] as const;
 const CAPACITY = /^(?:0|[1-9][0-9]{0,4})$/u;
 const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
+const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
 const TRACK_OPERATIONS = ["pause_track", "resume_track"] as const;
 const PRIORITY = /^(?:0|[1-9][0-9]{0,2})$/u;
+const CONTROL_CHARACTER = /[\p{Cc}]/u;
+
+function validReason(value: string): boolean {
+  return (
+    value.trim() === value &&
+    Array.from(value).length >= 1 &&
+    Array.from(value).length <= 500 &&
+    !CONTROL_CHARACTER.test(value)
+  );
+}
+
 function field(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
@@ -37,9 +51,7 @@ function input(formData: FormData): { operation: PlanOperation; version: string;
   if (
     !OPERATIONS.includes(operation as PlanOperation) ||
     !VERSION.test(version) ||
-    reason.trim() !== reason ||
-    reason.length < 1 ||
-    reason.length > 500
+    !validReason(reason)
   )
     throw new PlanInputError();
   return { operation: operation as PlanOperation, version, reason };
@@ -56,9 +68,7 @@ function capacityInput(formData: FormData): {
     !CAPACITY.test(proposedCapacity) ||
     Number(proposedCapacity) > 10_080 ||
     !VERSION.test(version) ||
-    reason.trim() !== reason ||
-    reason.length < 1 ||
-    reason.length > 500
+    !validReason(reason)
   ) {
     throw new PlanInputError();
   }
@@ -81,9 +91,7 @@ function trackInput(formData: FormData): {
     !TRACK_OPERATIONS.includes(operation as TrackOperation) ||
     !VERSION.test(growthPlanVersion) ||
     !VERSION.test(learningTrackVersion) ||
-    reason.trim() !== reason ||
-    reason.length < 1 ||
-    reason.length > 500
+    !validReason(reason)
   ) {
     throw new PlanInputError();
   }
@@ -117,9 +125,7 @@ function trackPriorityMinimumInput(formData: FormData): {
     Number(protectedMinimumMinutes) > 10_080 ||
     !VERSION.test(growthPlanVersion) ||
     !VERSION.test(learningTrackVersion) ||
-    reason.trim() !== reason ||
-    reason.length < 1 ||
-    reason.length > 500
+    !validReason(reason)
   ) {
     throw new PlanInputError();
   }
@@ -130,6 +136,48 @@ function trackPriorityMinimumInput(formData: FormData): {
     growthPlanVersion,
     learningTrackVersion,
     reason,
+  };
+}
+function initializationInput(formData: FormData): {
+  readinessGoalKey: string;
+  expectedReadinessGoalVersion: string;
+  weeklyCapacityMinutes: number;
+  defaultSessionMinutes: number;
+  trackPriority: number;
+  reason: string;
+  requestId: string;
+} {
+  const readinessGoalKey = field(formData, "readinessGoalKey");
+  const expectedReadinessGoalVersion = field(formData, "expectedReadinessGoalVersion");
+  const weeklyCapacityMinutes = field(formData, "weeklyCapacityMinutes");
+  const defaultSessionMinutes = field(formData, "defaultSessionMinutes");
+  const trackPriority = field(formData, "trackPriority");
+  const reason = field(formData, "reason");
+  const requestId = field(formData, "requestId");
+  if (
+    !GOAL_KEY.test(readinessGoalKey) ||
+    !VERSION.test(expectedReadinessGoalVersion) ||
+    !CAPACITY.test(weeklyCapacityMinutes) ||
+    Number(weeklyCapacityMinutes) > 10_080 ||
+    !CAPACITY.test(defaultSessionMinutes) ||
+    Number(defaultSessionMinutes) < 1 ||
+    Number(defaultSessionMinutes) > 480 ||
+    !PRIORITY.test(trackPriority) ||
+    Number(trackPriority) > 100 ||
+    !UUID.test(requestId) ||
+    requestId !== requestId.toLowerCase() ||
+    !validReason(reason)
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    readinessGoalKey,
+    expectedReadinessGoalVersion,
+    weeklyCapacityMinutes: Number(weeklyCapacityMinutes),
+    defaultSessionMinutes: Number(defaultSessionMinutes),
+    trackPriority: Number(trackPriority),
+    reason,
+    requestId,
   };
 }
 function failure(error: unknown, invalidMessage?: string): PlanActionState {
@@ -150,6 +198,74 @@ function failure(error: unknown, invalidMessage?: string): PlanActionState {
     status: "unavailable",
     message: "PANDO could not change this plan. Nothing changed; try again.",
   };
+}
+
+export async function previewGrowthPlanInitializationAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = initializationInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewGrowthPlanInitializationV1(client, {
+      readinessGoalKey: value.readinessGoalKey,
+      expectedReadinessGoalVersion: value.expectedReadinessGoalVersion,
+      weeklyCapacityMinutes: value.weeklyCapacityMinutes,
+      defaultSessionMinutes: value.defaultSessionMinutes,
+      trackPriority: value.trackPriority,
+      reason: value.reason,
+      idempotencyKey: value.requestId,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "First Plan preview ready. Confirm only if these exact facts are correct."
+        : "This first Growth Plan setup is no longer applicable. Reload and start again.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current readiness goal, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyGrowthPlanInitializationAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = initializationInput(formData);
+    const previewDigest = field(formData, "previewDigest");
+    if (!/^[a-f0-9]{64}$/u.test(previewDigest)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyGrowthPlanInitializationV1(client, {
+      readinessGoalKey: value.readinessGoalKey,
+      expectedReadinessGoalVersion: value.expectedReadinessGoalVersion,
+      weeklyCapacityMinutes: value.weeklyCapacityMinutes,
+      defaultSessionMinutes: value.defaultSessionMinutes,
+      trackPriority: value.trackPriority,
+      reason: value.reason,
+      idempotencyKey: value.requestId,
+      previewDigest,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Growth Plan created. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current readiness goal, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
 }
 
 export async function previewGrowthPlanCapacityAction(

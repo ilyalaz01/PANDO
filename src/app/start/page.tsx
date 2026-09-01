@@ -156,6 +156,12 @@ export default async function StartPage({
                 >
                   Explore this target
                 </Link>
+                <Link
+                  className="mt-5 inline-flex min-h-11 items-center font-bold underline"
+                  href="/plan"
+                >
+                  Set up Growth Plan
+                </Link>
                 <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
                   Explore shows the live target structure now. Mastery and readiness stay hidden
                   until their versioned projections are materialized from evidence.

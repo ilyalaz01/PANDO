@@ -89,5 +89,9 @@ describe("StartPage", () => {
       "href",
       "/explore?goal=goal%3Anvidia-python-verification-base-v1",
     );
+    expect(screen.getByRole("link", { name: "Set up Growth Plan" })).toHaveAttribute(
+      "href",
+      "/plan",
+    );
   });
 });

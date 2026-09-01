@@ -2,9 +2,23 @@ import "server-only";
 
 import { growthPlanCapacityControlSemanticViolations } from "../../../shared/contracts/growth-plan-capacity-control";
 import { growthPlanControlSemanticViolations } from "../../../shared/contracts/growth-plan-control";
+import {
+  decodeGrowthPlanInitializationApplyResultV1 as decodeGrowthPlanInitializationApplyResult,
+  decodeGrowthPlanInitializationPreviewV1 as decodeGrowthPlanInitializationPreview,
+  decodeGrowthPlanSetupSourceV1 as decodeGrowthPlanSetupSource,
+  type GrowthPlanInitializationApplyResultV1,
+  type GrowthPlanInitializationPreviewV1,
+  type GrowthPlanSetupSourceV1,
+} from "../../../shared/contracts/growth-plan-initialization-control";
 import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
 import { learningTrackPriorityMinimumControlSemanticViolations } from "../../../shared/contracts/learning-track-priority-minimum-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
+
+export type {
+  GrowthPlanInitializationApplyResultV1,
+  GrowthPlanInitializationPreviewV1,
+  GrowthPlanSetupSourceV1,
+};
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
 export type GrowthPlanLifecycleV1 = "ACTIVE" | "PAUSED";
@@ -409,4 +423,23 @@ export function decodeLearningTrackPriorityMinimumApplyResultV1(
     value,
     "LearningTrackPriorityMinimumApplyResultV1",
   ) as LearningTrackPriorityMinimumApplyResultV1;
+}
+
+/** Decodes the bounded current-personal first-Plan setup selector. */
+export function decodeGrowthPlanSetupSourceV1(value: unknown): GrowthPlanSetupSourceV1 {
+  return decodeGrowthPlanSetupSource(value);
+}
+
+/** Decodes an exact first-Plan creation preview. */
+export function decodeGrowthPlanInitializationPreviewV1(
+  value: unknown,
+): GrowthPlanInitializationPreviewV1 {
+  return decodeGrowthPlanInitializationPreview(value);
+}
+
+/** Decodes the atomic first-Plan creation receipt. */
+export function decodeGrowthPlanInitializationApplyResultV1(
+  value: unknown,
+): GrowthPlanInitializationApplyResultV1 {
+  return decodeGrowthPlanInitializationApplyResult(value);
 }

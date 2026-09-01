@@ -5,11 +5,13 @@ const mocks = vi.hoisted(() => ({
   applyCapacity: vi.fn(),
   applyTrack: vi.fn(),
   applyTrackSettings: vi.fn(),
+  applyInitialization: vi.fn(),
   createClient: vi.fn(),
   preview: vi.fn(),
   previewCapacity: vi.fn(),
   previewTrack: vi.fn(),
   previewTrackSettings: vi.fn(),
+  previewInitialization: vi.fn(),
   revalidate: vi.fn(),
   verifySession: vi.fn(),
 }));
@@ -28,10 +30,12 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   applyGrowthPlanLifecycleV1: mocks.apply,
   applyLearningTrackLifecycleV1: mocks.applyTrack,
   applyLearningTrackPriorityMinimumV1: mocks.applyTrackSettings,
+  applyGrowthPlanInitializationV1: mocks.applyInitialization,
   previewGrowthPlanCapacityV1: mocks.previewCapacity,
   previewGrowthPlanLifecycleV1: mocks.preview,
   previewLearningTrackLifecycleV1: mocks.previewTrack,
   previewLearningTrackPriorityMinimumV1: mocks.previewTrackSettings,
+  previewGrowthPlanInitializationV1: mocks.previewInitialization,
   PlanConflictError: classes.PlanConflictError,
   PlanInputError: classes.PlanInputError,
 }));
@@ -42,10 +46,12 @@ import {
   applyGrowthPlanLifecycleAction,
   applyLearningTrackLifecycleAction,
   applyLearningTrackPriorityMinimumAction,
+  applyGrowthPlanInitializationAction,
   previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
   previewLearningTrackLifecycleAction,
   previewLearningTrackPriorityMinimumAction,
+  previewGrowthPlanInitializationAction,
 } from "./actions";
 
 const client = { requestScoped: true };
@@ -191,6 +197,71 @@ const trackSettingsPreview = {
   previewDigest: "a".repeat(64),
 } as const;
 
+const initializationPreview = {
+  contract: { name: "GrowthPlanInitializationPreviewV1", version: "1.0.0" },
+  digestVersion: "growth-plan-initialization-preview-digest/1.0.0",
+  identityVersion: "planning-create-identity/1.0.0",
+  operation: "initialize_growth_plan",
+  commandType: "planning.initialize_growth_plan_v2",
+  idempotencyKey: requestId,
+  reason: "Set up a first plan.",
+  expectedReadinessGoalVersion: "1",
+  source: {
+    readinessGoalId: "30000000-0000-8000-8000-000000000021",
+    readinessGoalKey: "goal:backend-interview-readiness",
+    readinessGoalTitle: "Backend interview readiness",
+    readinessGoalLifecycle: "ACTIVE",
+    readinessGoalVersion: "1",
+    profileVersionId: "30000000-0000-8000-8000-000000000022",
+    profileVersionKey: "target:backend-interview-v1",
+    sourceKind: "TARGET_PROFILE_REQUIREMENT_COLLECTION",
+    sourceRef: "30000000-0000-8000-8000-000000000022",
+    roadmapVersionId: null,
+    sourceOwnerRevision: "readiness-goal:1",
+  },
+  before: { lifetimePlanCount: 0, currentPlanCount: 0, snapshotSentinelCount: 0 },
+  after: {
+    lifetimePlanCount: 1,
+    currentPlanCount: 1,
+    currentPlanLimit: 1,
+    snapshotSentinelCount: 1,
+    growthPlan: {
+      growthPlanId: "30000000-0000-8000-8000-000000000023",
+      title: "Backend interview readiness",
+      lifecycle: "ACTIVE",
+      weeklyCapacityMinutes: 600,
+      aggregateVersion: "1",
+    },
+    learningTrack: {
+      learningTrackId: "30000000-0000-8000-8000-000000000024",
+      trackKey: "track:backend-interview-readiness",
+      title: "Backend interview readiness",
+      lifecycle: "ACTIVE",
+      priority: 50,
+      protectedMinimumMinutes: 0,
+      defaultSessionMinutes: 30,
+      aggregateVersion: "1",
+    },
+  },
+  canApply: true,
+  blockingReasons: [],
+  warnings: [{ code: "INITIAL_TRACK_HAS_NO_ACTIVITIES" }],
+  retained: {
+    readinessGoal: true,
+    competencyOverlay: true,
+    activitiesAndEvidence: true,
+    mastery: true,
+    reviews: true,
+    history: true,
+  },
+  recalculationAfterApply: {
+    projectionState: "PENDING",
+    eventChangeKind: "INITIALIZED",
+    consumerName: "planning.plan_snapshot_v1",
+  },
+  previewDigest: "b".repeat(64),
+} as const;
+
 function form(): FormData {
   const data = new FormData();
   data.set("operation", "pause_growth_plan");
@@ -248,6 +319,22 @@ function trackSettingsForm(): FormData {
   return data;
 }
 
+function initializationForm(): FormData {
+  const data = new FormData();
+  data.set("readinessGoalKey", "goal:backend-interview-readiness");
+  data.set("expectedReadinessGoalVersion", "1");
+  data.set("weeklyCapacityMinutes", "600");
+  data.set("defaultSessionMinutes", "30");
+  data.set("trackPriority", "50");
+  data.set("reason", "Set up a first plan.");
+  data.set("requestId", requestId);
+  data.set("previewDigest", initializationPreview.previewDigest);
+  data.set("workspaceId", "attacker-selected-workspace");
+  data.set("readinessGoalId", "attacker-selected-goal");
+  data.set("capacityFingerprint", "attacker-selected-capacity");
+  return data;
+}
+
 describe("Plan Server Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -261,6 +348,8 @@ describe("Plan Server Actions", () => {
     mocks.applyTrack.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrackSettings.mockResolvedValue(trackSettingsPreview);
     mocks.applyTrackSettings.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.previewInitialization.mockResolvedValue(initializationPreview);
+    mocks.applyInitialization.mockResolvedValue({ projectionState: "PENDING" });
   });
 
   it("returns a pure preview without accepting browser authority fields", async () => {
@@ -274,6 +363,64 @@ describe("Plan Server Actions", () => {
     });
     expect(mocks.preview.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
     expect(mocks.preview.mock.calls[0]?.[1]).not.toHaveProperty("growthPlanId");
+  });
+
+  it("previews and applies a first Plan through its bounded setup fields", async () => {
+    await expect(
+      previewGrowthPlanInitializationAction(initialPlanActionState, initializationForm()),
+    ).resolves.toMatchObject({ status: "previewed", preview: initializationPreview });
+    expect(mocks.previewInitialization).toHaveBeenCalledWith(client, {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      expectedReadinessGoalVersion: "1",
+      weeklyCapacityMinutes: 600,
+      defaultSessionMinutes: 30,
+      trackPriority: 50,
+      reason: "Set up a first plan.",
+      idempotencyKey: requestId,
+    });
+    expect(mocks.previewInitialization.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
+    expect(mocks.previewInitialization.mock.calls[0]?.[1]).not.toHaveProperty("readinessGoalId");
+
+    await expect(
+      applyGrowthPlanInitializationAction(initialPlanActionState, initializationForm()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyInitialization).toHaveBeenCalledWith(client, {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      expectedReadinessGoalVersion: "1",
+      weeklyCapacityMinutes: 600,
+      defaultSessionMinutes: 30,
+      trackPriority: 50,
+      reason: "Set up a first plan.",
+      idempotencyKey: requestId,
+      previewDigest: initializationPreview.previewDigest,
+    });
+    expect(mocks.revalidate).toHaveBeenCalledWith("/plan");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/today");
+  });
+
+  it("rejects invalid first-Plan values before creating a client", async () => {
+    const malformed = initializationForm();
+    malformed.set("defaultSessionMinutes", "0");
+    await expect(
+      previewGrowthPlanInitializationAction(initialPlanActionState, malformed),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("counts first-Plan reasons by Unicode characters rather than UTF-16 units", async () => {
+    const boundary = initializationForm();
+    boundary.set("reason", "😀".repeat(500));
+    await expect(
+      previewGrowthPlanInitializationAction(initialPlanActionState, boundary),
+    ).resolves.toMatchObject({ status: "previewed" });
+
+    mocks.previewInitialization.mockClear();
+    const tooLong = initializationForm();
+    tooLong.set("reason", "😀".repeat(501));
+    await expect(
+      previewGrowthPlanInitializationAction(initialPlanActionState, tooLong),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.previewInitialization).not.toHaveBeenCalled();
   });
 
   it("applies only the confirmed digest and revalidates Plan plus Today", async () => {

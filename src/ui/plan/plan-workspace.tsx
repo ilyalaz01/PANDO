@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
+  GrowthPlanSetupSourceV1,
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
   LearningTrackLifecyclePreviewV1,
@@ -15,6 +16,7 @@ import type {
 } from "./plan-types";
 import { initialPlanActionState, type PlanActionState } from "./plan-action-state";
 import styles from "./plan.module.css";
+import { GrowthPlanSetup } from "./growth-plan-setup";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -292,6 +294,7 @@ function RecalculationNotice({ workspace }: { readonly workspace: CurrentGrowthP
 export function PlanWorkspace({
   workspace,
   tracksWorkspace,
+  setupSource,
   initialPreviewState = initialPlanActionState,
   initialApplyState = initialPlanActionState,
   initialCapacityPreviewState = initialPlanActionState,
@@ -300,9 +303,12 @@ export function PlanWorkspace({
   initialTrackApplyState = initialPlanActionState,
   initialTrackPriorityMinimumPreviewState = initialPlanActionState,
   initialTrackPriorityMinimumApplyState = initialPlanActionState,
+  initialInitializationPreviewState = initialPlanActionState,
+  initialInitializationApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
+  readonly setupSource?: GrowthPlanSetupSourceV1;
   readonly initialPreviewState?: PlanActionState;
   readonly initialApplyState?: PlanActionState;
   readonly initialCapacityPreviewState?: PlanActionState;
@@ -311,17 +317,19 @@ export function PlanWorkspace({
   readonly initialTrackApplyState?: PlanActionState;
   readonly initialTrackPriorityMinimumPreviewState?: PlanActionState;
   readonly initialTrackPriorityMinimumApplyState?: PlanActionState;
+  readonly initialInitializationPreviewState?: PlanActionState;
+  readonly initialInitializationApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
   const [dismissed, setDismissed] = useState(false);
-  const [applyRequestId, setApplyRequestId] = useState(requestId);
+  const [applyRequestId, setApplyRequestId] = useState("");
   const [capacityReason, setCapacityReason] = useState("");
   const [proposedCapacity, setProposedCapacity] = useState(() =>
     String(workspace.currentPlan?.weeklyCapacityMinutes ?? ""),
   );
   const [capacityDismissed, setCapacityDismissed] = useState(false);
-  const [capacityApplyRequestId, setCapacityApplyRequestId] = useState(requestId);
+  const [capacityApplyRequestId, setCapacityApplyRequestId] = useState("");
   const initialSelectedTrackKey = isTrackPriorityMinimumPreview(
     initialTrackPriorityMinimumPreviewState.preview,
   )
@@ -335,7 +343,7 @@ export function PlanWorkspace({
   const [selectedTrackKey, setSelectedTrackKey] = useState(initialSelectedTrackKey);
   const [trackReason, setTrackReason] = useState("");
   const [trackDismissed, setTrackDismissed] = useState(false);
-  const [trackApplyRequestId, setTrackApplyRequestId] = useState(requestId);
+  const [trackApplyRequestId, setTrackApplyRequestId] = useState("");
   const [trackPriority, setTrackPriority] = useState(() =>
     String(initialSelectedTrack?.priority ?? ""),
   );
@@ -344,7 +352,7 @@ export function PlanWorkspace({
   );
   const [trackSettingsReason, setTrackSettingsReason] = useState("");
   const [trackSettingsDismissed, setTrackSettingsDismissed] = useState(false);
-  const [trackSettingsApplyRequestId, setTrackSettingsApplyRequestId] = useState(requestId);
+  const [trackSettingsApplyRequestId, setTrackSettingsApplyRequestId] = useState("");
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -481,11 +489,17 @@ export function PlanWorkspace({
   }, [applyState, capacityApplyState, router, trackApplyState, trackPriorityMinimumApplyState]);
 
   if (!plan)
-    return (
+    return setupSource === undefined ? (
       <section className={styles.panel}>
         <h2>No Growth Plan yet.</h2>
-        <p>Choose a target first. PANDO will not invent a plan or capacity.</p>
+        <p>No Plan was changed. Reload the authorized workspace.</p>
       </section>
+    ) : (
+      <GrowthPlanSetup
+        initialApplyState={initialInitializationApplyState}
+        initialPreviewState={initialInitializationPreviewState}
+        source={setupSource}
+      />
     );
   return (
     <div className={styles.workspace}>

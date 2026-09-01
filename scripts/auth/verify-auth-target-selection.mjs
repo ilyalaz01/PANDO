@@ -587,21 +587,62 @@ try {
   await page.reload();
   await page.getByRole("heading", { level: 2, name: activityTitle }).waitFor();
 
-  const initializedPlan = await readinessVerifier.rpc("initialize_growth_plan_v1", {
-    p_readiness_goal_key: readinessGoalKey,
-    p_weekly_capacity_minutes: 300,
-    p_default_session_minutes: 25,
-    p_track_priority: 100,
-    p_protected_minimum_minutes: 100,
-    p_idempotency_key: "auth-gate-growth-plan-v1",
+  await page.goto(`${baseUrl}/start?goal=${encodeURIComponent(readinessGoalKey)}`);
+  await page.getByText("Selected readiness goal").waitFor();
+  await Promise.all([
+    page.waitForURL(/\/plan$/u),
+    page.getByRole("link", { name: "Set up Growth Plan" }).click(),
+  ]);
+  await page.getByRole("heading", { name: "Set up your first Growth Plan." }).waitFor();
+  const initializationForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview first Growth Plan" }),
   });
-  assert.equal(
-    initializedPlan.error,
-    null,
-    "authenticated Growth Plan initialization must succeed",
+  assert.deepEqual(
+    await initializationForm
+      .locator("input")
+      .evaluateAll((inputs) =>
+        inputs.map((input) => input.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    [
+      "expectedReadinessGoalVersion",
+      "requestId",
+      "weeklyCapacityMinutes",
+      "defaultSessionMinutes",
+      "trackPriority",
+    ],
+    "first Plan setup must expose only an opaque Goal key, version fence, limits, reason, and request key",
   );
-  assert.match(initializedPlan.data?.learningTrackKey ?? "", /^track:[0-9a-f-]{36}$/u);
-  assert.equal(initializedPlan.data?.learningTrackAggregateVersion, 1);
+  assert.equal(
+    await initializationForm.getByLabel("Target").getAttribute("name"),
+    "readinessGoalKey",
+    "first Plan setup must select only the server-returned Goal key",
+  );
+  await initializationForm.getByLabel("Weekly capacity (minutes)").fill("300");
+  await initializationForm.getByLabel("Default session (minutes)").fill("25");
+  await initializationForm.getByLabel("First Track priority").fill("100");
+  await initializationForm
+    .getByLabel("Reason")
+    .fill("Create the authenticated first Growth Plan through the bounded setup flow.");
+  await initializationForm.getByRole("button", { name: "Preview first Growth Plan" }).click();
+  await page.getByLabel("Exact first Growth Plan preview").waitFor();
+  await page.getByRole("button", { name: "Confirm and create Growth Plan" }).click();
+  await page.getByRole("heading", { name: "Pause this plan" }).waitFor();
+  await page.reload();
+  await page.getByRole("heading", { name: "Pause this plan" }).waitFor();
+  const initializedTracks = await readinessVerifier.rpc("get_current_learning_tracks_v1");
+  assert.equal(initializedTracks.error, null, "first Plan Track must reload after browser setup");
+  assert.equal(initializedTracks.data?.learningTracks?.length, 1);
+  const initializedTrackKey = initializedTracks.data?.learningTracks?.[0]?.trackKey;
+  assert.match(
+    initializedTrackKey ?? "",
+    /^track:[a-z0-9][a-z0-9-]{1,100}$/u,
+    "browser-created first Track must expose only its opaque key",
+  );
+  assert.equal(
+    initializedTracks.data?.learningTracks?.[0]?.aggregateVersion,
+    "1",
+    "browser-created first Track must start at aggregate version 1",
+  );
 
   const planningWorkerAdmin = createClient(apiUrl, serviceRoleKey, {
     db: { schema: "api" },
@@ -631,7 +672,7 @@ try {
   );
 
   const admittedActivity = await readinessVerifier.rpc("add_learning_track_activity_v1", {
-    p_learning_track_key: initializedPlan.data.learningTrackKey,
+    p_learning_track_key: initializedTrackKey,
     p_activity_key: activityKey,
     p_estimated_minutes: 25,
     p_expected_learning_track_version: "1",
@@ -1050,12 +1091,12 @@ try {
   await page.getByLabel("Weekly capacity in minutes").fill("360");
   await page
     .getByLabel("Why is capacity changing?")
-    .fill("Increase the verified weekly capacity while preserving protected Track work.");
+    .fill("Increase the verified weekly capacity while preserving the current Track state.");
   await page.getByRole("button", { name: "Preview capacity change" }).click();
   const capacityPreview = page.getByLabel("Exact weekly capacity preview");
   await capacityPreview.getByText("300 minutes", { exact: true }).waitFor();
   await capacityPreview.getByText("360 minutes", { exact: true }).waitFor();
-  await capacityPreview.getByText("100 minutes", { exact: true }).first().waitFor();
+  await capacityPreview.getByText("0 minutes", { exact: true }).first().waitFor();
   await page.getByRole("button", { name: "Confirm capacity" }).click();
   await page.locator("main section").first().getByText("360 minutes", { exact: true }).waitFor();
   const currentPlanAfterCapacity = await readinessVerifier.rpc("get_current_growth_plan_v1");

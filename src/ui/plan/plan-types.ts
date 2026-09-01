@@ -1,3 +1,9 @@
+import type {
+  GrowthPlanInitializationApplyResultV1,
+  GrowthPlanInitializationPreviewV1,
+  GrowthPlanSetupSourceV1,
+} from "../../shared/contracts/growth-plan-initialization-control";
+
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
 export type CapacityOperation = "set_default_capacity";
@@ -191,7 +197,8 @@ export type PlanPreviewV1 =
   | GrowthPlanLifecyclePreviewV1
   | GrowthPlanCapacityPreviewV1
   | LearningTrackLifecyclePreviewV1
-  | LearningTrackPriorityMinimumPreviewV1;
+  | LearningTrackPriorityMinimumPreviewV1
+  | GrowthPlanInitializationPreviewV1;
 
 export interface CurrentGrowthPlanV1 {
   readonly contract: { readonly name: "CurrentGrowthPlanV1"; readonly version: "1.0.0" };
@@ -204,3 +211,8 @@ export interface CurrentGrowthPlanV1 {
   };
   readonly capabilities: readonly PlanOperation[];
 }
+export type {
+  GrowthPlanInitializationApplyResultV1,
+  GrowthPlanInitializationPreviewV1,
+  GrowthPlanSetupSourceV1,
+};

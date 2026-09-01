@@ -9,10 +9,12 @@ vi.mock("../../app/plan/actions", () => ({
   applyGrowthPlanLifecycleAction: vi.fn(),
   applyLearningTrackLifecycleAction: vi.fn(),
   applyLearningTrackPriorityMinimumAction: vi.fn(),
+  applyGrowthPlanInitializationAction: vi.fn(),
   previewGrowthPlanCapacityAction: vi.fn(),
   previewGrowthPlanLifecycleAction: vi.fn(),
   previewLearningTrackLifecycleAction: vi.fn(),
   previewLearningTrackPriorityMinimumAction: vi.fn(),
+  previewGrowthPlanInitializationAction: vi.fn(),
 }));
 
 import type { PlanActionState } from "./plan-action-state";
@@ -222,7 +224,105 @@ const trackSettingsPreview: LearningTrackPriorityMinimumPreviewV1 = {
   previewDigest: "i".repeat(64),
 };
 
+const setupWorkspace: CurrentGrowthPlanV1 = {
+  contract: { name: "CurrentGrowthPlanV1", version: "1.0.0" },
+  currentPlan: null,
+  recalculation: { projectionState: "NOT_STARTED", reason: "INITIALIZING", lastKnownSafe: false },
+  capabilities: [],
+};
+
+const setupTracksWorkspace: CurrentLearningTracksV1 = {
+  contract: { name: "CurrentLearningTracksV1", version: "1.0.0" },
+  growthPlan: null,
+  learningTracks: [],
+};
+
+const setupSource = {
+  contract: { name: "GrowthPlanSetupSourceV1", version: "1.0.0" },
+  state: "SETUP_AVAILABLE",
+  capabilities: ["initialize_growth_plan"],
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: true,
+      aggregateVersion: "1",
+    },
+    {
+      readinessGoalKey: "goal:frontend-interview-readiness",
+      title: "Frontend interview readiness",
+      profileLabel: "Frontend interview profile",
+      profileVersionKey: "target:frontend-interview-v1",
+      roadmapPresent: false,
+      aggregateVersion: "2",
+    },
+  ],
+} as const;
+
+const initializationPreviewed = {
+  status: "previewed",
+  message: "First Plan preview ready.",
+  preview: {
+    contract: { name: "GrowthPlanInitializationPreviewV1", version: "1.0.0" },
+    idempotencyKey: "50000000-0000-4000-8000-000000000001",
+    reason: "Set up a first plan.",
+    expectedReadinessGoalVersion: "1",
+    source: { readinessGoalKey: "goal:backend-interview-readiness" },
+    before: { lifetimePlanCount: 0, currentPlanCount: 0, snapshotSentinelCount: 0 },
+    after: {
+      growthPlan: { title: "Backend interview readiness", weeklyCapacityMinutes: 600 },
+      learningTrack: {
+        title: "Backend interview readiness",
+        priority: 50,
+        protectedMinimumMinutes: 0,
+        defaultSessionMinutes: 30,
+      },
+    },
+    canApply: true,
+    blockingReasons: [],
+    previewDigest: "b".repeat(64),
+  },
+} as unknown as PlanActionState;
+
 describe("PlanWorkspace", () => {
+  it("offers a bounded first-Plan setup and exact confirmation without a modal", () => {
+    const { container } = render(
+      <PlanWorkspace
+        initialInitializationPreviewState={initializationPreviewed}
+        setupSource={setupSource}
+        tracksWorkspace={setupTracksWorkspace}
+        workspace={setupWorkspace}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();
+    expect(screen.getByLabelText("Target")).toHaveValue("goal:backend-interview-readiness");
+    expect(screen.getByLabelText("Weekly capacity (minutes)")).toHaveValue(600);
+    expect(screen.getByLabelText("Default session (minutes)")).toHaveValue(30);
+    expect(screen.getByLabelText("First Track priority")).toHaveValue(50);
+    expect(screen.getByLabelText("Exact first Growth Plan preview")).toHaveTextContent(
+      "Protected minimum",
+    );
+    expect(screen.getByRole("button", { name: "Confirm and create Growth Plan" })).toBeEnabled();
+    expect(
+      screen
+        .getByRole("button", { name: "Confirm and create Growth Plan" })
+        .closest("form")
+        ?.querySelector<HTMLInputElement>('input[name="requestId"]')?.value,
+    ).toBe("50000000-0000-4000-8000-000000000001");
+    const requestId = container.querySelector<HTMLInputElement>('input[name="requestId"]');
+    expect(requestId).not.toBeNull();
+    const initialRequestId = requestId?.value;
+    fireEvent.change(screen.getByLabelText("Target"), {
+      target: { value: "goal:frontend-interview-readiness" },
+    });
+    expect(screen.queryByRole("button", { name: "Confirm and create Growth Plan" })).toBeNull();
+    expect(container.querySelector<HTMLInputElement>('input[name="requestId"]')?.value).not.toBe(
+      initialRequestId,
+    );
+  });
+
   it("shows the current owner state and an honest pending notice", () => {
     render(<PlanWorkspace tracksWorkspace={tracksWorkspace} workspace={workspace} />);
     expect(screen.getByText("Backend interview readiness")).toBeVisible();

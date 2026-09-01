@@ -2,7 +2,11 @@ import { notFound } from "next/navigation";
 
 import type { PlanActionState } from "../../../ui/plan/plan-action-state";
 import { initialPlanActionState } from "../../../ui/plan/plan-action-state";
-import type { CurrentGrowthPlanV1, CurrentLearningTracksV1 } from "../../../ui/plan/plan-types";
+import type {
+  CurrentGrowthPlanV1,
+  CurrentLearningTracksV1,
+  GrowthPlanSetupSourceV1,
+} from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
 import { SkipLink } from "../../../ui/primitives/skip-link";
@@ -60,6 +64,104 @@ const tracksWorkspace: CurrentLearningTracksV1 = {
       capabilities: ["resume_track"],
     },
   ],
+};
+
+const setupWorkspace: CurrentGrowthPlanV1 = {
+  contract: { name: "CurrentGrowthPlanV1", version: "1.0.0" },
+  currentPlan: null,
+  recalculation: { projectionState: "NOT_STARTED", reason: "INITIALIZING", lastKnownSafe: false },
+  capabilities: [],
+};
+
+const setupTracksWorkspace: CurrentLearningTracksV1 = {
+  contract: { name: "CurrentLearningTracksV1", version: "1.0.0" },
+  growthPlan: null,
+  learningTracks: [],
+};
+
+const setupSource: GrowthPlanSetupSourceV1 = {
+  contract: { name: "GrowthPlanSetupSourceV1", version: "1.0.0" },
+  state: "SETUP_AVAILABLE",
+  capabilities: ["initialize_growth_plan"],
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: true,
+      aggregateVersion: "1",
+    },
+  ],
+};
+
+const initializationPreviewState: PlanActionState = {
+  status: "previewed",
+  message: "First Plan preview ready. Confirm only if these exact facts are correct.",
+  preview: {
+    contract: { name: "GrowthPlanInitializationPreviewV1", version: "1.0.0" },
+    digestVersion: "growth-plan-initialization-preview-digest/1.0.0",
+    identityVersion: "planning-create-identity/1.0.0",
+    operation: "initialize_growth_plan",
+    commandType: "planning.initialize_growth_plan_v2",
+    idempotencyKey: "50000000-0000-8000-8000-000000000001",
+    reason: "Set up a realistic first learning plan.",
+    expectedReadinessGoalVersion: "1",
+    source: {
+      readinessGoalId: "51000000-0000-8000-8000-000000000001",
+      readinessGoalKey: "goal:backend-interview-readiness",
+      readinessGoalTitle: "Backend interview readiness",
+      readinessGoalLifecycle: "ACTIVE",
+      readinessGoalVersion: "1",
+      profileVersionId: "52000000-0000-8000-8000-000000000001",
+      profileVersionKey: "target:backend-interview-v1",
+      sourceKind: "ROADMAP_TEMPLATE_VERSION",
+      sourceRef: "53000000-0000-8000-8000-000000000001",
+      roadmapVersionId: "53000000-0000-8000-8000-000000000001",
+      sourceOwnerRevision: "readiness-goal:1",
+    },
+    before: { lifetimePlanCount: 0, currentPlanCount: 0, snapshotSentinelCount: 0 },
+    after: {
+      lifetimePlanCount: 1,
+      currentPlanCount: 1,
+      currentPlanLimit: 1,
+      snapshotSentinelCount: 1,
+      growthPlan: {
+        growthPlanId: "54000000-0000-8000-8000-000000000001",
+        title: "Backend interview readiness",
+        lifecycle: "ACTIVE",
+        weeklyCapacityMinutes: 600,
+        aggregateVersion: "1",
+      },
+      learningTrack: {
+        learningTrackId: "55000000-0000-8000-8000-000000000001",
+        trackKey: "track:backend-interview-readiness",
+        title: "Backend interview readiness",
+        lifecycle: "ACTIVE",
+        priority: 50,
+        protectedMinimumMinutes: 0,
+        defaultSessionMinutes: 30,
+        aggregateVersion: "1",
+      },
+    },
+    canApply: true,
+    blockingReasons: [],
+    warnings: [{ code: "INITIAL_TRACK_HAS_NO_ACTIVITIES" }],
+    retained: {
+      readinessGoal: true,
+      competencyOverlay: true,
+      activitiesAndEvidence: true,
+      mastery: true,
+      reviews: true,
+      history: true,
+    },
+    recalculationAfterApply: {
+      projectionState: "PENDING",
+      eventChangeKind: "INITIALIZED",
+      consumerName: "planning.plan_snapshot_v1",
+    },
+    previewDigest: "b".repeat(64),
+  },
 };
 
 const previewState: PlanActionState = {
@@ -273,6 +375,7 @@ export default async function PlanFixturePage({
   const showsTrack = previewKind === "track" || previewKind === "track-blocked";
   const showsTrackSettings =
     previewKind === "track-settings" || previewKind === "track-settings-blocked";
+  const showsInitialization = previewKind === "setup";
   return (
     <div className={styles.page}>
       <SkipLink targetId="plan-main">Skip to Plan</SkipLink>
@@ -284,6 +387,9 @@ export default async function PlanFixturePage({
       </header>
       <main className={styles.main} id="plan-main" tabIndex={-1}>
         <PlanWorkspace
+          initialInitializationPreviewState={
+            showsInitialization ? initializationPreviewState : initialPlanActionState
+          }
           initialCapacityPreviewState={
             showsCapacity ? capacityPreviewState(previewKind === "blocked") : initialPlanActionState
           }
@@ -300,8 +406,9 @@ export default async function PlanFixturePage({
               ? trackSettingsPreviewState(previewKind === "track-settings-blocked")
               : initialPlanActionState
           }
-          tracksWorkspace={tracksWorkspace}
-          workspace={workspace}
+          {...(showsInitialization ? { setupSource } : {})}
+          tracksWorkspace={showsInitialization ? setupTracksWorkspace : tracksWorkspace}
+          workspace={showsInitialization ? setupWorkspace : workspace}
         />
       </main>
     </div>

@@ -8,6 +8,13 @@ async function openFixture(page: import("@playwright/test").Page, suffix = "") {
   ).toBeVisible();
 }
 
+async function openSetupFixture(page: import("@playwright/test").Page) {
+  await page.goto("/dev/plan-fixture?preview=setup");
+  await expect(
+    page.getByRole("heading", { name: "Set up your first Growth Plan.", level: 1 }),
+  ).toBeVisible();
+}
+
 test("shows an exact lifecycle preview and keeps confirmation keyboard-operable", async ({
   page,
 }) => {
@@ -87,6 +94,21 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     const controlBox = await control.boundingBox();
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
+
+  await openSetupFixture(page);
+  const setupDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(setupDimensions.scrollWidth).toBeLessThanOrEqual(setupDimensions.clientWidth);
+  for (const control of [
+    page.getByLabel("Target"),
+    page.getByLabel("Weekly capacity (minutes)"),
+    page.getByRole("button", { name: "Confirm and create Growth Plan" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("honors reduced motion and forced-colors focus visibility", async ({ page }) => {
@@ -120,6 +142,16 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   }));
   expect(settingsStyles.outlineStyle).not.toBe("none");
   expect(settingsStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
+  await openSetupFixture(page);
+  const setupControl = page.getByRole("button", { name: "Confirm and create Growth Plan" });
+  await setupControl.focus();
+  const setupStyles = await setupControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(setupStyles.outlineStyle).not.toBe("none");
+  expect(setupStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 });
 
 test("has no automatically detectable WCAG A/AA violations", async ({ page }) => {
@@ -134,6 +166,32 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(settingsResults.violations).toEqual([]);
+
+  await openSetupFixture(page);
+  const setupResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(setupResults.violations).toEqual([]);
+});
+
+test("shows an exact first-Plan setup preview and keeps its confirmation keyboard-operable", async ({
+  page,
+}) => {
+  await openSetupFixture(page);
+  const comparison = page.getByLabel("Exact first Growth Plan preview");
+  await expect(comparison).toContainText("Not created");
+  await expect(comparison).toContainText("600 minutes");
+  await expect(comparison).toContainText("50");
+  await expect(page.getByText(/initial Track has no activities/iu)).toBeVisible();
+  await page.getByLabel("Target").focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Weekly capacity (minutes)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Default session (minutes)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("First Track priority")).toBeFocused();
+  await page.getByRole("button", { name: "Confirm and create Growth Plan" }).focus();
+  await expect(page.getByRole("button", { name: "Confirm and create Growth Plan" })).toBeFocused();
 });
 
 test("shows exact weekly-capacity consequences before confirmation", async ({ page }) => {
