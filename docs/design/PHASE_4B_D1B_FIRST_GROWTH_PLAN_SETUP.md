@@ -58,17 +58,20 @@ useful precedent but is not silently repurposed as Planning authority.
 Add a zero-argument authenticated `GrowthPlanSetupSourceV1` read. It derives the actor and personal
 workspace, then returns:
 
-- whether a current `active|paused` Plan already exists;
-- whether any lifetime Plan row or current-snapshot sentinel already exists;
-- capability `initialize_growth_plan` only when lifetime Plan count is `0`, current Plan count is
-  `0`, snapshot-sentinel count is `0`, and there are `1..20` active Goal choices;
-- at most 20 active Readiness Goal choices in stable ASCII key order;
+- one exact state: `SETUP_AVAILABLE`, `NO_ACTIVE_GOALS`, `CURRENT_PLAN_EXISTS`,
+  `HISTORY_REQUIRES_REPLACEMENT`, or `GOAL_PORTFOLIO_OVERFLOW`;
+- capability `initialize_growth_plan` only for `SETUP_AVAILABLE`, which requires lifetime Plan count
+  `0`, current Plan count `0`, snapshot-sentinel count `0`, and `1..20` active Goal choices;
+- for `SETUP_AVAILABLE`, all active Readiness Goal choices in stable ASCII key order;
 - for each choice: opaque `readinessGoalKey`, safe title, profile label/key, nullable roadmap-presence
   fact, and Readiness Goal aggregate version;
-- an explicit empty/no-active-goal state.
+- empty capabilities and choices for every other state.
 
 Exactly 20 choices are valid. If more than 20 active choices exist, the source fails closed with an
-explicit overflow state, returns no capability and does not truncate or silently hide a valid Goal.
+explicit `GOAL_PORTFOLIO_OVERFLOW` state, returns no capability and does not truncate or silently
+hide a valid Goal. A current Plan produces `CURRENT_PLAN_EXISTS`; archived-only history produces
+`HISTORY_REQUIRES_REPLACEMENT`; zero goals produces `NO_ACTIVE_GOALS`. Corrupt Plan cardinality or
+an orphan sentinel is an unavailable RPC failure rather than another UI-actionable state.
 
 The public read contains no workspace ID, Goal/profile/roadmap UUID, source documents, requirements,
 evidence, fingerprints or table-shaped rows. Planning calls a bounded Targets-owned function and
@@ -103,6 +106,24 @@ The preview accepts only:
 - an opaque UUID idempotency/request key generated for this preview attempt.
 
 Apply accepts the same values plus the exact preview digest. It cannot replace any previewed field.
+
+The exact public functions are:
+
+```text
+api.get_growth_plan_setup_source_v1()
+api.preview_growth_plan_initialization_v1(
+  readiness_goal_key, expected_readiness_goal_version,
+  weekly_capacity_minutes, default_session_minutes, track_priority,
+  reason, idempotency_key
+)
+api.apply_growth_plan_initialization_v1(
+  readiness_goal_key, expected_readiness_goal_version,
+  weekly_capacity_minutes, default_session_minutes, track_priority,
+  reason, idempotency_key, preview_digest
+)
+```
+
+Text and integer SQL types follow that displayed order exactly.
 
 The resulting state is derived as follows:
 
