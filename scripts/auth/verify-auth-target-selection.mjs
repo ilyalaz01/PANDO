@@ -992,6 +992,49 @@ try {
     assert.ok(box !== null && box.height >= 48, `${controlName} must preserve a 48px touch target`);
   }
 
+  await page.goto(`${baseUrl}/plan`);
+  await page.getByRole("heading", { name: "Keep the plan aligned with your life." }).waitFor();
+  await page.getByText("300 minutes", { exact: true }).waitFor();
+  const lifecycleForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview change" }),
+  });
+  assert.deepEqual(
+    await lifecycleForm
+      .locator("input")
+      .evaluateAll((inputs) =>
+        inputs.map((input) => input.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    ["operation", "expectedGrowthPlanVersion"],
+    "Plan preview must not send workspace or aggregate identifiers from the browser",
+  );
+  await page
+    .getByLabel("Why is this changing?")
+    .fill("Pause briefly while the authenticated lifecycle gate verifies history retention.");
+  await page.getByRole("button", { name: "Preview change" }).click();
+  const pausePreview = page.getByLabel("Exact plan change preview");
+  await pausePreview.getByText("ACTIVE", { exact: true }).waitFor();
+  await pausePreview.getByText("PAUSED", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Confirm and apply" }).click();
+  await page.getByRole("heading", { name: "Resume this plan" }).waitFor();
+
+  await page
+    .getByLabel("Why is this changing?")
+    .fill("Resume after the authenticated lifecycle gate completes its bounded pause check.");
+  await page.getByRole("button", { name: "Preview change" }).click();
+  const resumePreview = page.getByLabel("Exact plan change preview");
+  await resumePreview.getByText("PAUSED", { exact: true }).waitFor();
+  await resumePreview.getByText("ACTIVE", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Confirm and apply" }).click();
+  await page.getByRole("heading", { name: "Pause this plan" }).waitFor();
+  const currentPlanAfterLifecycle = await readinessVerifier.rpc("get_current_growth_plan_v1");
+  assert.equal(
+    currentPlanAfterLifecycle.error,
+    null,
+    "Growth Plan must reload after lifecycle apply",
+  );
+  assert.equal(currentPlanAfterLifecycle.data?.currentPlan?.lifecycle, "ACTIVE");
+  assert.equal(currentPlanAfterLifecycle.data?.currentPlan?.aggregateVersion, "3");
+
   await page.goto(
     `${baseUrl}/start?goal=${encodeURIComponent("goal:nvidia-python-verification-base-v1")}`,
   );
@@ -1112,6 +1155,6 @@ if (receivedSignal) {
   throw finalError;
 } else {
   process.stdout.write(
-    "isolated auth, target selection, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
+    "isolated auth, target selection, Plan lifecycle, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
   );
 }

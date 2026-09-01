@@ -38,6 +38,16 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_growth_plan_lifecycle_v1: {
+        Args: {
+          p_expected_growth_plan_version: string
+          p_idempotency_key: string
+          p_operation: string
+          p_preview_digest: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       bootstrap_personal_workspace: {
         Args: { p_idempotency_key: string; p_workspace_name?: string }
         Returns: Json
@@ -252,6 +262,7 @@ export type Database = {
         Args: { p_readiness_goal_key: string; p_selected_activity_key?: string }
         Returns: Json
       }
+      get_current_growth_plan_v1: { Args: never; Returns: Json }
       get_current_planning_readiness_input_v1: {
         Args: { p_readiness_goal_key: string }
         Returns: Json
@@ -325,6 +336,14 @@ export type Database = {
       }
       load_target_readiness_projection_v1: {
         Args: { p_delivery_id: string; p_lease_token: string }
+        Returns: Json
+      }
+      preview_growth_plan_lifecycle_v1: {
+        Args: {
+          p_expected_growth_plan_version: string
+          p_operation: string
+          p_reason: string
+        }
         Returns: Json
       }
       record_plan_snapshot_input_v1: {

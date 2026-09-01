@@ -1,0 +1,31 @@
+{
+  "contract": { "name": "GrowthPlanLifecyclePreviewV1", "version": "1.0.0" },
+  "operation": "pause_growth_plan",
+  "reason": "Pause this plan while priorities change.",
+  "expectedGrowthPlanVersion": "4",
+  "before": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "title": "Backend interview readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "after": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "title": "Backend interview readiness",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "5"
+  },
+  "retained": {
+    "learningTracks": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

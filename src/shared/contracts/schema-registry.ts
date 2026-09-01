@@ -13,6 +13,7 @@ import readinessEventSchema from "../../../schemas/events/v1/readiness-event.sch
 import reviewEventSchema from "../../../schemas/events/v1/review-event.schema.json";
 import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-projection.schema.json";
 import planSnapshotSchema from "../../../schemas/planning/v1/plan-snapshot.schema.json";
+import growthPlanControlSchema from "../../../schemas/planning/v1/growth-plan-control.schema.json";
 import planningInputSchema from "../../../schemas/planning/v1/planning-input.schema.json";
 import todayWorkspaceSchema from "../../../schemas/planning/v1/today-workspace.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
@@ -38,6 +39,7 @@ export const schemaNames = [
   "readiness-event-v1",
   "review-event-v1",
   "planning-input-v1",
+  "growth-plan-control-v1",
   "plan-snapshot-v1",
   "today-workspace-v1",
   "preparation-context",
@@ -66,6 +68,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "readiness-event-v1": readinessEventSchema,
   "review-event-v1": reviewEventSchema,
   "planning-input-v1": planningInputSchema,
+  "growth-plan-control-v1": growthPlanControlSchema,
   "plan-snapshot-v1": planSnapshotSchema,
   "today-workspace-v1": todayWorkspaceSchema,
   "preparation-context": preparationContextSchema,

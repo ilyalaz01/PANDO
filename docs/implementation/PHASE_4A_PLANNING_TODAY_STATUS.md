@@ -157,7 +157,8 @@ and accepted design remain authoritative.
 
 ## Not yet implemented
 
-- later plan/track/activity lifecycle and capacity commands;
+- Growth Plan pause/resume is now implemented by Phase 4B D1; later capacity and
+  Track/activity lifecycle commands remain;
 - campaign persistence and same-session duration/energy preference persistence;
 - campaign overrides, dated availability, Plan/Track editing, ChangeSet preview, and Agent Control
   application.

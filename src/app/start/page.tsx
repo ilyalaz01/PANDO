@@ -70,6 +70,12 @@ export default async function StartPage({
             <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/today">
               Today
             </Link>
+            <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/plan">
+              Plan
+            </Link>
+            <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/explore">
+              Explore
+            </Link>
             <Link className="min-h-11 px-3 py-3 text-sm font-bold underline" href="/review">
               Review
             </Link>

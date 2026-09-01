@@ -39,6 +39,13 @@ snapshots are display-only and carry no selectors.
 Their current-input fingerprint may remain null until the worker has normalized a real attempt; the
 query never fabricates it from an outbox wake-up.
 
+`growth-plan-control.schema.json` contains the minimized current Growth Plan read, deterministic
+pause/resume preview, and applied-command result used by the manual Plan UI and future Agent Control
+coordination. Bigint versions are decimal strings. The preview contains exact before/after owner
+state and retained-history facts but no Today actions, evidence, workspace selector, implicit clock,
+or caller-supplied authority. Apply returns `PENDING` until the ordinary Planning projection catches
+up.
+
 All Draft 2020-12 schemas reject unknown fields and bound every collection. Semantic checks in the
 verified application calculation entry point and pure engine additionally enforce the exact
 fingerprint, current readiness, Review projection currency/validity, clock-transition cutoffs,

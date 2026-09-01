@@ -1,0 +1,10 @@
+{
+  "contract": { "name": "CurrentGrowthPlanV1", "version": "1.0.0" },
+  "currentPlan": null,
+  "recalculation": {
+    "projectionState": "NOT_STARTED",
+    "reason": "INITIALIZING",
+    "lastKnownSafe": false
+  },
+  "capabilities": []
+}

@@ -15,6 +15,11 @@ strict freshness envelope and opaque selections, and its idempotent start coordi
 plan attribution without trusting browser-supplied action fields. The live `/today` page now renders
 every freshness state, explains the primary recommendation and bounded alternatives, and opens or
 resumes the exact attributed Focus session through opaque selectors.
+The authenticated `/plan` page now reads the current Growth Plan through a session-resolved
+Planning boundary and applies only `active -> paused` or `paused -> active` after an exact
+before/after preview and explicit confirmation. Each change is version-fenced, idempotent, atomic
+with its receipt/event/delivery, preserves learning and evidence history, and reports Today
+recalculation as pending until the ordinary Planning worker publishes a current snapshot.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -32,8 +37,9 @@ records meaningful manual evidence and projects explainable Mastery; `/review` p
 deduplicated item per competency dimension with auditable retention, verification, and personal
 reminder reasons plus reschedule, skip-once, suppress, and restore commands. Planning publishes
 immutable snapshots behind its current-pointer boundary. The live server boundary can now read a
-current recommendation and safely run the authenticated Today-to-Focus journey. The remaining Phase
-4 lifecycle/editing commands and the live Agent Control plane remain later increments.
+current recommendation and safely run the authenticated Today-to-Focus journey. Growth Plan
+pause/resume is the first complete Phase 4B command slice; capacity, Track, availability, Campaign,
+and live Agent Control increments remain later work.
 
 ## Prerequisites
 
@@ -60,8 +66,9 @@ pnpm dev
 
 Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/start`, add a personal
 activity from Explore, initialize its Growth Plan, then use Today to start or resume the ranked
-Focus action. Inspect the resulting readiness changes and open Review from the authenticated header. The
-live `/explore?goal=...` route requires the configured authenticated Supabase boundary; it never
+Focus action. Open Plan to preview and confirm a pause or resume without losing history. Inspect the
+resulting readiness changes and open Review from the authenticated header. The live
+`/explore?goal=...` route requires the configured authenticated Supabase boundary; it never
 substitutes demo data after a failed or unauthorized read.
 
 To use the authenticated `/start` journey, configure the two public Supabase values from
@@ -98,8 +105,9 @@ Use `pnpm verify:db`, `pnpm verify:backup`, or `pnpm verify:auth` for an individ
 gate. These commands copy the required Supabase files to OS-created temporary directories and stop
 only their own random project IDs, so they do not reset or remove an ordinary local development
 stack. The auth gate creates one synthetic owner inside its disposable stack, exercises sign-in,
-workspace bootstrap, target selection, note/activity persistence, Today current/degraded/error
-states, opaque planned Focus Start/Resume/completion, Mastery, Readiness and Review
+workspace bootstrap, target selection, note/activity persistence, exact Plan pause/resume previews
+and applies, Today current/degraded/error states, opaque planned Focus Start/Resume/completion,
+Mastery, Readiness and Review
 projection/invalidation, reload, responsive accessibility, and sign-out
 through a real browser, and checks that generated `api` schema types have not drifted. CI runs the four
 expensive suites as separate jobs from the same frozen lockfile and combines their results in a

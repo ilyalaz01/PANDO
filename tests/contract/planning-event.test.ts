@@ -5,6 +5,10 @@ import boundaryFixture from "./fixtures/events/v1/planning.boundary.json";
 import invalidFixture from "./fixtures/events/v1/planning.invalid.json";
 import maliciousFixture from "./fixtures/events/v1/planning.malicious.json";
 import validFixture from "./fixtures/events/v1/planning.valid.json";
+import lifecycleBoundaryFixture from "./fixtures/events/v1/planning-lifecycle.boundary.json";
+import lifecycleInvalidFixture from "./fixtures/events/v1/planning-lifecycle.invalid.json";
+import lifecycleMaliciousFixture from "./fixtures/events/v1/planning-lifecycle.malicious.json";
+import lifecycleValidFixture from "./fixtures/events/v1/planning-lifecycle.valid.json";
 
 describe("Planning Input Event V1", () => {
   it("keeps valid, boundary, invalid, and malicious fixtures executable", () => {
@@ -12,9 +16,13 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", boundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", invalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", maliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", lifecycleValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", lifecycleBoundaryFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", lifecycleInvalidFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", lifecycleMaliciousFixture).valid).toBe(false);
   });
 
-  it("covers exactly the initialized and Track-activity admission variants", () => {
+  it("covers exactly the initialized, Track-admission, and plan-lifecycle variants", () => {
     for (const changeKind of ["CAPACITY_CHANGED", "ACTIVITY_COMPLETED", "RAW_SQL"]) {
       expect(
         validateSchema("planning-event-v1", {
@@ -23,6 +31,30 @@ describe("Planning Input Event V1", () => {
         }).valid,
       ).toBe(false);
     }
+  });
+
+  it("keeps lifecycle wake-ups minimal and bigint-safe", () => {
+    expect(lifecycleValidFixture.payload).toEqual({
+      change_kind: "PLAN_LIFECYCLE_CHANGED",
+      growth_plan_id: "30000000-0000-4000-8000-000000000011",
+      growth_plan_version: "2",
+      lifecycle: "PAUSED",
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...lifecycleValidFixture,
+        payload: { ...lifecycleValidFixture.payload, growth_plan_version: 2 },
+      }).valid,
+    ).toBe(false);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...lifecycleBoundaryFixture,
+        payload: {
+          ...lifecycleBoundaryFixture.payload,
+          growth_plan_version: "9223372036854775808",
+        },
+      }).valid,
+    ).toBe(false);
   });
 
   it.each([

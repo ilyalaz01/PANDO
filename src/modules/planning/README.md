@@ -10,6 +10,16 @@ owner transition matrices, deterministic owner preview, expected-version/idempot
 ordered D1–D5 slices. D1 is intentionally limited to Growth Plan pause/resume; archive and campaign
 semantics remain behind the ADR required by that design.
 
+D1 is implemented. `api.get_current_growth_plan_v1` resolves only the authenticated personal
+workspace and exposes title, lifecycle, weekly capacity, bigint-safe aggregate version, current
+recalculation state, and the one allowed lifecycle capability. The Planning-owned preview/apply
+pair accepts no browser-selected workspace or plan ID. Apply requires the expected version, exact
+recomputed digest, reason, and idempotency key, then atomically changes lifecycle and version with
+the command receipt, minimal `planning.input_changed` event, and fixed snapshot delivery. `/plan`
+uses the same boundary with a two-step preview/confirmation flow and reports recalculation as
+pending. The implementation record is
+[`PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md`](../../../docs/implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md).
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure

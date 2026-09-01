@@ -60,36 +60,43 @@ Human roadmap position:
 - C7–C9 — `/today`, server-rendered selection-to-Focus journey, and
   responsive/accessibility/authenticated browser acceptance: complete.
 - D0 — lifecycle/editing command design and ordered owner slices: complete.
-- D1–D5 — plan/capacity/campaign lifecycle and editing implementation: pending.
+- D1 — authenticated Growth Plan pause/resume preview/apply and `/plan`: complete.
+- D2–D5 — capacity/Track/availability/Campaign lifecycle and editing implementation: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The first complete Today-to-Focus browser journey is implemented and verified. The next product gap
-is not another Today shell: it is the versioned Phase 4 lifecycle/editing command surface required
-before Agent Control can safely manage plans.
+The first complete Today-to-Focus browser journey and the first manual Growth Plan lifecycle
+command are implemented and verified. The next gap is bounded capacity editing, followed by Track
+controls, before Agent Control can safely manage the same operations.
 
-## Current bounded outcome: D1 Growth Plan pause/resume
+## Current bounded outcome: D2a Growth Plan weekly capacity
 
-Implement the first vertical slice selected by
-`docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`: authenticated Growth Plan pause/resume with one
-deterministic preview and the same Planning-owned application command for browser UI and future
-Agent Control coordination.
+Continue the D2 slice selected by `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`, but keep the first
+increment to the Planning-owned default weekly capacity. Read
+`docs/implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md` and reuse D1's current-plan,
+preview/apply, contract, outbox, server, and UI boundaries instead of creating a parallel control
+surface.
 
 Required outcome:
 
-- add bounded current-plan read plus preview/apply APIs owned by Planning;
-- support only `active -> paused` and `paused -> active`; Growth Plan has no `completed` state;
-- require expected Growth Plan version, exact recomputed preview digest, reason, and idempotency key;
-- commit plan version, command receipt, `planning.input_changed`, and fixed Planning delivery
-  atomically, with replay/conflict/concurrency/rollback and two-workspace isolation tests;
-- add a responsive, keyboard-accessible `/plan` UI that shows exact before/after state, explicitly
-  confirms, handles stale refresh, and reports recalculation as pending rather than current;
-- do not implement archive, capacity, Track editing, Campaigns, or Agent Control transport in D1.
+- first record the exact capacity-decrease invariant against all non-terminal Track protected
+  minima; stop if canonical sources do not determine it rather than hiding a policy choice in SQL;
+- extend the existing versioned control contract and `/plan` flow with an exact before/after weekly
+  capacity preview, without adding browser-selected authority IDs;
+- require expected Growth Plan version, recomputed digest, reason, and idempotency key, and atomically
+  commit plan version, receipt, minimal event, and fixed Planning delivery;
+- prove boundary values, stale/digest/idempotency/concurrency/rollback, two-workspace isolation, and
+  that invalid capacity never changes lifecycle, Tracks, history, Evidence, or projections;
+- retain honest pending Today semantics and the existing keyboard, responsive, reduced-motion,
+  forced-colors, and WCAG gates;
+- do not implement Track/cadence, archive/replacement, availability, Campaigns, or Agent Control
+  transport in D2a.
 
-Run the complete Windows verification gates before handoff. D1 requires no new ADR; archive and
-campaign work remain blocked on the focused ADR specified by the Phase 4B design.
+Run the complete Windows verification gates before handoff. D2a must not silently decide the later
+cadence, archive/replacement, or Campaign rules blocked by the focused decisions in the Phase 4B
+design.
 
 ## Architecture and safety rules
 
