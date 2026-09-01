@@ -85,8 +85,10 @@ ranking policy, completed-work policy, prerequisite policy or planner-engine ver
 
 ## Next bounded outcome
 
-Design and implement deterministic preview/confirm for manual admission of an existing personal or
-catalog activity into the current initial Learning Track. Reuse the hardened Planning owner command
-and remove any remaining direct/manual bypass. Only after a Track can receive useful work should
-additional Learning Track creation begin. Terminal transitions, cadence, availability/replacement,
-Campaigns and Agent Control transport remain later bounded outcomes.
+Design and implement deterministic preview/confirm for manual admission of an existing active,
+accepted personal Overlay activity into the current initial Learning Track. The released
+attribution requires an Overlay activity; Catalog admission needs a separate versioned source and
+attribution design. Reuse the hardened Planning owner semantics and remove any remaining
+direct/manual bypass. Only after a Track can receive useful work should additional Learning Track
+creation begin. Terminal transitions, cadence, availability/replacement, Campaigns and Agent
+Control transport remain later bounded outcomes.
