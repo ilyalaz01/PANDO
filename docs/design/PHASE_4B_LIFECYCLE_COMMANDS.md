@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command design
 
-Status: implementation design (D0); D1 implemented, D2–D5 pending
+Status: implementation design (D0); D1 and D2a implemented, D2b1 accepted, D2b2–D5 pending
 Date: 2026-08-29  
 Canonical basis: `docs/00_PRODUCT_CONSTITUTION.md` through `docs/06_PROMPT_LIBRARY_UX.md`
 
@@ -215,7 +215,10 @@ idempotency key; clients cannot replace the previewed body at apply time.
 2. **D2 — Growth Plan capacity and Learning Track controls.** Preview/apply default capacity,
    create, priority, protected minimum, pause/resume/complete/archive; settle and then persist
    cadence. The first bounded increment is the accepted
-   [D2a Growth Plan weekly-capacity design](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
+   [D2a Growth Plan weekly-capacity design](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md). The next accepted
+   increment is
+   [D2b1 Learning Track pause/resume](PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE.md); it does not expose
+   the remaining Track commands.
 3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
    plan archive/new-plan replacement, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
