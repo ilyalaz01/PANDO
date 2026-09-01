@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v1/learning-track-activity-admission-control.schema.json",
+  "title": "PANDO Learning Track Activity Admission Control V1",
+  "oneOf": [
+    { "$ref": "#/$defs/source" },
+    { "$ref": "#/$defs/preview" },
+    { "$ref": "#/$defs/applyResult" }
+  ],
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "positiveBigint": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7])$"
+    },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "trackKey": { "type": "string", "pattern": "^track:[a-z0-9][a-z0-9-]{1,100}$" },
+    "activityKey": {
+      "type": "string",
+      "pattern": "^activity:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "candidateKey": {
+      "type": "string",
+      "pattern": "^candidate:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "competencyRef": {
+      "type": "string",
+      "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,198}\\S)$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,498}\\S)$"
+    },
+    "energy": { "type": ["string", "null"], "enum": ["LOW", "MEDIUM", "HIGH", null] },
+    "activityChoice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["activityKey", "title", "activityType", "targetCompetencyRef"],
+      "properties": {
+        "activityKey": { "$ref": "#/$defs/activityKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "activityType": {
+          "enum": ["MANUAL_CODING", "READING", "EXPLANATION", "MOCK", "PROJECT"]
+        },
+        "targetCompetencyRef": { "$ref": "#/$defs/competencyRef" }
+      }
+    },
+    "sourcePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "lifecycle", "weeklyCapacityMinutes", "aggregateVersion"],
+      "properties": {
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
+        "weeklyCapacityMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "sourceTrack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trackKey",
+        "title",
+        "lifecycle",
+        "priority",
+        "protectedMinimumMinutes",
+        "defaultSessionMinutes",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "protectedMinimumMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "defaultSessionMinutes": { "type": "integer", "minimum": 1, "maximum": 480 },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "state",
+        "capabilities",
+        "growthPlan",
+        "learningTrack",
+        "activities"
+      ],
+      "properties": {
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "LearningTrackActivityAdmissionSourceV1" },
+            "version": { "const": "1.0.0" }
+          }
+        },
+        "state": {
+          "enum": [
+            "READY",
+            "NO_CURRENT_PLAN",
+            "CURRENT_TRACK_PORTFOLIO_UNAVAILABLE",
+            "NO_ELIGIBLE_ACTIVITIES",
+            "PLAN_ACTIVITY_LIMIT_REACHED",
+            "ELIGIBLE_ACTIVITY_PORTFOLIO_OVERFLOW"
+          ]
+        },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": { "const": "admit_activity_to_learning_track" }
+        },
+        "growthPlan": { "oneOf": [{ "$ref": "#/$defs/sourcePlan" }, { "type": "null" }] },
+        "learningTrack": { "oneOf": [{ "$ref": "#/$defs/sourceTrack" }, { "type": "null" }] },
+        "activities": {
+          "type": "array",
+          "maxItems": 200,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/activityChoice" }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "state": { "const": "READY" } }, "required": ["state"] },
+          "then": {
+            "properties": {
+              "capabilities": {
+                "type": "array",
+                "prefixItems": [{ "const": "admit_activity_to_learning_track" }],
+                "minItems": 1,
+                "maxItems": 1
+              },
+              "growthPlan": { "$ref": "#/$defs/sourcePlan" },
+              "learningTrack": { "$ref": "#/$defs/sourceTrack" },
+              "activities": { "type": "array", "minItems": 1, "maxItems": 200 }
+            }
+          },
+          "else": {
+            "properties": {
+              "capabilities": { "type": "array", "maxItems": 0 },
+              "activities": { "type": "array", "maxItems": 0 }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "NO_CURRENT_PLAN" } },
+            "required": ["state"]
+          },
+          "then": {
+            "properties": { "growthPlan": { "type": "null" }, "learningTrack": { "type": "null" } }
+          },
+          "else": { "properties": { "growthPlan": { "$ref": "#/$defs/sourcePlan" } } }
+        },
+        {
+          "if": {
+            "properties": { "state": { "const": "CURRENT_TRACK_PORTFOLIO_UNAVAILABLE" } },
+            "required": ["state"]
+          },
+          "then": { "properties": { "learningTrack": { "type": "null" } } },
+          "else": {
+            "if": {
+              "not": {
+                "properties": { "state": { "const": "NO_CURRENT_PLAN" } },
+                "required": ["state"]
+              }
+            },
+            "then": { "properties": { "learningTrack": { "$ref": "#/$defs/sourceTrack" } } }
+          }
+        }
+      ]
+    },
+    "previewTrack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trackKey",
+        "title",
+        "lifecycle",
+        "priority",
+        "protectedMinimumMinutes",
+        "defaultSessionMinutes",
+        "aggregateVersionBefore",
+        "aggregateVersionAfter"
+      ],
+      "properties": {
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "protectedMinimumMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "defaultSessionMinutes": { "type": "integer", "minimum": 1, "maximum": 480 },
+        "aggregateVersionBefore": { "$ref": "#/$defs/positiveBigint" },
+        "aggregateVersionAfter": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "previewActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activityKey",
+        "title",
+        "activityType",
+        "targetCompetencyRef",
+        "candidateKey",
+        "estimatedMinutes",
+        "energy"
+      ],
+      "properties": {
+        "activityKey": { "$ref": "#/$defs/activityKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "activityType": {
+          "enum": ["MANUAL_CODING", "READING", "EXPLANATION", "MOCK", "PROJECT"]
+        },
+        "targetCompetencyRef": { "$ref": "#/$defs/competencyRef" },
+        "candidateKey": { "$ref": "#/$defs/candidateKey" },
+        "estimatedMinutes": { "type": "integer", "minimum": 1, "maximum": 480 },
+        "energy": { "$ref": "#/$defs/energy" }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "digestVersion",
+        "operation",
+        "commandType",
+        "requestId",
+        "reason",
+        "expectedGrowthPlanVersion",
+        "expectedLearningTrackVersion",
+        "growthPlan",
+        "learningTrack",
+        "activity",
+        "constraint",
+        "canApply",
+        "blockingReasons",
+        "warnings",
+        "retained",
+        "recalculationAfterApply",
+        "previewDigest"
+      ],
+      "properties": {
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "LearningTrackActivityAdmissionPreviewV1" },
+            "version": { "const": "1.0.0" }
+          }
+        },
+        "digestVersion": { "const": "learning-track-activity-admission-preview-digest/1.0.0" },
+        "operation": { "const": "admit_activity_to_learning_track" },
+        "commandType": { "const": "planning.add_learning_track_activity_v2" },
+        "requestId": { "$ref": "#/$defs/uuid" },
+        "reason": { "$ref": "#/$defs/reason" },
+        "expectedGrowthPlanVersion": { "$ref": "#/$defs/positiveBigint" },
+        "expectedLearningTrackVersion": { "$ref": "#/$defs/positiveBigint" },
+        "growthPlan": { "$ref": "#/$defs/sourcePlan" },
+        "learningTrack": { "$ref": "#/$defs/previewTrack" },
+        "activity": { "$ref": "#/$defs/previewActivity" },
+        "constraint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["planActivityCountBefore", "planActivityCountAfter", "planActivityLimit"],
+          "properties": {
+            "planActivityCountBefore": { "type": "integer", "minimum": 0, "maximum": 200 },
+            "planActivityCountAfter": { "type": "integer", "minimum": 1, "maximum": 201 },
+            "planActivityLimit": { "const": 200 }
+          }
+        },
+        "canApply": { "type": "boolean" },
+        "blockingReasons": {
+          "type": "array",
+          "maxItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code"],
+            "properties": { "code": { "const": "PLAN_ACTIVITY_LIMIT_REACHED" } }
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code"],
+            "properties": {
+              "code": { "enum": ["PARENT_GROWTH_PLAN_PAUSED", "LEARNING_TRACK_PAUSED"] }
+            }
+          }
+        },
+        "retained": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "activitiesAndEvidence",
+            "planSnapshots",
+            "focusSessions",
+            "masteryAndReadiness"
+          ],
+          "properties": {
+            "activitiesAndEvidence": { "const": true },
+            "planSnapshots": { "const": true },
+            "focusSessions": { "const": true },
+            "masteryAndReadiness": { "const": true }
+          }
+        },
+        "recalculationAfterApply": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["projectionState", "eventChangeKind", "consumerName"],
+          "properties": {
+            "projectionState": { "const": "PENDING" },
+            "eventChangeKind": { "const": "TRACK_ACTIVITY_ADMITTED" },
+            "consumerName": { "const": "planning.plan_snapshot_v1" }
+          }
+        },
+        "previewDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "applyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "commandId",
+        "changedTrack",
+        "admittedActivity",
+        "projectionState",
+        "planningDeliveryId",
+        "emittedEventIds"
+      ],
+      "properties": {
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "LearningTrackActivityAdmissionApplyResultV1" },
+            "version": { "const": "1.0.0" }
+          }
+        },
+        "commandId": { "$ref": "#/$defs/uuid" },
+        "changedTrack": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trackKey", "aggregateVersion"],
+          "properties": {
+            "trackKey": { "$ref": "#/$defs/trackKey" },
+            "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+          }
+        },
+        "admittedActivity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["activityKey", "candidateKey", "estimatedMinutes", "energy"],
+          "properties": {
+            "activityKey": { "$ref": "#/$defs/activityKey" },
+            "candidateKey": { "$ref": "#/$defs/candidateKey" },
+            "estimatedMinutes": { "type": "integer", "minimum": 1, "maximum": 480 },
+            "energy": { "$ref": "#/$defs/energy" }
+          }
+        },
+        "projectionState": { "const": "PENDING" },
+        "planningDeliveryId": { "$ref": "#/$defs/uuid" },
+        "emittedEventIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/uuid" }
+        }
+      }
+    }
+  }
+}

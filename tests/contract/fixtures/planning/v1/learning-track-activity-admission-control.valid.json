@@ -1,0 +1,55 @@
+{
+  "contract": { "name": "LearningTrackActivityAdmissionPreviewV1", "version": "1.0.0" },
+  "digestVersion": "learning-track-activity-admission-preview-digest/1.0.0",
+  "operation": "admit_activity_to_learning_track",
+  "commandType": "planning.add_learning_track_activity_v2",
+  "requestId": "10000000-0000-4000-8000-000000000001",
+  "reason": "Add deliberate SQL practice to this Track.",
+  "expectedGrowthPlanVersion": "4",
+  "expectedLearningTrackVersion": "7",
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "learningTrack": {
+    "trackKey": "track:backend-core",
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "priority": 50,
+    "protectedMinimumMinutes": 0,
+    "defaultSessionMinutes": 30,
+    "aggregateVersionBefore": "7",
+    "aggregateVersionAfter": "8"
+  },
+  "activity": {
+    "activityKey": "activity:sql-practice",
+    "title": "SQL practice",
+    "activityType": "MANUAL_CODING",
+    "targetCompetencyRef": "competency:sql",
+    "candidateKey": "candidate:10000000-0000-4000-8000-000000000001",
+    "estimatedMinutes": 45,
+    "energy": "MEDIUM"
+  },
+  "constraint": {
+    "planActivityCountBefore": 2,
+    "planActivityCountAfter": 3,
+    "planActivityLimit": 200
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "retained": {
+    "activitiesAndEvidence": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "masteryAndReadiness": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "TRACK_ACTIVITY_ADMITTED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}

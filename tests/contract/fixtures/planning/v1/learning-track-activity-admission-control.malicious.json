@@ -1,0 +1,33 @@
+{
+  "contract": { "name": "LearningTrackActivityAdmissionSourceV1", "version": "1.0.0" },
+  "state": "READY",
+  "capabilities": ["admit_activity_to_learning_track"],
+  "workspaceId": "90000000-0000-4000-8000-000000000001",
+  "growthPlan": {
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4",
+    "growthPlanId": "80000000-0000-4000-8000-000000000001"
+  },
+  "learningTrack": {
+    "trackKey": "track:backend-core",
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "priority": 50,
+    "protectedMinimumMinutes": 0,
+    "defaultSessionMinutes": 30,
+    "aggregateVersion": "7",
+    "learningTrackId": "70000000-0000-4000-8000-000000000001"
+  },
+  "activities": [
+    {
+      "activityKey": "activity:sql-practice",
+      "title": "SQL practice",
+      "activityType": "MANUAL_CODING",
+      "targetCompetencyRef": "competency:sql",
+      "customActivityId": "60000000-0000-4000-8000-000000000001",
+      "evidence": ["private"]
+    }
+  ]
+}

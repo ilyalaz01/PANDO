@@ -1,0 +1,55 @@
+{
+  "contract": { "name": "LearningTrackActivityAdmissionPreviewV1", "version": "1.0.0" },
+  "digestVersion": "learning-track-activity-admission-preview-digest/1.0.0",
+  "operation": "admit_activity_to_learning_track",
+  "commandType": "planning.add_learning_track_activity_v2",
+  "requestId": "10000000-0000-4000-8000-000000000002",
+  "reason": "界",
+  "expectedGrowthPlanVersion": "9223372036854775807",
+  "expectedLearningTrackVersion": "9223372036854775806",
+  "growthPlan": {
+    "title": "Paused plan",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 10080,
+    "aggregateVersion": "9223372036854775807"
+  },
+  "learningTrack": {
+    "trackKey": "track:paused",
+    "title": "Paused Track",
+    "lifecycle": "PAUSED",
+    "priority": 100,
+    "protectedMinimumMinutes": 10080,
+    "defaultSessionMinutes": 480,
+    "aggregateVersionBefore": "9223372036854775806",
+    "aggregateVersionAfter": "9223372036854775807"
+  },
+  "activity": {
+    "activityKey": "activity:boundary",
+    "title": "界",
+    "activityType": "PROJECT",
+    "targetCompetencyRef": "competency:boundary",
+    "candidateKey": "candidate:10000000-0000-4000-8000-000000000002",
+    "estimatedMinutes": 480,
+    "energy": null
+  },
+  "constraint": {
+    "planActivityCountBefore": 200,
+    "planActivityCountAfter": 201,
+    "planActivityLimit": 200
+  },
+  "canApply": false,
+  "blockingReasons": [{ "code": "PLAN_ACTIVITY_LIMIT_REACHED" }],
+  "warnings": [{ "code": "PARENT_GROWTH_PLAN_PAUSED" }, { "code": "LEARNING_TRACK_PAUSED" }],
+  "retained": {
+    "activitiesAndEvidence": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "masteryAndReadiness": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "TRACK_ACTIVITY_ADMITTED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}
