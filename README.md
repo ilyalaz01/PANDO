@@ -19,7 +19,10 @@ The authenticated `/plan` page now creates the first Growth Plan and initial emp
 through an exact preview/confirm setup, then reads the current Plan through a session-resolved
 Planning boundary and applies Plan lifecycle, weekly-capacity, Learning Track pause/resume, or Track
 priority/protected-minimum changes only after an exact before/after preview and explicit
-confirmation. Capacity changes, Track resumes, and active-Track minimum edits are checked against
+confirmation. The same page now admits one accepted personal Overlay activity to the sole current
+Track through an actor-scoped source, exact preview, and v2 confirm/apply command; it never accepts
+workspace, aggregate, Goal, profile, or activity UUID authority from the browser. Capacity changes,
+Track resumes, and active-Track minimum edits are checked against
 the aggregate protected minimum of active Learning Tracks; an infeasible proposal is explained and
 cannot be applied. Each accepted change is version-fenced, idempotent, atomic with its
 receipt/event/delivery, preserves learning and evidence history, and reports Today recalculation as
@@ -43,9 +46,9 @@ reminder reasons plus reschedule, skip-once, suppress, and restore commands. Pla
 immutable snapshots behind its current-pointer boundary. The live server boundary can now read a
 current recommendation and safely run the authenticated Today-to-Focus journey. First Growth Plan
 setup, Plan pause/resume, default weekly-capacity control, Learning Track pause/resume, and Track
-priority/protected-minimum editing are complete Phase 4B command slices; manual Track activity
-admission is next, while additional Track creation, terminal transitions, cadence, availability,
-Campaign, and live Agent Control increments remain later work.
+priority/protected-minimum editing plus manual activity admission are complete Phase 4B command
+slices. Additional Track creation is next; terminal transitions, cadence, availability, Campaign,
+and live Agent Control increments remain later work.
 
 ## Prerequisites
 
@@ -115,7 +118,8 @@ gate. These commands copy the required Supabase files to OS-created temporary di
 only their own random project IDs, so they do not reset or remove an ordinary local development
 stack. The auth gate creates one synthetic owner inside its disposable stack, exercises sign-in,
 workspace bootstrap, target selection, note/activity persistence, first-Plan setup, exact Plan
-lifecycle and weekly-capacity plus Learning Track lifecycle/settings previews/applies, Today
+lifecycle and weekly-capacity plus Learning Track lifecycle/settings and manual activity-admission
+previews/applies, Today
 current/degraded/error states, opaque planned Focus
 Start/Resume/completion,
 Mastery, Readiness and Review

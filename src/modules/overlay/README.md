@@ -50,8 +50,11 @@ cannot raise confidence or redirect evidence to another competency.
 
 ## Implemented Planning admission source
 
-`overlay.get_planning_activity_admission_source_v1` is executable only by the Planning application
-role. It takes a trusted workspace/profile/activity selector, shares the Overlay workspace mutation
-fence, and returns only accepted active activity identity and mapping status. Planning receives no
-direct Overlay table grant and no title, note, expected-evidence body, URL, or unrelated personal
-content through this boundary.
+`overlay.get_planning_activity_admission_choices_v1` and the exact-selector
+`overlay.get_planning_activity_admission_source_v2` are executable only by the Planning application
+role. The bounded choices query takes a trusted workspace/profile plus the complete server-derived
+set of prior attributions, shares the Overlay workspace mutation fence, and returns at most 200
+accepted active choices in stable key order or an explicit overflow. The exact query revalidates one
+selected public activity key and returns only the identity and mapping facts required for the
+Planning digest. Planning receives no direct Overlay table grant and no note, expected-evidence
+body, URL, or unrelated personal content through either boundary.

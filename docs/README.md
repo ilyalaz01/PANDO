@@ -57,8 +57,10 @@ The completed fresh-user setup slice is defined by
 [Phase 4B D1b first Growth Plan setup](design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md) and recorded in
 the [D1b implementation status](implementation/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md).
 Manual activity admission is defined by the accepted
-[Phase 4B manual activity admission design](design/PHASE_4B_MANUAL_ACTIVITY_ADMISSION.md);
-additional Track creation follows only after an initial Track can receive useful work.
+[Phase 4B manual activity admission design](design/PHASE_4B_MANUAL_ACTIVITY_ADMISSION.md) and
+recorded in the
+[manual activity admission implementation status](implementation/PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md).
+Additional Track creation follows now that the initial Track can receive useful work.
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 

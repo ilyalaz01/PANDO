@@ -85,10 +85,8 @@ ranking policy, completed-work policy, prerequisite policy or planner-engine ver
 
 ## Next bounded outcome
 
-Design and implement deterministic preview/confirm for manual admission of an existing active,
-accepted personal Overlay activity into the current initial Learning Track. The released
-attribution requires an Overlay activity; Catalog admission needs a separate versioned source and
-attribution design. Reuse the hardened Planning owner semantics and remove any remaining
-direct/manual bypass. Only after a Track can receive useful work should additional Learning Track
-creation begin. Terminal transitions, cadence, availability/replacement, Campaigns and Agent
-Control transport remain later bounded outcomes.
+Manual admission is now complete; see the
+[implementation status](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md). Additional Learning Track
+creation is the next bounded outcome and must define its exact destination-selector protocol before
+the admission contract is broadened. Terminal transitions, cadence, availability/replacement,
+Campaigns and Agent Control transport remain later bounded outcomes.

@@ -48,6 +48,19 @@ edit, and binds both the active-capacity and current-order fingerprints. Cadence
 See
 [`PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md).
 
+Manual activity admission is implemented through
+`LearningTrackActivityAdmissionSourceV1` and an exact preview/apply pair. The actor-scoped source
+accepts no selector and exposes only the sole current Track's opaque key, Plan/Track versions, and
+at most 200 eligible accepted personal activities. The browser supplies one activity key, bounded
+duration, nullable energy, both version fences, printable reason, lowercase request UUID, and then
+the server-created digest. Planning re-resolves the workspace, Plan, Track, Goal, profile, owner
+revisions, custom activity, candidate identity, and activity count under the shared workspace lock.
+Apply advances only the Track version and atomically commits attribution, receipt, minimal event,
+and fixed snapshot delivery. The historical six-argument v1 RPC remains in schema history but is no
+longer executable by runtime roles. `/plan` renders the exact comparison and fail-closed source
+states; a failed additive source read does not disable unrelated Plan controls. See
+[`PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md`](../../../docs/implementation/PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md).
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure
@@ -66,19 +79,13 @@ idempotent initializer currently persists the first plan, track, and sentinel fr
 Targets-owned query, with a minimal `planning.input_changed` event routed only to
 `planning.plan_snapshot_v1`.
 
-`api.add_learning_track_activity_v1` admits one exact active/accepted personal activity through
-Targets- and Overlay-owned fenced queries. It requires explicit Planning duration, nullable energy,
-the expected Track version, and an idempotency key; all authority-bearing IDs and the candidate key
-are server-derived. The atomic command writes attribution, increments only the Track aggregate,
-emits the strict Track input event, and creates one fixed delivery. It keeps the current calculation
-pointer intact so a prior unexpired snapshot can remain display-only while the new delivery makes
-Today pending. Active and paused plans/tracks are editable; terminal lifecycle and inactive goal or
-activity state fail closed. A Growth Plan cannot exceed 200 non-archived candidate activities.
-The released public RPC now runs as a pinned Planning-owned `SECURITY DEFINER`; its implementation
-helper is not executable by `public`, `anon`, `authenticated`, or `service_role`. This closes the
-alternate database surface without changing the public signature, validation, idempotency,
-mutation, response, event, or delivery semantics. See the
-[`Phase 4B activity-admission owner-boundary hardening record`](../../../docs/implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
+The historical `api.add_learning_track_activity_v1` first established the atomic attribution,
+event, and fixed-delivery semantics and was later hardened behind a pinned Planning-owned
+`SECURITY DEFINER`. Its implementation helper remains private, and the completed v2
+preview/confirmation outcome revokes runtime execution of the v1 wrapper so there is no alternate
+mutation path without an exact digest. See the
+[`Phase 4B activity-admission owner-boundary hardening record`](../../../docs/implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md)
+for that earlier compatibility step.
 
 The first live `planning.plan_snapshot_v1` worker now persists a claim clock and normalized input,
 reads every cross-context source through bounded owner functions, calculates through the verified

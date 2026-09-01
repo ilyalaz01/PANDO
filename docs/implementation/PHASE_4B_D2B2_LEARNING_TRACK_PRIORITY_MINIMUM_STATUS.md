@@ -98,9 +98,9 @@ Planning ownership and ranking/capacity inputs without redefining their calculat
 
 ## Next bounded outcome
 
-Fresh-user review found that test fixtures directly initialize the first Plan while `/plan` exposes
-no equivalent setup, and that activity admission has no manual UI. Implement the accepted
-[D1b first Growth Plan setup](../design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md), then add exact
-preview/confirmation for manual activity admission. Additional Track creation follows only when a
-new Track can receive useful work. Terminal Track transitions and cadence remain later bounded
-increments; D3 availability/replacement and Campaign work remain behind their recorded decisions.
+D1b first-Plan setup and manual activity admission are now complete; see their current
+[setup](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md) and
+[admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md) records. Additional Track creation is the
+next bounded increment and must define the destination selector before admission is broadened.
+Terminal Track transitions and cadence remain later bounded increments; D3
+availability/replacement and Campaign work remain behind their recorded decisions.
