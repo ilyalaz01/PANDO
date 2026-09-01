@@ -3,6 +3,31 @@ create extension if not exists pgtap with schema extensions;
 create extension if not exists dblink with schema extensions;
 set local search_path = public, extensions;
 
+create function public.pgtap_initialize_growth_plan_fixture_v1(
+  p_readiness_goal_key text,
+  p_weekly_capacity_minutes integer,
+  p_default_session_minutes integer,
+  p_track_priority integer,
+  p_protected_minimum_minutes integer,
+  p_idempotency_key text
+)
+returns jsonb
+language sql
+security definer
+set search_path = ''
+as $function$
+  select api.initialize_growth_plan_v1(
+    p_readiness_goal_key, p_weekly_capacity_minutes, p_default_session_minutes,
+    p_track_priority, p_protected_minimum_minutes, p_idempotency_key
+  )
+$function$;
+revoke all on function public.pgtap_initialize_growth_plan_fixture_v1(
+  text, integer, integer, integer, integer, text
+) from public, anon, authenticated, service_role;
+grant execute on function public.pgtap_initialize_growth_plan_fixture_v1(
+  text, integer, integer, integer, integer, text
+) to authenticated;
+
 create temporary table planning_concurrency_users (
   case_name text primary key,
   auth_user_id uuid not null,
@@ -212,7 +237,7 @@ insert into planning_concurrency_results
 select 'same-key', 'c1', command.response
 from extensions.dblink(
   'planning_c1',
-  $$select api.initialize_growth_plan_v1(
+  $$select public.pgtap_initialize_growth_plan_fixture_v1(
     'goal:planning-concurrency-same', 600, 45, 80, 120,
     'phase4a-planning-concurrency-same-init'
   )$$
@@ -221,7 +246,7 @@ from extensions.dblink(
 select is(
   extensions.dblink_send_query(
     'planning_c2',
-    $$select api.initialize_growth_plan_v1(
+    $$select public.pgtap_initialize_growth_plan_fixture_v1(
       'goal:planning-concurrency-same', 600, 45, 80, 120,
       'phase4a-planning-concurrency-same-init'
     )$$
@@ -301,7 +326,7 @@ insert into planning_concurrency_results
 select 'different-keys', 'c1', command.response
 from extensions.dblink(
   'planning_c1',
-  $$select api.initialize_growth_plan_v1(
+  $$select public.pgtap_initialize_growth_plan_fixture_v1(
     'goal:planning-concurrency-different', 480, 30, 70, 90,
     'phase4a-planning-concurrency-winner'
   )$$
@@ -310,7 +335,7 @@ from extensions.dblink(
 select is(
   extensions.dblink_send_query(
     'planning_c2',
-    $$select api.initialize_growth_plan_v1(
+    $$select public.pgtap_initialize_growth_plan_fixture_v1(
       'goal:planning-concurrency-different', 480, 30, 70, 90,
       'phase4a-planning-concurrency-loser'
     )$$
@@ -449,6 +474,10 @@ select is(
 
 select * from finish();
 commit;
+
+drop function public.pgtap_initialize_growth_plan_fixture_v1(
+  text, integer, integer, integer, integer, text
+);
 
 do $drop_dblink_role$
 declare

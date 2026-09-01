@@ -31,9 +31,14 @@ async function createSourceFixture(parent) {
   const sourceSupabase = join(parent, "supabase");
   await mkdir(join(sourceSupabase, "migrations"), { recursive: true });
   await mkdir(join(sourceSupabase, "tests", "database", "nested"), { recursive: true });
+  await mkdir(join(sourceSupabase, "tests", "fixture-migrations"), { recursive: true });
   await writeFile(join(sourceSupabase, "config.toml"), 'project_id = "fixture"\n');
   await writeFile(join(sourceSupabase, "seed.sql"), "-- empty\n");
   await writeFile(join(sourceSupabase, "migrations", "001.sql"), "select 1;\n");
+  await writeFile(
+    join(sourceSupabase, "tests", "fixture-migrations", "999_fixture.sql"),
+    "select 'scratch-only';\n",
+  );
   await writeFile(join(sourceSupabase, "tests", "database", "001.test.sql"), "select 1;\n");
   await writeFile(join(sourceSupabase, "tests", "database", "nested", "002.pg"), "select 1;\n");
   await writeFile(join(sourceSupabase, "tests", "database", "notes.txt"), "not executable\n");
@@ -243,6 +248,8 @@ test("a fake successful gate runs the complete exact argv set and stops once", a
     "supabase/tests/database/031_phase4b_learning_track_lifecycle_concurrency.test.sql",
     "supabase/tests/database/032_phase4b_learning_track_priority_minimum.test.sql",
     "supabase/tests/database/033_phase4b_learning_track_priority_minimum_concurrency.test.sql",
+    "supabase/tests/database/034_phase4b_first_growth_plan_setup.test.sql",
+    "supabase/tests/database/035_phase4b_first_growth_plan_setup_concurrency.test.sql",
     "--local",
   ]);
   assert.deepEqual(commands[3], [
@@ -302,6 +309,22 @@ test("copies only validated regular inputs and enumerates the exact recursive pg
   assert.deepEqual(
     prepared.executableTests.map(({ relativePath }) => relativePath.replaceAll("\\", "/")),
     ["001.test.sql", "nested/002.pg"],
+  );
+  assert.deepEqual(
+    prepared.fixtureMigrations.map(({ relativePath }) => relativePath),
+    ["999_fixture.sql"],
+  );
+  assert.equal(
+    await readFile(join(destinationSupabase, "migrations", "999_fixture.sql"), "utf8"),
+    "select 'scratch-only';\n",
+  );
+  assert.deepEqual((await readdir(join(destinationSupabase, "migrations"))).sort(), [
+    "001.sql",
+    "999_fixture.sql",
+  ]);
+  assert.equal(
+    prepared.executableTests.some(({ relativePath }) => relativePath === "999_fixture.sql"),
+    false,
   );
   assert.equal(
     await readFile(join(destinationSupabase, "tests", "database", "notes.txt"), "utf8"),

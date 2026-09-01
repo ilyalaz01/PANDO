@@ -290,6 +290,9 @@ where namespace.nspname = 'api'
     'apply_learning_track_lifecycle_v1',
     'preview_learning_track_priority_minimum_v1',
     'apply_learning_track_priority_minimum_v1',
+    'get_growth_plan_setup_source_v1',
+    'preview_growth_plan_initialization_v1',
+    'apply_growth_plan_initialization_v1',
     'start_focus_from_plan_v1',
     'create_personal_review_reminder_v1',
     'reschedule_review_reason_v1',
@@ -399,7 +402,10 @@ where namespace.nspname = 'api'
     'preview_learning_track_lifecycle_v1',
     'apply_learning_track_lifecycle_v1',
     'preview_learning_track_priority_minimum_v1',
-    'apply_learning_track_priority_minimum_v1'
+    'apply_learning_track_priority_minimum_v1',
+    'get_growth_plan_setup_source_v1',
+    'preview_growth_plan_initialization_v1',
+    'apply_growth_plan_initialization_v1'
   );
 
 select ok(

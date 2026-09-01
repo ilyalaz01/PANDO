@@ -148,6 +148,31 @@ export async function copyValidatedSupabaseInputs({ sourceSupabase, destinationS
 
   const sourceTests = join(sourceSupabase, "tests");
   await inspectSourceEntry(sourceTests, "directory", sourceRootReal);
+  const fixtureMigrationSource = join(sourceTests, "fixture-migrations");
+  await inspectSourceEntry(fixtureMigrationSource, "directory", sourceRootReal);
+  const fixtureEntries = await readdir(fixtureMigrationSource, { withFileTypes: true });
+  fixtureEntries.sort((left, right) => left.name.localeCompare(right.name));
+  if (fixtureEntries.length === 0) {
+    throw new Error("No scratch-only fixture migrations were found");
+  }
+  const fixtureMigrations = [];
+  for (const fixtureEntry of fixtureEntries) {
+    if (!fixtureEntry.isFile() || !fixtureEntry.name.endsWith(".sql")) {
+      throw new Error(
+        `Scratch-only fixture migrations must be regular SQL files: ${fixtureEntry.name}`,
+      );
+    }
+    const source = join(fixtureMigrationSource, fixtureEntry.name);
+    const destination = join(destinationSupabase, "migrations", fixtureEntry.name);
+    try {
+      await lstat(destination);
+      throw new Error(`Scratch fixture migration collides with production: ${fixtureEntry.name}`);
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+    await copyValidatedFile(source, destination, sourceRootReal);
+    fixtureMigrations.push({ relativePath: fixtureEntry.name, source, destination });
+  }
   const copiedTests = await copyValidatedDirectory(
     join(sourceTests, "database"),
     join(destinationSupabase, "tests", "database"),
@@ -160,6 +185,7 @@ export async function copyValidatedSupabaseInputs({ sourceSupabase, destinationS
 
   return {
     executableTests,
+    fixtureMigrations,
     sourceTests: join(sourceTests, "database"),
   };
 }

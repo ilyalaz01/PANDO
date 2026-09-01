@@ -2,6 +2,31 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
+create temporary table d1b_legacy_initializer_fixture_marker(marker boolean);
+create function pg_temp.initialize_growth_plan_fixture_v1(
+  p_readiness_goal_key text,
+  p_weekly_capacity_minutes integer,
+  p_default_session_minutes integer,
+  p_track_priority integer,
+  p_protected_minimum_minutes integer,
+  p_idempotency_key text
+)
+returns jsonb
+language sql
+security definer
+set search_path = ''
+as $function$
+  select api.initialize_growth_plan_v1(
+    p_readiness_goal_key, p_weekly_capacity_minutes, p_default_session_minutes,
+    p_track_priority, p_protected_minimum_minutes, p_idempotency_key
+  )
+$function$;
+revoke all on function pg_temp.initialize_growth_plan_fixture_v1(
+  text, integer, integer, integer, integer, text
+) from public, anon, authenticated, service_role;
+grant execute on function pg_temp.initialize_growth_plan_fixture_v1(
+  text, integer, integer, integer, integer, text
+) to authenticated;
 select no_plan();
 
 select has_table('targets', expected.table_name, format('targets.%s exists', expected.table_name))
@@ -189,7 +214,7 @@ select 'alice-goal', api.create_readiness_goal(
   'target:nvidia-python-verification-base-v1', 'phase3b-alice-goal'
 );
 insert into readiness_results values (
-  'alice-plan', api.initialize_growth_plan_v1(
+  'alice-plan', pg_temp.initialize_growth_plan_fixture_v1(
     'goal:readiness-alice', 300, 25, 80, 60, 'phase3b-alice-plan'
   )
 );
