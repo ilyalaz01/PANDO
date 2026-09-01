@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1, D2a, and D2b1 complete; D2b2–D5 pending
+Status: D1, D2a, D2b1, and D2b2 complete; remaining D2 and D3–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-01
 
@@ -16,8 +16,11 @@ Growth Plan pause and resume preserve Learning Tracks, immutable PlanSnapshot hi
 sessions, and Evidence. D2a weekly-capacity editing is complete in the separate
 [D2a implementation record](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md). D2b1 adds Planning-owned
 Learning Track pause/resume with a protected-capacity resume check and retained history; see the
-[D2b1 implementation record](PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md). Growth Plan archive,
-remaining Track editing, availability, Campaigns, and Agent Control transport remain later work.
+[D2b1 implementation record](PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md). D2b2 adds one atomic
+priority/protected-minimum edit with active-capacity and current-order freshness; see the
+[D2b2 implementation record](PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md). Growth Plan
+archive, remaining Track commands, availability, Campaigns, and Agent Control transport remain
+later work.
 
 ## Owner boundary and contracts
 
@@ -72,8 +75,10 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D2b1 and its separate activity-admission owner-boundary hardening are complete. Continue D2 with a
-separate priority/protected-minimum edit command. Track creation and terminal lifecycle commands
-follow as bounded increments; cadence must be defined before it is persisted. Do not enter D3
+D2b1, its separate activity-admission owner-boundary hardening, and D2b2 settings are complete.
+Continue D2 with a separate D2b3 Learning Track creation design before implementation. It must
+settle creation identity, bindings, initial defaults, portfolio/capacity invariants, preview and
+event semantics, and shared-workspace serialization. Terminal lifecycle commands follow as
+bounded increments; cadence must be defined before it is persisted. Do not enter D3
 availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
 design are recorded.

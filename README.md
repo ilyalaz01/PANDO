@@ -16,13 +16,13 @@ plan attribution without trusting browser-supplied action fields. The live `/tod
 every freshness state, explains the primary recommendation and bounded alternatives, and opens or
 resumes the exact attributed Focus session through opaque selectors.
 The authenticated `/plan` page now reads the current Growth Plan through a session-resolved
-Planning boundary and applies Plan lifecycle, weekly-capacity, or Learning Track pause/resume
-changes only after an exact before/after preview and explicit confirmation. Capacity changes and
-Track resumes are checked against the aggregate protected minimum of active Learning Tracks; an
-infeasible proposal is explained and cannot be applied. Each accepted change is version-fenced,
-idempotent, atomic with its receipt/event/delivery, preserves learning and evidence history, and
-reports Today recalculation as pending until the ordinary Planning worker publishes a current
-snapshot.
+Planning boundary and applies Plan lifecycle, weekly-capacity, Learning Track pause/resume, or
+Track priority/protected-minimum changes only after an exact before/after preview and explicit
+confirmation. Capacity changes, Track resumes, and active-Track minimum edits are checked against
+the aggregate protected minimum of active Learning Tracks; an infeasible proposal is explained and
+cannot be applied. Each accepted change is version-fenced, idempotent, atomic with its
+receipt/event/delivery, preserves learning and evidence history, and reports Today recalculation as
+pending until the ordinary Planning worker publishes a current snapshot.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -41,9 +41,9 @@ deduplicated item per competency dimension with auditable retention, verificatio
 reminder reasons plus reschedule, skip-once, suppress, and restore commands. Planning publishes
 immutable snapshots behind its current-pointer boundary. The live server boundary can now read a
 current recommendation and safely run the authenticated Today-to-Focus journey. Growth Plan
-pause/resume, default weekly-capacity control, and Learning Track pause/resume are complete Phase 4B
-command slices; remaining Track editing, availability, Campaign, and live Agent Control increments
-remain later work.
+pause/resume, default weekly-capacity control, Learning Track pause/resume, and Track
+priority/protected-minimum editing are complete Phase 4B command slices; Track creation, terminal
+transitions, cadence, availability, Campaign, and live Agent Control increments remain later work.
 
 ## Prerequisites
 
@@ -70,8 +70,9 @@ pnpm dev
 
 Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/start`, add a personal
 activity from Explore, initialize its Growth Plan, then use Today to start or resume the ranked
-Focus action. Open Plan to preview and confirm a pause, resume, or realistic weekly-capacity change
-without losing history. Inspect the resulting readiness changes and open Review from the
+Focus action. Open Plan to preview and confirm a pause, resume, realistic weekly-capacity change,
+or Track priority/protected-minimum edit without losing history. Inspect the resulting readiness
+changes and open Review from the
 authenticated header. The live
 `/explore?goal=...` route requires the configured authenticated Supabase boundary; it never
 substitutes demo data after a failed or unauthorized read.
@@ -111,7 +112,8 @@ gate. These commands copy the required Supabase files to OS-created temporary di
 only their own random project IDs, so they do not reset or remove an ordinary local development
 stack. The auth gate creates one synthetic owner inside its disposable stack, exercises sign-in,
 workspace bootstrap, target selection, note/activity persistence, exact Plan lifecycle and
-weekly-capacity previews/applies, Today current/degraded/error states, opaque planned Focus
+weekly-capacity plus Learning Track lifecycle/settings previews/applies, Today
+current/degraded/error states, opaque planned Focus
 Start/Resume/completion,
 Mastery, Readiness and Review
 projection/invalidation, reload, responsive accessibility, and sign-out

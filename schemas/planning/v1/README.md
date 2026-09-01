@@ -46,6 +46,16 @@ state and retained-history facts but no Today actions, evidence, workspace selec
 or caller-supplied authority. Apply returns `PENDING` until the ordinary Planning projection catches
 up.
 
+`growth-plan-capacity-control.schema.json` adds a separate default-capacity preview/apply contract
+whose active-Track fingerprint protects the exact protected-minimum constraint without changing
+the released Growth Plan lifecycle contract.
+
+`learning-track-lifecycle-control.schema.json` contains the compact current Track read plus exact
+pause/resume preview and apply result. `learning-track-priority-minimum-control.schema.json` reuses
+that read unchanged and atomically proposes both resulting settings. Its preview binds both the
+active-capacity fingerprint and the stable current-Track order fingerprint, reports paused-state
+consequences, and exposes no workspace selector or authority-bearing aggregate ID as input.
+
 All Draft 2020-12 schemas reject unknown fields and bound every collection. Semantic checks in the
 verified application calculation entry point and pure engine additionally enforce the exact
 fingerprint, current readiness, Review projection currency/validity, clock-transition cutoffs,

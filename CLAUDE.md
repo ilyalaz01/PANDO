@@ -62,41 +62,48 @@ Human roadmap position:
 - D0 — lifecycle/editing command design and ordered owner slices: complete.
 - D1 — authenticated Growth Plan pause/resume preview/apply and `/plan`: complete.
 - D2a — authenticated default weekly-capacity preview/apply and `/plan` control: complete.
-- D2b–D5 — Track/availability/Campaign lifecycle and editing implementation: pending.
+- D2b1 — authenticated Learning Track pause/resume and activity-admission boundary hardening:
+  complete.
+- D2b2 — authenticated Learning Track priority/protected-minimum preview/apply and `/plan` control:
+  complete.
+- Remaining D2–D5 — Track creation/terminal/cadence, availability, and Campaign commands: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The first complete Today-to-Focus browser journey plus Growth Plan lifecycle and weekly-capacity
-commands are implemented and verified. The next gap is bounded Learning Track control before Agent
-Control can safely manage the same operations.
+The first complete Today-to-Focus browser journey plus Growth Plan lifecycle/capacity and Learning
+Track pause/resume/settings commands are implemented and verified. The next gap is a separately
+settled Learning Track creation command before Agent Control can safely manage the same operations.
 
-## Current bounded outcome: D2b1 Learning Track pause/resume
+## Current bounded outcome: D2b3 Learning Track creation design
 
-Continue the D2 slice selected by `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`, but keep this
-increment to Planning-owned Learning Track pause/resume. Read the D2a design and implementation
-status, then reuse its active-Track protected-capacity invariant and the established preview/apply,
-outbox, server, and UI discipline.
+Continue the D2 slice selected by `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`, but do not implement
+Track creation until a focused D2b3 design is accepted. Read the D2a, D2b1, and D2b2 designs and
+implementation records, then reuse their active-capacity, stable locking, exact-preview,
+idempotency, outbox, server, and UI discipline.
 
 Required outcome:
 
-- add a bounded authenticated current-Track read; the browser may name only a Track returned by that
-  read and never supplies workspace or Growth Plan authority;
-- preview/apply `active -> paused` and `paused -> active` with exact Track version, reason, digest,
-  and idempotency; parent Growth Plan may be active or paused but never archived;
-- pausing removes that Track from the active protected-minimum sum without rewriting history;
-  resuming is blocked when the resulting active minimum sum would exceed current Plan capacity;
-- atomically commit only Track lifecycle/version plus receipt, minimal Planning event, and fixed
-  Planning delivery; Today remains honestly pending;
-- prove stale Plan/Track constraints, digest/idempotency/concurrency/rollback, isolation, preserved
-  history, responsive keyboard UI, accessibility, and a real signed-in pause/resume path;
-- do not add Track create, priority/minimum editing, completion/archive, cadence, availability,
-  Campaigns, or Agent Control transport in D2b1.
+- settle which bounded source the new Track represents and how Planning derives its opaque key,
+  title, readiness-goal/profile/roadmap bindings, and UUID without accepting authority-bearing IDs
+  from the browser;
+- settle initial lifecycle, priority, protected minimum, default session minutes, and whether every
+  field is user-selected or copied from an accepted source;
+- preserve one current Plan, at most 30 active-or-paused Tracks, and the active protected-minimum
+  capacity invariant without truncation or clamping;
+- define an exact preview, Plan/portfolio freshness fences, idempotent atomic apply, minimal event,
+  fixed Planning delivery, and shared workspace lock compatibility with D2a, D2b1, D2b2, and
+  activity admission;
+- define duplicate/source-collision behavior, privacy-minimized UI inputs, retained history, error
+  states, and the database/concurrency/auth/accessibility proof matrix;
+- record the focused design and stop if canonical ownership does not determine a safe source or
+  binding rule. Do not silently invent cadence, terminal transitions, Plan replacement,
+  availability, Campaign, or Agent Control V2 semantics.
 
-Run the complete Windows verification gates before handoff. D2b1 must not silently decide the later
-cadence, archive/replacement, or Campaign rules blocked by the focused decisions in the Phase 4B
-design.
+After the design is accepted, implement it as a separate bounded outcome and run the complete
+Windows verification gates before handoff. D2b3 must not silently decide later cadence,
+archive/replacement, or Campaign rules blocked by the focused decisions in the Phase 4B design.
 
 ## Architecture and safety rules
 

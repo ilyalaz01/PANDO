@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command design
 
-Status: implementation design (D0); D1, D2a, and D2b1 implemented; D2b2 accepted; D3–D5 pending
+Status: implementation design (D0); D1, D2a, D2b1, and D2b2 implemented; remaining D2 and D3–D5 pending
 Date: 2026-08-29  
 Canonical basis: `docs/00_PRODUCT_CONSTITUTION.md` through `docs/06_PROMPT_LIBRARY_UX.md`
 

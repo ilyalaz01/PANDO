@@ -31,7 +31,9 @@ Mastery wake events retain their existing owner schemas. Evidence bodies, notes,
 provider payloads, arbitrary consumers, and UI/domain-composition data are forbidden.
 
 `planning-event.schema.json` contains the privacy-minimized `planning.input_changed` v1 variants
-for initial Growth Plan creation and admission of one accepted Overlay activity to a Learning
-Track. It carries only aggregate, attribution, and candidate identifiers plus safe versions.
-Titles, competency mappings, duration, energy, notes, evidence, URLs, and arbitrary
-consumer routing are forbidden; the Planning worker reloads authoritative inputs.
+for initial Growth Plan creation, admission of one accepted Overlay activity, Growth Plan
+lifecycle/capacity changes, and Learning Track lifecycle/priority/protected-minimum changes. Each
+variant carries only the owning aggregate identifiers, resulting safe values, and versions needed
+to wake Planning. Titles, reasons, competency mappings, duration, energy, notes, evidence, URLs,
+fingerprints, and arbitrary consumer routing are forbidden; the Planning worker reloads
+authoritative inputs.

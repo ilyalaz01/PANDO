@@ -1,6 +1,6 @@
 # Phase 4B D2b2 — Learning Track priority and protected minimum
 
-Status: accepted implementation design
+Status: implemented
 
 Date: 2026-09-01
 
