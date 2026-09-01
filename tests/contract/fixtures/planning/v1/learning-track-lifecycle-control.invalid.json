@@ -1,0 +1,55 @@
+{
+  "contract": { "name": "LearningTrackLifecyclePreviewV1", "version": "1.0.0" },
+  "operation": "resume_track",
+  "reason": "Resume.",
+  "expectedGrowthPlanVersion": "4",
+  "expectedLearningTrackVersion": "7",
+  "growthPlan": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "before": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "PAUSED",
+    "priority": 90,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "7"
+  },
+  "after": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 90,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "8"
+  },
+  "constraint": {
+    "activeTrackCountBefore": 30,
+    "activeTrackCountAfter": 31,
+    "activeProtectedMinimumMinutesBefore": 480,
+    "activeProtectedMinimumMinutesAfter": 600,
+    "flexibleMinutesBefore": 120,
+    "flexibleMinutesAfter": 0,
+    "activeTrackFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "activeTrackFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "canApply": false,
+  "blockingReasons": [{ "code": "ACTIVE_TRACK_LIMIT_EXCEEDED", "maximumActiveTracks": 30 }],
+  "warnings": [],
+  "retained": {
+    "learningTrackActivities": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "not-a-digest"
+}

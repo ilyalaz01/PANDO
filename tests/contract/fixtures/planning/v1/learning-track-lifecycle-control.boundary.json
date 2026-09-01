@@ -1,0 +1,55 @@
+{
+  "contract": { "name": "LearningTrackLifecyclePreviewV1", "version": "1.0.0" },
+  "operation": "resume_track",
+  "reason": "Resume at the active-track boundary.",
+  "expectedGrowthPlanVersion": "9223372036854775806",
+  "expectedLearningTrackVersion": "9223372036854775806",
+  "growthPlan": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "9223372036854775806"
+  },
+  "before": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "PAUSED",
+    "priority": 0,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "9223372036854775806"
+  },
+  "after": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 0,
+    "protectedMinimumMinutes": 120,
+    "aggregateVersion": "9223372036854775807"
+  },
+  "constraint": {
+    "activeTrackCountBefore": 30,
+    "activeTrackCountAfter": 31,
+    "activeProtectedMinimumMinutesBefore": 480,
+    "activeProtectedMinimumMinutesAfter": 600,
+    "flexibleMinutesBefore": 120,
+    "flexibleMinutesAfter": 0,
+    "activeTrackFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "activeTrackFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "canApply": false,
+  "blockingReasons": [{ "code": "ACTIVE_TRACK_LIMIT_EXCEEDED", "maximumActiveTracks": 30 }],
+  "warnings": [],
+  "retained": {
+    "learningTrackActivities": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

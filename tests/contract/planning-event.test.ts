@@ -13,6 +13,10 @@ import capacityBoundaryFixture from "./fixtures/events/v1/planning-capacity.boun
 import capacityInvalidFixture from "./fixtures/events/v1/planning-capacity.invalid.json";
 import capacityMaliciousFixture from "./fixtures/events/v1/planning-capacity.malicious.json";
 import capacityValidFixture from "./fixtures/events/v1/planning-capacity.valid.json";
+import trackLifecycleBoundaryFixture from "./fixtures/events/v1/planning-track-lifecycle.boundary.json";
+import trackLifecycleInvalidFixture from "./fixtures/events/v1/planning-track-lifecycle.invalid.json";
+import trackLifecycleMaliciousFixture from "./fixtures/events/v1/planning-track-lifecycle.malicious.json";
+import trackLifecycleValidFixture from "./fixtures/events/v1/planning-track-lifecycle.valid.json";
 
 describe("Planning Input Event V1", () => {
   it("keeps valid, boundary, invalid, and malicious fixtures executable", () => {
@@ -28,9 +32,13 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", capacityBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", capacityInvalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", capacityMaliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", trackLifecycleValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackLifecycleBoundaryFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackLifecycleInvalidFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", trackLifecycleMaliciousFixture).valid).toBe(false);
   });
 
-  it("covers exactly the initialized, Track-admission, lifecycle, and capacity variants", () => {
+  it("covers exactly the initialized, Track-admission, lifecycle, capacity, and Track lifecycle variants", () => {
     for (const changeKind of ["CAPACITY_CHANGED", "ACTIVITY_COMPLETED", "RAW_SQL"]) {
       expect(
         validateSchema("planning-event-v1", {
@@ -39,6 +47,22 @@ describe("Planning Input Event V1", () => {
         }).valid,
       ).toBe(false);
     }
+  });
+
+  it("keeps Track lifecycle wake-ups minimal and bigint-safe", () => {
+    expect(trackLifecycleValidFixture.payload).toEqual({
+      change_kind: "TRACK_LIFECYCLE_CHANGED",
+      growth_plan_id: "30000000-0000-4000-8000-000000000020",
+      learning_track_id: "30000000-0000-4000-8000-000000000021",
+      learning_track_version: "8",
+      lifecycle: "PAUSED",
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...trackLifecycleValidFixture,
+        payload: { ...trackLifecycleValidFixture.payload, learning_track_version: 8 },
+      }).valid,
+    ).toBe(false);
   });
 
   it("keeps capacity wake-ups minimal and bigint-safe", () => {

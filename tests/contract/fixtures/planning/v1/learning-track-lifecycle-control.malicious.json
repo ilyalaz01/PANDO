@@ -1,0 +1,17 @@
+{
+  "contract": { "name": "CurrentLearningTracksV1", "version": "1.0.0" },
+  "growthPlan": null,
+  "learningTracks": [
+    {
+      "learningTrackId": "30000000-0000-4000-8000-000000000021",
+      "trackKey": "track:algorithms",
+      "title": "Algorithms",
+      "lifecycle": "ACTIVE",
+      "priority": 90,
+      "protectedMinimumMinutes": 120,
+      "aggregateVersion": "7",
+      "capabilities": ["pause_track"],
+      "workspaceId": "attacker-selected"
+    }
+  ]
+}
