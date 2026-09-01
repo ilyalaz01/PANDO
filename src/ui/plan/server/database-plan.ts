@@ -7,12 +7,19 @@ import {
   decodeGrowthPlanCapacityPreviewV1,
   decodeGrowthPlanLifecycleApplyResultV1,
   decodeGrowthPlanLifecyclePreviewV1,
+  decodeCurrentLearningTracksV1,
+  decodeLearningTrackLifecycleApplyResultV1,
+  decodeLearningTrackLifecyclePreviewV1,
+  type CurrentLearningTracksV1,
   type CurrentGrowthPlanV1,
   type GrowthPlanCapacityApplyResultV1,
   type GrowthPlanCapacityPreviewV1,
   type GrowthPlanLifecycleApplyResultV1,
   type GrowthPlanLifecycleOperationV1,
   type GrowthPlanLifecyclePreviewV1,
+  type LearningTrackLifecycleApplyResultV1,
+  type LearningTrackLifecycleOperationV1,
+  type LearningTrackLifecyclePreviewV1,
 } from "./plan-workspace-v1";
 
 export const GET_CURRENT_GROWTH_PLAN_RPC_V1 = "get_current_growth_plan_v1" as const;
@@ -20,11 +27,16 @@ export const PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1 = "preview_growth_plan_lifecyc
 export const APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1 = "apply_growth_plan_lifecycle_v1" as const;
 export const PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1 = "preview_growth_plan_capacity_v1" as const;
 export const APPLY_GROWTH_PLAN_CAPACITY_RPC_V1 = "apply_growth_plan_capacity_v1" as const;
+export const GET_CURRENT_LEARNING_TRACKS_RPC_V1 = "get_current_learning_tracks_v1" as const;
+export const PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1 =
+  "preview_learning_track_lifecycle_v1" as const;
+export const APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1 = "apply_learning_track_lifecycle_v1" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
 const CONTROL_CHARACTER = /[\p{Cc}]/u;
 const MAX_POSTGRES_BIGINT = BigInt("9223372036854775807");
+const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
 
 export class PlanInputError extends Error {
   constructor() {
@@ -65,6 +77,19 @@ export interface GrowthPlanCapacityPreviewCommandV1 {
 }
 
 export interface GrowthPlanCapacityApplyCommandV1 extends GrowthPlanCapacityPreviewCommandV1 {
+  readonly previewDigest: string;
+  readonly idempotencyKey: string;
+}
+
+export interface LearningTrackLifecyclePreviewCommandV1 {
+  readonly trackKey: string;
+  readonly operation: LearningTrackLifecycleOperationV1;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly reason: string;
+}
+
+export interface LearningTrackLifecycleApplyCommandV1 extends LearningTrackLifecyclePreviewCommandV1 {
   readonly previewDigest: string;
   readonly idempotencyKey: string;
 }
@@ -130,6 +155,20 @@ function validCapacityPreview(command: GrowthPlanCapacityPreviewCommandV1): bool
   );
 }
 
+function validTrackOperation(value: string): value is LearningTrackLifecycleOperationV1 {
+  return value === "pause_track" || value === "resume_track";
+}
+
+function validTrackPreview(command: LearningTrackLifecyclePreviewCommandV1): boolean {
+  return (
+    TRACK_KEY.test(command.trackKey) &&
+    validTrackOperation(command.operation) &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validVersion(command.expectedLearningTrackVersion) &&
+    validReason(command.reason)
+  );
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
@@ -137,7 +176,10 @@ async function rpc(
     | typeof PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1
     | typeof APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1
     | typeof PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1
-    | typeof APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
+    | typeof APPLY_GROWTH_PLAN_CAPACITY_RPC_V1
+    | typeof GET_CURRENT_LEARNING_TRACKS_RPC_V1
+    | typeof PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   parameters?: Record<string, string | number>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
@@ -278,6 +320,88 @@ export async function applyGrowthPlanCapacityV1(
       await rpc(client, APPLY_GROWTH_PLAN_CAPACITY_RPC_V1, {
         p_proposed_weekly_capacity_minutes: command.proposedWeeklyCapacityMinutes,
         p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_preview_digest: command.previewDigest,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads current nonterminal Tracks without accepting caller-selected Planning authority. */
+export async function loadCurrentLearningTracksV1(
+  client: PandoSupabaseClient,
+): Promise<CurrentLearningTracksV1> {
+  try {
+    return decodeCurrentLearningTracksV1(await rpc(client, GET_CURRENT_LEARNING_TRACKS_RPC_V1));
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds an exact Track lifecycle preview while Planning resolves owner and aggregate identity. */
+export async function previewLearningTrackLifecycleV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackLifecyclePreviewCommandV1,
+): Promise<LearningTrackLifecyclePreviewV1> {
+  if (!validTrackPreview(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackLifecyclePreviewV1(
+      await rpc(client, PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_operation: command.operation,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only a still-current, applicable Track lifecycle preview. */
+export async function applyLearningTrackLifecycleV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackLifecycleApplyCommandV1,
+): Promise<LearningTrackLifecycleApplyResultV1> {
+  if (
+    !validTrackPreview(command) ||
+    !SHA_256_HEX.test(command.previewDigest) ||
+    !validIdempotencyKey(command.idempotencyKey)
+  ) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackLifecycleApplyResultV1(
+      await rpc(client, APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_operation: command.operation,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
         p_preview_digest: command.previewDigest,
         p_reason: command.reason,
         p_idempotency_key: command.idempotencyKey,

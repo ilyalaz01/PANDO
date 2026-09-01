@@ -1,6 +1,7 @@
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
 export type CapacityOperation = "set_default_capacity";
+export type TrackOperation = "pause_track" | "resume_track";
 
 export interface PlanStateV1 {
   readonly growthPlanId: string;
@@ -8,6 +9,33 @@ export interface PlanStateV1 {
   readonly lifecycle: Lifecycle;
   readonly weeklyCapacityMinutes: number;
   readonly aggregateVersion: string;
+}
+
+export interface TrackParentPlanStateV1 {
+  readonly growthPlanId: string;
+  readonly lifecycle: Lifecycle;
+  readonly weeklyCapacityMinutes: number;
+  readonly aggregateVersion: string;
+}
+
+export interface LearningTrackStateV1 {
+  readonly learningTrackId: string;
+  readonly trackKey: string;
+  readonly title: string;
+  readonly lifecycle: Lifecycle;
+  readonly priority: number;
+  readonly protectedMinimumMinutes: number;
+  readonly aggregateVersion: string;
+}
+
+export interface CurrentLearningTrackV1 extends LearningTrackStateV1 {
+  readonly capabilities: readonly TrackOperation[];
+}
+
+export interface CurrentLearningTracksV1 {
+  readonly contract: { readonly name: "CurrentLearningTracksV1"; readonly version: "1.0.0" };
+  readonly growthPlan: TrackParentPlanStateV1 | null;
+  readonly learningTracks: readonly CurrentLearningTrackV1[];
 }
 
 export interface GrowthPlanLifecyclePreviewV1 {
@@ -62,7 +90,49 @@ export interface GrowthPlanCapacityPreviewV1 {
   readonly previewDigest: string;
 }
 
-export type PlanPreviewV1 = GrowthPlanLifecyclePreviewV1 | GrowthPlanCapacityPreviewV1;
+export interface LearningTrackLifecyclePreviewV1 {
+  readonly contract: {
+    readonly name: "LearningTrackLifecyclePreviewV1";
+    readonly version: "1.0.0";
+  };
+  readonly operation: TrackOperation;
+  readonly reason: string;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly growthPlan: TrackParentPlanStateV1;
+  readonly before: LearningTrackStateV1;
+  readonly after: LearningTrackStateV1;
+  readonly constraint: {
+    readonly activeTrackCountBefore: number;
+    readonly activeTrackCountAfter: number;
+    readonly activeProtectedMinimumMinutesBefore: number;
+    readonly activeProtectedMinimumMinutesAfter: number;
+    readonly flexibleMinutesBefore: number;
+    readonly flexibleMinutesAfter: number;
+    readonly activeTrackFingerprintBefore: string;
+    readonly activeTrackFingerprintAfter: string;
+  };
+  readonly canApply: boolean;
+  readonly blockingReasons: readonly {
+    readonly code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY";
+    readonly minimumCapacityMinutes: number;
+  }[];
+  readonly warnings: readonly { readonly code: "PARENT_GROWTH_PLAN_PAUSED" }[];
+  readonly retained: {
+    readonly learningTrackActivities: true;
+    readonly planSnapshots: true;
+    readonly focusSessions: true;
+    readonly evidence: true;
+  };
+  readonly recalculationAfterApply: {
+    readonly projectionState: "PENDING";
+    readonly consumerName: "planning.plan_snapshot_v1";
+  };
+  readonly previewDigest: string;
+}
+
+export type PlanPreviewV1 =
+  GrowthPlanLifecyclePreviewV1 | GrowthPlanCapacityPreviewV1 | LearningTrackLifecyclePreviewV1;
 
 export interface CurrentGrowthPlanV1 {
   readonly contract: { readonly name: "CurrentGrowthPlanV1"; readonly version: "1.0.0" };

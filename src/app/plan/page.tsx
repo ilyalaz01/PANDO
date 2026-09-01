@@ -9,8 +9,11 @@ import {
 import { SkipLink } from "../../ui/primitives/skip-link";
 import { PlanWorkspace } from "../../ui/plan/plan-workspace";
 import styles from "../../ui/plan/plan.module.css";
-import { loadCurrentGrowthPlanV1 } from "../../ui/plan/server/database-plan";
-import type { CurrentGrowthPlanV1 } from "../../ui/plan/plan-types";
+import {
+  loadCurrentGrowthPlanV1,
+  loadCurrentLearningTracksV1,
+} from "../../ui/plan/server/database-plan";
+import type { CurrentGrowthPlanV1, CurrentLearningTracksV1 } from "../../ui/plan/plan-types";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,11 +22,42 @@ export const metadata: Metadata = {
   description: "Keep your Growth Plan aligned with changing priorities.",
 };
 
+function planningReadsAgree(
+  workspace: CurrentGrowthPlanV1,
+  tracksWorkspace: CurrentLearningTracksV1,
+): boolean {
+  const plan = workspace.currentPlan;
+  const trackPlan = tracksWorkspace.growthPlan;
+  return (
+    (plan === null && trackPlan === null && tracksWorkspace.learningTracks.length === 0) ||
+    (plan !== null &&
+      trackPlan !== null &&
+      plan.growthPlanId === trackPlan.growthPlanId &&
+      plan.lifecycle === trackPlan.lifecycle &&
+      plan.weeklyCapacityMinutes === trackPlan.weeklyCapacityMinutes &&
+      plan.aggregateVersion === trackPlan.aggregateVersion)
+  );
+}
+
 export default async function PlanPage() {
   let workspace: CurrentGrowthPlanV1;
+  let tracksWorkspace: CurrentLearningTracksV1;
   try {
     const client = await createPandoServerComponentClient();
-    workspace = await loadCurrentGrowthPlanV1((await verifyPandoSession(client)).client);
+    const authorizedClient = (await verifyPandoSession(client)).client;
+    [workspace, tracksWorkspace] = await Promise.all([
+      loadCurrentGrowthPlanV1(authorizedClient),
+      loadCurrentLearningTracksV1(authorizedClient),
+    ]);
+    if (!planningReadsAgree(workspace, tracksWorkspace)) {
+      [workspace, tracksWorkspace] = await Promise.all([
+        loadCurrentGrowthPlanV1(authorizedClient),
+        loadCurrentLearningTracksV1(authorizedClient),
+      ]);
+    }
+    if (!planningReadsAgree(workspace, tracksWorkspace)) {
+      throw new Error("Planning reads changed while loading.");
+    }
   } catch (error) {
     if (error instanceof AuthenticatedSessionRequiredError) redirect("/sign-in");
     return (
@@ -54,7 +88,7 @@ export default async function PlanPage() {
         </div>
       </header>
       <main className={styles.main} id="plan-main" tabIndex={-1}>
-        <PlanWorkspace workspace={workspace} />
+        <PlanWorkspace tracksWorkspace={tracksWorkspace} workspace={workspace} />
       </main>
     </div>
   );

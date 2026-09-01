@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1 and D2a complete; D2b–D5 pending
+Status: D1, D2a, and D2b1 complete; D2b2–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-01
 
@@ -12,10 +12,12 @@ Planning freshness, then preview and explicitly confirm either `active -> paused
 `paused -> active`. The saved plan changes immediately; Today remains visibly pending until the
 ordinary Planning projection catches up.
 
-Pause and resume preserve Learning Tracks, immutable PlanSnapshot history, Focus sessions, and
-Evidence. D2a weekly-capacity editing is now complete in the separate
-[D2a implementation record](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md). Growth Plan archive,
-Track editing, availability, Campaigns, and Agent Control transport remain later work.
+Growth Plan pause and resume preserve Learning Tracks, immutable PlanSnapshot history, Focus
+sessions, and Evidence. D2a weekly-capacity editing is complete in the separate
+[D2a implementation record](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md). D2b1 adds Planning-owned
+Learning Track pause/resume with a protected-capacity resume check and retained history; see the
+[D2b1 implementation record](PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md). Growth Plan archive,
+remaining Track editing, availability, Campaigns, and Agent Control transport remain later work.
 
 ## Owner boundary and contracts
 
@@ -70,8 +72,9 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D2a is complete. Continue D2 incrementally with D2b Learning Track controls, beginning with Track
-pause/resume and the capacity check required when a protected Track resumes. Track
-create/priority/protected-minimum and terminal lifecycle commands follow as bounded increments;
-cadence must be defined before it is persisted. Do not enter D3 availability/replacement or D4–D5
-Campaign work before the focused decisions required by the D0 design are recorded.
+D2b1 is complete. First close the pre-existing direct-helper grant recorded in the D2b1 design as a
+separate owner-boundary hardening outcome without changing the released activity-attribution
+contract. Then continue D2 with a separate priority/protected-minimum edit command. Track creation
+and terminal lifecycle commands follow as bounded increments; cadence must be defined before it is
+persisted. Do not enter D3 availability/replacement or D4–D5 Campaign work before the focused
+decisions required by the D0 design are recorded.

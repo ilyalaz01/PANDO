@@ -7,7 +7,7 @@
   "growthPlan": {
     "growthPlanId": "30000000-0000-4000-8000-000000000020",
     "lifecycle": "ACTIVE",
-    "weeklyCapacityMinutes": 600,
+    "weeklyCapacityMinutes": 599,
     "aggregateVersion": "9223372036854775806"
   },
   "before": {
@@ -29,17 +29,19 @@
     "aggregateVersion": "9223372036854775807"
   },
   "constraint": {
-    "activeTrackCountBefore": 30,
-    "activeTrackCountAfter": 31,
+    "activeTrackCountBefore": 29,
+    "activeTrackCountAfter": 30,
     "activeProtectedMinimumMinutesBefore": 480,
     "activeProtectedMinimumMinutesAfter": 600,
-    "flexibleMinutesBefore": 120,
-    "flexibleMinutesAfter": 0,
+    "flexibleMinutesBefore": 119,
+    "flexibleMinutesAfter": -1,
     "activeTrackFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "activeTrackFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   },
   "canApply": false,
-  "blockingReasons": [{ "code": "ACTIVE_TRACK_LIMIT_EXCEEDED", "maximumActiveTracks": 30 }],
+  "blockingReasons": [
+    { "code": "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", "minimumCapacityMinutes": 600 }
+  ],
   "warnings": [],
   "retained": {
     "learningTrackActivities": true,

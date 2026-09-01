@@ -16,12 +16,13 @@ plan attribution without trusting browser-supplied action fields. The live `/tod
 every freshness state, explains the primary recommendation and bounded alternatives, and opens or
 resumes the exact attributed Focus session through opaque selectors.
 The authenticated `/plan` page now reads the current Growth Plan through a session-resolved
-Planning boundary and applies lifecycle or weekly-capacity changes only after an exact before/after
-preview and explicit confirmation. Capacity changes are checked against the aggregate protected
-minimum of active Learning Tracks; an infeasible proposal is explained and cannot be applied. Each
-accepted change is version-fenced, idempotent, atomic with its receipt/event/delivery, preserves
-learning and evidence history, and reports Today recalculation as pending until the ordinary
-Planning worker publishes a current snapshot.
+Planning boundary and applies Plan lifecycle, weekly-capacity, or Learning Track pause/resume
+changes only after an exact before/after preview and explicit confirmation. Capacity changes and
+Track resumes are checked against the aggregate protected minimum of active Learning Tracks; an
+infeasible proposal is explained and cannot be applied. Each accepted change is version-fenced,
+idempotent, atomic with its receipt/event/delivery, preserves learning and evidence history, and
+reports Today recalculation as pending until the ordinary Planning worker publishes a current
+snapshot.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -40,8 +41,9 @@ deduplicated item per competency dimension with auditable retention, verificatio
 reminder reasons plus reschedule, skip-once, suppress, and restore commands. Planning publishes
 immutable snapshots behind its current-pointer boundary. The live server boundary can now read a
 current recommendation and safely run the authenticated Today-to-Focus journey. Growth Plan
-pause/resume and default weekly-capacity control are complete Phase 4B command slices; Track,
-availability, Campaign, and live Agent Control increments remain later work.
+pause/resume, default weekly-capacity control, and Learning Track pause/resume are complete Phase 4B
+command slices; remaining Track editing, availability, Campaign, and live Agent Control increments
+remain later work.
 
 ## Prerequisites
 

@@ -1,7 +1,5 @@
 import { asJsonObject, asNumber, asString } from "./json";
 
-const MAX_ACTIVE_TRACKS = 30;
-
 export function learningTrackLifecycleControlSemanticViolations(value: unknown): string[] {
   const root = asJsonObject(value, "Learning Track lifecycle control response");
   const contract = asJsonObject(root.contract, "Learning Track lifecycle control contract");
@@ -18,29 +16,33 @@ function currentViolations(root: Record<string, unknown>): string[] {
   if (root.growthPlan === null) {
     return tracks.length === 0 ? [] : ["CURRENT_LEARNING_TRACKS_EMPTY_PLAN"];
   }
-  const seen = new Set<string>();
+  const seenIds = new Set<string>();
+  const seenKeys = new Set<string>();
   const violations: string[] = [];
   let previous:
     { readonly priority: number; readonly trackKey: string; readonly id: string } | undefined;
   for (const item of tracks) {
     const track = asJsonObject(item, "learning track");
     const key = asString(track.trackKey);
-    const id = asString(track.learningTrackId).toLowerCase();
-    if (seen.has(`${key}:${id}`)) violations.push("CURRENT_LEARNING_TRACKS_DUPLICATE");
-    seen.add(`${key}:${id}`);
+    const idValue = asString(track.learningTrackId);
     const priority = asNumber(track.priority);
-    if (priority === undefined) {
+    if (key === undefined || idValue === undefined || priority === undefined) {
       violations.push("CURRENT_LEARNING_TRACKS_ORDER");
-    } else if (
+      continue;
+    }
+    const id = idValue.toLowerCase();
+    if (seenIds.has(id) || seenKeys.has(key)) violations.push("CURRENT_LEARNING_TRACKS_DUPLICATE");
+    seenIds.add(id);
+    seenKeys.add(key);
+    if (
       previous !== undefined &&
       (priority > previous.priority ||
         (priority === previous.priority &&
-          (key.localeCompare(previous.trackKey) < 0 ||
-            (key === previous.trackKey && id.localeCompare(previous.id) < 0))))
+          (key < previous.trackKey || (key === previous.trackKey && id < previous.id))))
     ) {
       violations.push("CURRENT_LEARNING_TRACKS_ORDER");
     }
-    previous = priority === undefined ? previous : { priority, trackKey: key, id };
+    previous = { priority, trackKey: key, id };
     const expected = track.lifecycle === "ACTIVE" ? "pause_track" : "resume_track";
     const capabilities = Array.isArray(track.capabilities) ? track.capabilities : [];
     if (capabilities.length !== 1 || capabilities[0] !== expected) {
@@ -115,11 +117,9 @@ function previewViolations(root: Record<string, unknown>): string[] {
       violations.push("LEARNING_TRACK_PREVIEW_FLEXIBLE_MINUTES");
     }
     const expectedBlock =
-      root.operation === "resume_track" && afterCount! > MAX_ACTIVE_TRACKS
-        ? { code: "ACTIVE_TRACK_LIMIT_EXCEEDED", maximumActiveTracks: MAX_ACTIVE_TRACKS }
-        : root.operation === "resume_track" && afterMinimum! > capacity!
-          ? { code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", minimumCapacityMinutes: afterMinimum! }
-          : undefined;
+      root.operation === "resume_track" && afterMinimum! > capacity!
+        ? { code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", minimumCapacityMinutes: afterMinimum! }
+        : undefined;
     const actual =
       blockingReasons.length === 1
         ? asJsonObject(blockingReasons[0], "blocking reason")
@@ -133,9 +133,7 @@ function previewViolations(root: Record<string, unknown>): string[] {
     if (
       expectedBlock !== undefined &&
       (actual?.code !== expectedBlock.code ||
-        (expectedBlock.code === "ACTIVE_TRACK_LIMIT_EXCEEDED"
-          ? actual.maximumActiveTracks !== MAX_ACTIVE_TRACKS
-          : actual.minimumCapacityMinutes !== expectedBlock.minimumCapacityMinutes))
+        actual.minimumCapacityMinutes !== expectedBlock.minimumCapacityMinutes)
     ) {
       violations.push("LEARNING_TRACK_PREVIEW_BLOCKING_REASON");
     }

@@ -32,6 +32,15 @@ one minimal capacity event and fixed Planning delivery. `/plan` exposes the same
 discipline and the auth gate proves real persistence. See
 [`PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md`](../../../docs/implementation/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md).
 
+D2b1 is implemented through a separate Planning-owned current-Track read and lifecycle
+preview/apply pair. The browser selects only an opaque server-returned key and supplies both
+aggregate version fences; Planning resolves and locks the current Plan and all child Tracks before
+recomputing the exact preview. Pause preserves history and removes the Track from active planning.
+Resume refuses a projected active protected-minimum total above Plan capacity, while a paused parent
+produces an honest Today warning rather than blocking the saved Track state. Apply advances only the
+target Track and atomically commits its receipt, minimal event, and fixed snapshot delivery. See
+[`PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md).
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure

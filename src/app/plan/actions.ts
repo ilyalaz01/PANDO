@@ -5,12 +5,14 @@ import { createPandoServerActionClient } from "../../shared/supabase/server";
 import { verifyPandoSession } from "../../shared/supabase/session";
 import type { PlanActionState } from "../../ui/plan/plan-action-state";
 import { initialPlanActionState } from "../../ui/plan/plan-action-state";
-import type { PlanOperation } from "../../ui/plan/plan-types";
+import type { PlanOperation, TrackOperation } from "../../ui/plan/plan-types";
 import {
+  applyLearningTrackLifecycleV1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
+  previewLearningTrackLifecycleV1,
   PlanConflictError,
   PlanInputError,
 } from "../../ui/plan/server/database-plan";
@@ -19,6 +21,8 @@ const VERSION = /^[1-9][0-9]{0,18}$/u;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const OPERATIONS = ["pause_growth_plan", "resume_growth_plan"] as const;
 const CAPACITY = /^(?:0|[1-9][0-9]{0,4})$/u;
+const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
+const TRACK_OPERATIONS = ["pause_track", "resume_track"] as const;
 function field(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
@@ -56,6 +60,37 @@ function capacityInput(formData: FormData): {
     throw new PlanInputError();
   }
   return { proposedWeeklyCapacityMinutes: Number(proposedCapacity), version, reason };
+}
+function trackInput(formData: FormData): {
+  trackKey: string;
+  operation: TrackOperation;
+  growthPlanVersion: string;
+  learningTrackVersion: string;
+  reason: string;
+} {
+  const trackKey = field(formData, "trackKey");
+  const operation = field(formData, "operation");
+  const growthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const learningTrackVersion = field(formData, "expectedLearningTrackVersion");
+  const reason = field(formData, "reason");
+  if (
+    !TRACK_KEY.test(trackKey) ||
+    !TRACK_OPERATIONS.includes(operation as TrackOperation) ||
+    !VERSION.test(growthPlanVersion) ||
+    !VERSION.test(learningTrackVersion) ||
+    reason.trim() !== reason ||
+    reason.length < 1 ||
+    reason.length > 500
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    trackKey,
+    operation: operation as TrackOperation,
+    growthPlanVersion,
+    learningTrackVersion,
+    reason,
+  };
 }
 function failure(error: unknown, invalidMessage?: string): PlanActionState {
   if (error instanceof PlanConflictError)
@@ -188,5 +223,65 @@ export async function applyGrowthPlanLifecycleAction(
     };
   } catch (error) {
     return failure(error);
+  }
+}
+
+export async function previewLearningTrackLifecycleAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = trackInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewLearningTrackLifecycleV1(client, {
+      trackKey: value.trackKey,
+      operation: value.operation,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "Track preview ready. Confirm only if these exact facts are correct."
+        : "This Track cannot be resumed within the current plan constraints.",
+      preview,
+    };
+  } catch (error) {
+    return failure(error, "Choose a current Track and enter a reason. Nothing changed.");
+  }
+}
+
+export async function applyLearningTrackLifecycleAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = trackInput(formData);
+    const digest = field(formData, "previewDigest");
+    const requestIdValue = field(formData, "requestId");
+    if (!/^[a-f0-9]{64}$/u.test(digest) || !UUID.test(requestIdValue)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyLearningTrackLifecycleV1(client, {
+      trackKey: value.trackKey,
+      operation: value.operation,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+      previewDigest: digest,
+      idempotencyKey: `learning-track-lifecycle:v1:${requestIdValue}`,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Track changed. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(error, "Choose a current Track and enter a reason. Nothing changed.");
   }
 }

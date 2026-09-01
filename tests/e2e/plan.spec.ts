@@ -24,6 +24,16 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await expect(page.locator("main")).toBeFocused();
   await page.getByRole("button", { name: "Confirm and apply" }).focus();
   await expect(page.getByRole("button", { name: "Confirm and apply" })).toBeFocused();
+
+  await openFixture(page, "?preview=track");
+  await page.getByLabel("Learning Track", { exact: true }).focus();
+  await expect(page.getByLabel("Learning Track", { exact: true })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Why is this Track changing?")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Preview Track change" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Confirm Track change" })).toBeFocused();
 });
 
 test("fits 320px with touch-sized Plan controls", async ({ page }) => {
@@ -36,6 +46,21 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   const box = await page.getByRole("button", { name: "Confirm and apply" }).boundingBox();
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+  await openFixture(page, "?preview=track");
+  const trackDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(trackDimensions.scrollWidth).toBeLessThanOrEqual(trackDimensions.clientWidth);
+  for (const control of [
+    page.getByLabel("Learning Track", { exact: true }),
+    page.getByRole("button", { name: "Preview Track change" }),
+    page.getByRole("button", { name: "Confirm Track change" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("honors reduced motion and forced-colors focus visibility", async ({ page }) => {
@@ -49,6 +74,16 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   }));
   expect(styles.outlineStyle).not.toBe("none");
   expect(styles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
+  await openFixture(page, "?preview=track");
+  const trackControl = page.getByRole("button", { name: "Confirm Track change" });
+  await trackControl.focus();
+  const trackStyles = await trackControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(trackStyles.outlineStyle).not.toBe("none");
+  expect(trackStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 });
 
 test("has no automatically detectable WCAG A/AA violations", async ({ page }) => {
@@ -75,4 +110,22 @@ test("blocks a capacity below active Track minima without an apply control", asy
     page.getByRole("region", { name: "Review weekly capacity" }).getByRole("alert"),
   ).toContainText("Capacity can't be set to 120 minutes. Active tracks reserve 180 minutes.");
   await expect(page.getByRole("button", { name: "Confirm capacity" })).toHaveCount(0);
+});
+
+test("shows an exact Learning Track lifecycle preview before confirmation", async ({ page }) => {
+  await openFixture(page, "?preview=track");
+  const comparison = page.getByLabel("Exact Learning Track change preview");
+  await expect(comparison).toContainText("Algorithms");
+  await expect(comparison).toContainText("PAUSED");
+  await expect(comparison).toContainText("ACTIVE");
+  await expect(comparison).toContainText("420 minutes");
+  await expect(page.getByRole("button", { name: "Confirm Track change" })).toBeEnabled();
+});
+
+test("blocks a Track resume that would exceed weekly capacity", async ({ page }) => {
+  await openFixture(page, "?preview=track-blocked");
+  await expect(
+    page.getByRole("region", { name: "Review Learning Track change" }).getByRole("alert"),
+  ).toContainText("This Track cannot resume within 600 weekly minutes");
+  await expect(page.getByRole("button", { name: "Confirm Track change" })).toHaveCount(0);
 });

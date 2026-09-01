@@ -2,6 +2,7 @@ import "server-only";
 
 import { growthPlanCapacityControlSemanticViolations } from "../../../shared/contracts/growth-plan-capacity-control";
 import { growthPlanControlSemanticViolations } from "../../../shared/contracts/growth-plan-control";
+import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -104,6 +105,86 @@ export interface GrowthPlanCapacityApplyResultV1 {
   readonly emittedEventIds: readonly [string];
 }
 
+export type LearningTrackLifecycleOperationV1 = "pause_track" | "resume_track";
+
+export interface LearningTrackParentPlanStateV1 {
+  readonly growthPlanId: string;
+  readonly lifecycle: GrowthPlanLifecycleV1;
+  readonly weeklyCapacityMinutes: number;
+  readonly aggregateVersion: string;
+}
+
+export interface LearningTrackStateV1 {
+  readonly learningTrackId: string;
+  readonly trackKey: string;
+  readonly title: string;
+  readonly lifecycle: GrowthPlanLifecycleV1;
+  readonly priority: number;
+  readonly protectedMinimumMinutes: number;
+  readonly aggregateVersion: string;
+}
+
+export interface CurrentLearningTracksV1 {
+  readonly contract: { readonly name: "CurrentLearningTracksV1"; readonly version: "1.0.0" };
+  readonly growthPlan: LearningTrackParentPlanStateV1 | null;
+  readonly learningTracks: readonly (LearningTrackStateV1 & {
+    readonly capabilities: readonly [LearningTrackLifecycleOperationV1];
+  })[];
+}
+
+export interface LearningTrackLifecyclePreviewV1 {
+  readonly contract: {
+    readonly name: "LearningTrackLifecyclePreviewV1";
+    readonly version: "1.0.0";
+  };
+  readonly operation: LearningTrackLifecycleOperationV1;
+  readonly reason: string;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly growthPlan: LearningTrackParentPlanStateV1;
+  readonly before: LearningTrackStateV1;
+  readonly after: LearningTrackStateV1;
+  readonly constraint: {
+    readonly activeTrackCountBefore: number;
+    readonly activeTrackCountAfter: number;
+    readonly activeProtectedMinimumMinutesBefore: number;
+    readonly activeProtectedMinimumMinutesAfter: number;
+    readonly flexibleMinutesBefore: number;
+    readonly flexibleMinutesAfter: number;
+    readonly activeTrackFingerprintBefore: string;
+    readonly activeTrackFingerprintAfter: string;
+  };
+  readonly canApply: boolean;
+  readonly blockingReasons: readonly {
+    readonly code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY";
+    readonly minimumCapacityMinutes: number;
+  }[];
+  readonly warnings: readonly { readonly code: "PARENT_GROWTH_PLAN_PAUSED" }[];
+  readonly retained: {
+    readonly learningTrackActivities: true;
+    readonly planSnapshots: true;
+    readonly focusSessions: true;
+    readonly evidence: true;
+  };
+  readonly recalculationAfterApply: {
+    readonly projectionState: "PENDING";
+    readonly consumerName: "planning.plan_snapshot_v1";
+  };
+  readonly previewDigest: string;
+}
+
+export interface LearningTrackLifecycleApplyResultV1 {
+  readonly contract: {
+    readonly name: "LearningTrackLifecycleApplyResultV1";
+    readonly version: "1.0.0";
+  };
+  readonly commandId: string;
+  readonly changedTrack: LearningTrackStateV1;
+  readonly projectionState: "PENDING";
+  readonly planningDeliveryId: string;
+  readonly emittedEventIds: readonly [string];
+}
+
 export class GrowthPlanControlContractError extends TypeError {
   constructor() {
     super("Growth Plan control response is invalid.");
@@ -150,6 +231,24 @@ function decodeCapacity(value: unknown, expectedName: string): unknown {
   return value;
 }
 
+function decodeTrack(value: unknown, expectedName: string): unknown {
+  const structural = validateSchema("learning-track-lifecycle-control-v1", value);
+  if (!structural.valid || learningTrackLifecycleControlSemanticViolations(value).length > 0) {
+    throw new GrowthPlanControlContractError();
+  }
+  const response = value as { readonly contract?: unknown };
+  const contract = response.contract;
+  if (
+    typeof contract !== "object" ||
+    contract === null ||
+    !Object.hasOwn(contract, "name") ||
+    (contract as { readonly name?: unknown }).name !== expectedName
+  ) {
+    throw new GrowthPlanControlContractError();
+  }
+  return value;
+}
+
 /** Decodes the minimized, current-personal Planning read model before it reaches UI code. */
 export function decodeCurrentGrowthPlanV1(value: unknown): CurrentGrowthPlanV1 {
   return decode(value, "CurrentGrowthPlanV1") as CurrentGrowthPlanV1;
@@ -180,4 +279,26 @@ export function decodeGrowthPlanCapacityApplyResultV1(
     value,
     "GrowthPlanCapacityApplyResultV1",
   ) as GrowthPlanCapacityApplyResultV1;
+}
+
+/** Decodes the bounded, actor-scoped current Track selector. */
+export function decodeCurrentLearningTracksV1(value: unknown): CurrentLearningTracksV1 {
+  return decodeTrack(value, "CurrentLearningTracksV1") as CurrentLearningTracksV1;
+}
+
+/** Decodes the exact Track lifecycle and capacity consequence preview. */
+export function decodeLearningTrackLifecyclePreviewV1(
+  value: unknown,
+): LearningTrackLifecyclePreviewV1 {
+  return decodeTrack(value, "LearningTrackLifecyclePreviewV1") as LearningTrackLifecyclePreviewV1;
+}
+
+/** Decodes the atomic Track lifecycle receipt response. */
+export function decodeLearningTrackLifecycleApplyResultV1(
+  value: unknown,
+): LearningTrackLifecycleApplyResultV1 {
+  return decodeTrack(
+    value,
+    "LearningTrackLifecycleApplyResultV1",
+  ) as LearningTrackLifecycleApplyResultV1;
 }

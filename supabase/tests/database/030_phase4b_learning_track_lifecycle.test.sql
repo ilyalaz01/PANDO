@@ -60,6 +60,26 @@ select ok(
 );
 
 select ok(
+  not pg_catalog.has_function_privilege(
+    runtime_role.role_name,
+    private_helper.signature,
+    'EXECUTE'
+  ),
+  pg_catalog.format(
+    '%s cannot execute private D2b1 helper %s',
+    runtime_role.role_name,
+    private_helper.signature
+  )
+)
+from (values ('anon'), ('authenticated'), ('service_role')) as runtime_role(role_name)
+cross join (values
+  ('planning.projected_active_track_capacity_constraint_v1(uuid,uuid,uuid,text,bigint)'),
+  ('planning.build_learning_track_lifecycle_preview_v1(uuid,uuid,text,integer,bigint,uuid,text,text,text,integer,integer,bigint,text,bigint,bigint,text)'),
+  ('planning.track_lifecycle_event_payload_v1_is_valid(jsonb)')
+) as private_helper(signature)
+order by runtime_role.role_name, private_helper.signature;
+
+select ok(
   count(*) = 3
     and bool_and(
       procedure.prosecdef =
@@ -82,7 +102,10 @@ where namespace.nspname = 'api'
 
 select ok(
   count(*) = 3
-    and bool_and(procedure.prosecdef)
+    and bool_and(
+      procedure.prosecdef =
+        (procedure.proname <> 'track_lifecycle_event_payload_v1_is_valid')
+    )
     and bool_and('search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[])))
     and bool_and(owner.rolname = 'pando_planning_api'),
   'Track lifecycle private helpers have exact definer modes and the bounded Planning owner'
@@ -295,7 +318,7 @@ select ok(
   (select response#>>'{growthPlan,weeklyCapacityMinutes}' = '600'
      and pg_catalog.jsonb_array_length(response->'learningTracks') = 4
      and response#>>'{learningTracks,0,title}' = 'Active second'
-     and response#>>'{learningTracks,1,title}' = 'Backend readiness'
+     and response#>>'{learningTracks,1,title}' = 'Track Alice goal'
      and response#>>'{learningTracks,2,title}' = 'Paused exact'
      and response#>>'{learningTracks,3,title}' = 'Paused blocked'
    from track_results where result_name = 'alice-current'),
@@ -330,6 +353,11 @@ select ok(
   'pause preview binds exact Track versions, retained facts, and D2a-format constraint states'
 );
 
+do $planning_test_role$
+begin
+  execute pg_catalog.format('grant pando_planning_api to %I with set true', current_user);
+end
+$planning_test_role$;
 select is(
   (
     with digest_source as (
@@ -407,6 +435,76 @@ select is(
   (select response->>'previewDigest'
    from track_results where result_name = 'alice-pause-preview'),
   'preview digest agrees with the independent length-prefixed UTF-8 oracle'
+);
+
+select is(
+  (
+    select pg_catalog.encode(
+      extensions.digest(
+        pg_catalog.convert_to(
+          pg_catalog.string_agg(
+            field_name || ':'
+              || pg_catalog.octet_length(pg_catalog.convert_to(field_value, 'UTF8'))::text
+              || ':' || field_value || pg_catalog.chr(10),
+            '' order by field_position
+          ),
+          'UTF8'
+        ),
+        'sha256'
+      ),
+      'hex'
+    )
+    from (values
+      (1, 'digestVersion', 'learning-track-lifecycle-preview-digest/1.0.0'),
+      (2, 'contractVersion', '1.0.0'),
+      (3, 'fingerprintVersion', 'active-track-constraint-fingerprint/1.0.0'),
+      (4, 'workspaceId', '30000000-0000-4000-8000-000000000001'),
+      (5, 'operation', 'pause_track'),
+      (6, 'reason', 'Pause the track while priorities change.'),
+      (7, 'expectedGrowthPlanVersion', '4'),
+      (8, 'expectedLearningTrackVersion', '7'),
+      (9, 'growthPlanId', '30000000-0000-4000-8000-000000000020'),
+      (10, 'growthPlanLifecycle', 'ACTIVE'),
+      (11, 'growthPlanWeeklyCapacityMinutes', '600'),
+      (12, 'growthPlanAggregateVersion', '4'),
+      (13, 'beforeLearningTrackId', '30000000-0000-4000-8000-000000000021'),
+      (14, 'beforeTrackKey', 'track:algorithms'),
+      (15, 'beforeTitle', 'Algorithms'),
+      (16, 'beforeLifecycle', 'ACTIVE'),
+      (17, 'beforePriority', '90'),
+      (18, 'beforeProtectedMinimumMinutes', '120'),
+      (19, 'beforeAggregateVersion', '7'),
+      (20, 'afterLearningTrackId', '30000000-0000-4000-8000-000000000021'),
+      (21, 'afterTrackKey', 'track:algorithms'),
+      (22, 'afterTitle', 'Algorithms'),
+      (23, 'afterLifecycle', 'PAUSED'),
+      (24, 'afterPriority', '90'),
+      (25, 'afterProtectedMinimumMinutes', '120'),
+      (26, 'afterAggregateVersion', '8'),
+      (27, 'activeTrackCountBefore', '2'),
+      (28, 'activeTrackCountAfter', '1'),
+      (29, 'activeProtectedMinimumMinutesBefore', '180'),
+      (30, 'activeProtectedMinimumMinutesAfter', '60'),
+      (31, 'flexibleMinutesBefore', '420'),
+      (32, 'flexibleMinutesAfter', '540'),
+      (33, 'activeTrackFingerprintBefore',
+        'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
+      (34, 'activeTrackFingerprintAfter',
+        'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'),
+      (35, 'canApply', 'true'),
+      (36, 'blockingReasonCode', ''),
+      (37, 'blockingMinimumCapacityMinutes', ''),
+      (38, 'warningCode', ''),
+      (39, 'retainedLearningTrackActivities', 'true'),
+      (40, 'retainedPlanSnapshots', 'true'),
+      (41, 'retainedFocusSessions', 'true'),
+      (42, 'retainedEvidence', 'true'),
+      (43, 'projectionStateAfterApply', 'PENDING'),
+      (44, 'consumerName', 'planning.plan_snapshot_v1')
+    ) as fixed_oracle(field_position, field_name, field_value)
+  ),
+  'd9549adbdef7cf05c06642f8240b621115e0013c65605a7d74687cf53fc64c38',
+  'PostgreSQL matches the fixed TypeScript lifecycle digest SHA-256 oracle'
 );
 
 select ok(
@@ -546,6 +644,7 @@ select ok(
 );
 rollback to savepoint maximum_resume_minimum;
 
+set local role pando_planning_api;
 select is(
   planning.track_lifecycle_event_payload_v1_is_valid(
     pg_catalog.jsonb_build_object(
@@ -559,6 +658,7 @@ select is(
   false,
   'Track lifecycle event SQL validation rejects versions above bigint'
 );
+reset role;
 
 create temporary table track_before_apply as
 select

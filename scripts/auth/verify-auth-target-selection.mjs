@@ -1072,6 +1072,76 @@ try {
     "capacity apply must report Today as pending until the worker rebuilds it",
   );
 
+  const currentTracksBeforeLifecycle = await readinessVerifier.rpc(
+    "get_current_learning_tracks_v1",
+  );
+  assert.equal(
+    currentTracksBeforeLifecycle.error,
+    null,
+    "current Learning Tracks must load before lifecycle verification",
+  );
+  assert.equal(currentTracksBeforeLifecycle.data?.learningTracks?.length, 1);
+  const trackVersionBeforeLifecycle = BigInt(
+    currentTracksBeforeLifecycle.data.learningTracks[0].aggregateVersion,
+  );
+  const trackForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview Track change" }),
+  });
+  assert.deepEqual(
+    await trackForm
+      .locator("input")
+      .evaluateAll((inputs) =>
+        inputs.map((input) => input.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    ["operation", "expectedGrowthPlanVersion", "expectedLearningTrackVersion"],
+    "Track preview must expose only its opaque selector plus version fences",
+  );
+  assert.match(
+    await page.getByLabel("Learning Track", { exact: true }).inputValue(),
+    /^track:[a-z0-9][a-z0-9-]{1,100}$/u,
+    "Track selector must be an opaque server-returned key",
+  );
+  assert.equal(
+    await page.getByLabel("Learning Track", { exact: true }).getAttribute("name"),
+    "trackKey",
+    "the only browser selector must be the opaque Track key",
+  );
+  await page
+    .getByLabel("Why is this Track changing?")
+    .fill("Pause this Track while the authenticated lifecycle boundary verifies retention.");
+  await page.getByRole("button", { name: "Preview Track change" }).click();
+  const pauseTrackPreview = page.getByLabel("Exact Learning Track change preview");
+  await pauseTrackPreview.getByText("ACTIVE", { exact: true }).waitFor();
+  await pauseTrackPreview.getByText("PAUSED", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Confirm Track change" }).click();
+  await page
+    .getByLabel("Learning Track", { exact: true })
+    .locator("option:checked")
+    .getByText(/Paused/u)
+    .waitFor({ state: "attached" });
+
+  await page
+    .getByLabel("Why is this Track changing?")
+    .fill("Resume this Track after the authenticated lifecycle boundary completes.");
+  await page.getByRole("button", { name: "Preview Track change" }).click();
+  const resumeTrackPreview = page.getByLabel("Exact Learning Track change preview");
+  await resumeTrackPreview.getByText("PAUSED", { exact: true }).waitFor();
+  await resumeTrackPreview.getByText("ACTIVE", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Confirm Track change" }).click();
+  await page
+    .getByLabel("Learning Track", { exact: true })
+    .locator("option:checked")
+    .getByText(/Active/u)
+    .waitFor({ state: "attached" });
+  const currentTracksAfterLifecycle = await readinessVerifier.rpc("get_current_learning_tracks_v1");
+  assert.equal(currentTracksAfterLifecycle.error, null, "Learning Track must reload after apply");
+  assert.equal(currentTracksAfterLifecycle.data?.learningTracks?.[0]?.lifecycle, "ACTIVE");
+  assert.equal(
+    BigInt(currentTracksAfterLifecycle.data.learningTracks[0].aggregateVersion),
+    trackVersionBeforeLifecycle + 2n,
+    "pause and resume must each advance only the Track version once",
+  );
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const planDimensions = await page.evaluate(() => ({
@@ -1088,6 +1158,13 @@ try {
   assert.ok(
     capacityButtonBox !== null && capacityButtonBox.height >= 44,
     "capacity preview must preserve a 44px touch target",
+  );
+  const trackButtonBox = await page
+    .getByRole("button", { name: "Preview Track change" })
+    .boundingBox();
+  assert.ok(
+    trackButtonBox !== null && trackButtonBox.height >= 44,
+    "Track lifecycle preview must preserve a 44px touch target",
   );
   const planAccessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

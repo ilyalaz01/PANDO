@@ -4,21 +4,28 @@ import { describe, expect, it, vi } from "vitest";
 
 import currentPlan from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.boundary.json";
 import preview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.valid.json";
+import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
   APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
+  applyLearningTrackLifecycleV1,
   GET_CURRENT_GROWTH_PLAN_RPC_V1,
+  GET_CURRENT_LEARNING_TRACKS_RPC_V1,
   loadCurrentGrowthPlanV1,
+  loadCurrentLearningTracksV1,
   PlanConflictError,
   PlanInputError,
   PlanUnavailableError,
   PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1,
   PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1,
+  PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
+  previewLearningTrackLifecycleV1,
+  APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
 } from "./database-plan";
 
 const commandId = "30000000-0000-4000-8000-000000000001";
@@ -69,6 +76,14 @@ const capacityCommand = {
   proposedWeeklyCapacityMinutes: 720,
   expectedGrowthPlanVersion: "4",
   reason: "I have more time this term.",
+};
+
+const trackCommand = {
+  trackKey: "track:algorithms",
+  operation: "pause_track" as const,
+  expectedGrowthPlanVersion: "4",
+  expectedLearningTrackVersion: "7",
+  reason: "Pause the track while priorities change.",
 };
 
 describe("Growth Plan database boundary", () => {
@@ -226,5 +241,81 @@ describe("Growth Plan database boundary", () => {
         },
       ),
     ).rejects.toThrow(PlanConflictError);
+  });
+
+  it("loads, previews, and applies a Track through purpose-specific scalar parameters", async () => {
+    const currentTracks = {
+      contract: { name: "CurrentLearningTracksV1", version: "1.0.0" },
+      growthPlan: trackPreview.growthPlan,
+      learningTracks: [{ ...trackPreview.before, capabilities: ["pause_track"] }],
+    };
+    const readRpc = vi.fn().mockResolvedValue({ data: currentTracks, error: null });
+    await expect(loadCurrentLearningTracksV1(client(readRpc))).resolves.toEqual(currentTracks);
+    expect(readRpc).toHaveBeenCalledWith(GET_CURRENT_LEARNING_TRACKS_RPC_V1);
+
+    const previewRpc = vi.fn().mockResolvedValue({ data: trackPreview, error: null });
+    await expect(
+      previewLearningTrackLifecycleV1(client(previewRpc), trackCommand),
+    ).resolves.toEqual(trackPreview);
+    expect(previewRpc).toHaveBeenCalledWith(PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1, {
+      p_track_key: "track:algorithms",
+      p_operation: "pause_track",
+      p_expected_growth_plan_version: "4",
+      p_expected_learning_track_version: "7",
+      p_reason: "Pause the track while priorities change.",
+    });
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_workspace_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_growth_plan_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_learning_track_id");
+
+    const result = {
+      contract: { name: "LearningTrackLifecycleApplyResultV1", version: "1.0.0" },
+      commandId,
+      changedTrack: trackPreview.after,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+    const applyRpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    await expect(
+      applyLearningTrackLifecycleV1(client(applyRpc), {
+        ...trackCommand,
+        previewDigest: trackPreview.previewDigest,
+        idempotencyKey: "learning-track-lifecycle:v1:request",
+      }),
+    ).resolves.toEqual(result);
+    expect(applyRpc).toHaveBeenCalledWith(APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1, {
+      p_track_key: "track:algorithms",
+      p_operation: "pause_track",
+      p_expected_growth_plan_version: "4",
+      p_expected_learning_track_version: "7",
+      p_preview_digest: trackPreview.previewDigest,
+      p_reason: "Pause the track while priorities change.",
+      p_idempotency_key: "learning-track-lifecycle:v1:request",
+    });
+  });
+
+  it("rejects malformed Track selectors and versions before RPC", async () => {
+    const rpc = vi.fn();
+    await expect(
+      previewLearningTrackLifecycleV1(client(rpc), {
+        ...trackCommand,
+        trackKey: "30000000-0000-4000-8000-000000000021",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewLearningTrackLifecycleV1(client(rpc), {
+        ...trackCommand,
+        expectedLearningTrackVersion: "0",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      applyLearningTrackLifecycleV1(client(rpc), {
+        ...trackCommand,
+        previewDigest: trackPreview.previewDigest,
+        idempotencyKey: "learning-track-lifecycle:v1:\nrequest",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    expect(rpc).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 # Phase 4B D2b1 — Learning Track pause/resume
 
-Status: accepted implementation design
+Status: implemented
 
 Date: 2026-09-01
 
@@ -36,10 +36,11 @@ projected-state fields are never authority.
   completed key returns the stored response.
 - `completed` and `archived` are terminal for resume and are not exposed as D2b1 mutation targets.
   The current read returns only `active|paused` Tracks.
-- At most 30 active Tracks may feed planner-engine 0.1. A resume that would create a 31st active
-  Track is blocked. The current read is also bounded to 30 non-terminal Tracks and fails closed
-  rather than truncating if persisted state exceeds that compact MVP boundary. Future Track create
-  must enforce the same current-portfolio limit before it is exposed.
+- At most 30 current `active|paused` Tracks may exist in the compact MVP portfolio. The current read
+  fails closed rather than truncating if persisted state exceeds that boundary. Future Track create
+  must enforce the same limit before it is exposed. Because the paused resume target already counts
+  toward the portfolio, a valid resume can produce at most 30 active Tracks and needs no separate
+  active-count blocker.
 
 These rules materialize the accepted canonical lifecycle and D2a active-only capacity invariant.
 The existing Planning policy already requires both an active parent Plan and active Track before a
@@ -55,7 +56,8 @@ D1 and D2a contracts keep their released meanings. D2b1 adds a separate
   capacity and aggregate version, plus zero to 30 `active|paused` Track summaries in stable
   priority-descending, `trackKey`, UUID order. A Track summary contains only resolved UUID, key,
   title, lifecycle, priority, protected minimum, aggregate version, and its one allowed D2b1
-  capability.
+  capability. Before a Plan exists it returns `growthPlan: null` together with an empty Track list,
+  preserving the existing honest onboarding state.
 - `LearningTrackLifecyclePreviewV1` contains the operation/reason, both expected versions, parent
   state, exact Track before/after state, constraint consequences, applicability, retained-history
   facts, warnings, pending recalculation effect, and digest.
@@ -79,12 +81,8 @@ The preview is clock-free. It reports:
 - `canApply`, zero or one stable blocking reason, zero or one deterministic warning, and the fixed
   Planning recalculation effect.
 
-Blocking precedence is stable:
-
-1. `ACTIVE_TRACK_LIMIT_EXCEEDED` with `maximumActiveTracks: 30` when resume would create a 31st
-   active Track;
-2. `ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY` with the exact `minimumCapacityMinutes` when resume would
-   exceed Plan capacity.
+Resume has one stable blocker: `ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY` with the exact
+`minimumCapacityMinutes` when the active protected-minimum sum would exceed Plan capacity.
 
 A blocked preview has no apply control. `PARENT_GROWTH_PLAN_PAUSED` is a warning, not a blocker: it
 explains that the saved Track will become active but Today remains paused until the parent resumes.
@@ -98,8 +96,8 @@ as authority; it locks, rebuilds the preview from current state, and requires an
 ## 5. Atomic owner command
 
 Public APIs are actor-scoped `SECURITY DEFINER` functions owned by `pando_planning_api`, with empty
-search paths and execute granted only to `authenticated`. Private builders and validators remain
-unavailable to browser and service roles. No new table or RLS policy is required; the existing
+search paths and execute granted only to `authenticated`. D2b1's private builders and validators
+remain unavailable to browser and service roles. No new table or RLS policy is required; the existing
 forced-RLS Track table receives only the narrow lifecycle/version/timestamp update grant.
 
 Apply uses command type `planning.change_learning_track_lifecycle` and this order:
@@ -109,7 +107,7 @@ Apply uses command type `planning.change_learning_track_lifecycle` and this orde
 3. take `planning-workspace:<workspace UUID>`;
 4. lock the current Plan, then every child Track including terminal rows in UUID order;
 5. resolve the submitted key within that locked current Plan; recheck both expected versions,
-   transition, current invariant, projected capacity/active-count limits, and exact digest;
+   transition, current invariant, projected capacity limit, and exact digest;
 6. insert the started receipt and update only target Track lifecycle, aggregate version, and
    timestamp, requiring exactly one affected row;
 7. append one minimal event and exactly one fixed `planning.plan_snapshot_v1` delivery;
@@ -140,8 +138,8 @@ no title, key, reason, minimum, Evidence, or Today body.
 priority, protected minimum, and one pause/resume action. The chosen action follows the existing
 reason -> exact preview -> explicit confirmation flow. Starting any Plan, capacity, or Track
 preview dismisses every older confirmation and rotates only that intent's idempotency key; retrying
-the same apply keeps its key. A blocked resume explains the exact capacity or active-count limit
-and exposes no confirmation. A stale apply offers one current-plan reload. Successful apply
+the same apply keeps its key. A blocked resume explains the exact capacity limit and exposes no
+confirmation. A stale apply offers one current-plan reload. Successful apply
 refreshes `/plan` and `/today` and reports recalculation as pending.
 
 ## 7. Required proof
@@ -151,8 +149,8 @@ D2b1 is complete only when tests prove:
 - strict current-read, preview, apply, and minimal-event valid/boundary/blocked/invalid/malicious
   contracts plus semantic transition/version/constraint checks;
 - active-to-paused and paused-to-active under active and paused parents, exact-capacity resume,
-  over-capacity and 31st-active blocking, no-op/terminal/archived refusal, and exclusion of all
-  non-active sibling minima;
+  over-capacity blocking, no-op/terminal/archived refusal, compact-portfolio fail-closed reads, and
+  exclusion of all non-active sibling minima;
 - no preview side effects; TypeScript/PostgreSQL digest and before/after fingerprint agreement;
   stale Plan, target, and active-sibling refusal;
 - same-key replay, changed-request conflict, different-key concurrency, D2a capacity-versus-resume

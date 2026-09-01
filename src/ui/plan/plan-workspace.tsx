@@ -4,8 +4,10 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   CurrentGrowthPlanV1,
+  CurrentLearningTracksV1,
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
+  LearningTrackLifecyclePreviewV1,
   PlanOperation,
   PlanPreviewV1,
   PlanStateV1,
@@ -15,8 +17,10 @@ import styles from "./plan.module.css";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
+  applyLearningTrackLifecycleAction,
   previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
+  previewLearningTrackLifecycleAction,
 } from "../../app/plan/actions";
 
 function requestId(): string {
@@ -31,6 +35,10 @@ function isLifecyclePreview(
 
 function isCapacityPreview(preview: PlanPreviewV1 | null): preview is GrowthPlanCapacityPreviewV1 {
   return preview?.contract.name === "GrowthPlanCapacityPreviewV1";
+}
+
+function isTrackPreview(preview: PlanPreviewV1 | null): preview is LearningTrackLifecyclePreviewV1 {
+  return preview?.contract.name === "LearningTrackLifecyclePreviewV1";
 }
 
 function Status({ state }: { readonly state: PlanActionState }) {
@@ -143,6 +151,56 @@ function CapacityComparison({ preview }: { readonly preview: GrowthPlanCapacityP
   );
 }
 
+function TrackComparison({ preview }: { readonly preview: LearningTrackLifecyclePreviewV1 }) {
+  return (
+    <div className={styles.comparison} aria-label="Exact Learning Track change preview">
+      {(["before", "after"] as const).map((side) => (
+        <div key={side}>
+          <h3>
+            {side === "before" ? "Before" : preview.canApply ? "After confirmation" : "Proposed"}
+          </h3>
+          <dl>
+            <div>
+              <dt>Track</dt>
+              <dd>{preview[side].title}</dd>
+            </div>
+            <div>
+              <dt>State</dt>
+              <dd>{preview[side].lifecycle}</dd>
+            </div>
+            <div>
+              <dt>Protected minimum</dt>
+              <dd>{preview[side].protectedMinimumMinutes} minutes</dd>
+            </div>
+            <div>
+              <dt>Version</dt>
+              <dd>{preview[side].aggregateVersion}</dd>
+            </div>
+            <div>
+              <dt>Active Track minimum total</dt>
+              <dd>
+                {side === "before"
+                  ? preview.constraint.activeProtectedMinimumMinutesBefore
+                  : preview.constraint.activeProtectedMinimumMinutesAfter}{" "}
+                minutes
+              </dd>
+            </div>
+            <div>
+              <dt>Flexible capacity</dt>
+              <dd>
+                {side === "before"
+                  ? preview.constraint.flexibleMinutesBefore
+                  : preview.constraint.flexibleMinutesAfter}{" "}
+                minutes
+              </dd>
+            </div>
+          </dl>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function RecalculationNotice({ workspace }: { readonly workspace: CurrentGrowthPlanV1 }) {
   if (workspace.recalculation.projectionState === "CURRENT") return null;
   const message =
@@ -162,16 +220,22 @@ function RecalculationNotice({ workspace }: { readonly workspace: CurrentGrowthP
 
 export function PlanWorkspace({
   workspace,
+  tracksWorkspace,
   initialPreviewState = initialPlanActionState,
   initialApplyState = initialPlanActionState,
   initialCapacityPreviewState = initialPlanActionState,
   initialCapacityApplyState = initialPlanActionState,
+  initialTrackPreviewState = initialPlanActionState,
+  initialTrackApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
+  readonly tracksWorkspace: CurrentLearningTracksV1;
   readonly initialPreviewState?: PlanActionState;
   readonly initialApplyState?: PlanActionState;
   readonly initialCapacityPreviewState?: PlanActionState;
   readonly initialCapacityApplyState?: PlanActionState;
+  readonly initialTrackPreviewState?: PlanActionState;
+  readonly initialTrackApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -183,6 +247,14 @@ export function PlanWorkspace({
   );
   const [capacityDismissed, setCapacityDismissed] = useState(false);
   const [capacityApplyRequestId, setCapacityApplyRequestId] = useState(requestId);
+  const [selectedTrackKey, setSelectedTrackKey] = useState(
+    isTrackPreview(initialTrackPreviewState.preview)
+      ? initialTrackPreviewState.preview.before.trackKey
+      : (tracksWorkspace.learningTracks[0]?.trackKey ?? ""),
+  );
+  const [trackReason, setTrackReason] = useState("");
+  const [trackDismissed, setTrackDismissed] = useState(false);
+  const [trackApplyRequestId, setTrackApplyRequestId] = useState(requestId);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -204,6 +276,14 @@ export function PlanWorkspace({
     applyGrowthPlanCapacityAction,
     initialCapacityApplyState,
   );
+  const [trackPreviewState, trackPreviewAction, trackPreviewPending] = useActionState(
+    previewLearningTrackLifecycleAction,
+    initialTrackPreviewState,
+  );
+  const [trackApplyState, trackApplyAction, trackApplyPending] = useActionState(
+    applyLearningTrackLifecycleAction,
+    initialTrackApplyState,
+  );
   const [submittedCapacityPreviewDigest, setSubmittedCapacityPreviewDigest] = useState<
     string | null
   >(() =>
@@ -211,11 +291,21 @@ export function PlanWorkspace({
       ? null
       : (initialCapacityPreviewState.preview?.previewDigest ?? null),
   );
+  const [submittedTrackPreviewDigest, setSubmittedTrackPreviewDigest] = useState<string | null>(
+    () =>
+      initialTrackApplyState.status === "idle"
+        ? null
+        : (initialTrackPreviewState.preview?.previewDigest ?? null),
+  );
   const plan = workspace.currentPlan;
   const preview = isLifecyclePreview(previewState.preview) ? previewState.preview : null;
   const capacityPreview = isCapacityPreview(capacityPreviewState.preview)
     ? capacityPreviewState.preview
     : null;
+  const trackPreview = isTrackPreview(trackPreviewState.preview) ? trackPreviewState.preview : null;
+  const selectedTrack = tracksWorkspace.learningTracks.find(
+    (track) => track.trackKey === selectedTrackKey,
+  );
   const operation = workspace.capabilities[0] as PlanOperation | undefined;
   const applyStateForPreview =
     preview !== null && preview.previewDigest === submittedPreviewDigest
@@ -238,10 +328,25 @@ export function PlanWorkspace({
       capacityPreview?.previewDigest === submittedCapacityPreviewDigest)
       ? null
       : capacityPreview;
+  const trackApplyStateForPreview =
+    trackPreview !== null && trackPreview.previewDigest === submittedTrackPreviewDigest
+      ? trackApplyState
+      : initialPlanActionState;
+  const effectiveTrackPreview =
+    trackDismissed ||
+    trackPreviewPending ||
+    (trackApplyStateForPreview.status === "applied" &&
+      trackPreview?.previewDigest === submittedTrackPreviewDigest)
+      ? null
+      : trackPreview;
   useEffect(() => {
-    if (applyState.status === "applied" || capacityApplyState.status === "applied")
+    if (
+      applyState.status === "applied" ||
+      capacityApplyState.status === "applied" ||
+      trackApplyState.status === "applied"
+    )
       router.refresh();
-  }, [applyState, capacityApplyState, router]);
+  }, [applyState, capacityApplyState, router, trackApplyState]);
 
   if (!plan)
     return (
@@ -273,6 +378,7 @@ export function PlanWorkspace({
           onSubmit={() => {
             setDismissed(false);
             setCapacityDismissed(true);
+            setTrackDismissed(true);
             setApplyRequestId(requestId());
           }}
         >
@@ -354,6 +460,192 @@ export function PlanWorkspace({
           ) : null}
         </section>
       ) : null}
+      <section className={styles.panel} aria-labelledby="tracks-heading">
+        <h2 id="tracks-heading">Learning Tracks</h2>
+        <p>
+          Pause work that no longer belongs in Today, or resume it when the Plan has enough weekly
+          capacity. History and completed work stay intact.
+        </p>
+        {tracksWorkspace.learningTracks.length === 0 ? (
+          <p>No current Learning Tracks are available.</p>
+        ) : (
+          <>
+            <ul className={styles.trackList}>
+              {tracksWorkspace.learningTracks.map((track) => (
+                <li className={styles.trackCard} key={track.learningTrackId}>
+                  <strong>{track.title}</strong>
+                  <span>{track.lifecycle === "ACTIVE" ? "Active" : "Paused"}</span>
+                  <span>{track.protectedMinimumMinutes} protected minutes</span>
+                  <span>Version {track.aggregateVersion}</span>
+                </li>
+              ))}
+            </ul>
+            <form
+              action={trackPreviewAction}
+              className={styles.form}
+              onSubmit={() => {
+                setDismissed(true);
+                setCapacityDismissed(true);
+                setTrackDismissed(false);
+                setTrackApplyRequestId(requestId());
+              }}
+            >
+              <label htmlFor="learning-track">Learning Track</label>
+              <select
+                className={styles.selectInput}
+                id="learning-track"
+                name="trackKey"
+                onChange={(event) => {
+                  setSelectedTrackKey(event.target.value);
+                  setTrackDismissed(true);
+                }}
+                value={selectedTrackKey}
+              >
+                {tracksWorkspace.learningTracks.map((track) => (
+                  <option key={track.learningTrackId} value={track.trackKey}>
+                    {track.title} — {track.lifecycle === "ACTIVE" ? "Active" : "Paused"}
+                  </option>
+                ))}
+              </select>
+              <input name="operation" type="hidden" value={selectedTrack?.capabilities[0] ?? ""} />
+              <input
+                name="expectedGrowthPlanVersion"
+                type="hidden"
+                value={tracksWorkspace.growthPlan?.aggregateVersion ?? ""}
+              />
+              <input
+                name="expectedLearningTrackVersion"
+                type="hidden"
+                value={selectedTrack?.aggregateVersion ?? ""}
+              />
+              <label htmlFor="track-reason">Why is this Track changing?</label>
+              <textarea
+                id="track-reason"
+                maxLength={500}
+                name="reason"
+                onChange={(event) => setTrackReason(event.target.value)}
+                required
+                value={trackReason}
+              />
+              <button
+                className={styles.button}
+                disabled={trackPreviewPending || !selectedTrack?.capabilities[0]}
+                type="submit"
+              >
+                {trackPreviewPending ? "Checking Track…" : "Preview Track change"}
+              </button>
+              <Status state={trackPreviewState} />
+            </form>
+          </>
+        )}
+      </section>
+      {effectiveTrackPreview ? (
+        <section className={styles.panel} aria-labelledby="track-preview-heading">
+          <h2 id="track-preview-heading">Review Learning Track change</h2>
+          <TrackComparison preview={effectiveTrackPreview} />
+          <p>Reason: {effectiveTrackPreview.reason}</p>
+          {effectiveTrackPreview.warnings.some(
+            (warning) => warning.code === "PARENT_GROWTH_PLAN_PAUSED",
+          ) ? (
+            <p className={styles.notice} role="status">
+              The Growth Plan is paused. This Track state will be saved now, but Today will not
+              schedule it until the parent Plan is resumed and recalculated.
+            </p>
+          ) : null}
+          {!effectiveTrackPreview.canApply ? (
+            <div className={styles.notice} role="alert">
+              {effectiveTrackPreview.blockingReasons.map((reason) => (
+                <p key={reason.code}>
+                  This Track cannot resume within{" "}
+                  {effectiveTrackPreview.growthPlan.weeklyCapacityMinutes} weekly minutes. Active
+                  protected work would require {reason.minimumCapacityMinutes} minutes.
+                </p>
+              ))}
+              <button
+                className={styles.secondaryButton}
+                onClick={() => {
+                  setTrackDismissed(true);
+                  setTrackReason("");
+                }}
+                type="button"
+              >
+                Start over
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className={styles.notice}>
+                Completed activity and evidence stay unchanged. Planning recalculates Today
+                asynchronously after confirmation.
+              </p>
+              <form
+                action={trackApplyAction}
+                className={styles.actions}
+                onSubmit={() => setSubmittedTrackPreviewDigest(effectiveTrackPreview.previewDigest)}
+              >
+                <input
+                  name="trackKey"
+                  type="hidden"
+                  value={effectiveTrackPreview.before.trackKey}
+                />
+                <input name="operation" type="hidden" value={effectiveTrackPreview.operation} />
+                <input
+                  name="expectedGrowthPlanVersion"
+                  type="hidden"
+                  value={effectiveTrackPreview.expectedGrowthPlanVersion}
+                />
+                <input
+                  name="expectedLearningTrackVersion"
+                  type="hidden"
+                  value={effectiveTrackPreview.expectedLearningTrackVersion}
+                />
+                <input
+                  name="previewDigest"
+                  type="hidden"
+                  value={effectiveTrackPreview.previewDigest}
+                />
+                <input name="reason" type="hidden" value={effectiveTrackPreview.reason} />
+                <input name="requestId" type="hidden" value={trackApplyRequestId} />
+                <button
+                  className={styles.button}
+                  disabled={trackApplyPending || trackApplyStateForPreview.status === "conflict"}
+                  type="submit"
+                >
+                  {trackApplyPending ? "Applying…" : "Confirm Track change"}
+                </button>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={trackApplyPending}
+                  onClick={() => {
+                    setTrackReason("");
+                    setTrackDismissed(true);
+                  }}
+                  type="button"
+                >
+                  Start over
+                </button>
+                <Status state={trackApplyStateForPreview} />
+              </form>
+              {trackApplyStateForPreview.status === "conflict" ? (
+                <div className={styles.notice} role="alert">
+                  <p>The Plan or Track is stale. Reload both, then create a new preview.</p>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => {
+                      setTrackDismissed(true);
+                      setTrackReason("");
+                      router.refresh();
+                    }}
+                    type="button"
+                  >
+                    Reload current Plan and Tracks
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
+        </section>
+      ) : null}
       <section className={styles.panel} aria-labelledby="capacity-heading">
         <h2 id="capacity-heading">Edit weekly capacity</h2>
         <p>
@@ -366,6 +658,7 @@ export function PlanWorkspace({
           onSubmit={() => {
             setDismissed(true);
             setCapacityDismissed(false);
+            setTrackDismissed(true);
             setCapacityApplyRequestId(requestId());
           }}
         >

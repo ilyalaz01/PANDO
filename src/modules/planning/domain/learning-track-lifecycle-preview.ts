@@ -49,12 +49,10 @@ export interface LearningTrackLifecycleConstraint {
   readonly activeTrackFingerprintAfter: string;
 }
 
-export type LearningTrackLifecycleBlockingReason =
-  | { readonly code: "ACTIVE_TRACK_LIMIT_EXCEEDED"; readonly maximumActiveTracks: 30 }
-  | {
-      readonly code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY";
-      readonly minimumCapacityMinutes: number;
-    };
+export type LearningTrackLifecycleBlockingReason = {
+  readonly code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY";
+  readonly minimumCapacityMinutes: number;
+};
 
 /** D2b1 shares D2a's UUID-ordered active-track constraint fingerprint protocol. */
 export function learningTrackLifecycleActiveFingerprintInput(
@@ -127,14 +125,8 @@ export function learningTrackLifecyclePreviewDigestInput(
     growthPlanCapacityDigestField("canApply", String(value.canApply)),
     growthPlanCapacityDigestField("blockingReasonCode", blocking?.code ?? ""),
     growthPlanCapacityDigestField(
-      "blockingMaximumActiveTracks",
-      blocking?.code === "ACTIVE_TRACK_LIMIT_EXCEEDED" ? "30" : "",
-    ),
-    growthPlanCapacityDigestField(
       "blockingMinimumCapacityMinutes",
-      blocking?.code === "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY"
-        ? String(blocking.minimumCapacityMinutes)
-        : "",
+      blocking === undefined ? "" : String(blocking.minimumCapacityMinutes),
     ),
     growthPlanCapacityDigestField("warningCode", value.warning ?? ""),
     growthPlanCapacityDigestField("retainedLearningTrackActivities", "true"),

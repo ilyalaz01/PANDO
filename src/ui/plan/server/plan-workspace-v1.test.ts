@@ -2,12 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import boundary from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.boundary.json";
 import preview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.valid.json";
+import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json";
 import {
+  decodeCurrentLearningTracksV1,
   decodeCurrentGrowthPlanV1,
   decodeGrowthPlanCapacityApplyResultV1,
   decodeGrowthPlanCapacityPreviewV1,
   decodeGrowthPlanLifecycleApplyResultV1,
   decodeGrowthPlanLifecyclePreviewV1,
+  decodeLearningTrackLifecycleApplyResultV1,
+  decodeLearningTrackLifecyclePreviewV1,
   GrowthPlanControlContractError,
 } from "./plan-workspace-v1";
 
@@ -96,6 +100,40 @@ describe("Growth Plan control V1 server decoder", () => {
         ...capacityPreview,
         canApply: false,
         blockingReasons: [],
+      }),
+    ).toThrow(GrowthPlanControlContractError);
+  });
+
+  it("decodes the bounded Track read, preview, and apply receipt", () => {
+    const current = {
+      contract: { name: "CurrentLearningTracksV1", version: "1.0.0" },
+      growthPlan: trackPreview.growthPlan,
+      learningTracks: [{ ...trackPreview.before, capabilities: ["pause_track"] }],
+    };
+    const result = {
+      contract: { name: "LearningTrackLifecycleApplyResultV1", version: "1.0.0" },
+      commandId: uuid,
+      changedTrack: trackPreview.after,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+    expect(decodeCurrentLearningTracksV1(current)).toEqual(current);
+    expect(decodeLearningTrackLifecyclePreviewV1(trackPreview)).toEqual(trackPreview);
+    expect(decodeLearningTrackLifecycleApplyResultV1(result)).toEqual(result);
+  });
+
+  it("rejects Track variants, private fields, and semantic lies", () => {
+    expect(() => decodeCurrentLearningTracksV1(trackPreview)).toThrow(
+      GrowthPlanControlContractError,
+    );
+    expect(() =>
+      decodeLearningTrackLifecyclePreviewV1({ ...trackPreview, workspaceId: "private" }),
+    ).toThrow(GrowthPlanControlContractError);
+    expect(() =>
+      decodeLearningTrackLifecyclePreviewV1({
+        ...trackPreview,
+        expectedLearningTrackVersion: "6",
       }),
     ).toThrow(GrowthPlanControlContractError);
   });

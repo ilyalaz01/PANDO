@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -53,13 +55,30 @@ describe("Learning Track Lifecycle Control V1", () => {
     expect(learningTrackLifecycleControlSemanticViolations(current)).toContain(
       "CURRENT_LEARNING_TRACKS_ORDER",
     );
+
+    const duplicateSelector = {
+      ...current,
+      learningTracks: [
+        first,
+        {
+          ...first,
+          learningTrackId: "30000000-0000-4000-8000-000000000099",
+        },
+      ],
+    };
+    expect(validateSchema("learning-track-lifecycle-control-v1", duplicateSelector).valid).toBe(
+      true,
+    );
+    expect(learningTrackLifecycleControlSemanticViolations(duplicateSelector)).toContain(
+      "CURRENT_LEARNING_TRACKS_DUPLICATE",
+    );
   });
 
   it("rejects semantic transition, applicability, and warning lies", () => {
     const changed = structuredClone(valid);
     changed.after.lifecycle = "ACTIVE";
     changed.constraint.activeTrackCountAfter = 3;
-    changed.warnings = [{ code: "PARENT_GROWTH_PLAN_PAUSED" }];
+    Reflect.set(changed, "warnings", [{ code: "PARENT_GROWTH_PLAN_PAUSED" }]);
     expect(validateSchema("learning-track-lifecycle-control-v1", changed).valid).toBe(true);
     expect(learningTrackLifecycleControlSemanticViolations(changed)).toEqual(
       expect.arrayContaining([
@@ -68,6 +87,24 @@ describe("Learning Track Lifecycle Control V1", () => {
         "LEARNING_TRACK_PREVIEW_WARNING",
       ]),
     );
+  });
+
+  it("represents an exact resume minimum above the maximum configurable weekly capacity", () => {
+    const changed = structuredClone(boundary);
+    changed.growthPlan.weeklyCapacityMinutes = 10_080;
+    changed.before.protectedMinimumMinutes = 10_080;
+    changed.after.protectedMinimumMinutes = 10_080;
+    changed.constraint.activeTrackCountBefore = 1;
+    changed.constraint.activeTrackCountAfter = 2;
+    changed.constraint.activeProtectedMinimumMinutesBefore = 10_080;
+    changed.constraint.activeProtectedMinimumMinutesAfter = 20_160;
+    changed.constraint.flexibleMinutesBefore = 0;
+    changed.constraint.flexibleMinutesAfter = -10_080;
+    Reflect.set(changed, "blockingReasons", [
+      { code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", minimumCapacityMinutes: 20_160 },
+    ]);
+    expect(validateSchema("learning-track-lifecycle-control-v1", changed).valid).toBe(true);
+    expect(learningTrackLifecycleControlSemanticViolations(changed)).toEqual([]);
   });
 
   it("fixes UUID ordering and every lifecycle digest field", () => {
@@ -92,9 +129,18 @@ describe("Learning Track Lifecycle Control V1", () => {
       reason: valid.reason,
       expectedGrowthPlanVersion: valid.expectedGrowthPlanVersion,
       expectedLearningTrackVersion: valid.expectedLearningTrackVersion,
-      growthPlan: valid.growthPlan,
-      before: valid.before,
-      after: valid.after,
+      growthPlan: {
+        ...valid.growthPlan,
+        lifecycle: valid.growthPlan.lifecycle as "ACTIVE" | "PAUSED",
+      },
+      before: {
+        ...valid.before,
+        lifecycle: valid.before.lifecycle as "ACTIVE" | "PAUSED",
+      },
+      after: {
+        ...valid.after,
+        lifecycle: valid.after.lifecycle as "ACTIVE" | "PAUSED",
+      },
       constraint: valid.constraint,
       canApply: true,
       blockingReason: undefined,
@@ -105,5 +151,8 @@ describe("Learning Track Lifecycle Control V1", () => {
     );
     expect(input).toContain("beforeTrackKey:16:track:algorithms");
     expect(input).toContain("consumerName:25:planning.plan_snapshot_v1");
+    expect(createHash("sha256").update(input, "utf8").digest("hex")).toBe(
+      "d9549adbdef7cf05c06642f8240b621115e0013c65605a7d74687cf53fc64c38",
+    );
   });
 });
