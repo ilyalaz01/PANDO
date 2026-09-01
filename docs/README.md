@@ -39,6 +39,8 @@ implementation mechanisms but may not change product semantics. The remaining Ph
 transitions, owner-command protocol, preview boundary, and ordered implementation slices are
 recorded in the supporting
 [Phase 4B lifecycle command design](design/PHASE_4B_LIFECYCLE_COMMANDS.md).
+
+[Phase 4B D2a Growth Plan weekly-capacity design](design/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
 Its delivered slices and verification evidence are tracked in the
 [Phase 4B lifecycle command status](implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md).
 

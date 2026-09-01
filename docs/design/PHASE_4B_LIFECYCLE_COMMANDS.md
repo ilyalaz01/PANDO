@@ -61,7 +61,7 @@ versioned events.
 | `pause_growth_plan` | `active` | `paused` | reversible; retains tracks, snapshots, sessions, and evidence |
 | `resume_growth_plan` | `paused` | `active` | fails if another current plan exists |
 | `archive_growth_plan` | `active` or `paused` | `archived` | terminal; deferred until the current-plan cardinality ADR |
-| `set_default_capacity` | `active` or `paused` | unchanged | `0..10080`; protected minima above the new capacity are a blocking validation error |
+| `set_default_capacity` | `active` or `paused` | unchanged | `0..10080`; the sum of protected minima across active child Tracks above the new capacity is a blocking validation error |
 
 A new idempotency key that requests the already-current lifecycle is rejected as an invalid
 transition. A replay of the original completed key returns the stored response. Archived plans
@@ -214,7 +214,8 @@ idempotency key; clients cannot replace the previewed body at apply time.
    through Planning; add a responsive `/plan` UI using the same APIs.
 2. **D2 — Growth Plan capacity and Learning Track controls.** Preview/apply default capacity,
    create, priority, protected minimum, pause/resume/complete/archive; settle and then persist
-   cadence.
+   cadence. The first bounded increment is the accepted
+   [D2a Growth Plan weekly-capacity design](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
 3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
    plan archive/new-plan replacement, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
