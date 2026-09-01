@@ -70,6 +70,19 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_learning_track_priority_minimum_v1: {
+        Args: {
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_priority: number
+          p_protected_minimum_minutes: number
+          p_reason: string
+          p_track_key: string
+        }
+        Returns: Json
+      }
       bootstrap_personal_workspace: {
         Args: { p_idempotency_key: string; p_workspace_name?: string }
         Returns: Json
@@ -382,6 +395,17 @@ export type Database = {
           p_expected_growth_plan_version: string
           p_expected_learning_track_version: string
           p_operation: string
+          p_reason: string
+          p_track_key: string
+        }
+        Returns: Json
+      }
+      preview_learning_track_priority_minimum_v1: {
+        Args: {
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_priority: number
+          p_protected_minimum_minutes: number
           p_reason: string
           p_track_key: string
         }

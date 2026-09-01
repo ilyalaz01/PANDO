@@ -3,6 +3,7 @@ import "server-only";
 import { growthPlanCapacityControlSemanticViolations } from "../../../shared/contracts/growth-plan-capacity-control";
 import { growthPlanControlSemanticViolations } from "../../../shared/contracts/growth-plan-control";
 import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
+import { learningTrackPriorityMinimumControlSemanticViolations } from "../../../shared/contracts/learning-track-priority-minimum-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -185,6 +186,73 @@ export interface LearningTrackLifecycleApplyResultV1 {
   readonly emittedEventIds: readonly [string];
 }
 
+export interface LearningTrackPriorityMinimumPreviewV1 {
+  readonly contract: {
+    readonly name: "LearningTrackPriorityMinimumPreviewV1";
+    readonly version: "1.0.0";
+  };
+  readonly operation: "set_track_priority_minimum";
+  readonly reason: string;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly growthPlan: LearningTrackParentPlanStateV1;
+  readonly before: LearningTrackStateV1;
+  readonly after: LearningTrackStateV1;
+  readonly constraint: {
+    readonly activeTrackCountBefore: number;
+    readonly activeTrackCountAfter: number;
+    readonly activeProtectedMinimumMinutesBefore: number;
+    readonly activeProtectedMinimumMinutesAfter: number;
+    readonly flexibleMinutesBefore: number;
+    readonly flexibleMinutesAfter: number;
+    readonly activeTrackFingerprintBefore: string;
+    readonly activeTrackFingerprintAfter: string;
+    readonly activeTrackCountIfTargetActiveAfter: number;
+    readonly minimumCapacityIfTargetActiveAfter: number;
+    readonly targetActiveStateFitsCapacity: boolean;
+    readonly currentTrackPositionBefore: number;
+    readonly currentTrackPositionAfter: number;
+    readonly currentTrackOrderFingerprintBefore: string;
+    readonly currentTrackOrderFingerprintAfter: string;
+  };
+  readonly canApply: boolean;
+  readonly blockingReasons: readonly {
+    readonly code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY";
+    readonly minimumCapacityMinutes: number;
+  }[];
+  readonly warnings: readonly (
+    | { readonly code: "PARENT_GROWTH_PLAN_PAUSED" }
+    | { readonly code: "LEARNING_TRACK_PAUSED" }
+    | {
+        readonly code: "PAUSED_TRACK_RESUME_WOULD_EXCEED_CAPACITY";
+        readonly minimumCapacityMinutes: number;
+      }
+  )[];
+  readonly retained: {
+    readonly learningTrackActivities: true;
+    readonly planSnapshots: true;
+    readonly focusSessions: true;
+    readonly evidence: true;
+  };
+  readonly recalculationAfterApply: {
+    readonly projectionState: "PENDING";
+    readonly consumerName: "planning.plan_snapshot_v1";
+  };
+  readonly previewDigest: string;
+}
+
+export interface LearningTrackPriorityMinimumApplyResultV1 {
+  readonly contract: {
+    readonly name: "LearningTrackPriorityMinimumApplyResultV1";
+    readonly version: "1.0.0";
+  };
+  readonly commandId: string;
+  readonly changedTrack: LearningTrackStateV1;
+  readonly projectionState: "PENDING";
+  readonly planningDeliveryId: string;
+  readonly emittedEventIds: readonly [string];
+}
+
 export class GrowthPlanControlContractError extends TypeError {
   constructor() {
     super("Growth Plan control response is invalid.");
@@ -249,6 +317,26 @@ function decodeTrack(value: unknown, expectedName: string): unknown {
   return value;
 }
 
+function decodeTrackPriorityMinimum(value: unknown, expectedName: string): unknown {
+  const structural = validateSchema("learning-track-priority-minimum-control-v1", value);
+  if (
+    !structural.valid ||
+    learningTrackPriorityMinimumControlSemanticViolations(value).length > 0
+  ) {
+    throw new GrowthPlanControlContractError();
+  }
+  const contract = (value as { readonly contract?: unknown }).contract;
+  if (
+    typeof contract !== "object" ||
+    contract === null ||
+    !Object.hasOwn(contract, "name") ||
+    (contract as { readonly name?: unknown }).name !== expectedName
+  ) {
+    throw new GrowthPlanControlContractError();
+  }
+  return value;
+}
+
 /** Decodes the minimized, current-personal Planning read model before it reaches UI code. */
 export function decodeCurrentGrowthPlanV1(value: unknown): CurrentGrowthPlanV1 {
   return decode(value, "CurrentGrowthPlanV1") as CurrentGrowthPlanV1;
@@ -301,4 +389,24 @@ export function decodeLearningTrackLifecycleApplyResultV1(
     value,
     "LearningTrackLifecycleApplyResultV1",
   ) as LearningTrackLifecycleApplyResultV1;
+}
+
+/** Decodes the exact Track settings and ordering consequence preview. */
+export function decodeLearningTrackPriorityMinimumPreviewV1(
+  value: unknown,
+): LearningTrackPriorityMinimumPreviewV1 {
+  return decodeTrackPriorityMinimum(
+    value,
+    "LearningTrackPriorityMinimumPreviewV1",
+  ) as LearningTrackPriorityMinimumPreviewV1;
+}
+
+/** Decodes the atomic Track priority/minimum receipt response. */
+export function decodeLearningTrackPriorityMinimumApplyResultV1(
+  value: unknown,
+): LearningTrackPriorityMinimumApplyResultV1 {
+  return decodeTrackPriorityMinimum(
+    value,
+    "LearningTrackPriorityMinimumApplyResultV1",
+  ) as LearningTrackPriorityMinimumApplyResultV1;
 }

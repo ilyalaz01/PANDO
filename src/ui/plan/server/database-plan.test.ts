@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import currentPlan from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.boundary.json";
 import preview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.valid.json";
 import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json";
+import trackSettingsPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
@@ -12,6 +13,7 @@ import {
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
   applyLearningTrackLifecycleV1,
+  applyLearningTrackPriorityMinimumV1,
   GET_CURRENT_GROWTH_PLAN_RPC_V1,
   GET_CURRENT_LEARNING_TRACKS_RPC_V1,
   loadCurrentGrowthPlanV1,
@@ -22,10 +24,13 @@ import {
   PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1,
   PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1,
   PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1,
+  PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
+  previewLearningTrackPriorityMinimumV1,
   APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
+  APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
 } from "./database-plan";
 
 const commandId = "30000000-0000-4000-8000-000000000001";
@@ -84,6 +89,15 @@ const trackCommand = {
   expectedGrowthPlanVersion: "4",
   expectedLearningTrackVersion: "7",
   reason: "Pause the track while priorities change.",
+};
+
+const trackSettingsCommand = {
+  trackKey: "track:algorithms",
+  priority: 80,
+  protectedMinimumMinutes: 120,
+  expectedGrowthPlanVersion: "4",
+  expectedLearningTrackVersion: "7",
+  reason: "Move algorithms behind the current backend focus.",
 };
 
 describe("Growth Plan database boundary", () => {
@@ -314,6 +328,67 @@ describe("Growth Plan database boundary", () => {
         ...trackCommand,
         previewDigest: trackPreview.previewDigest,
         idempotencyKey: "learning-track-lifecycle:v1:\nrequest",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("previews and applies Track settings with only bounded scalar parameters", async () => {
+    const previewRpc = vi.fn().mockResolvedValue({ data: trackSettingsPreview, error: null });
+    await expect(
+      previewLearningTrackPriorityMinimumV1(client(previewRpc), trackSettingsCommand),
+    ).resolves.toEqual(trackSettingsPreview);
+    expect(previewRpc).toHaveBeenCalledWith(PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1, {
+      p_track_key: "track:algorithms",
+      p_priority: 80,
+      p_protected_minimum_minutes: 120,
+      p_expected_growth_plan_version: "4",
+      p_expected_learning_track_version: "7",
+      p_reason: "Move algorithms behind the current backend focus.",
+    });
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_workspace_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_learning_track_id");
+
+    const result = {
+      contract: { name: "LearningTrackPriorityMinimumApplyResultV1", version: "1.0.0" },
+      commandId,
+      changedTrack: trackSettingsPreview.after,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+    const applyRpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    await expect(
+      applyLearningTrackPriorityMinimumV1(client(applyRpc), {
+        ...trackSettingsCommand,
+        previewDigest: trackSettingsPreview.previewDigest,
+        idempotencyKey: "learning-track-priority-minimum:v1:request",
+      }),
+    ).resolves.toEqual(result);
+    expect(applyRpc).toHaveBeenCalledWith(APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1, {
+      p_track_key: "track:algorithms",
+      p_priority: 80,
+      p_protected_minimum_minutes: 120,
+      p_expected_growth_plan_version: "4",
+      p_expected_learning_track_version: "7",
+      p_preview_digest: trackSettingsPreview.previewDigest,
+      p_reason: "Move algorithms behind the current backend focus.",
+      p_idempotency_key: "learning-track-priority-minimum:v1:request",
+    });
+  });
+
+  it("rejects out-of-range Track setting values before RPC", async () => {
+    const rpc = vi.fn();
+    await expect(
+      previewLearningTrackPriorityMinimumV1(client(rpc), {
+        ...trackSettingsCommand,
+        priority: 101,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewLearningTrackPriorityMinimumV1(client(rpc), {
+        ...trackSettingsCommand,
+        protectedMinimumMinutes: 10_081,
       }),
     ).rejects.toThrow(PlanInputError);
     expect(rpc).not.toHaveBeenCalled();

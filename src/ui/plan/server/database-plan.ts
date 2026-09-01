@@ -10,6 +10,8 @@ import {
   decodeCurrentLearningTracksV1,
   decodeLearningTrackLifecycleApplyResultV1,
   decodeLearningTrackLifecyclePreviewV1,
+  decodeLearningTrackPriorityMinimumApplyResultV1,
+  decodeLearningTrackPriorityMinimumPreviewV1,
   type CurrentLearningTracksV1,
   type CurrentGrowthPlanV1,
   type GrowthPlanCapacityApplyResultV1,
@@ -20,6 +22,8 @@ import {
   type LearningTrackLifecycleApplyResultV1,
   type LearningTrackLifecycleOperationV1,
   type LearningTrackLifecyclePreviewV1,
+  type LearningTrackPriorityMinimumApplyResultV1,
+  type LearningTrackPriorityMinimumPreviewV1,
 } from "./plan-workspace-v1";
 
 export const GET_CURRENT_GROWTH_PLAN_RPC_V1 = "get_current_growth_plan_v1" as const;
@@ -31,6 +35,10 @@ export const GET_CURRENT_LEARNING_TRACKS_RPC_V1 = "get_current_learning_tracks_v
 export const PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1 =
   "preview_learning_track_lifecycle_v1" as const;
 export const APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1 = "apply_learning_track_lifecycle_v1" as const;
+export const PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
+  "preview_learning_track_priority_minimum_v1" as const;
+export const APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
+  "apply_learning_track_priority_minimum_v1" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
@@ -90,6 +98,20 @@ export interface LearningTrackLifecyclePreviewCommandV1 {
 }
 
 export interface LearningTrackLifecycleApplyCommandV1 extends LearningTrackLifecyclePreviewCommandV1 {
+  readonly previewDigest: string;
+  readonly idempotencyKey: string;
+}
+
+export interface LearningTrackPriorityMinimumPreviewCommandV1 {
+  readonly trackKey: string;
+  readonly priority: number;
+  readonly protectedMinimumMinutes: number;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly reason: string;
+}
+
+export interface LearningTrackPriorityMinimumApplyCommandV1 extends LearningTrackPriorityMinimumPreviewCommandV1 {
   readonly previewDigest: string;
   readonly idempotencyKey: string;
 }
@@ -169,6 +191,23 @@ function validTrackPreview(command: LearningTrackLifecyclePreviewCommandV1): boo
   );
 }
 
+function validTrackPriorityMinimumPreview(
+  command: LearningTrackPriorityMinimumPreviewCommandV1,
+): boolean {
+  return (
+    TRACK_KEY.test(command.trackKey) &&
+    Number.isInteger(command.priority) &&
+    command.priority >= 0 &&
+    command.priority <= 100 &&
+    Number.isInteger(command.protectedMinimumMinutes) &&
+    command.protectedMinimumMinutes >= 0 &&
+    command.protectedMinimumMinutes <= 10_080 &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validVersion(command.expectedLearningTrackVersion) &&
+    validReason(command.reason)
+  );
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
@@ -179,7 +218,9 @@ async function rpc(
     | typeof APPLY_GROWTH_PLAN_CAPACITY_RPC_V1
     | typeof GET_CURRENT_LEARNING_TRACKS_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1
-    | typeof APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
+    | typeof APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1
+    | typeof PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
   parameters?: Record<string, string | number>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
@@ -400,6 +441,72 @@ export async function applyLearningTrackLifecycleV1(
       await rpc(client, APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1, {
         p_track_key: command.trackKey,
         p_operation: command.operation,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_preview_digest: command.previewDigest,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds an exact priority/minimum preview while Planning resolves every authority-bearing input. */
+export async function previewLearningTrackPriorityMinimumV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackPriorityMinimumPreviewCommandV1,
+): Promise<LearningTrackPriorityMinimumPreviewV1> {
+  if (!validTrackPriorityMinimumPreview(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackPriorityMinimumPreviewV1(
+      await rpc(client, PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_priority: command.priority,
+        p_protected_minimum_minutes: command.protectedMinimumMinutes,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies one exact, current Track priority/minimum preview through Planning's atomic command. */
+export async function applyLearningTrackPriorityMinimumV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackPriorityMinimumApplyCommandV1,
+): Promise<LearningTrackPriorityMinimumApplyResultV1> {
+  if (
+    !validTrackPriorityMinimumPreview(command) ||
+    !SHA_256_HEX.test(command.previewDigest) ||
+    !validIdempotencyKey(command.idempotencyKey)
+  ) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackPriorityMinimumApplyResultV1(
+      await rpc(client, APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_priority: command.priority,
+        p_protected_minimum_minutes: command.protectedMinimumMinutes,
         p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
         p_expected_learning_track_version: command.expectedLearningTrackVersion,
         p_preview_digest: command.previewDigest,

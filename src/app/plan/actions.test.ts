@@ -4,10 +4,12 @@ const mocks = vi.hoisted(() => ({
   apply: vi.fn(),
   applyCapacity: vi.fn(),
   applyTrack: vi.fn(),
+  applyTrackSettings: vi.fn(),
   createClient: vi.fn(),
   preview: vi.fn(),
   previewCapacity: vi.fn(),
   previewTrack: vi.fn(),
+  previewTrackSettings: vi.fn(),
   revalidate: vi.fn(),
   verifySession: vi.fn(),
 }));
@@ -25,9 +27,11 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   applyGrowthPlanCapacityV1: mocks.applyCapacity,
   applyGrowthPlanLifecycleV1: mocks.apply,
   applyLearningTrackLifecycleV1: mocks.applyTrack,
+  applyLearningTrackPriorityMinimumV1: mocks.applyTrackSettings,
   previewGrowthPlanCapacityV1: mocks.previewCapacity,
   previewGrowthPlanLifecycleV1: mocks.preview,
   previewLearningTrackLifecycleV1: mocks.previewTrack,
+  previewLearningTrackPriorityMinimumV1: mocks.previewTrackSettings,
   PlanConflictError: classes.PlanConflictError,
   PlanInputError: classes.PlanInputError,
 }));
@@ -37,9 +41,11 @@ import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
   applyLearningTrackLifecycleAction,
+  applyLearningTrackPriorityMinimumAction,
   previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
   previewLearningTrackLifecycleAction,
+  previewLearningTrackPriorityMinimumAction,
 } from "./actions";
 
 const client = { requestScoped: true };
@@ -146,6 +152,45 @@ const trackPreview = {
   previewDigest: "d".repeat(64),
 } as const;
 
+const trackSettingsPreview = {
+  contract: { name: "LearningTrackPriorityMinimumPreviewV1", version: "1.0.0" },
+  operation: "set_track_priority_minimum",
+  reason: "Increase systems practice.",
+  expectedGrowthPlanVersion: "4",
+  expectedLearningTrackVersion: "7",
+  growthPlan: trackPreview.growthPlan,
+  before: trackPreview.before,
+  after: {
+    ...trackPreview.before,
+    priority: 80,
+    protectedMinimumMinutes: 180,
+    aggregateVersion: "8",
+  },
+  constraint: {
+    activeTrackCountBefore: 2,
+    activeTrackCountAfter: 2,
+    activeProtectedMinimumMinutesBefore: 180,
+    activeProtectedMinimumMinutesAfter: 240,
+    flexibleMinutesBefore: 420,
+    flexibleMinutesAfter: 360,
+    activeTrackFingerprintBefore: "e".repeat(64),
+    activeTrackFingerprintAfter: "f".repeat(64),
+    activeTrackCountIfTargetActiveAfter: 2,
+    minimumCapacityIfTargetActiveAfter: 240,
+    targetActiveStateFitsCapacity: true,
+    currentTrackPositionBefore: 1,
+    currentTrackPositionAfter: 1,
+    currentTrackOrderFingerprintBefore: "g".repeat(64),
+    currentTrackOrderFingerprintAfter: "h".repeat(64),
+  },
+  canApply: true,
+  blockingReasons: [],
+  warnings: [],
+  retained: trackPreview.retained,
+  recalculationAfterApply: trackPreview.recalculationAfterApply,
+  previewDigest: "a".repeat(64),
+} as const;
+
 function form(): FormData {
   const data = new FormData();
   data.set("operation", "pause_growth_plan");
@@ -186,6 +231,23 @@ function trackForm(): FormData {
   return data;
 }
 
+function trackSettingsForm(): FormData {
+  const data = new FormData();
+  data.set("trackKey", "track:algorithms");
+  data.set("priority", "80");
+  data.set("protectedMinimumMinutes", "180");
+  data.set("expectedGrowthPlanVersion", "4");
+  data.set("expectedLearningTrackVersion", "7");
+  data.set("reason", "Increase systems practice.");
+  data.set("previewDigest", trackSettingsPreview.previewDigest);
+  data.set("requestId", requestId);
+  data.set("workspaceId", "attacker-selected-workspace");
+  data.set("growthPlanId", "attacker-selected-plan");
+  data.set("learningTrackId", "attacker-selected-track");
+  data.set("capacity", "99999");
+  return data;
+}
+
 describe("Plan Server Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -197,6 +259,8 @@ describe("Plan Server Actions", () => {
     mocks.applyCapacity.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrack.mockResolvedValue(trackPreview);
     mocks.applyTrack.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.previewTrackSettings.mockResolvedValue(trackSettingsPreview);
+    mocks.applyTrackSettings.mockResolvedValue({ projectionState: "PENDING" });
   });
 
   it("returns a pure preview without accepting browser authority fields", async () => {
@@ -320,5 +384,46 @@ describe("Plan Server Actions", () => {
       previewLearningTrackLifecycleAction(initialPlanActionState, malformed),
     ).resolves.toMatchObject({ status: "invalid" });
     expect(mocks.previewTrack).not.toHaveBeenCalled();
+  });
+
+  it("uses only bounded Track setting inputs and revalidates Plan plus Today", async () => {
+    await expect(
+      previewLearningTrackPriorityMinimumAction(initialPlanActionState, trackSettingsForm()),
+    ).resolves.toMatchObject({ status: "previewed", preview: trackSettingsPreview });
+    expect(mocks.previewTrackSettings).toHaveBeenCalledWith(client, {
+      trackKey: "track:algorithms",
+      priority: 80,
+      protectedMinimumMinutes: 180,
+      expectedGrowthPlanVersion: "4",
+      expectedLearningTrackVersion: "7",
+      reason: "Increase systems practice.",
+    });
+    expect(mocks.previewTrackSettings.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
+    expect(mocks.previewTrackSettings.mock.calls[0]?.[1]).not.toHaveProperty("capacity");
+
+    await expect(
+      applyLearningTrackPriorityMinimumAction(initialPlanActionState, trackSettingsForm()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyTrackSettings).toHaveBeenCalledWith(client, {
+      trackKey: "track:algorithms",
+      priority: 80,
+      protectedMinimumMinutes: 180,
+      expectedGrowthPlanVersion: "4",
+      expectedLearningTrackVersion: "7",
+      reason: "Increase systems practice.",
+      previewDigest: trackSettingsPreview.previewDigest,
+      idempotencyKey: `learning-track-priority-minimum:v1:${requestId}`,
+    });
+    expect(mocks.revalidate).toHaveBeenCalledWith("/plan");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/today");
+  });
+
+  it("rejects malformed Track setting values before creating a client", async () => {
+    const malformed = trackSettingsForm();
+    malformed.set("priority", "101");
+    await expect(
+      previewLearningTrackPriorityMinimumAction(initialPlanActionState, malformed),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.createClient).not.toHaveBeenCalled();
   });
 });

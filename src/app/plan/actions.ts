@@ -8,11 +8,13 @@ import { initialPlanActionState } from "../../ui/plan/plan-action-state";
 import type { PlanOperation, TrackOperation } from "../../ui/plan/plan-types";
 import {
   applyLearningTrackLifecycleV1,
+  applyLearningTrackPriorityMinimumV1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
+  previewLearningTrackPriorityMinimumV1,
   PlanConflictError,
   PlanInputError,
 } from "../../ui/plan/server/database-plan";
@@ -23,6 +25,7 @@ const OPERATIONS = ["pause_growth_plan", "resume_growth_plan"] as const;
 const CAPACITY = /^(?:0|[1-9][0-9]{0,4})$/u;
 const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
 const TRACK_OPERATIONS = ["pause_track", "resume_track"] as const;
+const PRIORITY = /^(?:0|[1-9][0-9]{0,2})$/u;
 function field(formData: FormData, name: string): string {
   const value = formData.get(name);
   return typeof value === "string" ? value : "";
@@ -87,6 +90,43 @@ function trackInput(formData: FormData): {
   return {
     trackKey,
     operation: operation as TrackOperation,
+    growthPlanVersion,
+    learningTrackVersion,
+    reason,
+  };
+}
+function trackPriorityMinimumInput(formData: FormData): {
+  trackKey: string;
+  priority: number;
+  protectedMinimumMinutes: number;
+  growthPlanVersion: string;
+  learningTrackVersion: string;
+  reason: string;
+} {
+  const trackKey = field(formData, "trackKey");
+  const priority = field(formData, "priority");
+  const protectedMinimumMinutes = field(formData, "protectedMinimumMinutes");
+  const growthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const learningTrackVersion = field(formData, "expectedLearningTrackVersion");
+  const reason = field(formData, "reason");
+  if (
+    !TRACK_KEY.test(trackKey) ||
+    !PRIORITY.test(priority) ||
+    Number(priority) > 100 ||
+    !CAPACITY.test(protectedMinimumMinutes) ||
+    Number(protectedMinimumMinutes) > 10_080 ||
+    !VERSION.test(growthPlanVersion) ||
+    !VERSION.test(learningTrackVersion) ||
+    reason.trim() !== reason ||
+    reason.length < 1 ||
+    reason.length > 500
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    trackKey,
+    priority: Number(priority),
+    protectedMinimumMinutes: Number(protectedMinimumMinutes),
     growthPlanVersion,
     learningTrackVersion,
     reason,
@@ -283,5 +323,73 @@ export async function applyLearningTrackLifecycleAction(
     };
   } catch (error) {
     return failure(error, "Choose a current Track and enter a reason. Nothing changed.");
+  }
+}
+
+export async function previewLearningTrackPriorityMinimumAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = trackPriorityMinimumInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewLearningTrackPriorityMinimumV1(client, {
+      trackKey: value.trackKey,
+      priority: value.priority,
+      protectedMinimumMinutes: value.protectedMinimumMinutes,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "Track settings preview ready. Confirm only if these exact facts are correct."
+        : "These active Track settings exceed current weekly capacity.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current Track, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyLearningTrackPriorityMinimumAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = trackPriorityMinimumInput(formData);
+    const digest = field(formData, "previewDigest");
+    const requestIdValue = field(formData, "requestId");
+    if (!/^[a-f0-9]{64}$/u.test(digest) || !UUID.test(requestIdValue)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyLearningTrackPriorityMinimumV1(client, {
+      trackKey: value.trackKey,
+      priority: value.priority,
+      protectedMinimumMinutes: value.protectedMinimumMinutes,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+      previewDigest: digest,
+      idempotencyKey: `learning-track-priority-minimum:v1:${requestIdValue}`,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Track settings changed. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current Track, use whole values in range, and enter a reason. Nothing changed.",
+    );
   }
 }

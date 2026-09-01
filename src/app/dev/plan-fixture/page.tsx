@@ -194,6 +194,74 @@ function trackPreviewState(blocked: boolean): PlanActionState {
   };
 }
 
+function trackSettingsPreviewState(blocked: boolean): PlanActionState {
+  const before = tracksWorkspace.learningTracks[0]!;
+  const proposedMinimum = blocked ? 560 : 120;
+  const planForPreview = {
+    ...tracksWorkspace.growthPlan!,
+    weeklyCapacityMinutes: blocked ? 300 : tracksWorkspace.growthPlan!.weeklyCapacityMinutes,
+  };
+  return {
+    status: "previewed",
+    message: blocked
+      ? "These active Track settings exceed current weekly capacity."
+      : "Track settings preview ready. Confirm only if these exact facts are correct.",
+    preview: {
+      contract: { name: "LearningTrackPriorityMinimumPreviewV1", version: "1.0.0" },
+      operation: "set_track_priority_minimum",
+      reason: blocked ? "Test an active capacity block." : "Prioritize systems work this month.",
+      expectedGrowthPlanVersion: "4",
+      expectedLearningTrackVersion: "2",
+      growthPlan: planForPreview,
+      before,
+      after: {
+        ...before,
+        priority: 12,
+        protectedMinimumMinutes: proposedMinimum,
+        aggregateVersion: "3",
+      },
+      constraint: {
+        activeTrackCountBefore: 1,
+        activeTrackCountAfter: 1,
+        activeProtectedMinimumMinutesBefore: 100,
+        activeProtectedMinimumMinutesAfter: proposedMinimum,
+        flexibleMinutesBefore: planForPreview.weeklyCapacityMinutes - 100,
+        flexibleMinutesAfter: planForPreview.weeklyCapacityMinutes - proposedMinimum,
+        activeTrackFingerprintBefore: "e".repeat(64),
+        activeTrackFingerprintAfter: "f".repeat(64),
+        activeTrackCountIfTargetActiveAfter: 1,
+        minimumCapacityIfTargetActiveAfter: proposedMinimum,
+        targetActiveStateFitsCapacity: proposedMinimum <= planForPreview.weeklyCapacityMinutes,
+        currentTrackPositionBefore: 1,
+        currentTrackPositionAfter: 1,
+        currentTrackOrderFingerprintBefore: "g".repeat(64),
+        currentTrackOrderFingerprintAfter: "h".repeat(64),
+      },
+      canApply: !blocked,
+      blockingReasons: blocked
+        ? [
+            {
+              code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY",
+              minimumCapacityMinutes: proposedMinimum,
+            },
+          ]
+        : [],
+      warnings: [],
+      retained: {
+        learningTrackActivities: true,
+        planSnapshots: true,
+        focusSessions: true,
+        evidence: true,
+      },
+      recalculationAfterApply: {
+        projectionState: "PENDING",
+        consumerName: "planning.plan_snapshot_v1",
+      },
+      previewDigest: "a".repeat(64),
+    },
+  };
+}
+
 export default async function PlanFixturePage({
   searchParams,
 }: {
@@ -203,6 +271,8 @@ export default async function PlanFixturePage({
   const previewKind = (await searchParams).preview ?? "lifecycle";
   const showsCapacity = previewKind === "capacity" || previewKind === "blocked";
   const showsTrack = previewKind === "track" || previewKind === "track-blocked";
+  const showsTrackSettings =
+    previewKind === "track-settings" || previewKind === "track-settings-blocked";
   return (
     <div className={styles.page}>
       <SkipLink targetId="plan-main">Skip to Plan</SkipLink>
@@ -217,9 +287,18 @@ export default async function PlanFixturePage({
           initialCapacityPreviewState={
             showsCapacity ? capacityPreviewState(previewKind === "blocked") : initialPlanActionState
           }
-          initialPreviewState={showsCapacity || showsTrack ? initialPlanActionState : previewState}
+          initialPreviewState={
+            showsCapacity || showsTrack || showsTrackSettings
+              ? initialPlanActionState
+              : previewState
+          }
           initialTrackPreviewState={
             showsTrack ? trackPreviewState(previewKind === "track-blocked") : initialPlanActionState
+          }
+          initialTrackPriorityMinimumPreviewState={
+            showsTrackSettings
+              ? trackSettingsPreviewState(previewKind === "track-settings-blocked")
+              : initialPlanActionState
           }
           tracksWorkspace={tracksWorkspace}
           workspace={workspace}

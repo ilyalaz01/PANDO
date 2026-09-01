@@ -8,6 +8,7 @@ import type {
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
   LearningTrackLifecyclePreviewV1,
+  LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
   PlanPreviewV1,
   PlanStateV1,
@@ -18,9 +19,11 @@ import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
   applyLearningTrackLifecycleAction,
+  applyLearningTrackPriorityMinimumAction,
   previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
   previewLearningTrackLifecycleAction,
+  previewLearningTrackPriorityMinimumAction,
 } from "../../app/plan/actions";
 
 function requestId(): string {
@@ -39,6 +42,12 @@ function isCapacityPreview(preview: PlanPreviewV1 | null): preview is GrowthPlan
 
 function isTrackPreview(preview: PlanPreviewV1 | null): preview is LearningTrackLifecyclePreviewV1 {
   return preview?.contract.name === "LearningTrackLifecyclePreviewV1";
+}
+
+function isTrackPriorityMinimumPreview(
+  preview: PlanPreviewV1 | null,
+): preview is LearningTrackPriorityMinimumPreviewV1 {
+  return preview?.contract.name === "LearningTrackPriorityMinimumPreviewV1";
 }
 
 function Status({ state }: { readonly state: PlanActionState }) {
@@ -201,6 +210,68 @@ function TrackComparison({ preview }: { readonly preview: LearningTrackLifecycle
   );
 }
 
+function TrackPriorityMinimumComparison({
+  preview,
+}: {
+  readonly preview: LearningTrackPriorityMinimumPreviewV1;
+}) {
+  return (
+    <div className={styles.comparison} aria-label="Exact Learning Track settings preview">
+      {(["before", "after"] as const).map((side) => (
+        <div key={side}>
+          <h3>
+            {side === "before" ? "Before" : preview.canApply ? "After confirmation" : "Proposed"}
+          </h3>
+          <dl>
+            <div>
+              <dt>Track</dt>
+              <dd>{preview[side].title}</dd>
+            </div>
+            <div>
+              <dt>Priority</dt>
+              <dd>{preview[side].priority}</dd>
+            </div>
+            <div>
+              <dt>Protected minimum</dt>
+              <dd>{preview[side].protectedMinimumMinutes} minutes</dd>
+            </div>
+            <div>
+              <dt>Order position</dt>
+              <dd>
+                {side === "before"
+                  ? preview.constraint.currentTrackPositionBefore
+                  : preview.constraint.currentTrackPositionAfter}
+              </dd>
+            </div>
+            <div>
+              <dt>Active protected minimum total</dt>
+              <dd>
+                {side === "before"
+                  ? preview.constraint.activeProtectedMinimumMinutesBefore
+                  : preview.constraint.activeProtectedMinimumMinutesAfter}{" "}
+                minutes
+              </dd>
+            </div>
+            <div>
+              <dt>Flexible capacity</dt>
+              <dd>
+                {side === "before"
+                  ? preview.constraint.flexibleMinutesBefore
+                  : preview.constraint.flexibleMinutesAfter}{" "}
+                minutes
+              </dd>
+            </div>
+            <div>
+              <dt>Version</dt>
+              <dd>{preview[side].aggregateVersion}</dd>
+            </div>
+          </dl>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function RecalculationNotice({ workspace }: { readonly workspace: CurrentGrowthPlanV1 }) {
   if (workspace.recalculation.projectionState === "CURRENT") return null;
   const message =
@@ -227,6 +298,8 @@ export function PlanWorkspace({
   initialCapacityApplyState = initialPlanActionState,
   initialTrackPreviewState = initialPlanActionState,
   initialTrackApplyState = initialPlanActionState,
+  initialTrackPriorityMinimumPreviewState = initialPlanActionState,
+  initialTrackPriorityMinimumApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
@@ -236,6 +309,8 @@ export function PlanWorkspace({
   readonly initialCapacityApplyState?: PlanActionState;
   readonly initialTrackPreviewState?: PlanActionState;
   readonly initialTrackApplyState?: PlanActionState;
+  readonly initialTrackPriorityMinimumPreviewState?: PlanActionState;
+  readonly initialTrackPriorityMinimumApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -247,14 +322,29 @@ export function PlanWorkspace({
   );
   const [capacityDismissed, setCapacityDismissed] = useState(false);
   const [capacityApplyRequestId, setCapacityApplyRequestId] = useState(requestId);
-  const [selectedTrackKey, setSelectedTrackKey] = useState(
-    isTrackPreview(initialTrackPreviewState.preview)
+  const initialSelectedTrackKey = isTrackPriorityMinimumPreview(
+    initialTrackPriorityMinimumPreviewState.preview,
+  )
+    ? initialTrackPriorityMinimumPreviewState.preview.before.trackKey
+    : isTrackPreview(initialTrackPreviewState.preview)
       ? initialTrackPreviewState.preview.before.trackKey
-      : (tracksWorkspace.learningTracks[0]?.trackKey ?? ""),
+      : (tracksWorkspace.learningTracks[0]?.trackKey ?? "");
+  const initialSelectedTrack = tracksWorkspace.learningTracks.find(
+    (track) => track.trackKey === initialSelectedTrackKey,
   );
+  const [selectedTrackKey, setSelectedTrackKey] = useState(initialSelectedTrackKey);
   const [trackReason, setTrackReason] = useState("");
   const [trackDismissed, setTrackDismissed] = useState(false);
   const [trackApplyRequestId, setTrackApplyRequestId] = useState(requestId);
+  const [trackPriority, setTrackPriority] = useState(() =>
+    String(initialSelectedTrack?.priority ?? ""),
+  );
+  const [trackProtectedMinimum, setTrackProtectedMinimum] = useState(() =>
+    String(initialSelectedTrack?.protectedMinimumMinutes ?? ""),
+  );
+  const [trackSettingsReason, setTrackSettingsReason] = useState("");
+  const [trackSettingsDismissed, setTrackSettingsDismissed] = useState(false);
+  const [trackSettingsApplyRequestId, setTrackSettingsApplyRequestId] = useState(requestId);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -284,6 +374,22 @@ export function PlanWorkspace({
     applyLearningTrackLifecycleAction,
     initialTrackApplyState,
   );
+  const [
+    trackPriorityMinimumPreviewState,
+    trackPriorityMinimumPreviewAction,
+    trackPriorityMinimumPreviewPending,
+  ] = useActionState(
+    previewLearningTrackPriorityMinimumAction,
+    initialTrackPriorityMinimumPreviewState,
+  );
+  const [
+    trackPriorityMinimumApplyState,
+    trackPriorityMinimumApplyAction,
+    trackPriorityMinimumApplyPending,
+  ] = useActionState(
+    applyLearningTrackPriorityMinimumAction,
+    initialTrackPriorityMinimumApplyState,
+  );
   const [submittedCapacityPreviewDigest, setSubmittedCapacityPreviewDigest] = useState<
     string | null
   >(() =>
@@ -297,12 +403,25 @@ export function PlanWorkspace({
         ? null
         : (initialTrackPreviewState.preview?.previewDigest ?? null),
   );
+  const [
+    submittedTrackPriorityMinimumPreviewDigest,
+    setSubmittedTrackPriorityMinimumPreviewDigest,
+  ] = useState<string | null>(() =>
+    initialTrackPriorityMinimumApplyState.status === "idle"
+      ? null
+      : (initialTrackPriorityMinimumPreviewState.preview?.previewDigest ?? null),
+  );
   const plan = workspace.currentPlan;
   const preview = isLifecyclePreview(previewState.preview) ? previewState.preview : null;
   const capacityPreview = isCapacityPreview(capacityPreviewState.preview)
     ? capacityPreviewState.preview
     : null;
   const trackPreview = isTrackPreview(trackPreviewState.preview) ? trackPreviewState.preview : null;
+  const trackPriorityMinimumPreview = isTrackPriorityMinimumPreview(
+    trackPriorityMinimumPreviewState.preview,
+  )
+    ? trackPriorityMinimumPreviewState.preview
+    : null;
   const selectedTrack = tracksWorkspace.learningTracks.find(
     (track) => track.trackKey === selectedTrackKey,
   );
@@ -339,14 +458,27 @@ export function PlanWorkspace({
       trackPreview?.previewDigest === submittedTrackPreviewDigest)
       ? null
       : trackPreview;
+  const trackPriorityMinimumApplyStateForPreview =
+    trackPriorityMinimumPreview !== null &&
+    trackPriorityMinimumPreview.previewDigest === submittedTrackPriorityMinimumPreviewDigest
+      ? trackPriorityMinimumApplyState
+      : initialPlanActionState;
+  const effectiveTrackPriorityMinimumPreview =
+    trackSettingsDismissed ||
+    trackPriorityMinimumPreviewPending ||
+    (trackPriorityMinimumApplyStateForPreview.status === "applied" &&
+      trackPriorityMinimumPreview?.previewDigest === submittedTrackPriorityMinimumPreviewDigest)
+      ? null
+      : trackPriorityMinimumPreview;
   useEffect(() => {
     if (
       applyState.status === "applied" ||
       capacityApplyState.status === "applied" ||
-      trackApplyState.status === "applied"
+      trackApplyState.status === "applied" ||
+      trackPriorityMinimumApplyState.status === "applied"
     )
       router.refresh();
-  }, [applyState, capacityApplyState, router, trackApplyState]);
+  }, [applyState, capacityApplyState, router, trackApplyState, trackPriorityMinimumApplyState]);
 
   if (!plan)
     return (
@@ -379,6 +511,7 @@ export function PlanWorkspace({
             setDismissed(false);
             setCapacityDismissed(true);
             setTrackDismissed(true);
+            setTrackSettingsDismissed(true);
             setApplyRequestId(requestId());
           }}
         >
@@ -389,7 +522,10 @@ export function PlanWorkspace({
             id="plan-reason"
             name="reason"
             maxLength={500}
-            onChange={(event) => setReason(event.target.value)}
+            onChange={(event) => {
+              setReason(event.target.value);
+              setTrackSettingsDismissed(true);
+            }}
             required
             value={reason}
           />
@@ -475,6 +611,7 @@ export function PlanWorkspace({
                 <li className={styles.trackCard} key={track.learningTrackId}>
                   <strong>{track.title}</strong>
                   <span>{track.lifecycle === "ACTIVE" ? "Active" : "Paused"}</span>
+                  <span>Priority {track.priority}</span>
                   <span>{track.protectedMinimumMinutes} protected minutes</span>
                   <span>Version {track.aggregateVersion}</span>
                 </li>
@@ -487,6 +624,7 @@ export function PlanWorkspace({
                 setDismissed(true);
                 setCapacityDismissed(true);
                 setTrackDismissed(false);
+                setTrackSettingsDismissed(true);
                 setTrackApplyRequestId(requestId());
               }}
             >
@@ -498,6 +636,12 @@ export function PlanWorkspace({
                 onChange={(event) => {
                   setSelectedTrackKey(event.target.value);
                   setTrackDismissed(true);
+                  setTrackSettingsDismissed(true);
+                  const selected = tracksWorkspace.learningTracks.find(
+                    (track) => track.trackKey === event.target.value,
+                  );
+                  setTrackPriority(String(selected?.priority ?? ""));
+                  setTrackProtectedMinimum(String(selected?.protectedMinimumMinutes ?? ""));
                 }}
                 value={selectedTrackKey}
               >
@@ -523,7 +667,10 @@ export function PlanWorkspace({
                 id="track-reason"
                 maxLength={500}
                 name="reason"
-                onChange={(event) => setTrackReason(event.target.value)}
+                onChange={(event) => {
+                  setTrackReason(event.target.value);
+                  setTrackSettingsDismissed(true);
+                }}
                 required
                 value={trackReason}
               />
@@ -646,6 +793,260 @@ export function PlanWorkspace({
           )}
         </section>
       ) : null}
+      <section className={styles.panel} aria-labelledby="track-settings-heading">
+        <h2 id="track-settings-heading">Edit Track priority and protected minimum</h2>
+        <p>
+          Priority guides Planning ranking; it is not a quota or a promise of Today order. Protected
+          minutes reserve weekly capacity only while a Track is active.
+        </p>
+        {tracksWorkspace.learningTracks.length === 0 ? (
+          <p>No current Learning Tracks are available.</p>
+        ) : (
+          <form
+            action={trackPriorityMinimumPreviewAction}
+            className={styles.form}
+            onSubmit={() => {
+              setDismissed(true);
+              setCapacityDismissed(true);
+              setTrackDismissed(true);
+              setTrackSettingsDismissed(false);
+              setTrackSettingsApplyRequestId(requestId());
+            }}
+          >
+            <label htmlFor="track-settings-track">Learning Track</label>
+            <select
+              className={styles.selectInput}
+              id="track-settings-track"
+              name="trackKey"
+              onChange={(event) => {
+                const selected = tracksWorkspace.learningTracks.find(
+                  (track) => track.trackKey === event.target.value,
+                );
+                setSelectedTrackKey(event.target.value);
+                setTrackPriority(String(selected?.priority ?? ""));
+                setTrackProtectedMinimum(String(selected?.protectedMinimumMinutes ?? ""));
+                setTrackSettingsDismissed(true);
+                setTrackDismissed(true);
+                setDismissed(true);
+                setCapacityDismissed(true);
+              }}
+              value={selectedTrackKey}
+            >
+              {tracksWorkspace.learningTracks.map((track) => (
+                <option key={track.learningTrackId} value={track.trackKey}>
+                  {track.title} — priority {track.priority}, {track.protectedMinimumMinutes}{" "}
+                  protected minutes
+                </option>
+              ))}
+            </select>
+            <input
+              name="expectedGrowthPlanVersion"
+              type="hidden"
+              value={tracksWorkspace.growthPlan?.aggregateVersion ?? ""}
+            />
+            <input
+              name="expectedLearningTrackVersion"
+              type="hidden"
+              value={selectedTrack?.aggregateVersion ?? ""}
+            />
+            <label htmlFor="track-priority">Priority (0–100)</label>
+            <input
+              className={styles.numberInput}
+              id="track-priority"
+              inputMode="numeric"
+              max={100}
+              min={0}
+              name="priority"
+              onChange={(event) => {
+                setTrackPriority(event.target.value);
+                setTrackSettingsDismissed(true);
+                setDismissed(true);
+                setCapacityDismissed(true);
+                setTrackDismissed(true);
+              }}
+              required
+              step={1}
+              type="number"
+              value={trackPriority}
+            />
+            <label htmlFor="track-protected-minimum">
+              Protected weekly minimum in minutes (0–10080)
+            </label>
+            <input
+              className={styles.numberInput}
+              id="track-protected-minimum"
+              inputMode="numeric"
+              max={10_080}
+              min={0}
+              name="protectedMinimumMinutes"
+              onChange={(event) => {
+                setTrackProtectedMinimum(event.target.value);
+                setTrackSettingsDismissed(true);
+                setDismissed(true);
+                setCapacityDismissed(true);
+                setTrackDismissed(true);
+              }}
+              required
+              step={1}
+              type="number"
+              value={trackProtectedMinimum}
+            />
+            <label htmlFor="track-settings-reason">Why are these settings changing?</label>
+            <textarea
+              id="track-settings-reason"
+              maxLength={500}
+              name="reason"
+              onChange={(event) => {
+                setTrackSettingsReason(event.target.value);
+                setTrackSettingsDismissed(true);
+                setDismissed(true);
+                setCapacityDismissed(true);
+                setTrackDismissed(true);
+              }}
+              required
+              value={trackSettingsReason}
+            />
+            <button
+              className={styles.button}
+              disabled={trackPriorityMinimumPreviewPending || !selectedTrack}
+              type="submit"
+            >
+              {trackPriorityMinimumPreviewPending
+                ? "Checking Track settings…"
+                : "Preview Track settings"}
+            </button>
+            <Status state={trackPriorityMinimumPreviewState} />
+          </form>
+        )}
+      </section>
+      {effectiveTrackPriorityMinimumPreview ? (
+        <section className={styles.panel} aria-labelledby="track-settings-preview-heading">
+          <h2 id="track-settings-preview-heading">Review Learning Track settings</h2>
+          <TrackPriorityMinimumComparison preview={effectiveTrackPriorityMinimumPreview} />
+          <p>Reason: {effectiveTrackPriorityMinimumPreview.reason}</p>
+          {effectiveTrackPriorityMinimumPreview.warnings.map((warning) => (
+            <p className={styles.notice} key={warning.code} role="status">
+              {warning.code === "PARENT_GROWTH_PLAN_PAUSED"
+                ? "The Growth Plan is paused. These settings are saved now, but Today remains paused until the Plan resumes."
+                : warning.code === "LEARNING_TRACK_PAUSED"
+                  ? "This Track is paused, so its protected minimum does not reserve capacity or affect Today until you explicitly resume it."
+                  : `If you resume this Track now, active protected work would require ${warning.minimumCapacityMinutes} weekly minutes.`}
+            </p>
+          ))}
+          {!effectiveTrackPriorityMinimumPreview.canApply ? (
+            <div className={styles.notice} role="alert">
+              {effectiveTrackPriorityMinimumPreview.blockingReasons.map((reason) => (
+                <p key={reason.code}>
+                  These active Track settings need at least {reason.minimumCapacityMinutes} weekly
+                  minutes; the Plan has{" "}
+                  {effectiveTrackPriorityMinimumPreview.growthPlan.weeklyCapacityMinutes}.
+                </p>
+              ))}
+              <button
+                className={styles.secondaryButton}
+                onClick={() => {
+                  setTrackSettingsDismissed(true);
+                  setTrackSettingsReason("");
+                }}
+                type="button"
+              >
+                Start over
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className={styles.notice}>
+                Completed activity and evidence stay unchanged. Planning recalculates Today
+                asynchronously after confirmation.
+              </p>
+              <form
+                action={trackPriorityMinimumApplyAction}
+                className={styles.actions}
+                onSubmit={() =>
+                  setSubmittedTrackPriorityMinimumPreviewDigest(
+                    effectiveTrackPriorityMinimumPreview.previewDigest,
+                  )
+                }
+              >
+                <input
+                  name="trackKey"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.before.trackKey}
+                />
+                <input
+                  name="priority"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.after.priority}
+                />
+                <input
+                  name="protectedMinimumMinutes"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.after.protectedMinimumMinutes}
+                />
+                <input
+                  name="expectedGrowthPlanVersion"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.expectedGrowthPlanVersion}
+                />
+                <input
+                  name="expectedLearningTrackVersion"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.expectedLearningTrackVersion}
+                />
+                <input
+                  name="previewDigest"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.previewDigest}
+                />
+                <input
+                  name="reason"
+                  type="hidden"
+                  value={effectiveTrackPriorityMinimumPreview.reason}
+                />
+                <input name="requestId" type="hidden" value={trackSettingsApplyRequestId} />
+                <button
+                  className={styles.button}
+                  disabled={
+                    trackPriorityMinimumApplyPending ||
+                    trackPriorityMinimumApplyStateForPreview.status === "conflict"
+                  }
+                  type="submit"
+                >
+                  {trackPriorityMinimumApplyPending ? "Applying…" : "Confirm Track settings"}
+                </button>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={trackPriorityMinimumApplyPending}
+                  onClick={() => {
+                    setTrackSettingsDismissed(true);
+                    setTrackSettingsReason("");
+                  }}
+                  type="button"
+                >
+                  Start over
+                </button>
+                <Status state={trackPriorityMinimumApplyStateForPreview} />
+              </form>
+              {trackPriorityMinimumApplyStateForPreview.status === "conflict" ? (
+                <div className={styles.notice} role="alert">
+                  <p>The Plan or Track is stale. Reload both, then create a new preview.</p>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => {
+                      setTrackSettingsDismissed(true);
+                      setTrackSettingsReason("");
+                      router.refresh();
+                    }}
+                    type="button"
+                  >
+                    Reload current Plan and Tracks
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
+        </section>
+      ) : null}
       <section className={styles.panel} aria-labelledby="capacity-heading">
         <h2 id="capacity-heading">Edit weekly capacity</h2>
         <p>
@@ -659,6 +1060,7 @@ export function PlanWorkspace({
             setDismissed(true);
             setCapacityDismissed(false);
             setTrackDismissed(true);
+            setTrackSettingsDismissed(true);
             setCapacityApplyRequestId(requestId());
           }}
         >
@@ -671,7 +1073,10 @@ export function PlanWorkspace({
             max={10_080}
             min={0}
             name="proposedWeeklyCapacityMinutes"
-            onChange={(event) => setProposedCapacity(event.target.value)}
+            onChange={(event) => {
+              setProposedCapacity(event.target.value);
+              setTrackSettingsDismissed(true);
+            }}
             required
             step={1}
             type="number"
@@ -682,7 +1087,10 @@ export function PlanWorkspace({
             id="capacity-reason"
             name="reason"
             maxLength={500}
-            onChange={(event) => setCapacityReason(event.target.value)}
+            onChange={(event) => {
+              setCapacityReason(event.target.value);
+              setTrackSettingsDismissed(true);
+            }}
             required
             value={capacityReason}
           />

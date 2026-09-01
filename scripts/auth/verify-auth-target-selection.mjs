@@ -1097,12 +1097,12 @@ try {
     "Track preview must expose only its opaque selector plus version fences",
   );
   assert.match(
-    await page.getByLabel("Learning Track", { exact: true }).inputValue(),
+    await trackForm.getByLabel("Learning Track", { exact: true }).inputValue(),
     /^track:[a-z0-9][a-z0-9-]{1,100}$/u,
     "Track selector must be an opaque server-returned key",
   );
   assert.equal(
-    await page.getByLabel("Learning Track", { exact: true }).getAttribute("name"),
+    await trackForm.getByLabel("Learning Track", { exact: true }).getAttribute("name"),
     "trackKey",
     "the only browser selector must be the opaque Track key",
   );
@@ -1115,6 +1115,8 @@ try {
   await pauseTrackPreview.getByText("PAUSED", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Confirm Track change" }).click();
   await page
+    .locator("form")
+    .filter({ has: page.getByRole("button", { name: "Preview Track change" }) })
     .getByLabel("Learning Track", { exact: true })
     .locator("option:checked")
     .getByText(/Paused/u)
@@ -1129,6 +1131,8 @@ try {
   await resumeTrackPreview.getByText("ACTIVE", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Confirm Track change" }).click();
   await page
+    .locator("form")
+    .filter({ has: page.getByRole("button", { name: "Preview Track change" }) })
     .getByLabel("Learning Track", { exact: true })
     .locator("option:checked")
     .getByText(/Active/u)
@@ -1140,6 +1144,66 @@ try {
     BigInt(currentTracksAfterLifecycle.data.learningTracks[0].aggregateVersion),
     trackVersionBeforeLifecycle + 2n,
     "pause and resume must each advance only the Track version once",
+  );
+
+  const trackBeforeSettings = currentTracksAfterLifecycle.data.learningTracks[0];
+  const trackSettingsForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview Track settings" }),
+  });
+  assert.deepEqual(
+    await trackSettingsForm
+      .locator("input")
+      .evaluateAll((inputs) =>
+        inputs.map((input) => input.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    [
+      "expectedGrowthPlanVersion",
+      "expectedLearningTrackVersion",
+      "priority",
+      "protectedMinimumMinutes",
+    ],
+    "Track settings preview must expose only version fences and proposed bounded values",
+  );
+  assert.equal(
+    await trackSettingsForm.getByLabel("Learning Track", { exact: true }).getAttribute("name"),
+    "trackKey",
+    "Track settings must select only the opaque server-returned Track key",
+  );
+  await trackSettingsForm.getByLabel("Priority (0–100)").fill("80");
+  await trackSettingsForm.getByLabel("Protected weekly minimum in minutes (0–10080)").fill("120");
+  await trackSettingsForm
+    .getByLabel("Why are these settings changing?")
+    .fill("Raise systems priority while keeping a bounded protected weekly minimum.");
+  await trackSettingsForm.getByRole("button", { name: "Preview Track settings" }).click();
+  const settingsPreview = page.getByLabel("Exact Learning Track settings preview");
+  const settingsAfter = settingsPreview.locator(":scope > div").nth(1);
+  await settingsAfter.getByRole("heading", { name: "After confirmation" }).waitFor();
+  await settingsAfter
+    .getByText("Priority", { exact: true })
+    .locator("..")
+    .getByText("80", { exact: true })
+    .waitFor();
+  await settingsAfter
+    .getByText("Protected minimum", { exact: true })
+    .locator("..")
+    .getByText("120 minutes", { exact: true })
+    .waitFor();
+  await page.getByRole("button", { name: "Confirm Track settings" }).click();
+  await page.getByText("Priority 80", { exact: true }).waitFor();
+  await page.reload();
+  await page.getByText("Priority 80", { exact: true }).waitFor();
+  const currentTracksAfterSettings = await readinessVerifier.rpc("get_current_learning_tracks_v1");
+  assert.equal(
+    currentTracksAfterSettings.error,
+    null,
+    "Learning Track settings must reload after apply",
+  );
+  assert.equal(currentTracksAfterSettings.data?.learningTracks?.[0]?.priority, 80);
+  assert.equal(currentTracksAfterSettings.data?.learningTracks?.[0]?.protectedMinimumMinutes, 120);
+  assert.equal(
+    BigInt(currentTracksAfterSettings.data.learningTracks[0].aggregateVersion),
+    BigInt(trackBeforeSettings.aggregateVersion) + 1n,
+    "priority/minimum apply must advance only the selected Track version once",
   );
 
   await page.setViewportSize({ width: 390, height: 844 });

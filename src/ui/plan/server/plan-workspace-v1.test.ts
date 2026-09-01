@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import boundary from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.boundary.json";
 import preview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.valid.json";
 import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json";
+import trackSettingsPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json";
 import {
   decodeCurrentLearningTracksV1,
   decodeCurrentGrowthPlanV1,
@@ -12,6 +13,8 @@ import {
   decodeGrowthPlanLifecyclePreviewV1,
   decodeLearningTrackLifecycleApplyResultV1,
   decodeLearningTrackLifecyclePreviewV1,
+  decodeLearningTrackPriorityMinimumApplyResultV1,
+  decodeLearningTrackPriorityMinimumPreviewV1,
   GrowthPlanControlContractError,
 } from "./plan-workspace-v1";
 
@@ -134,6 +137,27 @@ describe("Growth Plan control V1 server decoder", () => {
       decodeLearningTrackLifecyclePreviewV1({
         ...trackPreview,
         expectedLearningTrackVersion: "6",
+      }),
+    ).toThrow(GrowthPlanControlContractError);
+  });
+
+  it("decodes only coherent Track priority/minimum previews and receipts", () => {
+    const result = {
+      contract: { name: "LearningTrackPriorityMinimumApplyResultV1", version: "1.0.0" },
+      commandId: uuid,
+      changedTrack: trackSettingsPreview.after,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+    expect(decodeLearningTrackPriorityMinimumPreviewV1(trackSettingsPreview)).toEqual(
+      trackSettingsPreview,
+    );
+    expect(decodeLearningTrackPriorityMinimumApplyResultV1(result)).toEqual(result);
+    expect(() =>
+      decodeLearningTrackPriorityMinimumPreviewV1({
+        ...trackSettingsPreview,
+        workspaceId: "private",
       }),
     ).toThrow(GrowthPlanControlContractError);
   });

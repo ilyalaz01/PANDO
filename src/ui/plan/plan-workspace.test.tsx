@@ -8,9 +8,11 @@ vi.mock("../../app/plan/actions", () => ({
   applyGrowthPlanCapacityAction: vi.fn(),
   applyGrowthPlanLifecycleAction: vi.fn(),
   applyLearningTrackLifecycleAction: vi.fn(),
+  applyLearningTrackPriorityMinimumAction: vi.fn(),
   previewGrowthPlanCapacityAction: vi.fn(),
   previewGrowthPlanLifecycleAction: vi.fn(),
   previewLearningTrackLifecycleAction: vi.fn(),
+  previewLearningTrackPriorityMinimumAction: vi.fn(),
 }));
 
 import type { PlanActionState } from "./plan-action-state";
@@ -19,6 +21,7 @@ import type {
   CurrentLearningTracksV1,
   GrowthPlanCapacityPreviewV1,
   LearningTrackLifecyclePreviewV1,
+  LearningTrackPriorityMinimumPreviewV1,
 } from "./plan-types";
 import { previewGrowthPlanLifecycleAction } from "../../app/plan/actions";
 import { PlanWorkspace } from "./plan-workspace";
@@ -170,6 +173,53 @@ const trackPreviewed: PlanActionState = {
   status: "previewed",
   message: "Track preview ready.",
   preview: trackPreview,
+};
+
+const trackSettingsPreview: LearningTrackPriorityMinimumPreviewV1 = {
+  contract: { name: "LearningTrackPriorityMinimumPreviewV1", version: "1.0.0" },
+  operation: "set_track_priority_minimum",
+  reason: "Increase systems practice.",
+  expectedGrowthPlanVersion: "4",
+  expectedLearningTrackVersion: "2",
+  growthPlan: tracksWorkspace.growthPlan!,
+  before: tracksWorkspace.learningTracks[0]!,
+  after: {
+    ...tracksWorkspace.learningTracks[0]!,
+    priority: 12,
+    protectedMinimumMinutes: 180,
+    aggregateVersion: "3",
+  },
+  constraint: {
+    activeTrackCountBefore: 1,
+    activeTrackCountAfter: 1,
+    activeProtectedMinimumMinutesBefore: 100,
+    activeProtectedMinimumMinutesAfter: 180,
+    flexibleMinutesBefore: 500,
+    flexibleMinutesAfter: 420,
+    activeTrackFingerprintBefore: "e".repeat(64),
+    activeTrackFingerprintAfter: "f".repeat(64),
+    activeTrackCountIfTargetActiveAfter: 1,
+    minimumCapacityIfTargetActiveAfter: 180,
+    targetActiveStateFitsCapacity: true,
+    currentTrackPositionBefore: 1,
+    currentTrackPositionAfter: 1,
+    currentTrackOrderFingerprintBefore: "g".repeat(64),
+    currentTrackOrderFingerprintAfter: "h".repeat(64),
+  },
+  canApply: true,
+  blockingReasons: [],
+  warnings: [],
+  retained: {
+    learningTrackActivities: true,
+    planSnapshots: true,
+    focusSessions: true,
+    evidence: true,
+  },
+  recalculationAfterApply: {
+    projectionState: "PENDING",
+    consumerName: "planning.plan_snapshot_v1",
+  },
+  previewDigest: "i".repeat(64),
 };
 
 describe("PlanWorkspace", () => {
@@ -385,7 +435,7 @@ describe("PlanWorkspace", () => {
       />,
     );
     expect(screen.getByRole("button", { name: "Confirm Track change" })).toBeEnabled();
-    fireEvent.change(screen.getByLabelText("Learning Track"), {
+    fireEvent.change(screen.getAllByLabelText("Learning Track")[0]!, {
       target: { value: "track:system-design" },
     });
     expect(screen.queryByRole("button", { name: "Confirm Track change" })).not.toBeInTheDocument();
@@ -408,5 +458,57 @@ describe("PlanWorkspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reload current Plan and Tracks" }));
     expect(routerRefresh).toHaveBeenCalledOnce();
     expect(screen.queryByRole("button", { name: "Confirm Track change" })).not.toBeInTheDocument();
+  });
+
+  it("shows current priority and exact settings/order/capacity consequences", () => {
+    render(
+      <PlanWorkspace
+        initialTrackPriorityMinimumPreviewState={{
+          status: "previewed",
+          message: "Preview ready.",
+          preview: trackSettingsPreview,
+        }}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByText("Priority 9")).toBeVisible();
+    const comparison = screen.getByLabelText("Exact Learning Track settings preview");
+    expect(comparison).toHaveTextContent("Priority");
+    expect(comparison).toHaveTextContent("180 minutes");
+    expect(comparison).toHaveTextContent("420 minutes");
+    expect(screen.getByRole("button", { name: "Confirm Track settings" })).toBeEnabled();
+  });
+
+  it("blocks active Track settings over capacity without an apply control", () => {
+    render(
+      <PlanWorkspace
+        initialTrackPriorityMinimumPreviewState={{
+          status: "previewed",
+          message: "Blocked.",
+          preview: {
+            ...trackSettingsPreview,
+            growthPlan: { ...trackSettingsPreview.growthPlan, weeklyCapacityMinutes: 150 },
+            constraint: {
+              ...trackSettingsPreview.constraint,
+              activeProtectedMinimumMinutesAfter: 180,
+              flexibleMinutesAfter: -30,
+              minimumCapacityIfTargetActiveAfter: 180,
+              targetActiveStateFitsCapacity: false,
+            },
+            canApply: false,
+            blockingReasons: [
+              { code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", minimumCapacityMinutes: 180 },
+            ],
+          },
+        }}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("need at least 180 weekly minutes");
+    expect(
+      screen.queryByRole("button", { name: "Confirm Track settings" }),
+    ).not.toBeInTheDocument();
   });
 });

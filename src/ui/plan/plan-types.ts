@@ -2,6 +2,7 @@ export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
 export type CapacityOperation = "set_default_capacity";
 export type TrackOperation = "pause_track" | "resume_track";
+export type TrackPriorityMinimumOperation = "set_track_priority_minimum";
 
 export interface PlanStateV1 {
   readonly growthPlanId: string;
@@ -131,8 +132,66 @@ export interface LearningTrackLifecyclePreviewV1 {
   readonly previewDigest: string;
 }
 
+export interface LearningTrackPriorityMinimumPreviewV1 {
+  readonly contract: {
+    readonly name: "LearningTrackPriorityMinimumPreviewV1";
+    readonly version: "1.0.0";
+  };
+  readonly operation: TrackPriorityMinimumOperation;
+  readonly reason: string;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly growthPlan: TrackParentPlanStateV1;
+  readonly before: LearningTrackStateV1;
+  readonly after: LearningTrackStateV1;
+  readonly constraint: {
+    readonly activeTrackCountBefore: number;
+    readonly activeTrackCountAfter: number;
+    readonly activeProtectedMinimumMinutesBefore: number;
+    readonly activeProtectedMinimumMinutesAfter: number;
+    readonly flexibleMinutesBefore: number;
+    readonly flexibleMinutesAfter: number;
+    readonly activeTrackFingerprintBefore: string;
+    readonly activeTrackFingerprintAfter: string;
+    readonly activeTrackCountIfTargetActiveAfter: number;
+    readonly minimumCapacityIfTargetActiveAfter: number;
+    readonly targetActiveStateFitsCapacity: boolean;
+    readonly currentTrackPositionBefore: number;
+    readonly currentTrackPositionAfter: number;
+    readonly currentTrackOrderFingerprintBefore: string;
+    readonly currentTrackOrderFingerprintAfter: string;
+  };
+  readonly canApply: boolean;
+  readonly blockingReasons: readonly {
+    readonly code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY";
+    readonly minimumCapacityMinutes: number;
+  }[];
+  readonly warnings: readonly (
+    | { readonly code: "PARENT_GROWTH_PLAN_PAUSED" }
+    | { readonly code: "LEARNING_TRACK_PAUSED" }
+    | {
+        readonly code: "PAUSED_TRACK_RESUME_WOULD_EXCEED_CAPACITY";
+        readonly minimumCapacityMinutes: number;
+      }
+  )[];
+  readonly retained: {
+    readonly learningTrackActivities: true;
+    readonly planSnapshots: true;
+    readonly focusSessions: true;
+    readonly evidence: true;
+  };
+  readonly recalculationAfterApply: {
+    readonly projectionState: "PENDING";
+    readonly consumerName: "planning.plan_snapshot_v1";
+  };
+  readonly previewDigest: string;
+}
+
 export type PlanPreviewV1 =
-  GrowthPlanLifecyclePreviewV1 | GrowthPlanCapacityPreviewV1 | LearningTrackLifecyclePreviewV1;
+  | GrowthPlanLifecyclePreviewV1
+  | GrowthPlanCapacityPreviewV1
+  | LearningTrackLifecyclePreviewV1
+  | LearningTrackPriorityMinimumPreviewV1;
 
 export interface CurrentGrowthPlanV1 {
   readonly contract: { readonly name: "CurrentGrowthPlanV1"; readonly version: "1.0.0" };
