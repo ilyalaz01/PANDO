@@ -1,0 +1,170 @@
+{
+  "contract": {
+    "name": "GrowthPlanSetupSourceV1",
+    "version": "1.0.0"
+  },
+  "state": "SETUP_AVAILABLE",
+  "capabilities": ["initialize_growth_plan"],
+  "goals": [
+    {
+      "readinessGoalKey": "goal:a0",
+      "title": "Goal 01",
+      "profileLabel": "Profile 01",
+      "profileVersionKey": "target:p0",
+      "roadmapPresent": false,
+      "aggregateVersion": "1"
+    },
+    {
+      "readinessGoalKey": "goal:a1",
+      "title": "Goal 02",
+      "profileLabel": "Profile 02",
+      "profileVersionKey": "target:p1",
+      "roadmapPresent": true,
+      "aggregateVersion": "2"
+    },
+    {
+      "readinessGoalKey": "goal:a2",
+      "title": "Goal 03",
+      "profileLabel": "Profile 03",
+      "profileVersionKey": "target:p2",
+      "roadmapPresent": false,
+      "aggregateVersion": "3"
+    },
+    {
+      "readinessGoalKey": "goal:a3",
+      "title": "Goal 04",
+      "profileLabel": "Profile 04",
+      "profileVersionKey": "target:p3",
+      "roadmapPresent": true,
+      "aggregateVersion": "4"
+    },
+    {
+      "readinessGoalKey": "goal:a4",
+      "title": "Goal 05",
+      "profileLabel": "Profile 05",
+      "profileVersionKey": "target:p4",
+      "roadmapPresent": false,
+      "aggregateVersion": "5"
+    },
+    {
+      "readinessGoalKey": "goal:a5",
+      "title": "Goal 06",
+      "profileLabel": "Profile 06",
+      "profileVersionKey": "target:p5",
+      "roadmapPresent": true,
+      "aggregateVersion": "6"
+    },
+    {
+      "readinessGoalKey": "goal:a6",
+      "title": "Goal 07",
+      "profileLabel": "Profile 07",
+      "profileVersionKey": "target:p6",
+      "roadmapPresent": false,
+      "aggregateVersion": "7"
+    },
+    {
+      "readinessGoalKey": "goal:a7",
+      "title": "Goal 08",
+      "profileLabel": "Profile 08",
+      "profileVersionKey": "target:p7",
+      "roadmapPresent": true,
+      "aggregateVersion": "8"
+    },
+    {
+      "readinessGoalKey": "goal:a8",
+      "title": "Goal 09",
+      "profileLabel": "Profile 09",
+      "profileVersionKey": "target:p8",
+      "roadmapPresent": false,
+      "aggregateVersion": "9"
+    },
+    {
+      "readinessGoalKey": "goal:a9",
+      "title": "Goal 10",
+      "profileLabel": "Profile 10",
+      "profileVersionKey": "target:p9",
+      "roadmapPresent": true,
+      "aggregateVersion": "10"
+    },
+    {
+      "readinessGoalKey": "goal:b0",
+      "title": "Goal 11",
+      "profileLabel": "Profile 11",
+      "profileVersionKey": "target:q0",
+      "roadmapPresent": false,
+      "aggregateVersion": "11"
+    },
+    {
+      "readinessGoalKey": "goal:b1",
+      "title": "Goal 12",
+      "profileLabel": "Profile 12",
+      "profileVersionKey": "target:q1",
+      "roadmapPresent": true,
+      "aggregateVersion": "12"
+    },
+    {
+      "readinessGoalKey": "goal:b2",
+      "title": "Goal 13",
+      "profileLabel": "Profile 13",
+      "profileVersionKey": "target:q2",
+      "roadmapPresent": false,
+      "aggregateVersion": "13"
+    },
+    {
+      "readinessGoalKey": "goal:b3",
+      "title": "Goal 14",
+      "profileLabel": "Profile 14",
+      "profileVersionKey": "target:q3",
+      "roadmapPresent": true,
+      "aggregateVersion": "14"
+    },
+    {
+      "readinessGoalKey": "goal:b4",
+      "title": "Goal 15",
+      "profileLabel": "Profile 15",
+      "profileVersionKey": "target:q4",
+      "roadmapPresent": false,
+      "aggregateVersion": "15"
+    },
+    {
+      "readinessGoalKey": "goal:b5",
+      "title": "Goal 16",
+      "profileLabel": "Profile 16",
+      "profileVersionKey": "target:q5",
+      "roadmapPresent": true,
+      "aggregateVersion": "16"
+    },
+    {
+      "readinessGoalKey": "goal:b6",
+      "title": "Goal 17",
+      "profileLabel": "Profile 17",
+      "profileVersionKey": "target:q6",
+      "roadmapPresent": false,
+      "aggregateVersion": "17"
+    },
+    {
+      "readinessGoalKey": "goal:b7",
+      "title": "Goal 18",
+      "profileLabel": "Profile 18",
+      "profileVersionKey": "target:q7",
+      "roadmapPresent": true,
+      "aggregateVersion": "18"
+    },
+    {
+      "readinessGoalKey": "goal:b8",
+      "title": "Goal 19",
+      "profileLabel": "Profile 19",
+      "profileVersionKey": "target:q8",
+      "roadmapPresent": false,
+      "aggregateVersion": "19"
+    },
+    {
+      "readinessGoalKey": "goal:b9",
+      "title": "Goal 20",
+      "profileLabel": "Profile 20",
+      "profileVersionKey": "target:q9",
+      "roadmapPresent": true,
+      "aggregateVersion": "9223372036854775807"
+    }
+  ]
+}

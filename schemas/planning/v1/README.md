@@ -50,6 +50,13 @@ up.
 whose active-Track fingerprint protects the exact protected-minimum constraint without changing
 the released Growth Plan lifecycle contract.
 
+`growth-plan-initialization-control.schema.json` contains the strict first-Plan setup-source state
+envelope, deterministic preview, and applied-command result. Only `SETUP_AVAILABLE` carries the
+single initialization capability and one to 20 bounded Goal choices; every other explicit state
+carries empty capabilities and choices. The preview exposes server-derived UUIDv8 aggregate
+identity, exact Targets-owned source bindings, zero-minimum first-Track state, retained facts, and
+pending recalculation without accepting workspace or aggregate UUID authority from the browser.
+
 `learning-track-lifecycle-control.schema.json` contains the compact current Track read plus exact
 pause/resume preview and apply result. `learning-track-priority-minimum-control.schema.json` reuses
 that read unchanged and atomically proposes both resulting settings. Its preview binds both the

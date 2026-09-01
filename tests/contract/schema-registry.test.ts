@@ -59,6 +59,14 @@ describe("strict Draft 2020-12 schema registry", () => {
       "../contract/fixtures/planning/v1/growth-plan-capacity-control.valid.json",
     ],
     [
+      "growth-plan-initialization-control-v1",
+      "../contract/fixtures/planning/v1/growth-plan-initialization-control.valid.json",
+    ],
+    [
+      "growth-plan-initialization-control-v1",
+      "../contract/fixtures/planning/v1/growth-plan-initialization-control.boundary.json",
+    ],
+    [
       "learning-track-lifecycle-control-v1",
       "../contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json",
     ],

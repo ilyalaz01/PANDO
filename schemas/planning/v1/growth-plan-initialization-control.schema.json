@@ -1,0 +1,384 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v1/growth-plan-initialization-control.schema.json",
+  "title": "PANDO Growth Plan Initialization Control V1",
+  "oneOf": [
+    { "$ref": "#/$defs/setupAvailable" },
+    { "$ref": "#/$defs/setupUnavailable" },
+    { "$ref": "#/$defs/initializationPreview" },
+    { "$ref": "#/$defs/initializationApplyResult" }
+  ],
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "uuidV8": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "positiveBigint": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7])$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,198}\\S)$"
+    },
+    "trackTitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,158}\\S)$"
+    },
+    "safeLabel": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,198}\\S)$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,498}\\S)$"
+    },
+    "readinessGoalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "profileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "trackKey": {
+      "type": "string",
+      "pattern": "^track:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "contractSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "GrowthPlanSetupSourceV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "contractPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "GrowthPlanInitializationPreviewV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "contractApply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "GrowthPlanInitializationApplyResultV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "setupGoal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoalKey",
+        "title",
+        "profileLabel",
+        "profileVersionKey",
+        "roadmapPresent",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "profileLabel": { "$ref": "#/$defs/safeLabel" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "roadmapPresent": { "type": "boolean" },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "setupAvailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "state", "capabilities", "goals"],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractSource" },
+        "state": { "const": "SETUP_AVAILABLE" },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "const": "initialize_growth_plan" }
+        },
+        "goals": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/setupGoal" }
+        }
+      }
+    },
+    "setupUnavailable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "state", "capabilities", "goals"],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractSource" },
+        "state": {
+          "enum": [
+            "NO_ACTIVE_GOALS",
+            "CURRENT_PLAN_EXISTS",
+            "HISTORY_REQUIRES_REPLACEMENT",
+            "GOAL_PORTFOLIO_OVERFLOW"
+          ]
+        },
+        "capabilities": { "type": "array", "maxItems": 0 },
+        "goals": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "resolvedSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoalId",
+        "readinessGoalKey",
+        "readinessGoalTitle",
+        "readinessGoalLifecycle",
+        "readinessGoalVersion",
+        "profileVersionId",
+        "profileVersionKey",
+        "sourceKind",
+        "sourceRef",
+        "roadmapVersionId",
+        "sourceOwnerRevision"
+      ],
+      "properties": {
+        "readinessGoalId": { "$ref": "#/$defs/uuid" },
+        "readinessGoalKey": { "$ref": "#/$defs/readinessGoalKey" },
+        "readinessGoalTitle": { "$ref": "#/$defs/title" },
+        "readinessGoalLifecycle": { "const": "ACTIVE" },
+        "readinessGoalVersion": { "$ref": "#/$defs/positiveBigint" },
+        "profileVersionId": { "$ref": "#/$defs/uuid" },
+        "profileVersionKey": { "$ref": "#/$defs/profileVersionKey" },
+        "sourceKind": {
+          "enum": ["ROADMAP_TEMPLATE_VERSION", "TARGET_PROFILE_REQUIREMENT_COLLECTION"]
+        },
+        "sourceRef": { "$ref": "#/$defs/uuid" },
+        "roadmapVersionId": {
+          "oneOf": [{ "$ref": "#/$defs/uuid" }, { "type": "null" }]
+        },
+        "sourceOwnerRevision": {
+          "type": "string",
+          "pattern": "^readiness-goal:[1-9][0-9]{0,18}$"
+        }
+      }
+    },
+    "cardinalityBefore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lifetimePlanCount", "currentPlanCount", "snapshotSentinelCount"],
+      "properties": {
+        "lifetimePlanCount": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "currentPlanCount": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "snapshotSentinelCount": { "type": "integer", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "planState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "growthPlanId",
+        "title",
+        "lifecycle",
+        "weeklyCapacityMinutes",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "growthPlanId": { "$ref": "#/$defs/uuidV8" },
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "const": "ACTIVE" },
+        "weeklyCapacityMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "aggregateVersion": { "const": "1" }
+      }
+    },
+    "trackState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learningTrackId",
+        "trackKey",
+        "title",
+        "lifecycle",
+        "priority",
+        "protectedMinimumMinutes",
+        "defaultSessionMinutes",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "learningTrackId": { "$ref": "#/$defs/uuidV8" },
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/trackTitle" },
+        "lifecycle": { "const": "ACTIVE" },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "protectedMinimumMinutes": { "const": 0 },
+        "defaultSessionMinutes": { "type": "integer", "minimum": 1, "maximum": 480 },
+        "aggregateVersion": { "const": "1" }
+      }
+    },
+    "cardinalityAfter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lifetimePlanCount",
+        "currentPlanCount",
+        "currentPlanLimit",
+        "snapshotSentinelCount",
+        "growthPlan",
+        "learningTrack"
+      ],
+      "properties": {
+        "lifetimePlanCount": { "type": "integer", "minimum": 1, "maximum": 1 },
+        "currentPlanCount": { "type": "integer", "minimum": 1, "maximum": 1 },
+        "currentPlanLimit": { "const": 1 },
+        "snapshotSentinelCount": { "type": "integer", "minimum": 1, "maximum": 1 },
+        "growthPlan": { "$ref": "#/$defs/planState" },
+        "learningTrack": { "$ref": "#/$defs/trackState" }
+      }
+    },
+    "blockingReason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "enum": [
+            "CURRENT_GROWTH_PLAN_EXISTS",
+            "GROWTH_PLAN_HISTORY_REQUIRES_REPLACEMENT",
+            "PLANNING_CREATE_IDENTITY_COLLISION"
+          ]
+        }
+      }
+    },
+    "warning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": { "code": { "const": "INITIAL_TRACK_HAS_NO_ACTIVITIES" } }
+    },
+    "retained": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoal",
+        "competencyOverlay",
+        "activitiesAndEvidence",
+        "mastery",
+        "reviews",
+        "history"
+      ],
+      "properties": {
+        "readinessGoal": { "const": true },
+        "competencyOverlay": { "const": true },
+        "activitiesAndEvidence": { "const": true },
+        "mastery": { "const": true },
+        "reviews": { "const": true },
+        "history": { "const": true }
+      }
+    },
+    "recalculationAfterApply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectionState", "eventChangeKind", "consumerName"],
+      "properties": {
+        "projectionState": { "const": "PENDING" },
+        "eventChangeKind": { "const": "INITIALIZED" },
+        "consumerName": { "const": "planning.plan_snapshot_v1" }
+      }
+    },
+    "initializationPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "digestVersion",
+        "identityVersion",
+        "operation",
+        "commandType",
+        "idempotencyKey",
+        "reason",
+        "expectedReadinessGoalVersion",
+        "source",
+        "before",
+        "after",
+        "canApply",
+        "blockingReasons",
+        "warnings",
+        "retained",
+        "recalculationAfterApply",
+        "previewDigest"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractPreview" },
+        "digestVersion": { "const": "growth-plan-initialization-preview-digest/1.0.0" },
+        "identityVersion": { "const": "planning-create-identity/1.0.0" },
+        "operation": { "const": "initialize_growth_plan" },
+        "commandType": { "const": "planning.initialize_growth_plan_v2" },
+        "idempotencyKey": { "$ref": "#/$defs/uuid" },
+        "reason": { "$ref": "#/$defs/reason" },
+        "expectedReadinessGoalVersion": { "$ref": "#/$defs/positiveBigint" },
+        "source": { "$ref": "#/$defs/resolvedSource" },
+        "before": { "$ref": "#/$defs/cardinalityBefore" },
+        "after": { "$ref": "#/$defs/cardinalityAfter" },
+        "canApply": { "type": "boolean" },
+        "blockingReasons": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/blockingReason" }
+        },
+        "warnings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "$ref": "#/$defs/warning" }
+        },
+        "retained": { "$ref": "#/$defs/retained" },
+        "recalculationAfterApply": { "$ref": "#/$defs/recalculationAfterApply" },
+        "previewDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "initializationApplyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "commandId",
+        "createdPlan",
+        "createdTrack",
+        "projectionState",
+        "planningDeliveryId",
+        "emittedEventIds"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractApply" },
+        "commandId": { "$ref": "#/$defs/uuid" },
+        "createdPlan": { "$ref": "#/$defs/planState" },
+        "createdTrack": { "$ref": "#/$defs/trackState" },
+        "projectionState": { "const": "PENDING" },
+        "planningDeliveryId": { "$ref": "#/$defs/uuid" },
+        "emittedEventIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/uuid" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "contract": {
+    "name": "GrowthPlanInitializationPreviewV1",
+    "version": "1.0.0"
+  },
+  "digestVersion": "growth-plan-initialization-preview-digest/1.0.0",
+  "identityVersion": "planning-create-identity/1.0.0",
+  "operation": "initialize_growth_plan",
+  "commandType": "planning.initialize_growth_plan_v2",
+  "idempotencyKey": "10000000-0000-4000-8000-000000000001",
+  "reason": "Start deliberately",
+  "expectedReadinessGoalVersion": "8",
+  "source": {
+    "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+    "readinessGoalKey": "goal:backend-readiness",
+    "readinessGoalTitle": "Backend readiness",
+    "readinessGoalLifecycle": "ACTIVE",
+    "readinessGoalVersion": "7",
+    "profileVersionId": "30000000-0000-4000-8000-000000000001",
+    "profileVersionKey": "target:backend-engineer-v1",
+    "sourceKind": "TARGET_PROFILE_REQUIREMENT_COLLECTION",
+    "sourceRef": "40000000-0000-4000-8000-000000000001",
+    "roadmapVersionId": null,
+    "sourceOwnerRevision": "readiness-goal:6"
+  },
+  "before": {
+    "lifetimePlanCount": 0,
+    "currentPlanCount": 0,
+    "snapshotSentinelCount": 0
+  },
+  "after": {
+    "lifetimePlanCount": 1,
+    "currentPlanCount": 1,
+    "currentPlanLimit": 1,
+    "snapshotSentinelCount": 1,
+    "growthPlan": {
+      "growthPlanId": "50000000-0000-8000-8000-000000000001",
+      "title": "Wrong title",
+      "lifecycle": "ACTIVE",
+      "weeklyCapacityMinutes": 600,
+      "aggregateVersion": "1"
+    },
+    "learningTrack": {
+      "learningTrackId": "60000000-0000-8000-8000-000000000001",
+      "trackKey": "track:60000000-0000-8000-8000-000000000002",
+      "title": "Wrong title",
+      "lifecycle": "ACTIVE",
+      "priority": 50,
+      "protectedMinimumMinutes": 0,
+      "defaultSessionMinutes": 30,
+      "aggregateVersion": "1"
+    }
+  },
+  "canApply": false,
+  "blockingReasons": [],
+  "warnings": [{ "code": "INITIAL_TRACK_HAS_NO_ACTIVITIES" }],
+  "retained": {
+    "readinessGoal": true,
+    "competencyOverlay": true,
+    "activitiesAndEvidence": true,
+    "mastery": true,
+    "reviews": true,
+    "history": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "INITIALIZED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "0000000000000000000000000000000000000000000000000000000000000000"
+}

@@ -1,0 +1,21 @@
+{
+  "contract": {
+    "name": "GrowthPlanSetupSourceV1",
+    "version": "1.0.0"
+  },
+  "state": "SETUP_AVAILABLE",
+  "capabilities": ["initialize_growth_plan"],
+  "workspaceId": "90000000-0000-4000-8000-000000000001",
+  "goals": [
+    {
+      "readinessGoalKey": "goal:backend-readiness",
+      "title": "Backend readiness",
+      "profileLabel": "Backend Engineer",
+      "profileVersionKey": "target:backend-engineer-v1",
+      "roadmapPresent": true,
+      "aggregateVersion": "1",
+      "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+      "rawEvidence": ["private"]
+    }
+  ]
+}
