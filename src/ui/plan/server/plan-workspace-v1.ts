@@ -11,6 +11,14 @@ import {
   type GrowthPlanSetupSourceV1,
 } from "../../../shared/contracts/growth-plan-initialization-control";
 import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
+import {
+  decodeLearningTrackActivityAdmissionApplyResultV1 as decodeLearningTrackActivityAdmissionApplyResult,
+  decodeLearningTrackActivityAdmissionPreviewV1 as decodeLearningTrackActivityAdmissionPreview,
+  decodeLearningTrackActivityAdmissionSourceV1 as decodeLearningTrackActivityAdmissionSource,
+  type LearningTrackActivityAdmissionApplyResultV1,
+  type LearningTrackActivityAdmissionPreviewV1,
+  type LearningTrackActivityAdmissionSourceV1,
+} from "../../../shared/contracts/learning-track-activity-admission-control";
 import { learningTrackPriorityMinimumControlSemanticViolations } from "../../../shared/contracts/learning-track-priority-minimum-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
 
@@ -18,6 +26,9 @@ export type {
   GrowthPlanInitializationApplyResultV1,
   GrowthPlanInitializationPreviewV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackActivityAdmissionApplyResultV1,
+  LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionSourceV1,
 };
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -442,4 +453,25 @@ export function decodeGrowthPlanInitializationApplyResultV1(
   value: unknown,
 ): GrowthPlanInitializationApplyResultV1 {
   return decodeGrowthPlanInitializationApplyResult(value);
+}
+
+/** Decodes the bounded personal-activity selector composed by Planning. */
+export function decodeLearningTrackActivityAdmissionSourceV1(
+  value: unknown,
+): LearningTrackActivityAdmissionSourceV1 {
+  return decodeLearningTrackActivityAdmissionSource(value);
+}
+
+/** Decodes an exact, side-effect-free manual activity admission preview. */
+export function decodeLearningTrackActivityAdmissionPreviewV1(
+  value: unknown,
+): LearningTrackActivityAdmissionPreviewV1 {
+  return decodeLearningTrackActivityAdmissionPreview(value);
+}
+
+/** Decodes the atomic manual activity admission receipt. */
+export function decodeLearningTrackActivityAdmissionApplyResultV1(
+  value: unknown,
+): LearningTrackActivityAdmissionApplyResultV1 {
+  return decodeLearningTrackActivityAdmissionApplyResult(value);
 }

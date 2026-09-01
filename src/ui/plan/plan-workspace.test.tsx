@@ -10,11 +10,13 @@ vi.mock("../../app/plan/actions", () => ({
   applyLearningTrackLifecycleAction: vi.fn(),
   applyLearningTrackPriorityMinimumAction: vi.fn(),
   applyGrowthPlanInitializationAction: vi.fn(),
+  applyLearningTrackActivityAdmissionAction: vi.fn(),
   previewGrowthPlanCapacityAction: vi.fn(),
   previewGrowthPlanLifecycleAction: vi.fn(),
   previewLearningTrackLifecycleAction: vi.fn(),
   previewLearningTrackPriorityMinimumAction: vi.fn(),
   previewGrowthPlanInitializationAction: vi.fn(),
+  previewLearningTrackActivityAdmissionAction: vi.fn(),
 }));
 
 import type { PlanActionState } from "./plan-action-state";
@@ -22,10 +24,16 @@ import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
   GrowthPlanCapacityPreviewV1,
+  LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
 } from "./plan-types";
-import { previewGrowthPlanLifecycleAction } from "../../app/plan/actions";
+import {
+  previewGrowthPlanLifecycleAction,
+  previewLearningTrackActivityAdmissionAction,
+} from "../../app/plan/actions";
+import admissionPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import { PlanWorkspace } from "./plan-workspace";
 
 const workspace: CurrentGrowthPlanV1 = {
@@ -222,6 +230,41 @@ const trackSettingsPreview: LearningTrackPriorityMinimumPreviewV1 = {
     consumerName: "planning.plan_snapshot_v1",
   },
   previewDigest: "i".repeat(64),
+};
+
+const admissionPreview =
+  admissionPreviewFixture as unknown as LearningTrackActivityAdmissionPreviewV1;
+const admissionTracksWorkspace: CurrentLearningTracksV1 = {
+  ...tracksWorkspace,
+  learningTracks: [tracksWorkspace.learningTracks[0]!],
+};
+const activityAdmissionSource: LearningTrackActivityAdmissionSourceV1 = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: {
+    title: workspace.currentPlan!.title,
+    lifecycle: workspace.currentPlan!.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan!.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan!.aggregateVersion,
+  },
+  learningTrack: {
+    trackKey: admissionTracksWorkspace.learningTracks[0]!.trackKey,
+    title: admissionTracksWorkspace.learningTracks[0]!.title,
+    lifecycle: admissionTracksWorkspace.learningTracks[0]!.lifecycle,
+    priority: admissionTracksWorkspace.learningTracks[0]!.priority,
+    protectedMinimumMinutes: admissionTracksWorkspace.learningTracks[0]!.protectedMinimumMinutes,
+    defaultSessionMinutes: 30,
+    aggregateVersion: admissionTracksWorkspace.learningTracks[0]!.aggregateVersion,
+  },
+  activities: [
+    {
+      activityKey: admissionPreview.activity.activityKey,
+      title: admissionPreview.activity.title,
+      activityType: admissionPreview.activity.activityType,
+      targetCompetencyRef: admissionPreview.activity.targetCompetencyRef,
+    },
+  ],
 };
 
 const setupWorkspace: CurrentGrowthPlanV1 = {
@@ -654,5 +697,53 @@ describe("PlanWorkspace", () => {
     expect(
       screen.queryByRole("button", { name: "Confirm Track settings" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("starting an activity intent dismisses an older Plan confirmation", async () => {
+    vi.mocked(previewLearningTrackActivityAdmissionAction).mockImplementation(
+      () => new Promise<PlanActionState>(() => undefined),
+    );
+    render(
+      <PlanWorkspace
+        activityAdmissionSource={activityAdmissionSource}
+        initialPreviewState={previewed}
+        tracksWorkspace={admissionTracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm and apply" })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Why does this belong in the Plan?"), {
+      target: { value: "Add deliberate practice." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Preview activity" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Confirm and apply" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("starting another Plan intent dismisses an activity confirmation", async () => {
+    render(
+      <PlanWorkspace
+        activityAdmissionSource={activityAdmissionSource}
+        initialActivityAdmissionPreviewState={{
+          status: "previewed",
+          message: "Activity preview ready.",
+          preview: admissionPreview,
+        }}
+        tracksWorkspace={admissionTracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm and add activity" })).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Why is this changing?"), {
+      target: { value: "Pause while priorities change." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Preview change" }));
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Confirm and add activity" }),
+      ).not.toBeInTheDocument();
+    });
   });
 });

@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   load: vi.fn(),
   loadTracks: vi.fn(),
   loadSetup: vi.fn(),
+  loadAdmission: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -30,6 +31,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadCurrentGrowthPlanV1: mocks.load,
   loadCurrentLearningTracksV1: mocks.loadTracks,
   loadGrowthPlanSetupSourceV1: mocks.loadSetup,
+  loadLearningTrackActivityAdmissionSourceV1: mocks.loadAdmission,
 }));
 
 import PlanPage from "./page";
@@ -73,6 +75,34 @@ const currentPlanSetupSource = {
   capabilities: [],
   goals: [],
 } as const;
+const activityAdmissionSource = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: {
+    title: workspace.currentPlan.title,
+    lifecycle: workspace.currentPlan.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan.aggregateVersion,
+  },
+  learningTrack: {
+    trackKey: tracksWorkspace.learningTracks[0].trackKey,
+    title: tracksWorkspace.learningTracks[0].title,
+    lifecycle: tracksWorkspace.learningTracks[0].lifecycle,
+    priority: tracksWorkspace.learningTracks[0].priority,
+    protectedMinimumMinutes: tracksWorkspace.learningTracks[0].protectedMinimumMinutes,
+    defaultSessionMinutes: 45,
+    aggregateVersion: tracksWorkspace.learningTracks[0].aggregateVersion,
+  },
+  activities: [
+    {
+      activityKey: "activity:system-design-practice",
+      title: "System design practice",
+      activityType: "PROJECT",
+      targetCompetencyRef: "competency:system-design",
+    },
+  ],
+} as const;
 const setupWorkspace = {
   contract: { name: "CurrentGrowthPlanV1", version: "1.0.0" },
   currentPlan: null,
@@ -99,6 +129,14 @@ const availableSetupSource = {
     },
   ],
 } as const;
+const noPlanActivityAdmissionSource = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
+  state: "NO_CURRENT_PLAN",
+  capabilities: [],
+  growthPlan: null,
+  learningTrack: null,
+  activities: [],
+} as const;
 
 describe("PlanPage", () => {
   beforeEach(() => {
@@ -107,6 +145,7 @@ describe("PlanPage", () => {
     mocks.load.mockResolvedValue(workspace);
     mocks.loadTracks.mockResolvedValue(tracksWorkspace);
     mocks.loadSetup.mockResolvedValue(currentPlanSetupSource);
+    mocks.loadAdmission.mockResolvedValue(activityAdmissionSource);
   });
 
   it("authenticates and loads the actor-scoped current Growth Plan", async () => {
@@ -114,6 +153,7 @@ describe("PlanPage", () => {
     expect(mocks.load).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadTracks).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadSetup).toHaveBeenCalledWith({ authorized: true });
+    expect(mocks.loadAdmission).toHaveBeenCalledWith({ authorized: true });
     expect(screen.getByRole("link", { name: "Skip to Plan" })).toHaveAttribute(
       "href",
       "#plan-main",
@@ -125,16 +165,18 @@ describe("PlanPage", () => {
     expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
   });
 
-  it("renders the first-Plan setup when all three actor-scoped reads agree no Plan exists", async () => {
+  it("renders the first-Plan setup when all four actor-scoped reads agree no Plan exists", async () => {
     mocks.load.mockResolvedValue(setupWorkspace);
     mocks.loadTracks.mockResolvedValue(setupTracksWorkspace);
     mocks.loadSetup.mockResolvedValue(availableSetupSource);
+    mocks.loadAdmission.mockResolvedValue(noPlanActivityAdmissionSource);
     render(await PlanPage());
     expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();
     expect(screen.getByLabelText("Target")).toHaveValue("goal:backend-interview-readiness");
     expect(mocks.load).toHaveBeenCalledTimes(1);
     expect(mocks.loadTracks).toHaveBeenCalledTimes(1);
     expect(mocks.loadSetup).toHaveBeenCalledTimes(1);
+    expect(mocks.loadAdmission).toHaveBeenCalledTimes(1);
   });
 
   it("redirects an unauthenticated request before loading Planning", async () => {
@@ -144,6 +186,7 @@ describe("PlanPage", () => {
     expect(mocks.load).not.toHaveBeenCalled();
     expect(mocks.loadTracks).not.toHaveBeenCalled();
     expect(mocks.loadSetup).not.toHaveBeenCalled();
+    expect(mocks.loadAdmission).not.toHaveBeenCalled();
   });
 
   it("collapses private read failures into a safe retry state", async () => {
@@ -151,6 +194,15 @@ describe("PlanPage", () => {
     render(await PlanPage());
     expect(screen.getByRole("alert")).toHaveTextContent("Plan is temporarily unavailable");
     expect(screen.queryByText(/private SQL/iu)).not.toBeInTheDocument();
+  });
+
+  it("keeps core Plan controls available when only activity choices fail to load", async () => {
+    mocks.loadAdmission.mockRejectedValueOnce(new Error("private overlay detail"));
+    render(await PlanPage());
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
+    expect(screen.getByText(/Activity choices are temporarily unavailable/iu)).toBeVisible();
+    expect(screen.queryByText(/private overlay/iu)).not.toBeInTheDocument();
   });
 
   it("fails closed when the separately decoded Plan and Track reads do not agree", async () => {
@@ -173,5 +225,18 @@ describe("PlanPage", () => {
     expect(mocks.load).toHaveBeenCalledTimes(2);
     expect(mocks.loadTracks).toHaveBeenCalledTimes(2);
     expect(mocks.loadSetup).toHaveBeenCalledTimes(2);
+    expect(mocks.loadAdmission).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries and then isolates a persistently incoherent activity source", async () => {
+    mocks.loadAdmission.mockResolvedValue({
+      ...activityAdmissionSource,
+      learningTrack: { ...activityAdmissionSource.learningTrack, aggregateVersion: "99" },
+    });
+    render(await PlanPage());
+    expect(mocks.loadAdmission).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByText(/Activity choices are temporarily unavailable/iu)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Preview activity" })).not.toBeInTheDocument();
   });
 });

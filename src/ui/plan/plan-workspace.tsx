@@ -9,6 +9,7 @@ import type {
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
   LearningTrackLifecyclePreviewV1,
+  LearningTrackActivityAdmissionSourceV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
   PlanPreviewV1,
@@ -17,6 +18,7 @@ import type {
 import { initialPlanActionState, type PlanActionState } from "./plan-action-state";
 import styles from "./plan.module.css";
 import { GrowthPlanSetup } from "./growth-plan-setup";
+import { ActivityAdmission } from "./activity-admission";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -295,6 +297,8 @@ export function PlanWorkspace({
   workspace,
   tracksWorkspace,
   setupSource,
+  activityAdmissionSource,
+  activityAdmissionUnavailable = false,
   initialPreviewState = initialPlanActionState,
   initialApplyState = initialPlanActionState,
   initialCapacityPreviewState = initialPlanActionState,
@@ -305,10 +309,14 @@ export function PlanWorkspace({
   initialTrackPriorityMinimumApplyState = initialPlanActionState,
   initialInitializationPreviewState = initialPlanActionState,
   initialInitializationApplyState = initialPlanActionState,
+  initialActivityAdmissionPreviewState = initialPlanActionState,
+  initialActivityAdmissionApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
   readonly setupSource?: GrowthPlanSetupSourceV1;
+  readonly activityAdmissionSource?: LearningTrackActivityAdmissionSourceV1;
+  readonly activityAdmissionUnavailable?: boolean;
   readonly initialPreviewState?: PlanActionState;
   readonly initialApplyState?: PlanActionState;
   readonly initialCapacityPreviewState?: PlanActionState;
@@ -319,6 +327,8 @@ export function PlanWorkspace({
   readonly initialTrackPriorityMinimumApplyState?: PlanActionState;
   readonly initialInitializationPreviewState?: PlanActionState;
   readonly initialInitializationApplyState?: PlanActionState;
+  readonly initialActivityAdmissionPreviewState?: PlanActionState;
+  readonly initialActivityAdmissionApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -353,6 +363,7 @@ export function PlanWorkspace({
   const [trackSettingsReason, setTrackSettingsReason] = useState("");
   const [trackSettingsDismissed, setTrackSettingsDismissed] = useState(false);
   const [trackSettingsApplyRequestId, setTrackSettingsApplyRequestId] = useState("");
+  const [activityAdmissionDismissalVersion, setActivityAdmissionDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -522,6 +533,7 @@ export function PlanWorkspace({
           action={previewAction}
           className={styles.form}
           onSubmit={() => {
+            setActivityAdmissionDismissalVersion((version) => version + 1);
             setDismissed(false);
             setCapacityDismissed(true);
             setTrackDismissed(true);
@@ -635,6 +647,7 @@ export function PlanWorkspace({
               action={trackPreviewAction}
               className={styles.form}
               onSubmit={() => {
+                setActivityAdmissionDismissalVersion((version) => version + 1);
                 setDismissed(true);
                 setCapacityDismissed(true);
                 setTrackDismissed(false);
@@ -700,6 +713,28 @@ export function PlanWorkspace({
           </>
         )}
       </section>
+      {activityAdmissionSource ? (
+        <ActivityAdmission
+          dismissalVersion={activityAdmissionDismissalVersion}
+          initialApplyState={initialActivityAdmissionApplyState}
+          initialPreviewState={initialActivityAdmissionPreviewState}
+          onIntentStart={() => {
+            setDismissed(true);
+            setCapacityDismissed(true);
+            setTrackDismissed(true);
+            setTrackSettingsDismissed(true);
+          }}
+          source={activityAdmissionSource}
+        />
+      ) : activityAdmissionUnavailable ? (
+        <section className={styles.panel} aria-labelledby="activity-admission-heading">
+          <h2 id="activity-admission-heading">Add useful work</h2>
+          <p>
+            Activity choices are temporarily unavailable. Other Plan controls remain available;
+            nothing changed.
+          </p>
+        </section>
+      ) : null}
       {effectiveTrackPreview ? (
         <section className={styles.panel} aria-labelledby="track-preview-heading">
           <h2 id="track-preview-heading">Review Learning Track change</h2>
@@ -820,6 +855,7 @@ export function PlanWorkspace({
             action={trackPriorityMinimumPreviewAction}
             className={styles.form}
             onSubmit={() => {
+              setActivityAdmissionDismissalVersion((version) => version + 1);
               setDismissed(true);
               setCapacityDismissed(true);
               setTrackDismissed(true);
@@ -1071,6 +1107,7 @@ export function PlanWorkspace({
           action={capacityPreviewAction}
           className={styles.form}
           onSubmit={() => {
+            setActivityAdmissionDismissalVersion((version) => version + 1);
             setDismissed(true);
             setCapacityDismissed(false);
             setTrackDismissed(true);

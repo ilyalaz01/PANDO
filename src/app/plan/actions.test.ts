@@ -2,12 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   apply: vi.fn(),
+  applyActivityAdmission: vi.fn(),
   applyCapacity: vi.fn(),
   applyTrack: vi.fn(),
   applyTrackSettings: vi.fn(),
   applyInitialization: vi.fn(),
   createClient: vi.fn(),
   preview: vi.fn(),
+  previewActivityAdmission: vi.fn(),
   previewCapacity: vi.fn(),
   previewTrack: vi.fn(),
   previewTrackSettings: vi.fn(),
@@ -26,6 +28,7 @@ vi.mock("../../shared/supabase/server", () => ({
 }));
 vi.mock("../../shared/supabase/session", () => ({ verifyPandoSession: mocks.verifySession }));
 vi.mock("../../ui/plan/server/database-plan", () => ({
+  applyLearningTrackActivityAdmissionV1: mocks.applyActivityAdmission,
   applyGrowthPlanCapacityV1: mocks.applyCapacity,
   applyGrowthPlanLifecycleV1: mocks.apply,
   applyLearningTrackLifecycleV1: mocks.applyTrack,
@@ -34,6 +37,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   previewGrowthPlanCapacityV1: mocks.previewCapacity,
   previewGrowthPlanLifecycleV1: mocks.preview,
   previewLearningTrackLifecycleV1: mocks.previewTrack,
+  previewLearningTrackActivityAdmissionV1: mocks.previewActivityAdmission,
   previewLearningTrackPriorityMinimumV1: mocks.previewTrackSettings,
   previewGrowthPlanInitializationV1: mocks.previewInitialization,
   PlanConflictError: classes.PlanConflictError,
@@ -45,14 +49,18 @@ import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
   applyLearningTrackLifecycleAction,
+  applyLearningTrackActivityAdmissionAction,
   applyLearningTrackPriorityMinimumAction,
   applyGrowthPlanInitializationAction,
   previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
   previewLearningTrackLifecycleAction,
+  previewLearningTrackActivityAdmissionAction,
   previewLearningTrackPriorityMinimumAction,
   previewGrowthPlanInitializationAction,
 } from "./actions";
+
+import admissionPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 
 const client = { requestScoped: true };
 const requestId = "10000000-0000-4000-8000-000000000001";
@@ -335,6 +343,23 @@ function initializationForm(): FormData {
   return data;
 }
 
+function activityAdmissionForm(): FormData {
+  const data = new FormData();
+  data.set("activityKey", admissionPreview.activity.activityKey);
+  data.set("estimatedMinutes", String(admissionPreview.activity.estimatedMinutes));
+  data.set("energy", admissionPreview.activity.energy ?? "");
+  data.set("expectedGrowthPlanVersion", admissionPreview.expectedGrowthPlanVersion);
+  data.set("expectedLearningTrackVersion", admissionPreview.expectedLearningTrackVersion);
+  data.set("reason", admissionPreview.reason);
+  data.set("requestId", admissionPreview.requestId);
+  data.set("previewDigest", admissionPreview.previewDigest);
+  data.set("workspaceId", "attacker-selected-workspace");
+  data.set("growthPlanId", "attacker-selected-plan");
+  data.set("learningTrackId", "attacker-selected-track");
+  data.set("customActivityId", "attacker-selected-activity");
+  return data;
+}
+
 describe("Plan Server Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -350,6 +375,8 @@ describe("Plan Server Actions", () => {
     mocks.applyTrackSettings.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewInitialization.mockResolvedValue(initializationPreview);
     mocks.applyInitialization.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.previewActivityAdmission.mockResolvedValue(admissionPreview);
+    mocks.applyActivityAdmission.mockResolvedValue({ projectionState: "PENDING" });
   });
 
   it("returns a pure preview without accepting browser authority fields", async () => {
@@ -572,5 +599,90 @@ describe("Plan Server Actions", () => {
       previewLearningTrackPriorityMinimumAction(initialPlanActionState, malformed),
     ).resolves.toMatchObject({ status: "invalid" });
     expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("previews and applies manual activity admission using only bounded public selectors", async () => {
+    await expect(
+      previewLearningTrackActivityAdmissionAction(initialPlanActionState, activityAdmissionForm()),
+    ).resolves.toMatchObject({ status: "previewed", preview: admissionPreview });
+    expect(mocks.previewActivityAdmission).toHaveBeenCalledWith(client, {
+      activityKey: admissionPreview.activity.activityKey,
+      estimatedMinutes: admissionPreview.activity.estimatedMinutes,
+      energy: admissionPreview.activity.energy,
+      expectedGrowthPlanVersion: admissionPreview.expectedGrowthPlanVersion,
+      expectedLearningTrackVersion: admissionPreview.expectedLearningTrackVersion,
+      reason: admissionPreview.reason,
+      requestId: admissionPreview.requestId,
+    });
+    expect(mocks.previewActivityAdmission.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
+    expect(mocks.previewActivityAdmission.mock.calls[0]?.[1]).not.toHaveProperty("learningTrackId");
+    expect(mocks.previewActivityAdmission.mock.calls[0]?.[1]).not.toHaveProperty(
+      "customActivityId",
+    );
+
+    await expect(
+      applyLearningTrackActivityAdmissionAction(initialPlanActionState, activityAdmissionForm()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyActivityAdmission).toHaveBeenCalledWith(client, {
+      activityKey: admissionPreview.activity.activityKey,
+      estimatedMinutes: admissionPreview.activity.estimatedMinutes,
+      energy: admissionPreview.activity.energy,
+      expectedGrowthPlanVersion: admissionPreview.expectedGrowthPlanVersion,
+      expectedLearningTrackVersion: admissionPreview.expectedLearningTrackVersion,
+      reason: admissionPreview.reason,
+      requestId: admissionPreview.requestId,
+      previewDigest: admissionPreview.previewDigest,
+    });
+    expect(mocks.revalidate).toHaveBeenCalledWith("/plan");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/today");
+  });
+
+  it("supports unspecified activity energy and rejects malformed admission fields early", async () => {
+    const unspecifiedEnergy = activityAdmissionForm();
+    unspecifiedEnergy.set("energy", "");
+    await expect(
+      previewLearningTrackActivityAdmissionAction(initialPlanActionState, unspecifiedEnergy),
+    ).resolves.toMatchObject({ status: "previewed" });
+    expect(mocks.previewActivityAdmission).toHaveBeenLastCalledWith(
+      client,
+      expect.objectContaining({ energy: null }),
+    );
+
+    for (const [name, value] of [
+      ["estimatedMinutes", "0"],
+      ["estimatedMinutes", "481"],
+      ["estimatedMinutes", "45.5"],
+      ["energy", "EXTREME"],
+      ["activityKey", "activity:Other"],
+      ["requestId", "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"],
+    ] as const) {
+      mocks.previewActivityAdmission.mockClear();
+      const malformed = activityAdmissionForm();
+      malformed.set(name, value);
+      await expect(
+        previewLearningTrackActivityAdmissionAction(initialPlanActionState, malformed),
+      ).resolves.toMatchObject({ status: "invalid" });
+      expect(mocks.previewActivityAdmission).not.toHaveBeenCalled();
+    }
+
+    mocks.applyActivityAdmission.mockClear();
+    const badDigest = activityAdmissionForm();
+    badDigest.set("previewDigest", "not-a-digest");
+    await expect(
+      applyLearningTrackActivityAdmissionAction(initialPlanActionState, badDigest),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.applyActivityAdmission).not.toHaveBeenCalled();
+  });
+
+  it("maps a stale activity admission preview to a safe conflict", async () => {
+    mocks.applyActivityAdmission.mockRejectedValueOnce(
+      new classes.PlanConflictError("private authority details"),
+    );
+    const result = await applyLearningTrackActivityAdmissionAction(
+      initialPlanActionState,
+      activityAdmissionForm(),
+    );
+    expect(result).toMatchObject({ status: "conflict", preview: null });
+    expect(result.message).not.toMatch(/authority/iu);
   });
 });

@@ -6,6 +6,9 @@ import {
   decodeGrowthPlanInitializationApplyResultV1,
   decodeGrowthPlanInitializationPreviewV1,
   decodeGrowthPlanSetupSourceV1,
+  decodeLearningTrackActivityAdmissionApplyResultV1,
+  decodeLearningTrackActivityAdmissionPreviewV1,
+  decodeLearningTrackActivityAdmissionSourceV1,
   decodeGrowthPlanCapacityApplyResultV1,
   decodeGrowthPlanCapacityPreviewV1,
   decodeGrowthPlanLifecycleApplyResultV1,
@@ -25,6 +28,9 @@ import {
   type GrowthPlanLifecycleApplyResultV1,
   type GrowthPlanLifecycleOperationV1,
   type GrowthPlanLifecyclePreviewV1,
+  type LearningTrackActivityAdmissionApplyResultV1,
+  type LearningTrackActivityAdmissionPreviewV1,
+  type LearningTrackActivityAdmissionSourceV1,
   type LearningTrackLifecycleApplyResultV1,
   type LearningTrackLifecycleOperationV1,
   type LearningTrackLifecyclePreviewV1,
@@ -50,12 +56,19 @@ export const PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
   "preview_growth_plan_initialization_v1" as const;
 export const APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
   "apply_growth_plan_initialization_v1" as const;
+export const GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1 =
+  "get_learning_track_activity_admission_source_v1" as const;
+export const PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1 =
+  "preview_learning_track_activity_admission_v1" as const;
+export const APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1 =
+  "apply_learning_track_activity_admission_v1" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
 const CONTROL_CHARACTER = /[\p{Cc}]/u;
 const MAX_POSTGRES_BIGINT = BigInt("9223372036854775807");
 const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
+const ACTIVITY_KEY = /^activity:[a-z0-9][a-z0-9-]{1,100}$/u;
 const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
 const LOWERCASE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
@@ -140,6 +153,20 @@ export interface GrowthPlanInitializationPreviewCommandV1 {
 }
 
 export interface GrowthPlanInitializationApplyCommandV1 extends GrowthPlanInitializationPreviewCommandV1 {
+  readonly previewDigest: string;
+}
+
+export interface LearningTrackActivityAdmissionPreviewCommandV1 {
+  readonly activityKey: string;
+  readonly estimatedMinutes: number;
+  readonly energy: "LOW" | "MEDIUM" | "HIGH" | null;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly reason: string;
+  readonly requestId: string;
+}
+
+export interface LearningTrackActivityAdmissionApplyCommandV1 extends LearningTrackActivityAdmissionPreviewCommandV1 {
   readonly previewDigest: string;
 }
 
@@ -253,6 +280,22 @@ function validInitializationPreview(command: GrowthPlanInitializationPreviewComm
   );
 }
 
+function validActivityAdmissionPreview(
+  command: LearningTrackActivityAdmissionPreviewCommandV1,
+): boolean {
+  return (
+    ACTIVITY_KEY.test(command.activityKey) &&
+    Number.isInteger(command.estimatedMinutes) &&
+    command.estimatedMinutes >= 1 &&
+    command.estimatedMinutes <= 480 &&
+    (command.energy === null || ["LOW", "MEDIUM", "HIGH"].includes(command.energy)) &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validVersion(command.expectedLearningTrackVersion) &&
+    validReason(command.reason) &&
+    LOWERCASE_UUID.test(command.requestId)
+  );
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
@@ -268,8 +311,11 @@ async function rpc(
     | typeof APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
     | typeof GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1
     | typeof PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1
-    | typeof APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1,
-  parameters?: Record<string, string | number>,
+    | typeof APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1
+    | typeof GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1
+    | typeof PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
+  parameters?: Record<string, string | number | null>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
   try {
@@ -640,6 +686,89 @@ export async function applyGrowthPlanInitializationV1(
         p_track_priority: command.trackPriority,
         p_reason: command.reason,
         p_idempotency_key: command.idempotencyKey,
+        p_preview_digest: command.previewDigest,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads the bounded, actor-scoped personal activity choices for the initial Track. */
+export async function loadLearningTrackActivityAdmissionSourceV1(
+  client: PandoSupabaseClient,
+): Promise<LearningTrackActivityAdmissionSourceV1> {
+  try {
+    return decodeLearningTrackActivityAdmissionSourceV1(
+      await rpc(client, GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds the exact, side-effect-free manual activity admission preview. */
+export async function previewLearningTrackActivityAdmissionV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackActivityAdmissionPreviewCommandV1,
+): Promise<LearningTrackActivityAdmissionPreviewV1> {
+  if (!validActivityAdmissionPreview(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackActivityAdmissionPreviewV1(
+      await rpc(client, PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1, {
+        p_activity_key: command.activityKey,
+        p_estimated_minutes: command.estimatedMinutes,
+        p_energy: command.energy,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+        p_request_id: command.requestId,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the exact manual activity admission preview the user confirmed. */
+export async function applyLearningTrackActivityAdmissionV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackActivityAdmissionApplyCommandV1,
+): Promise<LearningTrackActivityAdmissionApplyResultV1> {
+  if (!validActivityAdmissionPreview(command) || !SHA_256_HEX.test(command.previewDigest)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackActivityAdmissionApplyResultV1(
+      await rpc(client, APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1, {
+        p_activity_key: command.activityKey,
+        p_estimated_minutes: command.estimatedMinutes,
+        p_energy: command.energy,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+        p_request_id: command.requestId,
         p_preview_digest: command.previewDigest,
       }),
     );

@@ -71,6 +71,19 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_learning_track_activity_admission_v1: {
+        Args: {
+          p_activity_key: string
+          p_energy: string
+          p_estimated_minutes: number
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_preview_digest: string
+          p_reason: string
+          p_request_id: string
+        }
+        Returns: Json
+      }
       apply_learning_track_lifecycle_v1: {
         Args: {
           p_expected_growth_plan_version: string
@@ -329,6 +342,10 @@ export type Database = {
         Returns: Json
       }
       get_growth_plan_setup_source_v1: { Args: never; Returns: Json }
+      get_learning_track_activity_admission_source_v1: {
+        Args: never
+        Returns: Json
+      }
       get_mastery_projection_health_v1: { Args: never; Returns: Json }
       get_plan_snapshot_projection_health_v1: { Args: never; Returns: Json }
       get_readiness_goal: {
@@ -413,6 +430,18 @@ export type Database = {
           p_expected_growth_plan_version: string
           p_operation: string
           p_reason: string
+        }
+        Returns: Json
+      }
+      preview_learning_track_activity_admission_v1: {
+        Args: {
+          p_activity_key: string
+          p_energy: string
+          p_estimated_minutes: number
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_reason: string
+          p_request_id: string
         }
         Returns: Json
       }

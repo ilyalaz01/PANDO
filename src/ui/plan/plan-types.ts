@@ -3,6 +3,11 @@ import type {
   GrowthPlanInitializationPreviewV1,
   GrowthPlanSetupSourceV1,
 } from "../../shared/contracts/growth-plan-initialization-control";
+import type {
+  LearningTrackActivityAdmissionApplyResultV1,
+  LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionSourceV1,
+} from "../../shared/contracts/learning-track-activity-admission-control";
 
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
@@ -198,7 +203,8 @@ export type PlanPreviewV1 =
   | GrowthPlanCapacityPreviewV1
   | LearningTrackLifecyclePreviewV1
   | LearningTrackPriorityMinimumPreviewV1
-  | GrowthPlanInitializationPreviewV1;
+  | GrowthPlanInitializationPreviewV1
+  | LearningTrackActivityAdmissionPreviewV1;
 
 export interface CurrentGrowthPlanV1 {
   readonly contract: { readonly name: "CurrentGrowthPlanV1"; readonly version: "1.0.0" };
@@ -215,4 +221,7 @@ export type {
   GrowthPlanInitializationApplyResultV1,
   GrowthPlanInitializationPreviewV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackActivityAdmissionApplyResultV1,
+  LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionSourceV1,
 };

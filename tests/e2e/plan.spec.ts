@@ -15,6 +15,11 @@ async function openSetupFixture(page: import("@playwright/test").Page) {
   ).toBeVisible();
 }
 
+async function openActivityFixture(page: import("@playwright/test").Page, kind = "activity") {
+  await page.goto(`/dev/plan-fixture?preview=${kind}`);
+  await expect(page.getByRole("heading", { name: "Add useful work", level: 2 })).toBeVisible();
+}
+
 test("shows an exact lifecycle preview and keeps confirmation keyboard-operable", async ({
   page,
 }) => {
@@ -56,6 +61,19 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await expect(page.getByRole("button", { name: "Preview Track settings" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Confirm Track settings" })).toBeFocused();
+
+  await openActivityFixture(page);
+  await page.getByLabel("Personal activity").focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Estimated minutes")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Energy (optional)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByLabel("Why does this belong in the Plan?")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Preview activity" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Confirm and add activity" })).toBeFocused();
 });
 
 test("fits 320px with touch-sized Plan controls", async ({ page }) => {
@@ -109,6 +127,22 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     const controlBox = await control.boundingBox();
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
+
+  await openActivityFixture(page);
+  const activityDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(activityDimensions.scrollWidth).toBeLessThanOrEqual(activityDimensions.clientWidth);
+  for (const control of [
+    page.getByLabel("Personal activity"),
+    page.getByLabel("Estimated minutes"),
+    page.getByLabel("Energy (optional)"),
+    page.getByRole("button", { name: "Confirm and add activity" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("honors reduced motion and forced-colors focus visibility", async ({ page }) => {
@@ -152,6 +186,16 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   }));
   expect(setupStyles.outlineStyle).not.toBe("none");
   expect(setupStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
+  await openActivityFixture(page);
+  const activityControl = page.getByRole("button", { name: "Confirm and add activity" });
+  await activityControl.focus();
+  const activityStyles = await activityControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(activityStyles.outlineStyle).not.toBe("none");
+  expect(activityStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 });
 
 test("has no automatically detectable WCAG A/AA violations", async ({ page }) => {
@@ -172,6 +216,40 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(setupResults.violations).toEqual([]);
+
+  await openActivityFixture(page);
+  const activityResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(activityResults.violations).toEqual([]);
+});
+
+test("shows exact activity admission consequences and all fail-closed source states", async ({
+  page,
+}) => {
+  await openActivityFixture(page);
+  const comparison = page.getByLabel("Exact activity admission preview");
+  await expect(comparison).toContainText("SQL practice");
+  await expect(comparison).toContainText("45 minutes");
+  await expect(comparison).toContainText("2 → 3 / 200");
+  await expect(comparison).toContainText("4 (unchanged)");
+  await expect(page.getByRole("button", { name: "Confirm and add activity" })).toBeEnabled();
+
+  await openActivityFixture(page, "activity-blocked");
+  await expect(page.getByText(/The Plan has reached its 200-activity limit/iu)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Confirm and add activity" })).toHaveCount(0);
+
+  for (const [kind, copy, explore] of [
+    ["activity-empty", /No accepted personal activity/iu, true],
+    ["activity-limit", /already has 200 current activities/iu, false],
+    ["activity-overflow", /More than 200 personal activities/iu, true],
+    ["activity-unavailable", /exactly one current Track/iu, false],
+  ] as const) {
+    await openActivityFixture(page, kind);
+    await expect(page.getByText(copy)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Preview activity" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Open Explore" })).toHaveCount(explore ? 1 : 0);
+  }
 });
 
 test("shows an exact first-Plan setup preview and keeps its confirmation keyboard-operable", async ({

@@ -671,16 +671,52 @@ try {
     "failed Today must not expose actionable plan selectors",
   );
 
-  const admittedActivity = await readinessVerifier.rpc("add_learning_track_activity_v1", {
-    p_learning_track_key: initializedTrackKey,
-    p_activity_key: activityKey,
-    p_estimated_minutes: 25,
-    p_expected_learning_track_version: "1",
-    p_idempotency_key: "auth-gate-track-activity-v1",
-    p_energy: "MEDIUM",
+  await page.goto(`${baseUrl}/plan`);
+  await page.getByRole("heading", { name: "Add useful work" }).waitFor();
+  const activityAdmissionForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview activity" }),
   });
-  assert.equal(admittedActivity.error, null, "authenticated Track activity admission must succeed");
-  assert.equal(admittedActivity.data?.activityKey, activityKey);
+  assert.deepEqual(
+    await activityAdmissionForm
+      .locator("input, select, textarea")
+      .evaluateAll((controls) =>
+        controls.map((control) => control.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    [
+      "expectedGrowthPlanVersion",
+      "expectedLearningTrackVersion",
+      "requestId",
+      "activityKey",
+      "estimatedMinutes",
+      "energy",
+      "reason",
+    ],
+    "activity admission must expose only public selectors, bounded values, version fences, reason, and request UUID",
+  );
+  assert.equal(
+    await activityAdmissionForm.getByLabel("Personal activity").inputValue(),
+    activityKey,
+    "activity admission must select only an actor-scoped opaque activity key",
+  );
+  await activityAdmissionForm.getByLabel("Estimated minutes").fill("25");
+  await activityAdmissionForm.getByLabel("Energy (optional)").selectOption("MEDIUM");
+  await activityAdmissionForm
+    .getByLabel("Why does this belong in the Plan?")
+    .fill("Add the authenticated personal activity through an exact Planning preview.");
+  await activityAdmissionForm.getByRole("button", { name: "Preview activity" }).click();
+  await page.getByRole("heading", { name: "Review activity admission" }).waitFor();
+  await page.getByText(activityTitle, { exact: true }).waitFor();
+  await page.getByText("25 minutes", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Confirm and add activity" }).click();
+  await page.getByText(/No accepted personal activity is ready/iu).waitFor();
+
+  const admittedTracks = await readinessVerifier.rpc("get_current_learning_tracks_v1");
+  assert.equal(admittedTracks.error, null, "admitted Track must reload after browser confirmation");
+  assert.equal(
+    admittedTracks.data?.learningTracks?.[0]?.aggregateVersion,
+    "2",
+    "manual activity admission must advance only the Track version once",
+  );
 
   await page.goto(`${baseUrl}/today`);
   await page.getByRole("heading", { name: "Today is checking changed inputs." }).waitFor();
@@ -1399,6 +1435,6 @@ if (receivedSignal) {
   throw finalError;
 } else {
   process.stdout.write(
-    "isolated auth, target selection, Plan lifecycle, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
+    "isolated auth, target selection, Plan lifecycle/activity admission, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
   );
 }

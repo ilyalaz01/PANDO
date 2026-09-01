@@ -13,11 +13,13 @@ import {
   loadCurrentGrowthPlanV1,
   loadCurrentLearningTracksV1,
   loadGrowthPlanSetupSourceV1,
+  loadLearningTrackActivityAdmissionSourceV1,
 } from "../../ui/plan/server/database-plan";
 import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackActivityAdmissionSourceV1,
 } from "../../ui/plan/plan-types";
 
 export const dynamic = "force-dynamic";
@@ -42,36 +44,83 @@ function planningReadsAgree(
       plan.lifecycle === trackPlan.lifecycle &&
       plan.weeklyCapacityMinutes === trackPlan.weeklyCapacityMinutes &&
       plan.aggregateVersion === trackPlan.aggregateVersion);
-  return (
-    planAndTracksAgree &&
-    (plan === null
+  const setupAgrees =
+    plan === null
       ? setupSource.state !== "CURRENT_PLAN_EXISTS"
-      : setupSource.state === "CURRENT_PLAN_EXISTS")
-  );
+      : setupSource.state === "CURRENT_PLAN_EXISTS";
+  return planAndTracksAgree && setupAgrees;
+}
+
+function activityAdmissionReadAgrees(
+  workspace: CurrentGrowthPlanV1,
+  tracksWorkspace: CurrentLearningTracksV1,
+  activityAdmissionSource: LearningTrackActivityAdmissionSourceV1,
+): boolean {
+  const plan = workspace.currentPlan;
+  const admissionPlan = activityAdmissionSource.growthPlan;
+  const admissionTrack = activityAdmissionSource.learningTrack;
+  const admissionPlanAgrees =
+    plan === null
+      ? activityAdmissionSource.state === "NO_CURRENT_PLAN" && admissionPlan === null
+      : admissionPlan !== null &&
+        admissionPlan.title === plan.title &&
+        admissionPlan.lifecycle === plan.lifecycle &&
+        admissionPlan.weeklyCapacityMinutes === plan.weeklyCapacityMinutes &&
+        admissionPlan.aggregateVersion === plan.aggregateVersion;
+  const soleTrack = tracksWorkspace.learningTracks[0];
+  const admissionTrackAgrees =
+    tracksWorkspace.learningTracks.length === 1 && soleTrack !== undefined
+      ? admissionTrack !== null &&
+        admissionTrack.trackKey === soleTrack.trackKey &&
+        admissionTrack.title === soleTrack.title &&
+        admissionTrack.lifecycle === soleTrack.lifecycle &&
+        admissionTrack.priority === soleTrack.priority &&
+        admissionTrack.protectedMinimumMinutes === soleTrack.protectedMinimumMinutes &&
+        admissionTrack.aggregateVersion === soleTrack.aggregateVersion
+      : plan === null
+        ? admissionTrack === null
+        : activityAdmissionSource.state === "CURRENT_TRACK_PORTFOLIO_UNAVAILABLE" &&
+          admissionTrack === null;
+  return admissionPlanAgrees && admissionTrackAgrees;
 }
 
 export default async function PlanPage() {
   let workspace: CurrentGrowthPlanV1;
   let tracksWorkspace: CurrentLearningTracksV1;
   let setupSource: GrowthPlanSetupSourceV1;
+  let activityAdmissionSource: LearningTrackActivityAdmissionSourceV1 | undefined;
+  let activityAdmissionUnavailable = false;
   try {
     const client = await createPandoServerComponentClient();
     const authorizedClient = (await verifyPandoSession(client)).client;
-    [workspace, tracksWorkspace, setupSource] = await Promise.all([
+    [workspace, tracksWorkspace, setupSource, activityAdmissionSource] = await Promise.all([
       loadCurrentGrowthPlanV1(authorizedClient),
       loadCurrentLearningTracksV1(authorizedClient),
       loadGrowthPlanSetupSourceV1(authorizedClient),
+      loadLearningTrackActivityAdmissionSourceV1(authorizedClient).catch(() => undefined),
     ]);
-    if (!planningReadsAgree(workspace, tracksWorkspace, setupSource)) {
-      [workspace, tracksWorkspace, setupSource] = await Promise.all([
+    if (
+      !planningReadsAgree(workspace, tracksWorkspace, setupSource) ||
+      (activityAdmissionSource !== undefined &&
+        !activityAdmissionReadAgrees(workspace, tracksWorkspace, activityAdmissionSource))
+    ) {
+      [workspace, tracksWorkspace, setupSource, activityAdmissionSource] = await Promise.all([
         loadCurrentGrowthPlanV1(authorizedClient),
         loadCurrentLearningTracksV1(authorizedClient),
         loadGrowthPlanSetupSourceV1(authorizedClient),
+        loadLearningTrackActivityAdmissionSourceV1(authorizedClient).catch(() => undefined),
       ]);
     }
     if (!planningReadsAgree(workspace, tracksWorkspace, setupSource)) {
       throw new Error("Planning reads changed while loading.");
     }
+    if (
+      activityAdmissionSource !== undefined &&
+      !activityAdmissionReadAgrees(workspace, tracksWorkspace, activityAdmissionSource)
+    ) {
+      activityAdmissionSource = undefined;
+    }
+    activityAdmissionUnavailable = activityAdmissionSource === undefined;
   } catch (error) {
     if (error instanceof AuthenticatedSessionRequiredError) redirect("/sign-in");
     return (
@@ -103,6 +152,8 @@ export default async function PlanPage() {
       </header>
       <main className={styles.main} id="plan-main" tabIndex={-1}>
         <PlanWorkspace
+          {...(activityAdmissionSource === undefined ? {} : { activityAdmissionSource })}
+          activityAdmissionUnavailable={activityAdmissionUnavailable}
           setupSource={setupSource}
           tracksWorkspace={tracksWorkspace}
           workspace={workspace}

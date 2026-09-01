@@ -8,6 +8,7 @@ import { initialPlanActionState } from "../../ui/plan/plan-action-state";
 import type { PlanOperation, TrackOperation } from "../../ui/plan/plan-types";
 import {
   applyLearningTrackLifecycleV1,
+  applyLearningTrackActivityAdmissionV1,
   applyLearningTrackPriorityMinimumV1,
   applyGrowthPlanInitializationV1,
   applyGrowthPlanCapacityV1,
@@ -15,6 +16,7 @@ import {
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
+  previewLearningTrackActivityAdmissionV1,
   previewLearningTrackPriorityMinimumV1,
   previewGrowthPlanInitializationV1,
   PlanConflictError,
@@ -26,6 +28,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const OPERATIONS = ["pause_growth_plan", "resume_growth_plan"] as const;
 const CAPACITY = /^(?:0|[1-9][0-9]{0,4})$/u;
 const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
+const ACTIVITY_KEY = /^activity:[a-z0-9][a-z0-9-]{1,100}$/u;
 const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
 const TRACK_OPERATIONS = ["pause_track", "resume_track"] as const;
 const PRIORITY = /^(?:0|[1-9][0-9]{0,2})$/u;
@@ -176,6 +179,47 @@ function initializationInput(formData: FormData): {
     weeklyCapacityMinutes: Number(weeklyCapacityMinutes),
     defaultSessionMinutes: Number(defaultSessionMinutes),
     trackPriority: Number(trackPriority),
+    reason,
+    requestId,
+  };
+}
+
+function activityAdmissionInput(formData: FormData): {
+  activityKey: string;
+  estimatedMinutes: number;
+  energy: "LOW" | "MEDIUM" | "HIGH" | null;
+  growthPlanVersion: string;
+  learningTrackVersion: string;
+  reason: string;
+  requestId: string;
+} {
+  const activityKey = field(formData, "activityKey");
+  const estimatedMinutes = field(formData, "estimatedMinutes");
+  const energyInput = field(formData, "energy");
+  const growthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const learningTrackVersion = field(formData, "expectedLearningTrackVersion");
+  const reason = field(formData, "reason");
+  const requestId = field(formData, "requestId");
+  const energy = energyInput === "" ? null : energyInput;
+  if (
+    !ACTIVITY_KEY.test(activityKey) ||
+    !/^[1-9][0-9]{0,2}$/u.test(estimatedMinutes) ||
+    Number(estimatedMinutes) > 480 ||
+    (energy !== null && !["LOW", "MEDIUM", "HIGH"].includes(energy)) ||
+    !VERSION.test(growthPlanVersion) ||
+    !VERSION.test(learningTrackVersion) ||
+    !validReason(reason) ||
+    !UUID.test(requestId) ||
+    requestId !== requestId.toLowerCase()
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    activityKey,
+    estimatedMinutes: Number(estimatedMinutes),
+    energy: energy as "LOW" | "MEDIUM" | "HIGH" | null,
+    growthPlanVersion,
+    learningTrackVersion,
     reason,
     requestId,
   };
@@ -506,6 +550,74 @@ export async function applyLearningTrackPriorityMinimumAction(
     return failure(
       error,
       "Choose a current Track, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function previewLearningTrackActivityAdmissionAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = activityAdmissionInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewLearningTrackActivityAdmissionV1(client, {
+      activityKey: value.activityKey,
+      estimatedMinutes: value.estimatedMinutes,
+      energy: value.energy,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+      requestId: value.requestId,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "Activity preview ready. Confirm only if these exact facts are correct."
+        : "This Growth Plan has reached its current activity limit.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose an available activity, use 1 to 480 whole minutes, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyLearningTrackActivityAdmissionAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = activityAdmissionInput(formData);
+    const previewDigest = field(formData, "previewDigest");
+    if (!/^[a-f0-9]{64}$/u.test(previewDigest)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyLearningTrackActivityAdmissionV1(client, {
+      activityKey: value.activityKey,
+      estimatedMinutes: value.estimatedMinutes,
+      energy: value.energy,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+      requestId: value.requestId,
+      previewDigest,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Activity added to the Track. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose an available activity, use 1 to 480 whole minutes, and enter a reason. Nothing changed.",
     );
   }
 }

@@ -4,6 +4,7 @@ import boundary from "../../../../tests/contract/fixtures/planning/v1/growth-pla
 import preview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.valid.json";
 import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json";
 import trackSettingsPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json";
+import admissionPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import {
   decodeCurrentLearningTracksV1,
   decodeCurrentGrowthPlanV1,
@@ -13,6 +14,9 @@ import {
   decodeGrowthPlanLifecyclePreviewV1,
   decodeLearningTrackLifecycleApplyResultV1,
   decodeLearningTrackLifecyclePreviewV1,
+  decodeLearningTrackActivityAdmissionApplyResultV1,
+  decodeLearningTrackActivityAdmissionPreviewV1,
+  decodeLearningTrackActivityAdmissionSourceV1,
   decodeLearningTrackPriorityMinimumApplyResultV1,
   decodeLearningTrackPriorityMinimumPreviewV1,
   GrowthPlanControlContractError,
@@ -160,5 +164,63 @@ describe("Growth Plan control V1 server decoder", () => {
         workspaceId: "private",
       }),
     ).toThrow(GrowthPlanControlContractError);
+  });
+
+  it("decodes only the public manual activity admission source, preview, and receipt", () => {
+    const source = {
+      contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
+      state: "READY",
+      capabilities: ["admit_activity_to_learning_track"],
+      growthPlan: admissionPreview.growthPlan,
+      learningTrack: {
+        trackKey: admissionPreview.learningTrack.trackKey,
+        title: admissionPreview.learningTrack.title,
+        lifecycle: admissionPreview.learningTrack.lifecycle,
+        priority: admissionPreview.learningTrack.priority,
+        protectedMinimumMinutes: admissionPreview.learningTrack.protectedMinimumMinutes,
+        defaultSessionMinutes: admissionPreview.learningTrack.defaultSessionMinutes,
+        aggregateVersion: admissionPreview.learningTrack.aggregateVersionBefore,
+      },
+      activities: [
+        {
+          activityKey: admissionPreview.activity.activityKey,
+          title: admissionPreview.activity.title,
+          activityType: admissionPreview.activity.activityType,
+          targetCompetencyRef: admissionPreview.activity.targetCompetencyRef,
+        },
+      ],
+    };
+    const result = {
+      contract: { name: "LearningTrackActivityAdmissionApplyResultV1", version: "1.0.0" },
+      commandId: uuid,
+      changedTrack: {
+        trackKey: admissionPreview.learningTrack.trackKey,
+        aggregateVersion: admissionPreview.learningTrack.aggregateVersionAfter,
+      },
+      admittedActivity: {
+        activityKey: admissionPreview.activity.activityKey,
+        candidateKey: admissionPreview.activity.candidateKey,
+        estimatedMinutes: admissionPreview.activity.estimatedMinutes,
+        energy: admissionPreview.activity.energy,
+      },
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+
+    expect(decodeLearningTrackActivityAdmissionSourceV1(source)).toEqual(source);
+    expect(decodeLearningTrackActivityAdmissionPreviewV1(admissionPreview)).toEqual(
+      admissionPreview,
+    );
+    expect(decodeLearningTrackActivityAdmissionApplyResultV1(result)).toEqual(result);
+    expect(() =>
+      decodeLearningTrackActivityAdmissionPreviewV1({
+        ...admissionPreview,
+        internal: { workspaceId: uuid },
+      }),
+    ).toThrow(/failed its contract/iu);
+    expect(() => decodeLearningTrackActivityAdmissionSourceV1(admissionPreview)).toThrow(
+      /failed its contract/iu,
+    );
   });
 });

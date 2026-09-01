@@ -6,6 +6,7 @@ import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackActivityAdmissionSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
@@ -65,6 +66,104 @@ const tracksWorkspace: CurrentLearningTracksV1 = {
     },
   ],
 };
+
+const activityTracksWorkspace: CurrentLearningTracksV1 = {
+  ...tracksWorkspace,
+  learningTracks: [tracksWorkspace.learningTracks[0]!],
+};
+
+const readyActivitySource: LearningTrackActivityAdmissionSourceV1 = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: {
+    title: plan.title,
+    lifecycle: plan.lifecycle,
+    weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+    aggregateVersion: plan.aggregateVersion,
+  },
+  learningTrack: {
+    trackKey: activityTracksWorkspace.learningTracks[0]!.trackKey,
+    title: activityTracksWorkspace.learningTracks[0]!.title,
+    lifecycle: activityTracksWorkspace.learningTracks[0]!.lifecycle,
+    priority: activityTracksWorkspace.learningTracks[0]!.priority,
+    protectedMinimumMinutes: activityTracksWorkspace.learningTracks[0]!.protectedMinimumMinutes,
+    defaultSessionMinutes: 30,
+    aggregateVersion: activityTracksWorkspace.learningTracks[0]!.aggregateVersion,
+  },
+  activities: [
+    {
+      activityKey: "activity:sql-practice",
+      title: "SQL practice",
+      activityType: "MANUAL_CODING",
+      targetCompetencyRef: "competency:sql",
+    },
+  ],
+};
+
+function activitySourceState(
+  state: Exclude<LearningTrackActivityAdmissionSourceV1["state"], "READY" | "NO_CURRENT_PLAN">,
+): LearningTrackActivityAdmissionSourceV1 {
+  return {
+    ...readyActivitySource,
+    state,
+    capabilities: [],
+    learningTrack:
+      state === "CURRENT_TRACK_PORTFOLIO_UNAVAILABLE" ? null : readyActivitySource.learningTrack,
+    activities: [],
+  };
+}
+
+function activityPreviewState(blocked: boolean): PlanActionState {
+  return {
+    status: "previewed",
+    message: blocked
+      ? "This Growth Plan has reached its current activity limit."
+      : "Activity preview ready. Confirm only if these exact facts are correct.",
+    preview: {
+      contract: { name: "LearningTrackActivityAdmissionPreviewV1", version: "1.0.0" },
+      digestVersion: "learning-track-activity-admission-preview-digest/1.0.0",
+      operation: "admit_activity_to_learning_track",
+      commandType: "planning.add_learning_track_activity_v2",
+      requestId: "50000000-0000-4000-8000-000000000001",
+      reason: "Add deliberate SQL practice to this Track.",
+      expectedGrowthPlanVersion: plan.aggregateVersion,
+      expectedLearningTrackVersion: activityTracksWorkspace.learningTracks[0]!.aggregateVersion,
+      growthPlan: readyActivitySource.growthPlan!,
+      learningTrack: {
+        ...readyActivitySource.learningTrack!,
+        aggregateVersionBefore: activityTracksWorkspace.learningTracks[0]!.aggregateVersion,
+        aggregateVersionAfter: "3",
+      },
+      activity: {
+        ...readyActivitySource.activities[0]!,
+        candidateKey: "candidate:50000000-0000-4000-8000-000000000001",
+        estimatedMinutes: 45,
+        energy: "MEDIUM",
+      },
+      constraint: {
+        planActivityCountBefore: blocked ? 200 : 2,
+        planActivityCountAfter: blocked ? 201 : 3,
+        planActivityLimit: 200,
+      },
+      canApply: !blocked,
+      blockingReasons: blocked ? [{ code: "PLAN_ACTIVITY_LIMIT_REACHED" }] : [],
+      warnings: [],
+      retained: {
+        activitiesAndEvidence: true,
+        planSnapshots: true,
+        focusSessions: true,
+        masteryAndReadiness: true,
+      },
+      recalculationAfterApply: {
+        projectionState: "PENDING",
+        eventChangeKind: "TRACK_ACTIVITY_ADMITTED",
+        consumerName: "planning.plan_snapshot_v1",
+      },
+      previewDigest: "f".repeat(64),
+    },
+  };
+}
 
 const setupWorkspace: CurrentGrowthPlanV1 = {
   contract: { name: "CurrentGrowthPlanV1", version: "1.0.0" },
@@ -376,6 +475,17 @@ export default async function PlanFixturePage({
   const showsTrackSettings =
     previewKind === "track-settings" || previewKind === "track-settings-blocked";
   const showsInitialization = previewKind === "setup";
+  const showsActivity = previewKind.startsWith("activity");
+  const activitySource =
+    previewKind === "activity-empty"
+      ? activitySourceState("NO_ELIGIBLE_ACTIVITIES")
+      : previewKind === "activity-limit"
+        ? activitySourceState("PLAN_ACTIVITY_LIMIT_REACHED")
+        : previewKind === "activity-overflow"
+          ? activitySourceState("ELIGIBLE_ACTIVITY_PORTFOLIO_OVERFLOW")
+          : previewKind === "activity-unavailable"
+            ? activitySourceState("CURRENT_TRACK_PORTFOLIO_UNAVAILABLE")
+            : readyActivitySource;
   return (
     <div className={styles.page}>
       <SkipLink targetId="plan-main">Skip to Plan</SkipLink>
@@ -387,6 +497,11 @@ export default async function PlanFixturePage({
       </header>
       <main className={styles.main} id="plan-main" tabIndex={-1}>
         <PlanWorkspace
+          initialActivityAdmissionPreviewState={
+            previewKind === "activity" || previewKind === "activity-blocked"
+              ? activityPreviewState(previewKind === "activity-blocked")
+              : initialPlanActionState
+          }
           initialInitializationPreviewState={
             showsInitialization ? initializationPreviewState : initialPlanActionState
           }
@@ -394,7 +509,7 @@ export default async function PlanFixturePage({
             showsCapacity ? capacityPreviewState(previewKind === "blocked") : initialPlanActionState
           }
           initialPreviewState={
-            showsCapacity || showsTrack || showsTrackSettings
+            showsCapacity || showsTrack || showsTrackSettings || showsActivity
               ? initialPlanActionState
               : previewState
           }
@@ -407,7 +522,14 @@ export default async function PlanFixturePage({
               : initialPlanActionState
           }
           {...(showsInitialization ? { setupSource } : {})}
-          tracksWorkspace={showsInitialization ? setupTracksWorkspace : tracksWorkspace}
+          {...(showsActivity ? { activityAdmissionSource: activitySource } : {})}
+          tracksWorkspace={
+            showsInitialization
+              ? setupTracksWorkspace
+              : showsActivity
+                ? activityTracksWorkspace
+                : tracksWorkspace
+          }
           workspace={showsInitialization ? setupWorkspace : workspace}
         />
       </main>
