@@ -1,6 +1,9 @@
 # Phase 4B D1b — first Growth Plan setup
 
-Status: accepted implementation design
+Status: implemented
+
+Implementation:
+[D1b first Growth Plan setup status](../implementation/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md)
 
 Date: 2026-09-01
 

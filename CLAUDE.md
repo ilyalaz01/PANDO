@@ -66,43 +66,39 @@ Human roadmap position:
   complete.
 - D2b2 — authenticated Learning Track priority/protected-minimum preview/apply and `/plan` control:
   complete.
-- D1b — first Growth Plan preview/confirm setup design: accepted; implementation current.
+- D1b — first Growth Plan preview/confirm setup and authenticated browser journey: complete.
 - Remaining D2–D5 — Track creation/terminal/cadence, availability, and Campaign commands: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The first complete Today-to-Focus browser journey plus Growth Plan lifecycle/capacity and Learning
-Track pause/resume/settings commands are implemented and verified for seeded state. Fresh-user
-review found that `/start` cannot yet preview/confirm the first Plan and that the auth gate bypasses
-the missing UI with a legacy direct RPC. Close that real manual-flow gap before adding more Tracks.
+The first complete Today-to-Focus browser journey plus first Growth Plan setup, Growth Plan
+lifecycle/capacity and Learning Track pause/resume/settings commands are implemented and verified.
+The initial Track is deliberately empty. Add a safe manual activity-admission flow before adding
+more Tracks.
 
-## Current bounded outcome: D1b first Growth Plan setup
+## Current bounded outcome: manual activity admission preview/confirm
 
-Implement the accepted
-`docs/design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md`. Reuse the established exact-preview,
-idempotency, stable locking, outbox, server and UI discipline, but preserve its create-specific
-zero-lifetime-Plan sentinel and deterministic server-derived identities.
+Begin with a focused design over the existing hardened
+`api.add_learning_track_activity_v1` owner command. Preserve its ownership, locking,
+idempotency and outbox behavior while replacing every remaining manual/direct bypass with the same
+exact preview and explicit confirmation discipline used by the released Plan controls.
 
 Required outcome:
 
-- add the bounded Planning setup-source read over a Targets-owned active-Goal query, including exact
-  overflow, source-revision and zero-lifetime-Plan/sentinel behavior;
-- add the versioned contract, pure digest/UUID derivation, fixed SQL/TypeScript oracle and strict
-  semantic validation before database or UI code trusts a preview;
-- add preview/apply with exact Goal fence, deterministic Plan/Track IDs, fixed empty-Track minimum
-  zero, one receipt/event/delivery transaction, legacy initializer revocation and broad caller
-  migration;
-- expose the native `/start -> /plan -> preview -> confirm -> reload` flow with no authority IDs,
-  exact blocked/stale/error states and honest action-empty pending behavior;
-- prove isolation, privileges, idempotency, rollback, source and first-Plan races, retained v1
-  artifacts, keyboard/responsive/accessibility behavior and the real authenticated journey;
-- do not add activity admission UI, additional Track creation, cadence, terminal transitions, Plan
-  replacement, availability, Campaigns or Agent Control transport in D1b.
+- settle the compact actor-scoped source read and exact preview/apply contract before writing UI;
+- let the browser submit only opaque server-returned activity and Track selectors, version fences,
+  bounded editable values, reason, digest and request key;
+- derive workspace, Plan/Track/activity authority, capacity constraints and event payload on the
+  server; preserve same-key replay and atomic receipt/state/event/delivery;
+- expose the flow on `/plan` with stale/blocked/error states, keyboard/responsive/accessibility
+  coverage and a real authenticated persistence/reload proof;
+- preserve existing activities, evidence and history; do not add an alternate Planning write path;
+- do not add additional Track creation, cadence, terminal transitions, Plan replacement,
+  availability, Campaigns or Agent Control transport in this outcome.
 
-Run every gate required by the accepted design before handoff. Then implement deterministic
-preview/confirm for manual activity admission; only after the initial Track can receive useful work
+Run every proportionate gate before handoff. Only after the initial Track can receive useful work
 should D2b3 additional Track creation begin.
 
 ## Architecture and safety rules

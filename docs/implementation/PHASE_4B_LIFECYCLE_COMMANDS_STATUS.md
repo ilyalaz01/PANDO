@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1, D2a, D2b1, and D2b2 complete; remaining D2 and D3–D5 pending
+Status: D1, D1b, D2a, D2b1, and D2b2 complete; remaining D2 and D3–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-01
 
@@ -20,7 +20,8 @@ Learning Track pause/resume with a protected-capacity resume check and retained 
 priority/protected-minimum edit with active-capacity and current-order freshness; see the
 [D2b2 implementation record](PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md). Growth Plan
 archive, remaining Track commands, availability, Campaigns, and Agent Control transport remain
-later work.
+later work. D1b closes the fresh-user no-Plan gap through the exact setup flow recorded in the
+[D1b implementation record](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md).
 
 ## Owner boundary and contracts
 
@@ -75,11 +76,9 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D2b1, its separate activity-admission owner-boundary hardening, and D2b2 settings are complete.
-Fresh-user review found that tests directly initialize the first Plan while `/plan` exposes no
-equivalent setup. Implement the accepted
-[D1b first Growth Plan setup](../design/PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP.md), then expose manual
-activity admission with exact preview/confirmation before designing additional Track creation.
+D1b, D2b1, its separate activity-admission owner-boundary hardening, and D2b2 settings are complete.
+Expose manual activity admission with exact preview/confirmation before designing additional Track
+creation.
 Terminal lifecycle commands follow as bounded increments; cadence must be defined before it is
 persisted. Do not enter D3 availability/replacement or D4–D5 Campaign work before the focused
 decisions required by the D0 design are recorded.
