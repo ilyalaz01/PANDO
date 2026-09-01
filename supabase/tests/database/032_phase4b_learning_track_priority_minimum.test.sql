@@ -115,9 +115,9 @@ select is(
           order by track.priority desc, track.track_key collate "C", track.learning_track_id
         )::bigint as track_position
       from (values
-        ('30000000-0000-4000-8000-000000000033'::uuid, '3', 'PAUSED', 80, 'track:a0'),
-        ('30000000-0000-4000-8000-000000000032'::uuid, '2', 'ACTIVE', 90, 'track:a0'),
-        ('30000000-0000-4000-8000-000000000031'::uuid, '1', 'ACTIVE', 90, 'track:a-2')
+        ('30000000-0000-4000-8000-000000000033'::uuid, '3', 'PAUSED', 80, 'track:systems'),
+        ('30000000-0000-4000-8000-000000000032'::uuid, '2', 'ACTIVE', 90, 'track:backend'),
+        ('30000000-0000-4000-8000-000000000031'::uuid, '1', 'ACTIVE', 90, 'track:algorithms')
       ) as track(learning_track_id, aggregate_version, lifecycle, priority, track_key)
     ), fingerprint_input as (
       select pg_catalog.string_agg(
@@ -148,8 +148,8 @@ select is(
       extensions.digest(pg_catalog.convert_to(value, 'UTF8'), 'sha256'), 'hex'
     ) from fingerprint_input
   ),
-  'd127505e230822d63daafdd90f974a155a1754e293616e88e6af46fa4aa99ac7',
-  'PostgreSQL matches the fixed TypeScript punctuation-tie current-order oracle'
+  '78387e21346c7812ae3b3e6db5ca7cfcf34d4517b4ad1b05473fc58c8c24d3c6',
+  'PostgreSQL matches the shared fixed TypeScript current-order oracle'
 );
 
 select is(
@@ -176,7 +176,7 @@ select is(
       (4, 'currentOrderFingerprintVersion', 'current-track-order-fingerprint/1.0.0'),
       (5, 'workspaceId', '30000000-0000-4000-8000-000000000001'),
       (6, 'operation', 'set_track_priority_minimum'),
-      (7, 'reason', 'Перенести café — сейчас.'),
+      (7, 'reason', 'Move algorithms behind the current backend focus.'),
       (8, 'expectedGrowthPlanVersion', '4'),
       (9, 'expectedLearningTrackVersion', '7'),
       (10, 'growthPlanId', '30000000-0000-4000-8000-000000000020'),
@@ -185,14 +185,14 @@ select is(
       (13, 'growthPlanAggregateVersion', '4'),
       (14, 'beforeLearningTrackId', '30000000-0000-4000-8000-000000000021'),
       (15, 'beforeTrackKey', 'track:algorithms'),
-      (16, 'beforeTitle', 'Алгоритмы — café'),
+      (16, 'beforeTitle', 'Algorithms'),
       (17, 'beforeLifecycle', 'ACTIVE'),
       (18, 'beforePriority', '90'),
       (19, 'beforeProtectedMinimumMinutes', '120'),
       (20, 'beforeAggregateVersion', '7'),
       (21, 'afterLearningTrackId', '30000000-0000-4000-8000-000000000021'),
       (22, 'afterTrackKey', 'track:algorithms'),
-      (23, 'afterTitle', 'Алгоритмы — café'),
+      (23, 'afterTitle', 'Algorithms'),
       (24, 'afterLifecycle', 'ACTIVE'),
       (25, 'afterPriority', '80'),
       (26, 'afterProtectedMinimumMinutes', '120'),
@@ -224,8 +224,8 @@ select is(
       (52, 'consumerName', 'planning.plan_snapshot_v1')
     ) as fixed_oracle(field_position, field_name, field_value)
   ),
-  'fb817a72df56635e4c98adb158242a78eeedbd665a4da55c775f8638687337c5',
-  'PostgreSQL matches the fixed TypeScript Unicode D2b2 digest oracle'
+  '3b7f19f845fa951fd2961480c0b7718642a3983a2e3000cd55418a68f4d26ba4',
+  'PostgreSQL matches the shared fixed TypeScript D2b2 digest oracle'
 );
 
 insert into auth.users (
@@ -250,6 +250,7 @@ create temporary table priority_results (
   response jsonb not null
 );
 grant select, insert on priority_results to authenticated;
+grant select on priority_results to pando_planning_api;
 
 select set_config(
   'request.jwt.claims',
@@ -290,6 +291,18 @@ select set_config(
 set local role authenticated;
 insert into priority_results values (
   'bob-bootstrap', api.bootstrap_personal_workspace('d2b2-bob', 'D2b2 Bob')
+);
+insert into priority_results
+select 'bob-goal', api.create_readiness_goal(
+  (response->>'workspace_id')::uuid,
+  'goal:d2b2-bob', 'D2b2 Bob goal',
+  'target:nvidia-python-verification-base-v1', 'd2b2-bob-goal'
+)
+from priority_results where result_name = 'bob-bootstrap';
+insert into priority_results values (
+  'bob-plan', api.initialize_growth_plan_v1(
+    'goal:d2b2-bob', 480, 30, 60, 90, 'd2b2-bob-plan'
+  )
 );
 reset role;
 
@@ -354,7 +367,74 @@ insert into priority_results values (
     'track:paused', 100, 10080, '1', '1', 'Store a paused Track boundary.'
   )
 );
+insert into priority_results values (
+  'priority-zero-preview', api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 0, 120, '1', '1', 'Accept minimum priority.'
+  )
+);
+insert into priority_results values (
+  'priority-hundred-preview', api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 100, 120, '1', '1', 'Accept maximum priority.'
+  )
+);
+insert into priority_results values (
+  'minimum-zero-preview', api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 90, 0, '1', '1', 'Accept zero protected minimum.'
+  )
+);
+select throws_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', -1, 120, '1', '1', 'Reject priority below zero.'
+  )$$,
+  '22023', 'Learning Track priority and minimum request is invalid',
+  'priority below zero is rejected directly'
+);
+select throws_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 101, 120, '1', '1', 'Reject priority above one hundred.'
+  )$$,
+  '22023', 'Learning Track priority and minimum request is invalid',
+  'priority above one hundred is rejected directly'
+);
+select throws_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 90, -1, '1', '1', 'Reject negative minimum.'
+  )$$,
+  '22023', 'Learning Track priority and minimum request is invalid',
+  'protected minimum below zero is rejected directly'
+);
+select throws_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 90, 10081, '1', '1', 'Reject oversized minimum.'
+  )$$,
+  '22023', 'Learning Track priority and minimum request is invalid',
+  'protected minimum above one week is rejected directly'
+);
 reset role;
+
+select ok(
+  (select response#>>'{after,priority}' = '0'
+     and response#>>'{after,protectedMinimumMinutes}' = '120'
+     and response#>>'{canApply}' = 'true'
+   from priority_results where result_name = 'priority-zero-preview')
+  and (select response#>>'{after,priority}' = '100'
+       and response#>>'{after,protectedMinimumMinutes}' = '120'
+       and response#>>'{canApply}' = 'true'
+     from priority_results where result_name = 'priority-hundred-preview')
+  and (select response#>>'{after,priority}' = '90'
+       and response#>>'{after,protectedMinimumMinutes}' = '0'
+       and response#>>'{constraint,activeProtectedMinimumMinutesAfter}' = '60'
+       and response#>>'{canApply}' = 'true'
+     from priority_results where result_name = 'minimum-zero-preview'),
+  'inclusive priority/minimum boundaries are accepted and each one-field edit preserves its peer'
+);
+select is(
+  (select response#>>'{constraint,activeTrackFingerprintAfter}'
+   from priority_results where result_name = 'priority-zero-preview'),
+  (select response#>>'{constraint,activeTrackFingerprintAfter}'
+   from priority_results where result_name = 'priority-hundred-preview'),
+  'priority alone never changes the active-capacity fingerprint or minimum sum'
+);
 
 select ok(
   (select response#>>'{before,title}' = 'Алгоритмы — café'
@@ -432,6 +512,164 @@ select ok(
 );
 rollback to savepoint parent_paused_preview;
 
+savepoint exact_capacity_success;
+set local role authenticated;
+insert into priority_results values (
+  'exact-capacity-preview', api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 90, 540, '1', '1', 'Use exactly all active capacity.'
+  )
+);
+insert into priority_results
+select 'exact-capacity-apply', api.apply_learning_track_priority_minimum_v1(
+  'track:a-2', 90, 540, '1', '1', response->>'previewDigest',
+  'Use exactly all active capacity.', 'd2b2-exact-capacity'
+)
+from priority_results where result_name = 'exact-capacity-preview';
+reset role;
+select ok(
+  (select response#>>'{constraint,activeProtectedMinimumMinutesAfter}' = '600'
+     and response#>>'{constraint,flexibleMinutesAfter}' = '0'
+     and response#>>'{canApply}' = 'true'
+   from priority_results where result_name = 'exact-capacity-preview')
+  and (select response#>>'{changedTrack,protectedMinimumMinutes}' = '540'
+       and response#>>'{changedTrack,aggregateVersion}' = '2'
+     from priority_results where result_name = 'exact-capacity-apply'),
+  'active one-field minimum change applies at exact Plan capacity without clamping'
+);
+rollback to savepoint exact_capacity_success;
+
+savepoint terminal_and_portfolio_boundaries;
+insert into planning.learning_tracks (
+  learning_track_id, workspace_id, growth_plan_id, track_key, title,
+  readiness_goal_id, profile_version_id, roadmap_version_id, lifecycle,
+  priority, protected_minimum_minutes, default_session_minutes, aggregate_version
+)
+select
+  'e2000000-0000-4000-8000-000000000012', source.workspace_id,
+  source.growth_plan_id, 'track:terminal', 'Terminal Track',
+  source.readiness_goal_id, source.profile_version_id, source.roadmap_version_id,
+  'completed', 10, 0, source.default_session_minutes, 1
+from planning.learning_tracks as source
+where source.track_key = 'track:a-2';
+set local role authenticated;
+select throws_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:terminal', 20, 0, '1', '1', 'Terminal selector.'
+  )$$,
+  '42501', 'Learning Track is unavailable',
+  'terminal Track settings selector is non-enumerating'
+);
+reset role;
+
+insert into planning.learning_tracks (
+  learning_track_id, workspace_id, growth_plan_id, track_key, title,
+  readiness_goal_id, profile_version_id, roadmap_version_id, lifecycle,
+  priority, protected_minimum_minutes, default_session_minutes, aggregate_version
+)
+select
+  ('e21' || pg_catalog.lpad(series.value::text, 29, '0'))::uuid,
+  source.workspace_id, source.growth_plan_id,
+  'track:portfolio-' || pg_catalog.lpad(series.value::text, 2, '0'),
+  'Portfolio ' || series.value::text,
+  source.readiness_goal_id, source.profile_version_id, source.roadmap_version_id,
+  case when series.value % 2 = 0 then 'active' else 'paused' end,
+  series.value, 0, source.default_session_minutes, 1
+from planning.learning_tracks as source
+cross join pg_catalog.generate_series(1, 27) as series(value)
+where source.track_key = 'track:a-2';
+set local role authenticated;
+select lives_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 89, 120, '1', '1', 'Accept exactly thirty current Tracks.'
+  )$$,
+  'the exact 30-current-Track portfolio remains valid'
+);
+reset role;
+insert into planning.learning_tracks (
+  learning_track_id, workspace_id, growth_plan_id, track_key, title,
+  readiness_goal_id, profile_version_id, roadmap_version_id, lifecycle,
+  priority, protected_minimum_minutes, default_session_minutes, aggregate_version
+)
+select
+  'e2200000-0000-4000-8000-000000000001', source.workspace_id,
+  source.growth_plan_id, 'track:portfolio-28', 'Portfolio 28',
+  source.readiness_goal_id, source.profile_version_id, source.roadmap_version_id,
+  'paused', 28, 0, source.default_session_minutes, 1
+from planning.learning_tracks as source
+where source.track_key = 'track:a-2';
+set local role authenticated;
+select throws_ok(
+  $$select api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 89, 120, '1', '1', 'Reject thirty-one current Tracks.'
+  )$$,
+  '55000', 'Learning Track portfolio invariant is violated',
+  'the 31-current-Track portfolio fails closed instead of truncating'
+);
+reset role;
+rollback to savepoint terminal_and_portfolio_boundaries;
+
+set local role authenticated;
+select throws_ok(
+  $$select api.apply_learning_track_priority_minimum_v1(
+    'track:a-2', 80, 120, '2', '1',
+    repeat('0', 64), 'Stale Plan fence.', 'd2b2-stale-plan'
+  )$$,
+  '40001', 'Growth Plan version is stale',
+  'a stale expected Plan version is refused before digest comparison'
+);
+select throws_ok(
+  $$select api.apply_learning_track_priority_minimum_v1(
+    'track:a-2', 80, 120, '1', '2',
+    repeat('0', 64), 'Stale target fence.', 'd2b2-stale-target'
+  )$$,
+  '40001', 'Learning Track version is stale',
+  'a stale expected target version is refused before digest comparison'
+);
+insert into priority_results values (
+  'active-sibling-stale-preview', api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 80, 120, '1', '1', 'Bind active sibling versions.'
+  )
+);
+reset role;
+savepoint active_sibling_stale;
+update planning.learning_tracks
+set aggregate_version = aggregate_version + 1
+where track_key = 'track:a0';
+set local role authenticated;
+select throws_ok(
+  $$select api.apply_learning_track_priority_minimum_v1(
+    'track:a-2', 80, 120, '1', '1',
+    (select response->>'previewDigest' from priority_results
+     where result_name = 'active-sibling-stale-preview'),
+    'Bind active sibling versions.', 'd2b2-active-sibling-stale'
+  )$$,
+  '40001', 'Learning Track priority and minimum preview is stale',
+  'an active sibling version change invalidates the exact D2b2 preview'
+);
+reset role;
+rollback to savepoint active_sibling_stale;
+
+create temporary table d2b2_history_before as
+select
+  plan.workspace_id,
+  (select count(*)::bigint from planning.learning_track_activities as activity
+   where activity.workspace_id = plan.workspace_id) as activity_count,
+  (select count(*)::bigint from planning.plan_snapshots as snapshot
+   where snapshot.workspace_id = plan.workspace_id) as snapshot_count,
+  (select count(*)::bigint from sessions.focus_sessions as focus
+   where focus.workspace_id = plan.workspace_id) as focus_count,
+  (select count(*)::bigint from evidence.activity_attempts as attempt
+   where attempt.workspace_id = plan.workspace_id) as attempt_count,
+  (select count(*)::bigint from evidence.observations as observation
+   where observation.workspace_id = plan.workspace_id) as observation_count,
+  (select count(*)::bigint from evidence.corrections as correction
+   where correction.workspace_id = plan.workspace_id) as correction_count
+from planning.growth_plans as plan
+where plan.growth_plan_id = (
+  select (response->>'growthPlanId')::uuid
+  from priority_results where result_name = 'alice-plan'
+);
+
 set local role authenticated;
 select throws_ok(
   $$select api.preview_learning_track_priority_minimum_v1(
@@ -464,6 +702,16 @@ select 'active-replay', api.apply_learning_track_priority_minimum_v1(
   'Перенести café — сейчас.', 'd2b2-active-apply'
 )
 from priority_results where result_name = 'active-preview';
+select throws_ok(
+  $$select api.apply_learning_track_priority_minimum_v1(
+    'track:a-2', 70, 180, '1', '1',
+    (select response->>'previewDigest' from priority_results
+     where result_name = 'active-preview'),
+    'Changed replay reason.', 'd2b2-active-apply'
+  )$$,
+  '22023', 'idempotency key reused with a different request',
+  'completed D2b2 key conflicts with a changed request'
+);
 reset role;
 
 select is(
@@ -497,6 +745,37 @@ select ok(
     )
   ),
   'apply advances only the target Track settings and version'
+);
+
+select ok(
+  (
+    select before.activity_count = (
+        select count(*)::bigint from planning.learning_track_activities as activity
+        where activity.workspace_id = before.workspace_id
+      )
+      and before.snapshot_count = (
+        select count(*)::bigint from planning.plan_snapshots as snapshot
+        where snapshot.workspace_id = before.workspace_id
+      )
+      and before.focus_count = (
+        select count(*)::bigint from sessions.focus_sessions as focus
+        where focus.workspace_id = before.workspace_id
+      )
+      and before.attempt_count = (
+        select count(*)::bigint from evidence.activity_attempts as attempt
+        where attempt.workspace_id = before.workspace_id
+      )
+      and before.observation_count = (
+        select count(*)::bigint from evidence.observations as observation
+        where observation.workspace_id = before.workspace_id
+      )
+      and before.correction_count = (
+        select count(*)::bigint from evidence.corrections as correction
+        where correction.workspace_id = before.workspace_id
+      )
+    from d2b2_history_before as before
+  ),
+  'D2b2 apply leaves activity, snapshot, Focus, and Evidence history row sets unchanged'
 );
 
 select ok(
@@ -579,6 +858,39 @@ select throws_ok(
 );
 reset role;
 
+do $grant_planning_test_role$
+begin
+  execute pg_catalog.format('grant pando_planning_api to %I with set true', current_user);
+end
+$grant_planning_test_role$;
+set local role pando_planning_api;
+select is(
+  (select count(*)::bigint from planning.learning_tracks),
+  1::bigint,
+  'forced RLS exposes only Bob current Track to Bob-scoped Planning owner role'
+);
+with changed as (
+  update planning.learning_tracks
+  set priority = 0,
+      updated_at = pg_catalog.clock_timestamp()
+  where learning_track_id = (
+    select (response->>'learningTrackId')::uuid
+    from priority_results where result_name = 'alice-plan'
+  )
+  returning 1
+)
+select is(
+  (select count(*)::bigint from changed),
+  0::bigint,
+  'forced UPDATE RLS hides Alice Track from Bob-scoped Planning owner role'
+);
+reset role;
+do $revoke_planning_test_role$
+begin
+  execute pg_catalog.format('revoke pando_planning_api from %I', current_user);
+end
+$revoke_planning_test_role$;
+
 select set_config(
   'request.jwt.claims',
   pg_catalog.jsonb_build_object(
@@ -590,11 +902,71 @@ select set_config(
 );
 set local role authenticated;
 insert into priority_results values (
+  'event-rollback-preview', api.preview_learning_track_priority_minimum_v1(
+    'track:a-2', 61, 190, '1', '2', 'Prove D2b2 event rollback.'
+  )
+);
+insert into priority_results values (
   'rollback-preview', api.preview_learning_track_priority_minimum_v1(
     'track:a-2', 60, 200, '1', '2', 'Prove D2b2 delivery rollback.'
   )
 );
 reset role;
+
+create function pg_temp.reject_d2b2_event()
+returns trigger
+language plpgsql
+set search_path = ''
+as $function$
+begin
+  if new.workspace_id::text = pg_catalog.current_setting(
+       'pando.test.fail_d2b2_event_workspace', true
+     )
+     and new.payload->>'change_kind' = 'TRACK_PRIORITY_MINIMUM_CHANGED' then
+    raise exception 'injected D2b2 event failure';
+  end if;
+  return new;
+end
+$function$;
+create trigger reject_d2b2_event
+before insert on outbox.events
+for each row execute function pg_temp.reject_d2b2_event();
+select set_config(
+  'pando.test.fail_d2b2_event_workspace',
+  (select response->>'workspaceId' from priority_results where result_name = 'alice-plan'),
+  true
+);
+set local role authenticated;
+select throws_ok(
+  $$select api.apply_learning_track_priority_minimum_v1(
+    'track:a-2', 61, 190, '1', '2',
+    (select response->>'previewDigest' from priority_results
+     where result_name = 'event-rollback-preview'),
+    'Prove D2b2 event rollback.', 'd2b2-event-rollback'
+  )$$,
+  'P0001', 'injected D2b2 event failure',
+  'event failure aborts the D2b2 command transaction'
+);
+reset role;
+drop trigger reject_d2b2_event on outbox.events;
+
+select ok(
+  (
+    select priority = 70 and protected_minimum_minutes = 180 and aggregate_version = 2
+    from planning.learning_tracks
+    where track_key = 'track:a-2'
+  )
+  and not exists (
+    select 1 from outbox.command_receipts
+    where idempotency_key = 'd2b2-event-rollback'
+  )
+  and not exists (
+    select 1 from outbox.events
+    where payload->>'change_kind' = 'TRACK_PRIORITY_MINIMUM_CHANGED'
+      and payload->>'priority' = '61'
+  ),
+  'failed event insert rolls back target, receipt, event, and delivery effects'
+);
 
 create function pg_temp.reject_d2b2_delivery()
 returns trigger
@@ -652,30 +1024,50 @@ select ok(
   'failed delivery rolls back target, receipt, event, and delivery effects'
 );
 
-select ok(
-  bool_and(
-    case when portfolio.lifecycle = 'active'
-      then portfolio.before_total - portfolio.old_minimum + portfolio.new_minimum
-        = portfolio.expected_after_total
-      else portfolio.before_total = portfolio.expected_after_total
-    end
-  )
-  and bool_and(
-    (portfolio.lifecycle = 'active'
-      and portfolio.expected_after_total > portfolio.capacity)
-      = portfolio.expected_blocked
-  ),
-  'bounded portfolio property: only projected active minima can block'
-)
-from (values
-  ('active', 180, 120, 540, 600, 600, false),
-  ('active', 180, 120, 541, 600, 601, true),
-  ('active', 600, 600, 0, 600, 0, false),
-  ('paused', 180, 400, 10080, 600, 180, false)
-) as portfolio(
-  lifecycle, before_total, old_minimum, new_minimum, capacity,
-  expected_after_total, expected_blocked
+create temporary table d2b2_property_results (
+  case_name text primary key,
+  projected jsonb not null,
+  expected_total integer not null,
+  expected_blocked boolean not null
 );
+grant select, insert on d2b2_property_results to pando_planning_api;
+do $grant_property_role$
+begin
+  execute pg_catalog.format('grant pando_planning_api to %I with set true', current_user);
+end
+$grant_property_role$;
+set local role pando_planning_api;
+insert into d2b2_property_results
+select fixture.case_name,
+  planning.projected_active_track_priority_minimum_constraint_v1(
+    source.workspace_id, source.growth_plan_id, source.learning_track_id,
+    source.lifecycle, fixture.proposed_minimum, source.aggregate_version + 1
+  ),
+  fixture.expected_total,
+  fixture.expected_blocked
+from (values
+  ('active-zero', 'track:a-2', 0, 60, false),
+  ('active-exact', 'track:a-2', 540, 600, false),
+  ('active-over', 'track:a-2', 541, 601, true),
+  ('paused-maximum', 'track:paused', 10080, 240, false)
+) as fixture(case_name, track_key, proposed_minimum, expected_total, expected_blocked)
+join planning.learning_tracks as source on source.track_key = fixture.track_key;
+reset role;
+do $revoke_property_role$
+begin
+  execute pg_catalog.format('revoke pando_planning_api from %I', current_user);
+end
+$revoke_property_role$;
+
+select ok(
+  bool_and((projected->>'activeProtectedMinimumMinutes')::integer = expected_total)
+    and bool_and(
+      ((projected->>'activeProtectedMinimumMinutes')::integer > 600)
+        = expected_blocked
+    ),
+  'production helper property matrix: only projected active minima cross capacity'
+)
+from d2b2_property_results;
 
 select * from finish();
 rollback;

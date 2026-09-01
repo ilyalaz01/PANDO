@@ -511,4 +511,48 @@ describe("PlanWorkspace", () => {
       screen.queryByRole("button", { name: "Confirm Track settings" }),
     ).not.toBeInTheDocument();
   });
+
+  it("dismisses an old Track settings confirmation when a proposed value changes", () => {
+    render(
+      <PlanWorkspace
+        initialTrackPriorityMinimumPreviewState={{
+          status: "previewed",
+          message: "Preview ready.",
+          preview: trackSettingsPreview,
+        }}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm Track settings" })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Priority (0–100)"), { target: { value: "13" } });
+    expect(
+      screen.queryByRole("button", { name: "Confirm Track settings" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("offers an explicit stale Track settings reload and removes its confirmation", () => {
+    routerRefresh.mockClear();
+    render(
+      <PlanWorkspace
+        initialTrackPriorityMinimumApplyState={{
+          status: "conflict",
+          message: "This plan changed elsewhere. Reload and create a fresh preview.",
+          preview: null,
+        }}
+        initialTrackPriorityMinimumPreviewState={{
+          status: "previewed",
+          message: "Preview ready.",
+          preview: trackSettingsPreview,
+        }}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Reload current Plan and Tracks" }));
+    expect(routerRefresh).toHaveBeenCalledOnce();
+    expect(
+      screen.queryByRole("button", { name: "Confirm Track settings" }),
+    ).not.toBeInTheDocument();
+  });
 });
