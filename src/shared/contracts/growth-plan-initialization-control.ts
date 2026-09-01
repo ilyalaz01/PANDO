@@ -145,6 +145,10 @@ function hasControlCharacters(value: JsonValue | undefined): boolean {
   return typeof value !== "string" || /[\p{Cc}]/u.test(value);
 }
 
+function isLowercase(value: JsonValue | undefined): boolean {
+  return typeof value === "string" && value === value.toLowerCase();
+}
+
 function setupSourceSemanticViolations(root: JsonObject): ContractViolation[] {
   const goals = asArray(root.goals);
   if (root.state !== "SETUP_AVAILABLE") return [];
@@ -228,6 +232,23 @@ function previewSemanticViolations(root: JsonObject): ContractViolation[] {
         "GROWTH_PLAN_INITIALIZATION_SOURCE_BINDING",
         "/source",
         "Source kind, reference, roadmap, and immutable profile must agree.",
+      ),
+    );
+  }
+  if (
+    !isLowercase(root.idempotencyKey) ||
+    !isLowercase(source.readinessGoalId) ||
+    !isLowercase(source.profileVersionId) ||
+    !isLowercase(source.sourceRef) ||
+    (source.roadmapVersionId !== null && !isLowercase(source.roadmapVersionId)) ||
+    !isLowercase(plan.growthPlanId) ||
+    !isLowercase(track.learningTrackId)
+  ) {
+    violations.push(
+      semanticViolation(
+        "GROWTH_PLAN_INITIALIZATION_UUID_CASE",
+        "/",
+        "Initialization UUID values must use their exact lowercase representation.",
       ),
     );
   }
@@ -320,6 +341,21 @@ function applySemanticViolations(root: JsonObject): ContractViolation[] {
   const plan = asJsonObject(root.createdPlan, "created plan");
   const track = asJsonObject(root.createdTrack, "created track");
   const violations: ContractViolation[] = [];
+  if (
+    !isLowercase(root.commandId) ||
+    !isLowercase(root.planningDeliveryId) ||
+    !asArray(root.emittedEventIds).every(isLowercase) ||
+    !isLowercase(plan.growthPlanId) ||
+    !isLowercase(track.learningTrackId)
+  ) {
+    violations.push(
+      semanticViolation(
+        "GROWTH_PLAN_INITIALIZATION_UUID_CASE",
+        "/",
+        "Applied-result UUID values must use their exact lowercase representation.",
+      ),
+    );
+  }
   if (track.trackKey !== `track:${String(track.learningTrackId).toLowerCase()}`) {
     violations.push(
       semanticViolation(

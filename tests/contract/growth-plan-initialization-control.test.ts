@@ -34,6 +34,25 @@ function sha256Bytes(value: string): Uint8Array {
   return createHash("sha256").update(value, "utf8").digest();
 }
 
+function mutateAtPath<T>(value: T, path: readonly string[]): T {
+  const copy = structuredClone(value) as unknown;
+  let parent = copy as Record<string, unknown>;
+  for (const segment of path.slice(0, -1)) {
+    parent = parent[segment] as Record<string, unknown>;
+  }
+  const key = path.at(-1)!;
+  const current = parent[key];
+  parent[key] =
+    current === null
+      ? "PLANNING_CREATE_IDENTITY_COLLISION"
+      : typeof current === "boolean"
+        ? !current
+        : typeof current === "number"
+          ? current + 1
+          : `${String(current)}!`;
+  return copy as T;
+}
+
 function digestFields(): GrowthPlanInitializationPreviewDigestFields {
   return {
     workspaceId: "A0000000-0000-4000-8000-000000000001",
@@ -180,6 +199,56 @@ describe("PANDO Growth Plan Initialization Control V1", () => {
     expect(
       growthPlanInitializationControlSemanticViolations(orphaned).map((item) => item.code),
     ).toContain("GROWTH_PLAN_INITIALIZATION_CARDINALITY");
+  });
+
+  it("enforces lowercase UUID representation for every preview authority and derived identity", () => {
+    const uppercase = structuredClone(valid);
+    uppercase.source.sourceRef = "A0000000-0000-4000-8000-000000000001";
+    uppercase.source.roadmapVersionId = "A0000000-0000-4000-8000-000000000001";
+    expect(validateSchema("growth-plan-initialization-control-v1", uppercase).valid).toBe(true);
+    expect(
+      growthPlanInitializationControlSemanticViolations(uppercase).map((item) => item.code),
+    ).toContain("GROWTH_PLAN_INITIALIZATION_UUID_CASE");
+  });
+
+  it("pins every public numeric and reason boundary", () => {
+    const minimums = structuredClone(valid);
+    minimums.reason = "x";
+    minimums.after.growthPlan.weeklyCapacityMinutes = 0;
+    minimums.after.learningTrack.defaultSessionMinutes = 1;
+    minimums.after.learningTrack.priority = 0;
+    expect(validateGrowthPlanInitializationControlV1(minimums).valid).toBe(true);
+
+    const maximums = structuredClone(valid);
+    maximums.reason = "界".repeat(500);
+    maximums.after.growthPlan.weeklyCapacityMinutes = 10080;
+    maximums.after.learningTrack.defaultSessionMinutes = 480;
+    maximums.after.learningTrack.priority = 100;
+    expect(validateGrowthPlanInitializationControlV1(maximums).valid).toBe(true);
+
+    const invalidBounds = [
+      structuredClone(valid),
+      structuredClone(valid),
+      structuredClone(valid),
+      structuredClone(valid),
+      structuredClone(valid),
+      structuredClone(valid),
+    ];
+    invalidBounds[0]!.after.growthPlan.weeklyCapacityMinutes = -1;
+    invalidBounds[1]!.after.growthPlan.weeklyCapacityMinutes = 10081;
+    invalidBounds[2]!.after.learningTrack.defaultSessionMinutes = 0;
+    invalidBounds[3]!.after.learningTrack.defaultSessionMinutes = 481;
+    invalidBounds[4]!.after.learningTrack.priority = -1;
+    invalidBounds[5]!.after.learningTrack.priority = 101;
+    for (const candidate of invalidBounds) {
+      expect(validateSchema("growth-plan-initialization-control-v1", candidate).valid).toBe(false);
+    }
+
+    for (const reason of ["", "x".repeat(501)]) {
+      expect(
+        validateSchema("growth-plan-initialization-control-v1", { ...valid, reason }).valid,
+      ).toBe(false);
+    }
   });
 
   it("accepts only the exact derived first-Track title at 160, 161, and 200 characters", () => {
@@ -333,6 +402,59 @@ describe("D1b deterministic identity and hashing protocol", () => {
       ).not.toBe(originalHash);
     }
 
+    const boundInputPaths = [
+      ["workspaceId"],
+      ["idempotencyKey"],
+      ["reason"],
+      ["expectedReadinessGoalVersion"],
+      ["source", "readinessGoalId"],
+      ["source", "readinessGoalKey"],
+      ["source", "readinessGoalTitle"],
+      ["source", "readinessGoalLifecycle"],
+      ["source", "readinessGoalVersion"],
+      ["source", "profileVersionId"],
+      ["source", "profileVersionKey"],
+      ["source", "sourceKind"],
+      ["source", "sourceRef"],
+      ["source", "roadmapVersionId"],
+      ["source", "sourceOwnerRevision"],
+      ["before", "lifetimePlanCount"],
+      ["before", "currentPlanCount"],
+      ["before", "snapshotSentinelCount"],
+      ["after", "lifetimePlanCount"],
+      ["after", "currentPlanCount"],
+      ["after", "currentPlanLimit"],
+      ["after", "snapshotSentinelCount"],
+      ["after", "growthPlan", "growthPlanId"],
+      ["after", "growthPlan", "title"],
+      ["after", "growthPlan", "lifecycle"],
+      ["after", "growthPlan", "weeklyCapacityMinutes"],
+      ["after", "growthPlan", "aggregateVersion"],
+      ["after", "learningTrack", "learningTrackId"],
+      ["after", "learningTrack", "trackKey"],
+      ["after", "learningTrack", "title"],
+      ["after", "learningTrack", "lifecycle"],
+      ["after", "learningTrack", "priority"],
+      ["after", "learningTrack", "protectedMinimumMinutes"],
+      ["after", "learningTrack", "defaultSessionMinutes"],
+      ["after", "learningTrack", "aggregateVersion"],
+      ["canApply"],
+      ["blockingReasonCode"],
+      ["warnings", "0"],
+      ["retained", "readinessGoal"],
+      ["retained", "competencyOverlay"],
+      ["retained", "activitiesAndEvidence"],
+      ["retained", "mastery"],
+      ["retained", "reviews"],
+      ["retained", "history"],
+    ] as const;
+    for (const path of boundInputPaths) {
+      const mutatedFields = mutateAtPath(fields, path);
+      expect(growthPlanInitializationPreviewDigestInput(mutatedFields), path.join(".")).not.toBe(
+        input,
+      );
+    }
+
     const permuted = Object.fromEntries(
       Object.entries(fields).reverse(),
     ) as unknown as typeof fields;
@@ -340,7 +462,7 @@ describe("D1b deterministic identity and hashing protocol", () => {
   });
 
   it("fixes the complete apply request-hash stream", () => {
-    const input = growthPlanInitializationRequestHashInput({
+    const request = {
       workspaceId: "A0000000-0000-4000-8000-000000000001",
       idempotencyKey: "B0000000-0000-4000-8000-000000000001",
       readinessGoalKey: "goal:backend-readiness",
@@ -353,7 +475,8 @@ describe("D1b deterministic identity and hashing protocol", () => {
       growthPlanId: "F0000000-0000-8000-8000-000000000001",
       learningTrackId: "10000000-0000-8000-8000-000000000001",
       trackKey: "track:10000000-0000-8000-8000-000000000001",
-    });
+    };
+    const input = growthPlanInitializationRequestHashInput(request);
     expect(
       input.startsWith(
         `requestHashVersion:45:${GROWTH_PLAN_INITIALIZATION_REQUEST_HASH_VERSION}\n`,
@@ -362,5 +485,9 @@ describe("D1b deterministic identity and hashing protocol", () => {
     expect(createHash("sha256").update(input, "utf8").digest("hex")).toBe(
       "aeb2d58e299d6a7ff1b0e90279538f32e25eac2317239d9b0c2f57a153da9a9c",
     );
+    for (const field of Object.keys(request)) {
+      const mutated = mutateAtPath(request, [field]);
+      expect(growthPlanInitializationRequestHashInput(mutated), field).not.toBe(input);
+    }
   });
 });
