@@ -1094,8 +1094,11 @@ try {
     .fill("Increase the verified weekly capacity while preserving the current Track state.");
   await page.getByRole("button", { name: "Preview capacity change" }).click();
   const capacityPreview = page.getByLabel("Exact weekly capacity preview");
-  await capacityPreview.getByText("300 minutes", { exact: true }).waitFor();
-  await capacityPreview.getByText("360 minutes", { exact: true }).waitFor();
+  const capacityRows = capacityPreview
+    .locator("dt", { hasText: /^Weekly capacity$/ })
+    .locator("..");
+  await capacityRows.first().getByText("300 minutes", { exact: true }).waitFor();
+  await capacityRows.last().getByText("360 minutes", { exact: true }).waitFor();
   await capacityPreview.getByText("0 minutes", { exact: true }).first().waitFor();
   await page.getByRole("button", { name: "Confirm capacity" }).click();
   await page.locator("main section").first().getByText("360 minutes", { exact: true }).waitFor();
