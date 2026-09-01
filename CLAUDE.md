@@ -61,40 +61,40 @@ Human roadmap position:
   responsive/accessibility/authenticated browser acceptance: complete.
 - D0 — lifecycle/editing command design and ordered owner slices: complete.
 - D1 — authenticated Growth Plan pause/resume preview/apply and `/plan`: complete.
-- D2–D5 — capacity/Track/availability/Campaign lifecycle and editing implementation: pending.
+- D2a — authenticated default weekly-capacity preview/apply and `/plan` control: complete.
+- D2b–D5 — Track/availability/Campaign lifecycle and editing implementation: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The first complete Today-to-Focus browser journey and the first manual Growth Plan lifecycle
-command are implemented and verified. The next gap is bounded capacity editing, followed by Track
-controls, before Agent Control can safely manage the same operations.
+The first complete Today-to-Focus browser journey plus Growth Plan lifecycle and weekly-capacity
+commands are implemented and verified. The next gap is bounded Learning Track control before Agent
+Control can safely manage the same operations.
 
-## Current bounded outcome: D2a Growth Plan weekly capacity
+## Current bounded outcome: D2b1 Learning Track pause/resume
 
-Continue the D2 slice selected by `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`, but keep the first
-increment to the Planning-owned default weekly capacity. Read
-`docs/implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md` and reuse D1's current-plan,
-preview/apply, contract, outbox, server, and UI boundaries instead of creating a parallel control
-surface.
+Continue the D2 slice selected by `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`, but keep this
+increment to Planning-owned Learning Track pause/resume. Read the D2a design and implementation
+status, then reuse its active-Track protected-capacity invariant and the established preview/apply,
+outbox, server, and UI discipline.
 
 Required outcome:
 
-- first record the exact capacity-decrease invariant against all non-terminal Track protected
-  minima; stop if canonical sources do not determine it rather than hiding a policy choice in SQL;
-- extend the existing versioned control contract and `/plan` flow with an exact before/after weekly
-  capacity preview, without adding browser-selected authority IDs;
-- require expected Growth Plan version, recomputed digest, reason, and idempotency key, and atomically
-  commit plan version, receipt, minimal event, and fixed Planning delivery;
-- prove boundary values, stale/digest/idempotency/concurrency/rollback, two-workspace isolation, and
-  that invalid capacity never changes lifecycle, Tracks, history, Evidence, or projections;
-- retain honest pending Today semantics and the existing keyboard, responsive, reduced-motion,
-  forced-colors, and WCAG gates;
-- do not implement Track/cadence, archive/replacement, availability, Campaigns, or Agent Control
-  transport in D2a.
+- add a bounded authenticated current-Track read; the browser may name only a Track returned by that
+  read and never supplies workspace or Growth Plan authority;
+- preview/apply `active -> paused` and `paused -> active` with exact Track version, reason, digest,
+  and idempotency; parent Growth Plan may be active or paused but never archived;
+- pausing removes that Track from the active protected-minimum sum without rewriting history;
+  resuming is blocked when the resulting active minimum sum would exceed current Plan capacity;
+- atomically commit only Track lifecycle/version plus receipt, minimal Planning event, and fixed
+  Planning delivery; Today remains honestly pending;
+- prove stale Plan/Track constraints, digest/idempotency/concurrency/rollback, isolation, preserved
+  history, responsive keyboard UI, accessibility, and a real signed-in pause/resume path;
+- do not add Track create, priority/minimum editing, completion/archive, cadence, availability,
+  Campaigns, or Agent Control transport in D2b1.
 
-Run the complete Windows verification gates before handoff. D2a must not silently decide the later
+Run the complete Windows verification gates before handoff. D2b1 must not silently decide the later
 cadence, archive/replacement, or Campaign rules blocked by the focused decisions in the Phase 4B
 design.
 

@@ -1,0 +1,41 @@
+{
+  "contract": { "name": "GrowthPlanCapacityPreviewV1", "version": "1.0.0" },
+  "operation": "set_default_capacity",
+  "reason": "Set capacity",
+  "expectedGrowthPlanVersion": "4",
+  "workspaceId": "foreign-workspace",
+  "before": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "title": "Backend interview readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4",
+    "evidenceBodies": ["private"]
+  },
+  "after": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "title": "Backend interview readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 100,
+    "aggregateVersion": "5"
+  },
+  "constraint": {
+    "activeTrackCount": 2,
+    "activeProtectedMinimumMinutes": 150,
+    "flexibleMinutesBefore": 450,
+    "flexibleMinutesAfter": -50,
+    "activeTrackFingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "canApply": false,
+  "blockingReasons": [
+    { "code": "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", "minimumCapacityMinutes": 150 }
+  ],
+  "retained": {
+    "learningTracks": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": { "projectionState": "PENDING", "consumerName": "raw_sql" },
+  "previewDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

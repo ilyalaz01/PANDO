@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1 complete; D2–D5 pending
+Status: D1 and D2a complete; D2b–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-01
 
@@ -13,8 +13,9 @@ Planning freshness, then preview and explicitly confirm either `active -> paused
 ordinary Planning projection catches up.
 
 Pause and resume preserve Learning Tracks, immutable PlanSnapshot history, Focus sessions, and
-Evidence. Growth Plan completion, archive, capacity editing, Track editing, availability,
-Campaigns, and Agent Control transport are not part of D1.
+Evidence. D2a weekly-capacity editing is now complete in the separate
+[D2a implementation record](PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md). Growth Plan archive,
+Track editing, availability, Campaigns, and Agent Control transport remain later work.
 
 ## Owner boundary and contracts
 
@@ -69,9 +70,8 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D2 remains Growth Plan capacity plus Learning Track controls. Keep it incremental: begin with D2a,
-the Planning-owned default weekly-capacity preview/apply command, and settle its exact interaction
-with existing protected minima before migration work. Track create/priority/protected-minimum and
-lifecycle commands follow as D2b; cadence must be defined before it is persisted. Do not enter D3
-availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
-design are recorded.
+D2a is complete. Continue D2 incrementally with D2b Learning Track controls, beginning with Track
+pause/resume and the capacity check required when a protected Track resumes. Track
+create/priority/protected-minimum and terminal lifecycle commands follow as bounded increments;
+cadence must be defined before it is persisted. Do not enter D3 availability/replacement or D4–D5
+Campaign work before the focused decisions required by the D0 design are recorded.

@@ -56,10 +56,10 @@ select ok(
   and not pg_catalog.has_column_privilege(
     'pando_planning_api', 'planning.growth_plans', 'title', 'UPDATE'
   )
-  and not pg_catalog.has_column_privilege(
+  and pg_catalog.has_column_privilege(
     'pando_planning_api', 'planning.growth_plans', 'weekly_capacity_minutes', 'UPDATE'
   ),
-  'the lifecycle owner can update only the three Growth Plan lifecycle columns'
+  'the shared Planning owner can update lifecycle/capacity command columns but not Plan title'
 );
 
 insert into auth.users (

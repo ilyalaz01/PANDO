@@ -9,6 +9,10 @@ import lifecycleBoundaryFixture from "./fixtures/events/v1/planning-lifecycle.bo
 import lifecycleInvalidFixture from "./fixtures/events/v1/planning-lifecycle.invalid.json";
 import lifecycleMaliciousFixture from "./fixtures/events/v1/planning-lifecycle.malicious.json";
 import lifecycleValidFixture from "./fixtures/events/v1/planning-lifecycle.valid.json";
+import capacityBoundaryFixture from "./fixtures/events/v1/planning-capacity.boundary.json";
+import capacityInvalidFixture from "./fixtures/events/v1/planning-capacity.invalid.json";
+import capacityMaliciousFixture from "./fixtures/events/v1/planning-capacity.malicious.json";
+import capacityValidFixture from "./fixtures/events/v1/planning-capacity.valid.json";
 
 describe("Planning Input Event V1", () => {
   it("keeps valid, boundary, invalid, and malicious fixtures executable", () => {
@@ -20,9 +24,13 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", lifecycleBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", lifecycleInvalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", lifecycleMaliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", capacityValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", capacityBoundaryFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", capacityInvalidFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", capacityMaliciousFixture).valid).toBe(false);
   });
 
-  it("covers exactly the initialized, Track-admission, and plan-lifecycle variants", () => {
+  it("covers exactly the initialized, Track-admission, lifecycle, and capacity variants", () => {
     for (const changeKind of ["CAPACITY_CHANGED", "ACTIVITY_COMPLETED", "RAW_SQL"]) {
       expect(
         validateSchema("planning-event-v1", {
@@ -31,6 +39,21 @@ describe("Planning Input Event V1", () => {
         }).valid,
       ).toBe(false);
     }
+  });
+
+  it("keeps capacity wake-ups minimal and bigint-safe", () => {
+    expect(capacityValidFixture.payload).toEqual({
+      change_kind: "PLAN_CAPACITY_CHANGED",
+      growth_plan_id: "30000000-0000-4000-8000-000000000011",
+      growth_plan_version: "2",
+      weekly_capacity_minutes: 480,
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...capacityValidFixture,
+        payload: { ...capacityValidFixture.payload, growth_plan_version: 2 },
+      }).valid,
+    ).toBe(false);
   });
 
   it("keeps lifecycle wake-ups minimal and bigint-safe", () => {

@@ -1,9 +1,9 @@
-import type { GrowthPlanLifecyclePreviewV1 } from "./plan-types";
+import type { PlanPreviewV1 } from "./plan-types";
 
 export type PlanActionState = Readonly<{
   status: "idle" | "previewed" | "applied" | "invalid" | "conflict" | "unavailable";
   message: string;
-  preview: GrowthPlanLifecyclePreviewV1 | null;
+  preview: PlanPreviewV1 | null;
 }>;
 
 export const initialPlanActionState: PlanActionState = {

@@ -40,6 +40,20 @@ describe("Agent Control runtime contracts", () => {
     expect(codes(result)).toContain("AGENT_CONTEXT_SIZE_LIMIT");
   });
 
+  it("counts protected minima from active tracks only", () => {
+    const context = readJson("agent-control/v1/valid/control-context.minimal.json");
+    const tracks = (context.growth_plan as JsonObject).tracks as JsonObject[];
+    tracks.push({
+      track_id: "track:paused",
+      title: "Paused learning",
+      status: "paused",
+      version: 1,
+      priority: 10,
+      protected_minimum_minutes: 10080,
+    });
+    expect(validateAgentControlContextSemantics(context)).toEqual({ valid: true, violations: [] });
+  });
+
   it("rejects unresolved detail refs and inconsistent campaign goal linkage", () => {
     const context = readJson("agent-control/v1/valid/control-context.minimal.json");
     const changed = applyPatch(context, [

@@ -1035,6 +1035,65 @@ try {
   assert.equal(currentPlanAfterLifecycle.data?.currentPlan?.lifecycle, "ACTIVE");
   assert.equal(currentPlanAfterLifecycle.data?.currentPlan?.aggregateVersion, "3");
 
+  const capacityForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview capacity change" }),
+  });
+  assert.deepEqual(
+    await capacityForm
+      .locator("input")
+      .evaluateAll((inputs) =>
+        inputs.map((input) => input.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    ["expectedGrowthPlanVersion", "proposedWeeklyCapacityMinutes"],
+    "Capacity preview must not send workspace, Plan, or Track identifiers from the browser",
+  );
+  await page.getByLabel("Weekly capacity in minutes").fill("360");
+  await page
+    .getByLabel("Why is capacity changing?")
+    .fill("Increase the verified weekly capacity while preserving protected Track work.");
+  await page.getByRole("button", { name: "Preview capacity change" }).click();
+  const capacityPreview = page.getByLabel("Exact weekly capacity preview");
+  await capacityPreview.getByText("300 minutes", { exact: true }).waitFor();
+  await capacityPreview.getByText("360 minutes", { exact: true }).waitFor();
+  await capacityPreview.getByText("100 minutes", { exact: true }).first().waitFor();
+  await page.getByRole("button", { name: "Confirm capacity" }).click();
+  await page.locator("main section").first().getByText("360 minutes", { exact: true }).waitFor();
+  const currentPlanAfterCapacity = await readinessVerifier.rpc("get_current_growth_plan_v1");
+  assert.equal(
+    currentPlanAfterCapacity.error,
+    null,
+    "Growth Plan must reload after capacity apply",
+  );
+  assert.equal(currentPlanAfterCapacity.data?.currentPlan?.weeklyCapacityMinutes, 360);
+  assert.equal(currentPlanAfterCapacity.data?.currentPlan?.aggregateVersion, "4");
+  assert.equal(
+    currentPlanAfterCapacity.data?.recalculation?.projectionState,
+    "PENDING",
+    "capacity apply must report Today as pending until the worker rebuilds it",
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const planDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  assert.ok(
+    planDimensions.scrollWidth <= planDimensions.clientWidth,
+    "authenticated Plan capacity controls must not overflow a 390px viewport",
+  );
+  const capacityButtonBox = await page
+    .getByRole("button", { name: "Preview capacity change" })
+    .boundingBox();
+  assert.ok(
+    capacityButtonBox !== null && capacityButtonBox.height >= 44,
+    "capacity preview must preserve a 44px touch target",
+  );
+  const planAccessibility = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  assert.deepEqual(planAccessibility.violations, [], "authenticated /plan must pass axe");
+
   await page.goto(
     `${baseUrl}/start?goal=${encodeURIComponent("goal:nvidia-python-verification-base-v1")}`,
   );

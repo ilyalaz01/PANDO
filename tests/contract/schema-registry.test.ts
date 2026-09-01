@@ -53,6 +53,10 @@ describe("strict Draft 2020-12 schema registry", () => {
     ["readiness-event-v1", "../contract/fixtures/events/v1/readiness.boundary.json"],
     ["planning-event-v1", "../contract/fixtures/events/v1/planning.valid.json"],
     ["planning-event-v1", "../contract/fixtures/events/v1/planning.boundary.json"],
+    [
+      "growth-plan-capacity-control-v1",
+      "../contract/fixtures/planning/v1/growth-plan-capacity-control.valid.json",
+    ],
     ["target-readiness-v1", "../contract/fixtures/target-readiness/v1/target-readiness.valid.json"],
     [
       "target-readiness-v1",

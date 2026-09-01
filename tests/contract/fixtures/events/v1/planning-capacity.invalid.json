@@ -1,0 +1,11 @@
+{
+  "event_name": "planning.input_changed",
+  "event_schema_version": 1,
+  "workspace_id": "30000000-0000-4000-8000-000000000012",
+  "payload": {
+    "change_kind": "PLAN_CAPACITY_CHANGED",
+    "growth_plan_id": "30000000-0000-4000-8000-000000000013",
+    "growth_plan_version": 2,
+    "weekly_capacity_minutes": 10081
+  }
+}

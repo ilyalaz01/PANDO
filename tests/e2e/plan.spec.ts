@@ -1,8 +1,8 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-async function openFixture(page: import("@playwright/test").Page) {
-  await page.goto("/dev/plan-fixture");
+async function openFixture(page: import("@playwright/test").Page, suffix = "") {
+  await page.goto(`/dev/plan-fixture${suffix}`);
   await expect(
     page.getByRole("heading", { name: "Keep the plan aligned with your life.", level: 1 }),
   ).toBeVisible();
@@ -57,4 +57,22 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(results.violations).toEqual([]);
+});
+
+test("shows exact weekly-capacity consequences before confirmation", async ({ page }) => {
+  await openFixture(page, "?preview=capacity");
+  const comparison = page.getByLabel("Exact weekly capacity preview");
+  await expect(comparison).toContainText("600 minutes");
+  await expect(comparison).toContainText("720 minutes");
+  await expect(comparison).toContainText("180 minutes");
+  await expect(comparison).toContainText("540 minutes");
+  await expect(page.getByRole("button", { name: "Confirm capacity" })).toBeEnabled();
+});
+
+test("blocks a capacity below active Track minima without an apply control", async ({ page }) => {
+  await openFixture(page, "?preview=blocked");
+  await expect(
+    page.getByRole("region", { name: "Review weekly capacity" }).getByRole("alert"),
+  ).toContainText("Capacity can't be set to 120 minutes. Active tracks reserve 180 minutes.");
+  await expect(page.getByRole("button", { name: "Confirm capacity" })).toHaveCount(0);
 });

@@ -129,7 +129,11 @@ export function validateAgentControlContextSemantics(
       );
     }
     const protectedMinutes = tracks.reduce(
-      (total, track) => total + (asNumber(track.protected_minimum_minutes) ?? 0),
+      (total, track) =>
+        total +
+        (asString(track.status) === "active"
+          ? (asNumber(track.protected_minimum_minutes) ?? 0)
+          : 0),
       0,
     );
     if (protectedMinutes > (asNumber(growthPlan.weekly_capacity_minutes) ?? 0)) {

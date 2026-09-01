@@ -5,7 +5,8 @@
   "oneOf": [
     { "$ref": "#/$defs/growthPlanInitialized" },
     { "$ref": "#/$defs/trackActivityAdmitted" },
-    { "$ref": "#/$defs/planLifecycleChanged" }
+    { "$ref": "#/$defs/planLifecycleChanged" },
+    { "$ref": "#/$defs/planCapacityChanged" }
   ],
   "$defs": {
     "growthPlanInitialized": {
@@ -95,6 +96,32 @@
             "growth_plan_id": { "$ref": "#/$defs/uuid" },
             "growth_plan_version": { "$ref": "#/$defs/positiveBigint" },
             "lifecycle": { "enum": ["ACTIVE", "PAUSED"] }
+          }
+        }
+      }
+    },
+    "planCapacityChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "planning.input_changed" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "growth_plan_id",
+            "growth_plan_version",
+            "weekly_capacity_minutes"
+          ],
+          "properties": {
+            "change_kind": { "const": "PLAN_CAPACITY_CHANGED" },
+            "growth_plan_id": { "$ref": "#/$defs/uuid" },
+            "growth_plan_version": { "$ref": "#/$defs/positiveBigint" },
+            "weekly_capacity_minutes": { "type": "integer", "minimum": 0, "maximum": 10080 }
           }
         }
       }

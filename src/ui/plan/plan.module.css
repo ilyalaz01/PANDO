@@ -117,15 +117,22 @@
 .form label {
   font-weight: 750;
 }
-.form textarea {
-  min-height: 7rem;
-  resize: vertical;
+.form textarea,
+.numberInput {
   padding: 0.7rem;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-control);
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
+}
+.form textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+.numberInput {
+  width: min(100%, 14rem);
+  min-height: var(--size-control-min);
 }
 .button,
 .secondaryButton {

@@ -4,19 +4,33 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
   CurrentGrowthPlanV1,
+  GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
   PlanOperation,
+  PlanPreviewV1,
   PlanStateV1,
 } from "./plan-types";
 import { initialPlanActionState, type PlanActionState } from "./plan-action-state";
 import styles from "./plan.module.css";
 import {
+  applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
+  previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
 } from "../../app/plan/actions";
 
 function requestId(): string {
   return globalThis.crypto.randomUUID();
+}
+
+function isLifecyclePreview(
+  preview: PlanPreviewV1 | null,
+): preview is GrowthPlanLifecyclePreviewV1 {
+  return preview?.contract.name === "GrowthPlanLifecyclePreviewV1";
+}
+
+function isCapacityPreview(preview: PlanPreviewV1 | null): preview is GrowthPlanCapacityPreviewV1 {
+  return preview?.contract.name === "GrowthPlanCapacityPreviewV1";
 }
 
 function Status({ state }: { readonly state: PlanActionState }) {
@@ -54,12 +68,12 @@ function PlanDetails({ plan }: { readonly plan: PlanStateV1 }) {
   );
 }
 
-function Comparison({ preview }: { readonly preview: GrowthPlanLifecyclePreviewV1 }) {
-  const fields: readonly (keyof PlanStateV1)[] = [
-    "lifecycle",
-    "title",
-    "weeklyCapacityMinutes",
-    "aggregateVersion",
+function LifecycleComparison({ preview }: { readonly preview: GrowthPlanLifecyclePreviewV1 }) {
+  const fields: readonly { readonly field: keyof PlanStateV1; readonly label: string }[] = [
+    { field: "lifecycle", label: "State" },
+    { field: "title", label: "Title" },
+    { field: "weeklyCapacityMinutes", label: "Capacity (minutes)" },
+    { field: "aggregateVersion", label: "Version" },
   ];
   return (
     <div className={styles.comparison} aria-label="Exact plan change preview">
@@ -67,15 +81,64 @@ function Comparison({ preview }: { readonly preview: GrowthPlanLifecyclePreviewV
         <div key={side}>
           <h3>{side === "before" ? "Before" : "After confirmation"}</h3>
           <dl>
-            {fields.map((field) => (
+            {fields.map(({ field, label }) => (
               <div key={field}>
-                <dt>{field === "weeklyCapacityMinutes" ? "Capacity" : field}</dt>
+                <dt>{label}</dt>
                 <dd>{String(preview[side][field])}</dd>
               </div>
             ))}
           </dl>
         </div>
       ))}
+    </div>
+  );
+}
+
+function CapacityComparison({ preview }: { readonly preview: GrowthPlanCapacityPreviewV1 }) {
+  return (
+    <div className={styles.comparison} aria-label="Exact weekly capacity preview">
+      <div>
+        <h3>Before</h3>
+        <dl>
+          <div>
+            <dt>Weekly capacity</dt>
+            <dd>{preview.before.weeklyCapacityMinutes} minutes</dd>
+          </div>
+          <div>
+            <dt>Active protected minimum</dt>
+            <dd>{preview.constraint.activeProtectedMinimumMinutes} minutes</dd>
+          </div>
+          <div>
+            <dt>Flexible capacity</dt>
+            <dd>{preview.constraint.flexibleMinutesBefore} minutes</dd>
+          </div>
+          <div>
+            <dt>Version</dt>
+            <dd>{preview.before.aggregateVersion}</dd>
+          </div>
+        </dl>
+      </div>
+      <div>
+        <h3>{preview.canApply ? "After confirmation" : "Proposed"}</h3>
+        <dl>
+          <div>
+            <dt>Weekly capacity</dt>
+            <dd>{preview.after.weeklyCapacityMinutes} minutes</dd>
+          </div>
+          <div>
+            <dt>Active protected minimum</dt>
+            <dd>{preview.constraint.activeProtectedMinimumMinutes} minutes</dd>
+          </div>
+          <div>
+            <dt>{preview.canApply ? "Flexible capacity" : "Capacity shortfall"}</dt>
+            <dd>{Math.abs(preview.constraint.flexibleMinutesAfter)} minutes</dd>
+          </div>
+          <div>
+            <dt>Version if applied</dt>
+            <dd>{preview.after.aggregateVersion}</dd>
+          </div>
+        </dl>
+      </div>
     </div>
   );
 }
@@ -101,15 +164,25 @@ export function PlanWorkspace({
   workspace,
   initialPreviewState = initialPlanActionState,
   initialApplyState = initialPlanActionState,
+  initialCapacityPreviewState = initialPlanActionState,
+  initialCapacityApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly initialPreviewState?: PlanActionState;
   readonly initialApplyState?: PlanActionState;
+  readonly initialCapacityPreviewState?: PlanActionState;
+  readonly initialCapacityApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
   const [dismissed, setDismissed] = useState(false);
   const [applyRequestId, setApplyRequestId] = useState(requestId);
+  const [capacityReason, setCapacityReason] = useState("");
+  const [proposedCapacity, setProposedCapacity] = useState(() =>
+    String(workspace.currentPlan?.weeklyCapacityMinutes ?? ""),
+  );
+  const [capacityDismissed, setCapacityDismissed] = useState(false);
+  const [capacityApplyRequestId, setCapacityApplyRequestId] = useState(requestId);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -123,8 +196,26 @@ export function PlanWorkspace({
     applyGrowthPlanLifecycleAction,
     initialApplyState,
   );
+  const [capacityPreviewState, capacityPreviewAction, capacityPreviewPending] = useActionState(
+    previewGrowthPlanCapacityAction,
+    initialCapacityPreviewState,
+  );
+  const [capacityApplyState, capacityApplyAction, capacityApplyPending] = useActionState(
+    applyGrowthPlanCapacityAction,
+    initialCapacityApplyState,
+  );
+  const [submittedCapacityPreviewDigest, setSubmittedCapacityPreviewDigest] = useState<
+    string | null
+  >(() =>
+    initialCapacityApplyState.status === "idle"
+      ? null
+      : (initialCapacityPreviewState.preview?.previewDigest ?? null),
+  );
   const plan = workspace.currentPlan;
-  const preview = previewState.preview;
+  const preview = isLifecyclePreview(previewState.preview) ? previewState.preview : null;
+  const capacityPreview = isCapacityPreview(capacityPreviewState.preview)
+    ? capacityPreviewState.preview
+    : null;
   const operation = workspace.capabilities[0] as PlanOperation | undefined;
   const applyStateForPreview =
     preview !== null && preview.previewDigest === submittedPreviewDigest
@@ -136,9 +227,21 @@ export function PlanWorkspace({
     (applyStateForPreview.status === "applied" && preview?.previewDigest === submittedPreviewDigest)
       ? null
       : preview;
+  const capacityApplyStateForPreview =
+    capacityPreview !== null && capacityPreview.previewDigest === submittedCapacityPreviewDigest
+      ? capacityApplyState
+      : initialPlanActionState;
+  const effectiveCapacityPreview =
+    capacityDismissed ||
+    capacityPreviewPending ||
+    (capacityApplyStateForPreview.status === "applied" &&
+      capacityPreview?.previewDigest === submittedCapacityPreviewDigest)
+      ? null
+      : capacityPreview;
   useEffect(() => {
-    if (applyState.status === "applied") router.refresh();
-  }, [applyState, router]);
+    if (applyState.status === "applied" || capacityApplyState.status === "applied")
+      router.refresh();
+  }, [applyState, capacityApplyState, router]);
 
   if (!plan)
     return (
@@ -169,6 +272,7 @@ export function PlanWorkspace({
           className={styles.form}
           onSubmit={() => {
             setDismissed(false);
+            setCapacityDismissed(true);
             setApplyRequestId(requestId());
           }}
         >
@@ -192,7 +296,7 @@ export function PlanWorkspace({
       {effectivePreview ? (
         <section className={styles.panel} aria-labelledby="preview-heading">
           <h2 id="preview-heading">Review before applying</h2>
-          <Comparison preview={effectivePreview} />
+          <LifecycleComparison preview={effectivePreview} />
           <p>Reason: {effectivePreview.reason}</p>
           <p className={styles.notice}>
             After confirmation, Planning recalculates asynchronously. The result is honestly
@@ -248,6 +352,149 @@ export function PlanWorkspace({
               </button>
             </div>
           ) : null}
+        </section>
+      ) : null}
+      <section className={styles.panel} aria-labelledby="capacity-heading">
+        <h2 id="capacity-heading">Edit weekly capacity</h2>
+        <p>
+          Set the total minutes you can realistically use in a week. PANDO will check protected work
+          before offering confirmation and will never reduce a Track minimum silently.
+        </p>
+        <form
+          action={capacityPreviewAction}
+          className={styles.form}
+          onSubmit={() => {
+            setDismissed(true);
+            setCapacityDismissed(false);
+            setCapacityApplyRequestId(requestId());
+          }}
+        >
+          <input name="expectedGrowthPlanVersion" type="hidden" value={plan.aggregateVersion} />
+          <label htmlFor="weekly-capacity">Weekly capacity in minutes</label>
+          <input
+            className={styles.numberInput}
+            id="weekly-capacity"
+            inputMode="numeric"
+            max={10_080}
+            min={0}
+            name="proposedWeeklyCapacityMinutes"
+            onChange={(event) => setProposedCapacity(event.target.value)}
+            required
+            step={1}
+            type="number"
+            value={proposedCapacity}
+          />
+          <label htmlFor="capacity-reason">Why is capacity changing?</label>
+          <textarea
+            id="capacity-reason"
+            name="reason"
+            maxLength={500}
+            onChange={(event) => setCapacityReason(event.target.value)}
+            required
+            value={capacityReason}
+          />
+          <button className={styles.button} disabled={capacityPreviewPending} type="submit">
+            {capacityPreviewPending ? "Checking capacity…" : "Preview capacity change"}
+          </button>
+          <Status state={capacityPreviewState} />
+        </form>
+      </section>
+      {effectiveCapacityPreview ? (
+        <section className={styles.panel} aria-labelledby="capacity-preview-heading">
+          <h2 id="capacity-preview-heading">Review weekly capacity</h2>
+          <CapacityComparison preview={effectiveCapacityPreview} />
+          <p>Reason: {effectiveCapacityPreview.reason}</p>
+          {!effectiveCapacityPreview.canApply ? (
+            <div className={styles.notice} role="alert">
+              <p>
+                Capacity can&apos;t be set to {effectiveCapacityPreview.after.weeklyCapacityMinutes}{" "}
+                minutes. Active tracks reserve{" "}
+                {effectiveCapacityPreview.constraint.activeProtectedMinimumMinutes} minutes.
+                Increase capacity to at least{" "}
+                {effectiveCapacityPreview.constraint.activeProtectedMinimumMinutes} minutes, or
+                pause or edit a track when Track controls are available.
+              </p>
+              <button
+                className={styles.secondaryButton}
+                onClick={() => {
+                  setCapacityDismissed(true);
+                  setCapacityReason("");
+                }}
+                type="button"
+              >
+                Start over
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className={styles.notice}>
+                Track settings and completed history stay unchanged. Planning recalculates Today
+                asynchronously after confirmation.
+              </p>
+              <form
+                action={capacityApplyAction}
+                className={styles.actions}
+                onSubmit={() =>
+                  setSubmittedCapacityPreviewDigest(effectiveCapacityPreview.previewDigest)
+                }
+              >
+                <input
+                  name="proposedWeeklyCapacityMinutes"
+                  type="hidden"
+                  value={effectiveCapacityPreview.after.weeklyCapacityMinutes}
+                />
+                <input
+                  name="expectedGrowthPlanVersion"
+                  type="hidden"
+                  value={effectiveCapacityPreview.expectedGrowthPlanVersion}
+                />
+                <input
+                  name="previewDigest"
+                  type="hidden"
+                  value={effectiveCapacityPreview.previewDigest}
+                />
+                <input name="reason" type="hidden" value={effectiveCapacityPreview.reason} />
+                <input name="requestId" type="hidden" value={capacityApplyRequestId} />
+                <button
+                  className={styles.button}
+                  disabled={
+                    capacityApplyPending || capacityApplyStateForPreview.status === "conflict"
+                  }
+                  type="submit"
+                >
+                  {capacityApplyPending ? "Applying…" : "Confirm capacity"}
+                </button>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={capacityApplyPending}
+                  onClick={() => {
+                    setCapacityReason("");
+                    setCapacityDismissed(true);
+                  }}
+                  type="button"
+                >
+                  Start over
+                </button>
+                <Status state={capacityApplyStateForPreview} />
+              </form>
+              {capacityApplyStateForPreview.status === "conflict" ? (
+                <div className={styles.notice} role="alert">
+                  <p>The plan is stale. Reload the current version, then create a new preview.</p>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => {
+                      setCapacityDismissed(true);
+                      setCapacityReason("");
+                      router.refresh();
+                    }}
+                    type="button"
+                  >
+                    Reload current plan
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
         </section>
       ) : null}
     </div>

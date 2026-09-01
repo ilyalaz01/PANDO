@@ -1,0 +1,42 @@
+{
+  "contract": { "name": "GrowthPlanCapacityPreviewV1", "version": "1.0.0" },
+  "operation": "set_default_capacity",
+  "reason": "Attempt a zero-minute capacity.",
+  "expectedGrowthPlanVersion": "1",
+  "before": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000021",
+    "title": "Maximum weekly plan",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 10080,
+    "aggregateVersion": "1"
+  },
+  "after": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000021",
+    "title": "Maximum weekly plan",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 0,
+    "aggregateVersion": "2"
+  },
+  "constraint": {
+    "activeTrackCount": 1,
+    "activeProtectedMinimumMinutes": 10080,
+    "flexibleMinutesBefore": 0,
+    "flexibleMinutesAfter": -10080,
+    "activeTrackFingerprint": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "canApply": false,
+  "blockingReasons": [
+    { "code": "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", "minimumCapacityMinutes": 10080 }
+  ],
+  "retained": {
+    "learningTracks": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}

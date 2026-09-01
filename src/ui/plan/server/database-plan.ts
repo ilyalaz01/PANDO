@@ -3,9 +3,13 @@ import "server-only";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   decodeCurrentGrowthPlanV1,
+  decodeGrowthPlanCapacityApplyResultV1,
+  decodeGrowthPlanCapacityPreviewV1,
   decodeGrowthPlanLifecycleApplyResultV1,
   decodeGrowthPlanLifecyclePreviewV1,
   type CurrentGrowthPlanV1,
+  type GrowthPlanCapacityApplyResultV1,
+  type GrowthPlanCapacityPreviewV1,
   type GrowthPlanLifecycleApplyResultV1,
   type GrowthPlanLifecycleOperationV1,
   type GrowthPlanLifecyclePreviewV1,
@@ -14,6 +18,8 @@ import {
 export const GET_CURRENT_GROWTH_PLAN_RPC_V1 = "get_current_growth_plan_v1" as const;
 export const PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1 = "preview_growth_plan_lifecycle_v1" as const;
 export const APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1 = "apply_growth_plan_lifecycle_v1" as const;
+export const PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1 = "preview_growth_plan_capacity_v1" as const;
+export const APPLY_GROWTH_PLAN_CAPACITY_RPC_V1 = "apply_growth_plan_capacity_v1" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
@@ -48,6 +54,17 @@ export interface GrowthPlanLifecyclePreviewCommandV1 {
 }
 
 export interface GrowthPlanLifecycleApplyCommandV1 extends GrowthPlanLifecyclePreviewCommandV1 {
+  readonly previewDigest: string;
+  readonly idempotencyKey: string;
+}
+
+export interface GrowthPlanCapacityPreviewCommandV1 {
+  readonly proposedWeeklyCapacityMinutes: number;
+  readonly expectedGrowthPlanVersion: string;
+  readonly reason: string;
+}
+
+export interface GrowthPlanCapacityApplyCommandV1 extends GrowthPlanCapacityPreviewCommandV1 {
   readonly previewDigest: string;
   readonly idempotencyKey: string;
 }
@@ -103,13 +120,25 @@ function validPreview(command: GrowthPlanLifecyclePreviewCommandV1): boolean {
   );
 }
 
+function validCapacityPreview(command: GrowthPlanCapacityPreviewCommandV1): boolean {
+  return (
+    Number.isInteger(command.proposedWeeklyCapacityMinutes) &&
+    command.proposedWeeklyCapacityMinutes >= 0 &&
+    command.proposedWeeklyCapacityMinutes <= 10_080 &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validReason(command.reason)
+  );
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
     | typeof GET_CURRENT_GROWTH_PLAN_RPC_V1
     | typeof PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1
-    | typeof APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1,
-  parameters?: Record<string, string>,
+    | typeof APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1
+    | typeof PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1
+    | typeof APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
+  parameters?: Record<string, string | number>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
   try {
@@ -188,6 +217,66 @@ export async function applyGrowthPlanLifecycleV1(
     return decodeGrowthPlanLifecycleApplyResultV1(
       await rpc(client, APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1, {
         p_operation: command.operation,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_preview_digest: command.previewDigest,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds an exact capacity preview while Planning resolves every constraint input. */
+export async function previewGrowthPlanCapacityV1(
+  client: PandoSupabaseClient,
+  command: GrowthPlanCapacityPreviewCommandV1,
+): Promise<GrowthPlanCapacityPreviewV1> {
+  if (!validCapacityPreview(command)) throw new PlanInputError();
+  try {
+    return decodeGrowthPlanCapacityPreviewV1(
+      await rpc(client, PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1, {
+        p_proposed_weekly_capacity_minutes: command.proposedWeeklyCapacityMinutes,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_reason: command.reason,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only an applicable capacity preview through the Planning-owned transaction. */
+export async function applyGrowthPlanCapacityV1(
+  client: PandoSupabaseClient,
+  command: GrowthPlanCapacityApplyCommandV1,
+): Promise<GrowthPlanCapacityApplyResultV1> {
+  if (
+    !validCapacityPreview(command) ||
+    !SHA_256_HEX.test(command.previewDigest) ||
+    !validIdempotencyKey(command.idempotencyKey)
+  ) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeGrowthPlanCapacityApplyResultV1(
+      await rpc(client, APPLY_GROWTH_PLAN_CAPACITY_RPC_V1, {
+        p_proposed_weekly_capacity_minutes: command.proposedWeeklyCapacityMinutes,
         p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
         p_preview_digest: command.previewDigest,
         p_reason: command.reason,

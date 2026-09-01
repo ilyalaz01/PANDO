@@ -5,12 +5,14 @@ const routerRefresh = vi.hoisted(() => vi.fn());
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: routerRefresh }) }));
 vi.mock("../../app/plan/actions", () => ({
+  applyGrowthPlanCapacityAction: vi.fn(),
   applyGrowthPlanLifecycleAction: vi.fn(),
+  previewGrowthPlanCapacityAction: vi.fn(),
   previewGrowthPlanLifecycleAction: vi.fn(),
 }));
 
 import type { PlanActionState } from "./plan-action-state";
-import type { CurrentGrowthPlanV1 } from "./plan-types";
+import type { CurrentGrowthPlanV1, GrowthPlanCapacityPreviewV1 } from "./plan-types";
 import { previewGrowthPlanLifecycleAction } from "../../app/plan/actions";
 import { PlanWorkspace } from "./plan-workspace";
 
@@ -43,6 +45,34 @@ const previewed: PlanActionState = {
       consumerName: "planning.plan_snapshot_v1",
     },
     previewDigest: "a".repeat(64),
+  },
+};
+
+const capacityPreviewed: PlanActionState = {
+  status: "previewed",
+  message: "Capacity preview ready.",
+  preview: {
+    contract: { name: "GrowthPlanCapacityPreviewV1", version: "1.0.0" },
+    operation: "set_default_capacity",
+    reason: "I have more time this term.",
+    expectedGrowthPlanVersion: "4",
+    before: workspace.currentPlan!,
+    after: { ...workspace.currentPlan!, weeklyCapacityMinutes: 720, aggregateVersion: "5" },
+    constraint: {
+      activeTrackCount: 2,
+      activeProtectedMinimumMinutes: 180,
+      flexibleMinutesBefore: 420,
+      flexibleMinutesAfter: 540,
+      activeTrackFingerprint: "b".repeat(64),
+    },
+    canApply: true,
+    blockingReasons: [],
+    retained: { learningTracks: true, planSnapshots: true, focusSessions: true, evidence: true },
+    recalculationAfterApply: {
+      projectionState: "PENDING",
+      consumerName: "planning.plan_snapshot_v1",
+    },
+    previewDigest: "c".repeat(64),
   },
 };
 
@@ -114,5 +144,37 @@ describe("PlanWorkspace", () => {
     );
     expect(screen.getByRole("heading", { name: "No Growth Plan yet." })).toBeVisible();
     expect(screen.queryByRole("button", { name: "Preview change" })).not.toBeInTheDocument();
+  });
+
+  it("shows exact capacity consequences and a separate confirmation", () => {
+    render(<PlanWorkspace initialCapacityPreviewState={capacityPreviewed} workspace={workspace} />);
+    const comparison = screen.getByLabelText("Exact weekly capacity preview");
+    expect(comparison).toHaveTextContent("600 minutes");
+    expect(comparison).toHaveTextContent("720 minutes");
+    expect(comparison).toHaveTextContent("180 minutes");
+    expect(comparison).toHaveTextContent("540 minutes");
+    expect(screen.getByText("Reason: I have more time this term.")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Confirm capacity" })).toBeEnabled();
+  });
+
+  it("explains a protected-minimum block and exposes no apply control", () => {
+    const applicable = capacityPreviewed.preview as GrowthPlanCapacityPreviewV1;
+    const blocked: PlanActionState = {
+      ...capacityPreviewed,
+      preview: {
+        ...applicable,
+        after: { ...applicable.after, weeklyCapacityMinutes: 120 },
+        constraint: { ...applicable.constraint, flexibleMinutesAfter: -60 },
+        canApply: false,
+        blockingReasons: [
+          { code: "ACTIVE_TRACK_MINIMUM_EXCEEDS_CAPACITY", minimumCapacityMinutes: 180 },
+        ],
+      },
+    };
+    render(<PlanWorkspace initialCapacityPreviewState={blocked} workspace={workspace} />);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Capacity can't be set to 120 minutes. Active tracks reserve 180 minutes.",
+    );
+    expect(screen.queryByRole("button", { name: "Confirm capacity" })).not.toBeInTheDocument();
   });
 });

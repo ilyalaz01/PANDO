@@ -7,8 +7,10 @@ Owns Growth Plans, Learning Tracks, capacity, ranking, explanations, and plan sn
 The accepted supporting design for lifecycle and editing work is
 [`PHASE_4B_LIFECYCLE_COMMANDS.md`](../../../docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md). It fixes the
 owner transition matrices, deterministic owner preview, expected-version/idempotency protocol, and
-ordered D1–D5 slices. D1 is intentionally limited to Growth Plan pause/resume; archive and campaign
-semantics remain behind the ADR required by that design.
+ordered D1–D5 slices. D1 delivers Growth Plan pause/resume, and the accepted
+[`PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md`](../../../docs/design/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md)
+settles the first D2 increment. Archive and campaign semantics remain behind the ADR required by
+the parent design.
 
 D1 is implemented. `api.get_current_growth_plan_v1` resolves only the authenticated personal
 workspace and exposes title, lifecycle, weekly capacity, bigint-safe aggregate version, current
@@ -19,6 +21,16 @@ the command receipt, minimal `planning.input_changed` event, and fixed snapshot 
 uses the same boundary with a two-step preview/confirmation flow and reports recalculation as
 pending. The implementation record is
 [`PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md`](../../../docs/implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md).
+
+D2a is implemented through a separate versioned capacity preview/apply pair so D1's lifecycle
+contract and digest keep their released meaning. The clock-free preview binds the exact Growth Plan
+version plus an ordered fingerprint of active Track IDs, versions, lifecycle, and protected
+minimums. A proposal below their aggregate minimum is returned as a typed blocked preview with no
+apply control; paused, completed, and archived Tracks do not count. Apply re-locks the Plan and all
+child Tracks, recomputes the digest, increments only Plan capacity/version, and atomically commits
+one minimal capacity event and fixed Planning delivery. `/plan` exposes the same exact confirmation
+discipline and the auth gate proves real persistence. See
+[`PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md`](../../../docs/implementation/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md).
 
 ## Phase 4A implementation route
 

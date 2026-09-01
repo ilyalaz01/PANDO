@@ -1,0 +1,40 @@
+{
+  "contract": { "name": "GrowthPlanCapacityPreviewV1", "version": "1.0.0" },
+  "operation": "set_default_capacity",
+  "reason": "Set capacity",
+  "expectedGrowthPlanVersion": "4",
+  "before": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "title": "Backend interview readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "after": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "title": "Backend interview readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600.5,
+    "aggregateVersion": "5"
+  },
+  "constraint": {
+    "activeTrackCount": 2,
+    "activeProtectedMinimumMinutes": 150,
+    "flexibleMinutesBefore": 450,
+    "flexibleMinutesAfter": 450,
+    "activeTrackFingerprint": "not-a-digest"
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "retained": {
+    "learningTracks": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "CURRENT",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "not-a-digest"
+}

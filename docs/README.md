@@ -43,6 +43,8 @@ recorded in the supporting
 [Phase 4B D2a Growth Plan weekly-capacity design](design/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
 Its delivered slices and verification evidence are tracked in the
 [Phase 4B lifecycle command status](implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md).
+The completed weekly-capacity slice is recorded in the
+[Phase 4B D2a implementation status](implementation/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY_STATUS.md).
 
 If documents conflict, earlier product documents in this list have precedence over later product documents. `SOFTWARE_PROJECT_GUIDELINES.md` governs implementation and delivery but must not silently contradict product semantics. Stop and record the conflict instead of guessing.
 
