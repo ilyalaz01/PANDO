@@ -2,6 +2,14 @@
 
 Owns Growth Plans, Learning Tracks, capacity, ranking, explanations, and plan snapshots.
 
+## Phase 4B implementation route
+
+The accepted supporting design for lifecycle and editing work is
+[`PHASE_4B_LIFECYCLE_COMMANDS.md`](../../../docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md). It fixes the
+owner transition matrices, deterministic owner preview, expected-version/idempotency protocol, and
+ordered D1–D5 slices. D1 is intentionally limited to Growth Plan pause/resume; archive and campaign
+semantics remain behind the ADR required by that design.
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure

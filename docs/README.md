@@ -35,7 +35,10 @@ product documents. Module interaction and projection ownership are recorded in [
 and the [module topology](design/MODULE_TOPOLOGY.md). Agent Control is detailed in
 [ADR-0008](adr/0008-agent-control-plane.md) and the
 [Agent Control Plane design](design/AGENT_CONTROL_PLANE.md). Supporting documents may select
-implementation mechanisms but may not change product semantics.
+implementation mechanisms but may not change product semantics. The remaining Phase 4 lifecycle
+transitions, owner-command protocol, preview boundary, and ordered implementation slices are
+recorded in the supporting
+[Phase 4B lifecycle command design](design/PHASE_4B_LIFECYCLE_COMMANDS.md).
 
 If documents conflict, earlier product documents in this list have precedence over later product documents. `SOFTWARE_PROJECT_GUIDELINES.md` governs implementation and delivery but must not silently contradict product semantics. Stop and record the conflict instead of guessing.
 

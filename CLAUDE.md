@@ -59,7 +59,8 @@ Human roadmap position:
   complete.
 - C7–C9 — `/today`, server-rendered selection-to-Focus journey, and
   responsive/accessibility/authenticated browser acceptance: complete.
-- D — plan/capacity/campaign lifecycle and editing: pending.
+- D0 — lifecycle/editing command design and ordered owner slices: complete.
+- D1–D5 — plan/capacity/campaign lifecycle and editing implementation: pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
@@ -69,28 +70,26 @@ The first complete Today-to-Focus browser journey is implemented and verified. T
 is not another Today shell: it is the versioned Phase 4 lifecycle/editing command surface required
 before Agent Control can safely manage plans.
 
-## Current bounded outcome: D0 Phase 4B lifecycle design
+## Current bounded outcome: D1 Growth Plan pause/resume
 
-Design the smallest coherent command sequence for the remaining Phase 4 lifecycle surface before
-adding another public mutation. Trace every decision to the canonical Domain Model, Product and UX
-Specification, MVP Delivery Plan, ADR-0003, module topology, and the existing Planning/Targets
-aggregate contracts.
+Implement the first vertical slice selected by
+`docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`: authenticated Growth Plan pause/resume with one
+deterministic preview and the same Planning-owned application command for browser UI and future
+Agent Control coordination.
 
 Required outcome:
 
-- specify aggregate owners, expected-version fences, idempotency identities, lifecycle transition
-  tables, atomic receipt/state/outbox effects, and history-preserving terminal behavior;
-- order the vertical slices so manual UI and Agent Control can later call the same commands;
-- cover at least Growth Plan capacity plus pause/resume/complete and Learning Track
-  priority/cadence plus pause/resume/complete before designing Campaign overrides;
-- define deterministic before/after preview inputs without letting a preview become authority;
-- keep Campaign ownership/cardinality and target changes consistent with the canonical model;
-- do not expose inert controls, add an embedded model, or start Agent Control transport code before
-  the owning commands exist.
+- add bounded current-plan read plus preview/apply APIs owned by Planning;
+- support only `active -> paused` and `paused -> active`; Growth Plan has no `completed` state;
+- require expected Growth Plan version, exact recomputed preview digest, reason, and idempotency key;
+- commit plan version, command receipt, `planning.input_changed`, and fixed Planning delivery
+  atomically, with replay/conflict/concurrency/rollback and two-workspace isolation tests;
+- add a responsive, keyboard-accessible `/plan` UI that shows exact before/after state, explicitly
+  confirms, handles stale refresh, and reports recalculation as pending rather than current;
+- do not implement archive, capacity, Track editing, Campaigns, or Agent Control transport in D1.
 
-The design must end with one narrowly named first implementation outcome and its database,
-contract, concurrency, and browser acceptance gates. If it selects a hard-to-reverse technical
-decision not already accepted, add a superseding or new ADR before implementation.
+Run the complete Windows verification gates before handoff. D1 requires no new ADR; archive and
+campaign work remain blocked on the focused ADR specified by the Phase 4B design.
 
 ## Architecture and safety rules
 
