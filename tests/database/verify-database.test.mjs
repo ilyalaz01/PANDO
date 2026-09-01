@@ -241,6 +241,8 @@ test("a fake successful gate runs the complete exact argv set and stops once", a
     "supabase/tests/database/029_phase4b_growth_plan_capacity_concurrency.test.sql",
     "supabase/tests/database/030_phase4b_learning_track_lifecycle.test.sql",
     "supabase/tests/database/031_phase4b_learning_track_lifecycle_concurrency.test.sql",
+    "supabase/tests/database/032_phase4b_learning_track_priority_minimum.test.sql",
+    "supabase/tests/database/033_phase4b_learning_track_priority_minimum_concurrency.test.sql",
     "--local",
   ]);
   assert.deepEqual(commands[3], [

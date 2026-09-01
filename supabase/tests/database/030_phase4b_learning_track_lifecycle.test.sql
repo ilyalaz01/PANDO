@@ -175,16 +175,16 @@ select ok(
   and pg_catalog.has_column_privilege(
     'pando_planning_api', 'planning.learning_tracks', 'updated_at', 'UPDATE'
   )
-  and not pg_catalog.has_column_privilege(
+  and pg_catalog.has_column_privilege(
     'pando_planning_api', 'planning.learning_tracks', 'protected_minimum_minutes', 'UPDATE'
   )
-  and not pg_catalog.has_column_privilege(
+  and pg_catalog.has_column_privilege(
     'pando_planning_api', 'planning.learning_tracks', 'priority', 'UPDATE'
   )
   and not pg_catalog.has_table_privilege(
     'authenticated', 'planning.learning_tracks', 'SELECT'
   ),
-  'Planning has only lifecycle/version/timestamp Track updates and browser roles have no table read'
+  'Planning has only lifecycle/settings/version/timestamp Track updates and browser roles have no table read'
 );
 
 insert into auth.users (
