@@ -13,12 +13,14 @@ import {
   loadCurrentGrowthPlanV1,
   loadCurrentLearningTracksV1,
   loadGrowthPlanSetupSourceV1,
+  loadLearningTrackCreationSourceV1,
   loadLearningTrackActivityAdmissionSourceV1,
 } from "../../ui/plan/server/database-plan";
 import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionSourceV1,
 } from "../../ui/plan/plan-types";
 
@@ -84,30 +86,73 @@ function activityAdmissionReadAgrees(
   return admissionPlanAgrees && admissionTrackAgrees;
 }
 
+function learningTrackCreationReadAgrees(
+  workspace: CurrentGrowthPlanV1,
+  tracksWorkspace: CurrentLearningTracksV1,
+  learningTrackCreationSource: LearningTrackCreationSourceV1,
+): boolean {
+  const plan = workspace.currentPlan;
+  const creationPlan = learningTrackCreationSource.growthPlan;
+  const trackPortfolio = learningTrackCreationSource.trackPortfolio;
+  return plan === null
+    ? learningTrackCreationSource.state === "NO_CURRENT_PLAN" &&
+        creationPlan === null &&
+        trackPortfolio === null
+    : creationPlan !== null &&
+        trackPortfolio !== null &&
+        creationPlan.title === plan.title &&
+        creationPlan.lifecycle === plan.lifecycle &&
+        creationPlan.weeklyCapacityMinutes === plan.weeklyCapacityMinutes &&
+        creationPlan.aggregateVersion === plan.aggregateVersion &&
+        trackPortfolio.currentTrackCount === tracksWorkspace.learningTracks.length;
+}
+
 export default async function PlanPage() {
   let workspace: CurrentGrowthPlanV1;
   let tracksWorkspace: CurrentLearningTracksV1;
   let setupSource: GrowthPlanSetupSourceV1;
+  let learningTrackCreationSource: LearningTrackCreationSourceV1 | undefined;
+  let learningTrackCreationUnavailable = false;
   let activityAdmissionSource: LearningTrackActivityAdmissionSourceV1 | undefined;
   let activityAdmissionUnavailable = false;
   try {
     const client = await createPandoServerComponentClient();
     const authorizedClient = (await verifyPandoSession(client)).client;
-    [workspace, tracksWorkspace, setupSource, activityAdmissionSource] = await Promise.all([
+    [
+      workspace,
+      tracksWorkspace,
+      setupSource,
+      learningTrackCreationSource,
+      activityAdmissionSource,
+    ] = await Promise.all([
       loadCurrentGrowthPlanV1(authorizedClient),
       loadCurrentLearningTracksV1(authorizedClient),
       loadGrowthPlanSetupSourceV1(authorizedClient),
+      loadLearningTrackCreationSourceV1(authorizedClient).catch(() => undefined),
       loadLearningTrackActivityAdmissionSourceV1(authorizedClient).catch(() => undefined),
     ]);
     if (
       !planningReadsAgree(workspace, tracksWorkspace, setupSource) ||
+      (learningTrackCreationSource !== undefined &&
+        !learningTrackCreationReadAgrees(
+          workspace,
+          tracksWorkspace,
+          learningTrackCreationSource,
+        )) ||
       (activityAdmissionSource !== undefined &&
         !activityAdmissionReadAgrees(workspace, tracksWorkspace, activityAdmissionSource))
     ) {
-      [workspace, tracksWorkspace, setupSource, activityAdmissionSource] = await Promise.all([
+      [
+        workspace,
+        tracksWorkspace,
+        setupSource,
+        learningTrackCreationSource,
+        activityAdmissionSource,
+      ] = await Promise.all([
         loadCurrentGrowthPlanV1(authorizedClient),
         loadCurrentLearningTracksV1(authorizedClient),
         loadGrowthPlanSetupSourceV1(authorizedClient),
+        loadLearningTrackCreationSourceV1(authorizedClient).catch(() => undefined),
         loadLearningTrackActivityAdmissionSourceV1(authorizedClient).catch(() => undefined),
       ]);
     }
@@ -115,11 +160,18 @@ export default async function PlanPage() {
       throw new Error("Planning reads changed while loading.");
     }
     if (
+      learningTrackCreationSource !== undefined &&
+      !learningTrackCreationReadAgrees(workspace, tracksWorkspace, learningTrackCreationSource)
+    ) {
+      learningTrackCreationSource = undefined;
+    }
+    if (
       activityAdmissionSource !== undefined &&
       !activityAdmissionReadAgrees(workspace, tracksWorkspace, activityAdmissionSource)
     ) {
       activityAdmissionSource = undefined;
     }
+    learningTrackCreationUnavailable = learningTrackCreationSource === undefined;
     activityAdmissionUnavailable = activityAdmissionSource === undefined;
   } catch (error) {
     if (error instanceof AuthenticatedSessionRequiredError) redirect("/sign-in");
@@ -152,7 +204,9 @@ export default async function PlanPage() {
       </header>
       <main className={styles.main} id="plan-main" tabIndex={-1}>
         <PlanWorkspace
+          {...(learningTrackCreationSource === undefined ? {} : { learningTrackCreationSource })}
           {...(activityAdmissionSource === undefined ? {} : { activityAdmissionSource })}
+          learningTrackCreationUnavailable={learningTrackCreationUnavailable}
           activityAdmissionUnavailable={activityAdmissionUnavailable}
           setupSource={setupSource}
           tracksWorkspace={tracksWorkspace}

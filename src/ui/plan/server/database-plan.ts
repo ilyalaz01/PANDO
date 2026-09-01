@@ -6,6 +6,9 @@ import {
   decodeGrowthPlanInitializationApplyResultV1,
   decodeGrowthPlanInitializationPreviewV1,
   decodeGrowthPlanSetupSourceV1,
+  decodeLearningTrackCreationApplyResultV1,
+  decodeLearningTrackCreationPreviewV1,
+  decodeLearningTrackCreationSourceV1,
   decodeLearningTrackActivityAdmissionApplyResultV1,
   decodeLearningTrackActivityAdmissionPreviewV1,
   decodeLearningTrackActivityAdmissionSourceV1,
@@ -25,6 +28,9 @@ import {
   type GrowthPlanInitializationApplyResultV1,
   type GrowthPlanInitializationPreviewV1,
   type GrowthPlanSetupSourceV1,
+  type LearningTrackCreationApplyResultV1,
+  type LearningTrackCreationPreviewV1,
+  type LearningTrackCreationSourceV1,
   type GrowthPlanLifecycleApplyResultV1,
   type GrowthPlanLifecycleOperationV1,
   type GrowthPlanLifecyclePreviewV1,
@@ -56,6 +62,10 @@ export const PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
   "preview_growth_plan_initialization_v1" as const;
 export const APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
   "apply_growth_plan_initialization_v1" as const;
+export const GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1 =
+  "get_learning_track_creation_source_v1" as const;
+export const PREVIEW_LEARNING_TRACK_CREATION_RPC_V1 = "preview_learning_track_creation_v1" as const;
+export const APPLY_LEARNING_TRACK_CREATION_RPC_V1 = "apply_learning_track_creation_v1" as const;
 export const GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1 =
   "get_learning_track_activity_admission_source_v1" as const;
 export const PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1 =
@@ -153,6 +163,21 @@ export interface GrowthPlanInitializationPreviewCommandV1 {
 }
 
 export interface GrowthPlanInitializationApplyCommandV1 extends GrowthPlanInitializationPreviewCommandV1 {
+  readonly previewDigest: string;
+}
+
+export interface LearningTrackCreationPreviewCommandV1 {
+  readonly readinessGoalKey: string;
+  readonly expectedReadinessGoalVersion: string;
+  readonly title: string;
+  readonly priority: number;
+  readonly defaultSessionMinutes: number;
+  readonly expectedGrowthPlanVersion: string;
+  readonly reason: string;
+  readonly requestId: string;
+}
+
+export interface LearningTrackCreationApplyCommandV1 extends LearningTrackCreationPreviewCommandV1 {
   readonly previewDigest: string;
 }
 
@@ -280,6 +305,34 @@ function validInitializationPreview(command: GrowthPlanInitializationPreviewComm
   );
 }
 
+function validTrackTitle(value: string): boolean {
+  return (
+    Array.from(value).length >= 1 &&
+    Array.from(value).length <= 160 &&
+    value.trim() === value &&
+    !CONTROL_CHARACTER.test(value)
+  );
+}
+
+function validLearningTrackCreationPreview(
+  command: LearningTrackCreationPreviewCommandV1,
+): boolean {
+  return (
+    GOAL_KEY.test(command.readinessGoalKey) &&
+    validVersion(command.expectedReadinessGoalVersion) &&
+    validTrackTitle(command.title) &&
+    Number.isInteger(command.priority) &&
+    command.priority >= 0 &&
+    command.priority <= 100 &&
+    Number.isInteger(command.defaultSessionMinutes) &&
+    command.defaultSessionMinutes >= 1 &&
+    command.defaultSessionMinutes <= 480 &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validReason(command.reason) &&
+    LOWERCASE_UUID.test(command.requestId)
+  );
+}
+
 function validActivityAdmissionPreview(
   command: LearningTrackActivityAdmissionPreviewCommandV1,
 ): boolean {
@@ -312,6 +365,9 @@ async function rpc(
     | typeof GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1
     | typeof PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1
     | typeof APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1
+    | typeof GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1
+    | typeof PREVIEW_LEARNING_TRACK_CREATION_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_CREATION_RPC_V1
     | typeof GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1
     | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
@@ -686,6 +742,91 @@ export async function applyGrowthPlanInitializationV1(
         p_track_priority: command.trackPriority,
         p_reason: command.reason,
         p_idempotency_key: command.idempotencyKey,
+        p_preview_digest: command.previewDigest,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads the session-resolved source for creating one additional current Learning Track. */
+export async function loadLearningTrackCreationSourceV1(
+  client: PandoSupabaseClient,
+): Promise<LearningTrackCreationSourceV1> {
+  try {
+    return decodeLearningTrackCreationSourceV1(
+      await rpc(client, GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Previews the exact additional Track that Planning will create. */
+export async function previewLearningTrackCreationV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackCreationPreviewCommandV1,
+): Promise<LearningTrackCreationPreviewV1> {
+  if (!validLearningTrackCreationPreview(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackCreationPreviewV1(
+      await rpc(client, PREVIEW_LEARNING_TRACK_CREATION_RPC_V1, {
+        p_readiness_goal_key: command.readinessGoalKey,
+        p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_title: command.title,
+        p_priority: command.priority,
+        p_default_session_minutes: command.defaultSessionMinutes,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_reason: command.reason,
+        p_request_id: command.requestId,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the confirmed additional-Track creation preview. */
+export async function applyLearningTrackCreationV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackCreationApplyCommandV1,
+): Promise<LearningTrackCreationApplyResultV1> {
+  if (!validLearningTrackCreationPreview(command) || !SHA_256_HEX.test(command.previewDigest)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackCreationApplyResultV1(
+      await rpc(client, APPLY_LEARNING_TRACK_CREATION_RPC_V1, {
+        p_readiness_goal_key: command.readinessGoalKey,
+        p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_title: command.title,
+        p_priority: command.priority,
+        p_default_session_minutes: command.defaultSessionMinutes,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_reason: command.reason,
+        p_request_id: command.requestId,
         p_preview_digest: command.previewDigest,
       }),
     );

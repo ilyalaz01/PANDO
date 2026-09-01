@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   apply: vi.fn(),
   applyActivityAdmission: vi.fn(),
   applyCapacity: vi.fn(),
+  applyCreation: vi.fn(),
   applyTrack: vi.fn(),
   applyTrackSettings: vi.fn(),
   applyInitialization: vi.fn(),
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   preview: vi.fn(),
   previewActivityAdmission: vi.fn(),
   previewCapacity: vi.fn(),
+  previewCreation: vi.fn(),
   previewTrack: vi.fn(),
   previewTrackSettings: vi.fn(),
   previewInitialization: vi.fn(),
@@ -30,11 +32,13 @@ vi.mock("../../shared/supabase/session", () => ({ verifyPandoSession: mocks.veri
 vi.mock("../../ui/plan/server/database-plan", () => ({
   applyLearningTrackActivityAdmissionV1: mocks.applyActivityAdmission,
   applyGrowthPlanCapacityV1: mocks.applyCapacity,
+  applyLearningTrackCreationV1: mocks.applyCreation,
   applyGrowthPlanLifecycleV1: mocks.apply,
   applyLearningTrackLifecycleV1: mocks.applyTrack,
   applyLearningTrackPriorityMinimumV1: mocks.applyTrackSettings,
   applyGrowthPlanInitializationV1: mocks.applyInitialization,
   previewGrowthPlanCapacityV1: mocks.previewCapacity,
+  previewLearningTrackCreationV1: mocks.previewCreation,
   previewGrowthPlanLifecycleV1: mocks.preview,
   previewLearningTrackLifecycleV1: mocks.previewTrack,
   previewLearningTrackActivityAdmissionV1: mocks.previewActivityAdmission,
@@ -48,12 +52,14 @@ import { initialPlanActionState } from "../../ui/plan/plan-action-state";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
+  applyLearningTrackCreationAction,
   applyLearningTrackLifecycleAction,
   applyLearningTrackActivityAdmissionAction,
   applyLearningTrackPriorityMinimumAction,
   applyGrowthPlanInitializationAction,
   previewGrowthPlanCapacityAction,
   previewGrowthPlanLifecycleAction,
+  previewLearningTrackCreationAction,
   previewLearningTrackLifecycleAction,
   previewLearningTrackActivityAdmissionAction,
   previewLearningTrackPriorityMinimumAction,
@@ -61,6 +67,7 @@ import {
 } from "./actions";
 
 import admissionPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
+import creationPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 
 const client = { requestScoped: true };
 const requestId = "10000000-0000-4000-8000-000000000001";
@@ -360,6 +367,23 @@ function activityAdmissionForm(): FormData {
   return data;
 }
 
+function learningTrackCreationForm(): FormData {
+  const data = new FormData();
+  data.set("readinessGoalKey", creationPreview.source.readinessGoalKey);
+  data.set("expectedReadinessGoalVersion", creationPreview.expectedReadinessGoalVersion);
+  data.set("title", creationPreview.learningTrack.title);
+  data.set("priority", String(creationPreview.learningTrack.priority));
+  data.set("defaultSessionMinutes", String(creationPreview.learningTrack.defaultSessionMinutes));
+  data.set("expectedGrowthPlanVersion", creationPreview.expectedGrowthPlanVersion);
+  data.set("reason", creationPreview.reason);
+  data.set("requestId", creationPreview.requestId);
+  data.set("previewDigest", creationPreview.previewDigest);
+  data.set("workspaceId", "attacker-selected-workspace");
+  data.set("growthPlanId", "attacker-selected-plan");
+  data.set("readinessGoalId", "attacker-selected-goal");
+  return data;
+}
+
 describe("Plan Server Actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -367,8 +391,10 @@ describe("Plan Server Actions", () => {
     mocks.verifySession.mockResolvedValue({ client, subject: "owner" });
     mocks.preview.mockResolvedValue(preview);
     mocks.previewCapacity.mockResolvedValue(capacityPreview);
+    mocks.previewCreation.mockResolvedValue(creationPreview);
     mocks.apply.mockResolvedValue({ projectionState: "PENDING" });
     mocks.applyCapacity.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.applyCreation.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrack.mockResolvedValue(trackPreview);
     mocks.applyTrack.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrackSettings.mockResolvedValue(trackSettingsPreview);
@@ -423,6 +449,67 @@ describe("Plan Server Actions", () => {
     });
     expect(mocks.revalidate).toHaveBeenCalledWith("/plan");
     expect(mocks.revalidate).toHaveBeenCalledWith("/today");
+  });
+
+  it("previews and applies Track creation using only bounded public inputs", async () => {
+    await expect(
+      previewLearningTrackCreationAction(initialPlanActionState, learningTrackCreationForm()),
+    ).resolves.toMatchObject({ status: "previewed", preview: creationPreview });
+    expect(mocks.previewCreation).toHaveBeenCalledWith(client, {
+      readinessGoalKey: creationPreview.source.readinessGoalKey,
+      expectedReadinessGoalVersion: creationPreview.expectedReadinessGoalVersion,
+      title: creationPreview.learningTrack.title,
+      priority: creationPreview.learningTrack.priority,
+      defaultSessionMinutes: creationPreview.learningTrack.defaultSessionMinutes,
+      expectedGrowthPlanVersion: creationPreview.expectedGrowthPlanVersion,
+      reason: creationPreview.reason,
+      requestId: creationPreview.requestId,
+    });
+    expect(mocks.previewCreation.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
+    expect(mocks.previewCreation.mock.calls[0]?.[1]).not.toHaveProperty("growthPlanId");
+    expect(mocks.previewCreation.mock.calls[0]?.[1]).not.toHaveProperty("readinessGoalId");
+
+    await expect(
+      applyLearningTrackCreationAction(initialPlanActionState, learningTrackCreationForm()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyCreation).toHaveBeenCalledWith(client, {
+      readinessGoalKey: creationPreview.source.readinessGoalKey,
+      expectedReadinessGoalVersion: creationPreview.expectedReadinessGoalVersion,
+      title: creationPreview.learningTrack.title,
+      priority: creationPreview.learningTrack.priority,
+      defaultSessionMinutes: creationPreview.learningTrack.defaultSessionMinutes,
+      expectedGrowthPlanVersion: creationPreview.expectedGrowthPlanVersion,
+      reason: creationPreview.reason,
+      requestId: creationPreview.requestId,
+      previewDigest: creationPreview.previewDigest,
+    });
+    expect(mocks.revalidate).toHaveBeenCalledWith("/plan");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/today");
+  });
+
+  it("rejects malformed Track creation values before creating a client", async () => {
+    for (const [name, value] of [
+      ["title", " bad"],
+      ["priority", "101"],
+      ["defaultSessionMinutes", "0"],
+      ["requestId", "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"],
+    ] as const) {
+      mocks.previewCreation.mockClear();
+      const malformed = learningTrackCreationForm();
+      malformed.set(name, value);
+      await expect(
+        previewLearningTrackCreationAction(initialPlanActionState, malformed),
+      ).resolves.toMatchObject({ status: "invalid" });
+      expect(mocks.previewCreation).not.toHaveBeenCalled();
+    }
+
+    mocks.applyCreation.mockClear();
+    const badDigest = learningTrackCreationForm();
+    badDigest.set("previewDigest", "not-a-digest");
+    await expect(
+      applyLearningTrackCreationAction(initialPlanActionState, badDigest),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.applyCreation).not.toHaveBeenCalled();
   });
 
   it("rejects invalid first-Plan values before creating a client", async () => {

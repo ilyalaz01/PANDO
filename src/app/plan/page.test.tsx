@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   load: vi.fn(),
   loadTracks: vi.fn(),
   loadSetup: vi.fn(),
+  loadCreation: vi.fn(),
   loadAdmission: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
@@ -31,6 +32,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadCurrentGrowthPlanV1: mocks.load,
   loadCurrentLearningTracksV1: mocks.loadTracks,
   loadGrowthPlanSetupSourceV1: mocks.loadSetup,
+  loadLearningTrackCreationSourceV1: mocks.loadCreation,
   loadLearningTrackActivityAdmissionSourceV1: mocks.loadAdmission,
 }));
 
@@ -103,6 +105,28 @@ const activityAdmissionSource = {
     },
   ],
 } as const;
+const learningTrackCreationSource = {
+  contract: { name: "LearningTrackCreationSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["create_learning_track"],
+  growthPlan: {
+    title: workspace.currentPlan.title,
+    lifecycle: workspace.currentPlan.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan.aggregateVersion,
+  },
+  trackPortfolio: { currentTrackCount: 1, currentTrackLimit: 30 },
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: true,
+      aggregateVersion: "1",
+    },
+  ],
+} as const;
 const setupWorkspace = {
   contract: { name: "CurrentGrowthPlanV1", version: "1.0.0" },
   currentPlan: null,
@@ -137,6 +161,14 @@ const noPlanActivityAdmissionSource = {
   learningTrack: null,
   activities: [],
 } as const;
+const noPlanLearningTrackCreationSource = {
+  contract: { name: "LearningTrackCreationSourceV1", version: "1.0.0" },
+  state: "NO_CURRENT_PLAN",
+  capabilities: [],
+  growthPlan: null,
+  trackPortfolio: null,
+  goals: [],
+} as const;
 
 describe("PlanPage", () => {
   beforeEach(() => {
@@ -145,6 +177,7 @@ describe("PlanPage", () => {
     mocks.load.mockResolvedValue(workspace);
     mocks.loadTracks.mockResolvedValue(tracksWorkspace);
     mocks.loadSetup.mockResolvedValue(currentPlanSetupSource);
+    mocks.loadCreation.mockResolvedValue(learningTrackCreationSource);
     mocks.loadAdmission.mockResolvedValue(activityAdmissionSource);
   });
 
@@ -153,6 +186,7 @@ describe("PlanPage", () => {
     expect(mocks.load).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadTracks).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadSetup).toHaveBeenCalledWith({ authorized: true });
+    expect(mocks.loadCreation).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadAdmission).toHaveBeenCalledWith({ authorized: true });
     expect(screen.getByRole("link", { name: "Skip to Plan" })).toHaveAttribute(
       "href",
@@ -169,6 +203,7 @@ describe("PlanPage", () => {
     mocks.load.mockResolvedValue(setupWorkspace);
     mocks.loadTracks.mockResolvedValue(setupTracksWorkspace);
     mocks.loadSetup.mockResolvedValue(availableSetupSource);
+    mocks.loadCreation.mockResolvedValue(noPlanLearningTrackCreationSource);
     mocks.loadAdmission.mockResolvedValue(noPlanActivityAdmissionSource);
     render(await PlanPage());
     expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();
@@ -176,6 +211,7 @@ describe("PlanPage", () => {
     expect(mocks.load).toHaveBeenCalledTimes(1);
     expect(mocks.loadTracks).toHaveBeenCalledTimes(1);
     expect(mocks.loadSetup).toHaveBeenCalledTimes(1);
+    expect(mocks.loadCreation).toHaveBeenCalledTimes(1);
     expect(mocks.loadAdmission).toHaveBeenCalledTimes(1);
   });
 
@@ -186,6 +222,7 @@ describe("PlanPage", () => {
     expect(mocks.load).not.toHaveBeenCalled();
     expect(mocks.loadTracks).not.toHaveBeenCalled();
     expect(mocks.loadSetup).not.toHaveBeenCalled();
+    expect(mocks.loadCreation).not.toHaveBeenCalled();
     expect(mocks.loadAdmission).not.toHaveBeenCalled();
   });
 
@@ -203,6 +240,15 @@ describe("PlanPage", () => {
     expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
     expect(screen.getByText(/Activity choices are temporarily unavailable/iu)).toBeVisible();
     expect(screen.queryByText(/private overlay/iu)).not.toBeInTheDocument();
+  });
+
+  it("keeps core Plan controls available when only Track creation choices fail to load", async () => {
+    mocks.loadCreation.mockRejectedValueOnce(new Error("private target detail"));
+    render(await PlanPage());
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
+    expect(screen.getByText(/Learning Track creation is temporarily unavailable/iu)).toBeVisible();
+    expect(screen.queryByText(/private target/iu)).not.toBeInTheDocument();
   });
 
   it("fails closed when the separately decoded Plan and Track reads do not agree", async () => {
@@ -225,7 +271,36 @@ describe("PlanPage", () => {
     expect(mocks.load).toHaveBeenCalledTimes(2);
     expect(mocks.loadTracks).toHaveBeenCalledTimes(2);
     expect(mocks.loadSetup).toHaveBeenCalledTimes(2);
+    expect(mocks.loadCreation).toHaveBeenCalledTimes(2);
     expect(mocks.loadAdmission).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries and then isolates a persistently incoherent Track creation source", async () => {
+    mocks.loadCreation.mockResolvedValue({
+      ...learningTrackCreationSource,
+      growthPlan: { ...learningTrackCreationSource.growthPlan, aggregateVersion: "99" },
+    });
+    render(await PlanPage());
+    expect(mocks.loadCreation).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByText(/Learning Track creation is temporarily unavailable/iu)).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Preview Learning Track" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("retries and isolates a stale Track creation portfolio count", async () => {
+    mocks.loadCreation.mockResolvedValue({
+      ...learningTrackCreationSource,
+      trackPortfolio: { currentTrackCount: 2, currentTrackLimit: 30 },
+    });
+    render(await PlanPage());
+    expect(mocks.loadCreation).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByText(/Learning Track creation is temporarily unavailable/iu)).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Preview Learning Track" }),
+    ).not.toBeInTheDocument();
   });
 
   it("retries and then isolates a persistently incoherent activity source", async () => {

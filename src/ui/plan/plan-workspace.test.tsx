@@ -7,12 +7,14 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: routerRefresh }
 vi.mock("../../app/plan/actions", () => ({
   applyGrowthPlanCapacityAction: vi.fn(),
   applyGrowthPlanLifecycleAction: vi.fn(),
+  applyLearningTrackCreationAction: vi.fn(),
   applyLearningTrackLifecycleAction: vi.fn(),
   applyLearningTrackPriorityMinimumAction: vi.fn(),
   applyGrowthPlanInitializationAction: vi.fn(),
   applyLearningTrackActivityAdmissionAction: vi.fn(),
   previewGrowthPlanCapacityAction: vi.fn(),
   previewGrowthPlanLifecycleAction: vi.fn(),
+  previewLearningTrackCreationAction: vi.fn(),
   previewLearningTrackLifecycleAction: vi.fn(),
   previewLearningTrackPriorityMinimumAction: vi.fn(),
   previewGrowthPlanInitializationAction: vi.fn(),
@@ -26,14 +28,17 @@ import type {
   GrowthPlanCapacityPreviewV1,
   LearningTrackActivityAdmissionPreviewV1,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackCreationSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
 } from "./plan-types";
 import {
   previewGrowthPlanLifecycleAction,
+  previewLearningTrackCreationAction,
   previewLearningTrackActivityAdmissionAction,
 } from "../../app/plan/actions";
 import admissionPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
+import creationPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 import { PlanWorkspace } from "./plan-workspace";
 
 const workspace: CurrentGrowthPlanV1 = {
@@ -265,6 +270,43 @@ const activityAdmissionSource: LearningTrackActivityAdmissionSourceV1 = {
       targetCompetencyRef: admissionPreview.activity.targetCompetencyRef,
     },
   ],
+};
+
+const learningTrackCreationSource: LearningTrackCreationSourceV1 = {
+  contract: { name: "LearningTrackCreationSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["create_learning_track"],
+  growthPlan: {
+    title: workspace.currentPlan!.title,
+    lifecycle: workspace.currentPlan!.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan!.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan!.aggregateVersion,
+  },
+  trackPortfolio: { currentTrackCount: 2, currentTrackLimit: 30 },
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: true,
+      aggregateVersion: "1",
+    },
+    {
+      readinessGoalKey: "goal:algorithms-sprint",
+      title: "Algorithms sprint",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: false,
+      aggregateVersion: "2",
+    },
+  ],
+};
+
+const learningTrackCreationPreviewed: PlanActionState = {
+  status: "previewed",
+  message: "Track creation preview ready.",
+  preview: creationPreviewFixture as PlanActionState["preview"],
 };
 
 const setupWorkspace: CurrentGrowthPlanV1 = {
@@ -743,6 +785,68 @@ describe("PlanWorkspace", () => {
     await waitFor(() => {
       expect(
         screen.queryByRole("button", { name: "Confirm and add activity" }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("shows exact Learning Track creation facts and a separate confirmation", () => {
+    render(
+      <PlanWorkspace
+        initialLearningTrackCreationPreviewState={learningTrackCreationPreviewed}
+        learningTrackCreationSource={learningTrackCreationSource}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    const comparison = screen.getByLabelText("Exact Learning Track creation preview");
+    expect(comparison).toHaveTextContent("Track order");
+    expect(comparison).toHaveTextContent("Algorithms sprint");
+    expect(comparison).toHaveTextContent("45 minutes");
+    expect(screen.getByRole("button", { name: "Confirm and create Learning Track" })).toBeEnabled();
+  });
+
+  it("starting Track creation dismisses an older Plan confirmation", async () => {
+    vi.mocked(previewLearningTrackCreationAction).mockImplementation(
+      () => new Promise<PlanActionState>(() => undefined),
+    );
+    render(
+      <PlanWorkspace
+        initialPreviewState={previewed}
+        learningTrackCreationSource={learningTrackCreationSource}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm and apply" })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Track title"), {
+      target: { value: "Algorithms sprint" },
+    });
+    fireEvent.change(screen.getByLabelText("Why does this Track belong now?"), {
+      target: { value: "Split algorithms practice into its own lane." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Preview Learning Track" }));
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Confirm and apply" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("starting another Plan intent dismisses a Track creation confirmation", async () => {
+    render(
+      <PlanWorkspace
+        initialLearningTrackCreationPreviewState={learningTrackCreationPreviewed}
+        learningTrackCreationSource={learningTrackCreationSource}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm and create Learning Track" })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Why is this changing?"), {
+      target: { value: "Pause while priorities change." },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Preview change" }));
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("button", { name: "Confirm and create Learning Track" }),
       ).not.toBeInTheDocument();
     });
   });

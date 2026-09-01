@@ -8,6 +8,7 @@ import { initialPlanActionState } from "../../ui/plan/plan-action-state";
 import type { PlanOperation, TrackOperation } from "../../ui/plan/plan-types";
 import {
   applyLearningTrackLifecycleV1,
+  applyLearningTrackCreationV1,
   applyLearningTrackActivityAdmissionV1,
   applyLearningTrackPriorityMinimumV1,
   applyGrowthPlanInitializationV1,
@@ -16,6 +17,7 @@ import {
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
+  previewLearningTrackCreationV1,
   previewLearningTrackActivityAdmissionV1,
   previewLearningTrackPriorityMinimumV1,
   previewGrowthPlanInitializationV1,
@@ -184,6 +186,53 @@ function initializationInput(formData: FormData): {
   };
 }
 
+function learningTrackCreationInput(formData: FormData): {
+  readinessGoalKey: string;
+  expectedReadinessGoalVersion: string;
+  title: string;
+  priority: number;
+  defaultSessionMinutes: number;
+  expectedGrowthPlanVersion: string;
+  reason: string;
+  requestId: string;
+} {
+  const readinessGoalKey = field(formData, "readinessGoalKey");
+  const expectedReadinessGoalVersion = field(formData, "expectedReadinessGoalVersion");
+  const title = field(formData, "title");
+  const priority = field(formData, "priority");
+  const defaultSessionMinutes = field(formData, "defaultSessionMinutes");
+  const expectedGrowthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const reason = field(formData, "reason");
+  const requestId = field(formData, "requestId");
+  if (
+    !GOAL_KEY.test(readinessGoalKey) ||
+    !VERSION.test(expectedReadinessGoalVersion) ||
+    !validReason(title) ||
+    Array.from(title).length > 160 ||
+    !PRIORITY.test(priority) ||
+    Number(priority) > 100 ||
+    !CAPACITY.test(defaultSessionMinutes) ||
+    Number(defaultSessionMinutes) < 1 ||
+    Number(defaultSessionMinutes) > 480 ||
+    !VERSION.test(expectedGrowthPlanVersion) ||
+    !validReason(reason) ||
+    !UUID.test(requestId) ||
+    requestId !== requestId.toLowerCase()
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    readinessGoalKey,
+    expectedReadinessGoalVersion,
+    title,
+    priority: Number(priority),
+    defaultSessionMinutes: Number(defaultSessionMinutes),
+    expectedGrowthPlanVersion,
+    reason,
+    requestId,
+  };
+}
+
 function activityAdmissionInput(formData: FormData): {
   activityKey: string;
   estimatedMinutes: number;
@@ -308,6 +357,76 @@ export async function applyGrowthPlanInitializationAction(
     return failure(
       error,
       "Choose a current readiness goal, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function previewLearningTrackCreationAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = learningTrackCreationInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewLearningTrackCreationV1(client, {
+      readinessGoalKey: value.readinessGoalKey,
+      expectedReadinessGoalVersion: value.expectedReadinessGoalVersion,
+      title: value.title,
+      priority: value.priority,
+      defaultSessionMinutes: value.defaultSessionMinutes,
+      expectedGrowthPlanVersion: value.expectedGrowthPlanVersion,
+      reason: value.reason,
+      requestId: value.requestId,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "Track creation preview ready. Confirm only if these exact facts are correct."
+        : "This additional Learning Track is no longer applicable. Reload and start again.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current target, enter a title, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyLearningTrackCreationAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = learningTrackCreationInput(formData);
+    const previewDigest = field(formData, "previewDigest");
+    if (!/^[a-f0-9]{64}$/u.test(previewDigest)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyLearningTrackCreationV1(client, {
+      readinessGoalKey: value.readinessGoalKey,
+      expectedReadinessGoalVersion: value.expectedReadinessGoalVersion,
+      title: value.title,
+      priority: value.priority,
+      defaultSessionMinutes: value.defaultSessionMinutes,
+      expectedGrowthPlanVersion: value.expectedGrowthPlanVersion,
+      reason: value.reason,
+      requestId: value.requestId,
+      previewDigest,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Learning Track created. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current target, enter a title, use whole values in range, and enter a reason. Nothing changed.",
     );
   }
 }

@@ -20,6 +20,16 @@ async function openActivityFixture(page: import("@playwright/test").Page, kind =
   await expect(page.getByRole("heading", { name: "Add useful work", level: 2 })).toBeVisible();
 }
 
+async function openTrackCreationFixture(
+  page: import("@playwright/test").Page,
+  kind = "track-create",
+) {
+  await page.goto(`/dev/plan-fixture?preview=${kind}`);
+  await expect(
+    page.getByRole("heading", { name: "Create another Learning Track", level: 2 }),
+  ).toBeVisible();
+}
+
 test("shows an exact lifecycle preview and keeps confirmation keyboard-operable", async ({
   page,
 }) => {
@@ -74,6 +84,27 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await expect(page.getByRole("button", { name: "Preview activity" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Confirm and add activity" })).toBeFocused();
+
+  await openTrackCreationFixture(page);
+  const creationRegion = page.getByRole("region", { name: "Create another Learning Track" });
+  const creationReview = page.getByRole("region", { name: "Review Learning Track creation" });
+  await creationRegion.getByLabel("Target").focus();
+  await page.keyboard.press("Tab");
+  await expect(creationRegion.getByLabel("Track title")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(creationRegion.getByLabel("Priority (0–100)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(creationRegion.getByLabel("Default session (minutes)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(creationRegion.getByLabel("Why does this Track belong now?")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    creationRegion.getByRole("button", { name: "Preview Learning Track" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    creationReview.getByRole("button", { name: "Confirm and create Learning Track" }),
+  ).toBeFocused();
 });
 
 test("fits 320px with touch-sized Plan controls", async ({ page }) => {
@@ -143,6 +174,20 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     const controlBox = await control.boundingBox();
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
+
+  await openTrackCreationFixture(page);
+  const creationRegion = page.getByRole("region", { name: "Create another Learning Track" });
+  const creationReview = page.getByRole("region", { name: "Review Learning Track creation" });
+  for (const control of [
+    creationRegion.getByLabel("Target"),
+    creationRegion.getByLabel("Track title"),
+    creationRegion.getByLabel("Priority (0–100)"),
+    creationRegion.getByLabel("Default session (minutes)"),
+    creationReview.getByRole("button", { name: "Confirm and create Learning Track" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("honors reduced motion and forced-colors focus visibility", async ({ page }) => {
@@ -196,6 +241,20 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   }));
   expect(activityStyles.outlineStyle).not.toBe("none");
   expect(activityStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
+  await openTrackCreationFixture(page);
+  const creationControl = page
+    .getByRole("region", { name: "Review Learning Track creation" })
+    .getByRole("button", {
+      name: "Confirm and create Learning Track",
+    });
+  await creationControl.focus();
+  const creationStyles = await creationControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(creationStyles.outlineStyle).not.toBe("none");
+  expect(creationStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 });
 
 test("has no automatically detectable WCAG A/AA violations", async ({ page }) => {
@@ -222,6 +281,12 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(activityResults.violations).toEqual([]);
+
+  await openTrackCreationFixture(page);
+  const creationResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(creationResults.violations).toEqual([]);
 });
 
 test("shows exact activity admission consequences and all fail-closed source states", async ({
@@ -270,6 +335,37 @@ test("shows an exact first-Plan setup preview and keeps its confirmation keyboar
   await expect(page.getByLabel("First Track priority")).toBeFocused();
   await page.getByRole("button", { name: "Confirm and create Growth Plan" }).focus();
   await expect(page.getByRole("button", { name: "Confirm and create Growth Plan" })).toBeFocused();
+});
+
+test("shows exact Track creation consequences and fail-closed source states", async ({ page }) => {
+  await openTrackCreationFixture(page);
+  const comparison = page.getByLabel("Exact Learning Track creation preview");
+  await expect(comparison).toContainText("Track order");
+  await expect(comparison).toContainText("Algorithms sprint");
+  await expect(comparison).toContainText("45 minutes");
+  await expect(page.getByText(/starts empty/iu)).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Confirm and create Learning Track" }),
+  ).toBeEnabled();
+
+  await openTrackCreationFixture(page, "track-create-blocked");
+  await expect(
+    page.getByRole("region", { name: "Review Learning Track creation" }).getByRole("alert"),
+  ).toContainText("already at 30 current Tracks");
+  await expect(page.getByRole("button", { name: "Confirm and create Learning Track" })).toHaveCount(
+    0,
+  );
+
+  for (const [kind, copy, targetsLink] of [
+    ["track-create-no-goals", /No active Targets are available/iu, true],
+    ["track-create-overflow", /More than 20 active Goals/iu, true],
+    ["track-create-limit", /already has 30 current Tracks/iu, false],
+  ] as const) {
+    await openTrackCreationFixture(page, kind);
+    await expect(page.getByText(copy)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Preview Learning Track" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Open Targets" })).toHaveCount(targetsLink ? 1 : 0);
+  }
 });
 
 test("shows exact weekly-capacity consequences before confirmation", async ({ page }) => {

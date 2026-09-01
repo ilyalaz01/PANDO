@@ -8,6 +8,7 @@ import type {
   GrowthPlanSetupSourceV1,
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
+  LearningTrackCreationSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackActivityAdmissionSourceV1,
   LearningTrackPriorityMinimumPreviewV1,
@@ -19,6 +20,7 @@ import { initialPlanActionState, type PlanActionState } from "./plan-action-stat
 import styles from "./plan.module.css";
 import { GrowthPlanSetup } from "./growth-plan-setup";
 import { ActivityAdmission } from "./activity-admission";
+import { LearningTrackCreation } from "./learning-track-creation";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -297,6 +299,8 @@ export function PlanWorkspace({
   workspace,
   tracksWorkspace,
   setupSource,
+  learningTrackCreationSource,
+  learningTrackCreationUnavailable = false,
   activityAdmissionSource,
   activityAdmissionUnavailable = false,
   initialPreviewState = initialPlanActionState,
@@ -309,12 +313,16 @@ export function PlanWorkspace({
   initialTrackPriorityMinimumApplyState = initialPlanActionState,
   initialInitializationPreviewState = initialPlanActionState,
   initialInitializationApplyState = initialPlanActionState,
+  initialLearningTrackCreationPreviewState = initialPlanActionState,
+  initialLearningTrackCreationApplyState = initialPlanActionState,
   initialActivityAdmissionPreviewState = initialPlanActionState,
   initialActivityAdmissionApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
   readonly setupSource?: GrowthPlanSetupSourceV1;
+  readonly learningTrackCreationSource?: LearningTrackCreationSourceV1;
+  readonly learningTrackCreationUnavailable?: boolean;
   readonly activityAdmissionSource?: LearningTrackActivityAdmissionSourceV1;
   readonly activityAdmissionUnavailable?: boolean;
   readonly initialPreviewState?: PlanActionState;
@@ -327,6 +335,8 @@ export function PlanWorkspace({
   readonly initialTrackPriorityMinimumApplyState?: PlanActionState;
   readonly initialInitializationPreviewState?: PlanActionState;
   readonly initialInitializationApplyState?: PlanActionState;
+  readonly initialLearningTrackCreationPreviewState?: PlanActionState;
+  readonly initialLearningTrackCreationApplyState?: PlanActionState;
   readonly initialActivityAdmissionPreviewState?: PlanActionState;
   readonly initialActivityAdmissionApplyState?: PlanActionState;
 }) {
@@ -363,7 +373,7 @@ export function PlanWorkspace({
   const [trackSettingsReason, setTrackSettingsReason] = useState("");
   const [trackSettingsDismissed, setTrackSettingsDismissed] = useState(false);
   const [trackSettingsApplyRequestId, setTrackSettingsApplyRequestId] = useState("");
-  const [activityAdmissionDismissalVersion, setActivityAdmissionDismissalVersion] = useState(0);
+  const [additiveDismissalVersion, setAdditiveDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -533,7 +543,7 @@ export function PlanWorkspace({
           action={previewAction}
           className={styles.form}
           onSubmit={() => {
-            setActivityAdmissionDismissalVersion((version) => version + 1);
+            setAdditiveDismissalVersion((version) => version + 1);
             setDismissed(false);
             setCapacityDismissed(true);
             setTrackDismissed(true);
@@ -647,7 +657,7 @@ export function PlanWorkspace({
               action={trackPreviewAction}
               className={styles.form}
               onSubmit={() => {
-                setActivityAdmissionDismissalVersion((version) => version + 1);
+                setAdditiveDismissalVersion((version) => version + 1);
                 setDismissed(true);
                 setCapacityDismissed(true);
                 setTrackDismissed(false);
@@ -713,9 +723,31 @@ export function PlanWorkspace({
           </>
         )}
       </section>
+      {learningTrackCreationSource ? (
+        <LearningTrackCreation
+          dismissalVersion={additiveDismissalVersion}
+          initialApplyState={initialLearningTrackCreationApplyState}
+          initialPreviewState={initialLearningTrackCreationPreviewState}
+          onIntentStart={() => {
+            setDismissed(true);
+            setCapacityDismissed(true);
+            setTrackDismissed(true);
+            setTrackSettingsDismissed(true);
+          }}
+          source={learningTrackCreationSource}
+        />
+      ) : learningTrackCreationUnavailable ? (
+        <section className={styles.panel} aria-labelledby="learning-track-creation-heading">
+          <h2 id="learning-track-creation-heading">Create another Learning Track</h2>
+          <p>
+            Learning Track creation is temporarily unavailable. Other Plan controls remain
+            available; nothing changed.
+          </p>
+        </section>
+      ) : null}
       {activityAdmissionSource ? (
         <ActivityAdmission
-          dismissalVersion={activityAdmissionDismissalVersion}
+          dismissalVersion={additiveDismissalVersion}
           initialApplyState={initialActivityAdmissionApplyState}
           initialPreviewState={initialActivityAdmissionPreviewState}
           onIntentStart={() => {
@@ -855,7 +887,7 @@ export function PlanWorkspace({
             action={trackPriorityMinimumPreviewAction}
             className={styles.form}
             onSubmit={() => {
-              setActivityAdmissionDismissalVersion((version) => version + 1);
+              setAdditiveDismissalVersion((version) => version + 1);
               setDismissed(true);
               setCapacityDismissed(true);
               setTrackDismissed(true);
@@ -1107,7 +1139,7 @@ export function PlanWorkspace({
           action={capacityPreviewAction}
           className={styles.form}
           onSubmit={() => {
-            setActivityAdmissionDismissalVersion((version) => version + 1);
+            setAdditiveDismissalVersion((version) => version + 1);
             setDismissed(true);
             setCapacityDismissed(false);
             setTrackDismissed(true);

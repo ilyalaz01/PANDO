@@ -6,6 +6,7 @@ import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
@@ -100,6 +101,130 @@ const readyActivitySource: LearningTrackActivityAdmissionSourceV1 = {
     },
   ],
 };
+
+const readyCreationSource: LearningTrackCreationSourceV1 = {
+  contract: { name: "LearningTrackCreationSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["create_learning_track"],
+  growthPlan: {
+    title: plan.title,
+    lifecycle: plan.lifecycle,
+    weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+    aggregateVersion: plan.aggregateVersion,
+  },
+  trackPortfolio: { currentTrackCount: 2, currentTrackLimit: 30 },
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: true,
+      aggregateVersion: "1",
+    },
+    {
+      readinessGoalKey: "goal:algorithms-sprint",
+      title: "Algorithms sprint",
+      profileLabel: "Backend interview profile",
+      profileVersionKey: "target:backend-interview-v1",
+      roadmapPresent: false,
+      aggregateVersion: "2",
+    },
+  ],
+};
+
+function creationSourceState(
+  state: Exclude<LearningTrackCreationSourceV1["state"], "READY" | "NO_CURRENT_PLAN">,
+): LearningTrackCreationSourceV1 {
+  return {
+    ...readyCreationSource,
+    state,
+    capabilities: [],
+    trackPortfolio:
+      state === "NO_ACTIVE_GOALS" || state === "GOAL_PORTFOLIO_OVERFLOW"
+        ? readyCreationSource.trackPortfolio
+        : {
+            currentTrackCount: 30,
+            currentTrackLimit: 30,
+          },
+    goals: state === "TRACK_PORTFOLIO_LIMIT_REACHED" ? readyCreationSource.goals : [],
+  };
+}
+
+function creationPreviewState(blocked: boolean): PlanActionState {
+  return {
+    status: "previewed",
+    message: blocked
+      ? "This additional Learning Track is no longer applicable. Reload and start again."
+      : "Track creation preview ready. Confirm only if these exact facts are correct.",
+    preview: {
+      contract: { name: "LearningTrackCreationPreviewV1", version: "1.0.0" },
+      digestVersion: "learning-track-creation-preview-digest/1.0.0",
+      identityVersion: "planning-create-identity/1.0.0",
+      operation: "create_learning_track",
+      commandType: "planning.create_learning_track_v1",
+      requestId: "50000000-0000-4000-8000-000000000021",
+      reason: blocked
+        ? "Test the track portfolio boundary."
+        : "Split algorithms practice into its own lane.",
+      expectedGrowthPlanVersion: plan.aggregateVersion,
+      expectedReadinessGoalVersion: "2",
+      growthPlan: readyCreationSource.growthPlan!,
+      source: {
+        readinessGoalId: "56000000-0000-8000-8000-000000000001",
+        readinessGoalKey: "goal:algorithms-sprint",
+        readinessGoalTitle: "Algorithms sprint",
+        readinessGoalLifecycle: "ACTIVE",
+        readinessGoalVersion: "2",
+        profileVersionId: "57000000-0000-8000-8000-000000000001",
+        profileVersionKey: "target:backend-interview-v1",
+        sourceKind: "TARGET_PROFILE_REQUIREMENT_COLLECTION",
+        sourceRef: "57000000-0000-8000-8000-000000000001",
+        roadmapVersionId: null,
+        sourceOwnerRevision: "readiness-goal:2",
+      },
+      constraint: {
+        currentTrackCountBefore: blocked ? 30 : 2,
+        currentTrackCountAfter: blocked ? 31 : 3,
+        currentTrackLimit: 30,
+        activeProtectedMinimumMinutesBefore: 100,
+        activeProtectedMinimumMinutesAfter: 100,
+        flexibleMinutesBefore: 500,
+        flexibleMinutesAfter: 500,
+        currentTrackOrderFingerprintBefore: "k".repeat(64),
+        currentTrackOrderFingerprintAfter: "l".repeat(64),
+        newTrackPosition: blocked ? 31 : 2,
+      },
+      learningTrack: {
+        learningTrackId: "58000000-0000-8000-8000-000000000001",
+        trackKey: "track:58000000-0000-8000-8000-000000000001",
+        title: blocked ? "Overflow lane" : "Algorithms sprint",
+        lifecycle: "ACTIVE",
+        priority: 80,
+        protectedMinimumMinutes: 0,
+        defaultSessionMinutes: 45,
+        aggregateVersion: "1",
+      },
+      canApply: !blocked,
+      blockingReasons: blocked ? [{ code: "TRACK_PORTFOLIO_LIMIT_REACHED" }] : [],
+      warnings: [{ code: "TRACK_STARTS_EMPTY" }],
+      retained: {
+        planHistory: true,
+        trackHistory: true,
+        activitiesAndEvidence: true,
+        masteryAndReadiness: true,
+        reviewQueue: true,
+        planSnapshots: true,
+      },
+      recalculationAfterApply: {
+        projectionState: "PENDING",
+        eventChangeKind: "TRACK_CREATED",
+        consumerName: "planning.plan_snapshot_v1",
+      },
+      previewDigest: "m".repeat(64),
+    },
+  };
+}
 
 function activitySourceState(
   state: Exclude<LearningTrackActivityAdmissionSourceV1["state"], "READY" | "NO_CURRENT_PLAN">,
@@ -475,7 +600,16 @@ export default async function PlanFixturePage({
   const showsTrackSettings =
     previewKind === "track-settings" || previewKind === "track-settings-blocked";
   const showsInitialization = previewKind === "setup";
+  const showsCreation = previewKind.startsWith("track-create");
   const showsActivity = previewKind.startsWith("activity");
+  const creationSource =
+    previewKind === "track-create-no-goals"
+      ? creationSourceState("NO_ACTIVE_GOALS")
+      : previewKind === "track-create-overflow"
+        ? creationSourceState("GOAL_PORTFOLIO_OVERFLOW")
+        : previewKind === "track-create-limit"
+          ? creationSourceState("TRACK_PORTFOLIO_LIMIT_REACHED")
+          : readyCreationSource;
   const activitySource =
     previewKind === "activity-empty"
       ? activitySourceState("NO_ELIGIBLE_ACTIVITIES")
@@ -497,6 +631,11 @@ export default async function PlanFixturePage({
       </header>
       <main className={styles.main} id="plan-main" tabIndex={-1}>
         <PlanWorkspace
+          initialLearningTrackCreationPreviewState={
+            previewKind === "track-create" || previewKind === "track-create-blocked"
+              ? creationPreviewState(previewKind === "track-create-blocked")
+              : initialPlanActionState
+          }
           initialActivityAdmissionPreviewState={
             previewKind === "activity" || previewKind === "activity-blocked"
               ? activityPreviewState(previewKind === "activity-blocked")
@@ -509,7 +648,7 @@ export default async function PlanFixturePage({
             showsCapacity ? capacityPreviewState(previewKind === "blocked") : initialPlanActionState
           }
           initialPreviewState={
-            showsCapacity || showsTrack || showsTrackSettings || showsActivity
+            showsCapacity || showsTrack || showsTrackSettings || showsCreation || showsActivity
               ? initialPlanActionState
               : previewState
           }
@@ -522,6 +661,7 @@ export default async function PlanFixturePage({
               : initialPlanActionState
           }
           {...(showsInitialization ? { setupSource } : {})}
+          {...(showsCreation ? { learningTrackCreationSource: creationSource } : {})}
           {...(showsActivity ? { activityAdmissionSource: activitySource } : {})}
           tracksWorkspace={
             showsInitialization

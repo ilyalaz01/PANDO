@@ -8,11 +8,13 @@ import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learni
 import trackSettingsPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json";
 import initializationPreview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-initialization-control.valid.json";
 import admissionPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
+import creationPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
   APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1,
   APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1,
+  APPLY_LEARNING_TRACK_CREATION_RPC_V1,
   APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
@@ -23,10 +25,12 @@ import {
   GET_CURRENT_GROWTH_PLAN_RPC_V1,
   GET_CURRENT_LEARNING_TRACKS_RPC_V1,
   GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1,
+  GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1,
   GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1,
   loadCurrentGrowthPlanV1,
   loadCurrentLearningTracksV1,
   loadGrowthPlanSetupSourceV1,
+  loadLearningTrackCreationSourceV1,
   loadLearningTrackActivityAdmissionSourceV1,
   PlanConflictError,
   PlanInputError,
@@ -34,17 +38,20 @@ import {
   PREVIEW_GROWTH_PLAN_CAPACITY_RPC_V1,
   PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1,
   PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1,
+  PREVIEW_LEARNING_TRACK_CREATION_RPC_V1,
   PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
   PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewGrowthPlanInitializationV1,
+  previewLearningTrackCreationV1,
   previewLearningTrackLifecycleV1,
   previewLearningTrackActivityAdmissionV1,
   previewLearningTrackPriorityMinimumV1,
   APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
+  applyLearningTrackCreationV1,
 } from "./database-plan";
 
 const commandId = "30000000-0000-4000-8000-000000000001";
@@ -140,6 +147,38 @@ const initializationCommand = {
   idempotencyKey: initializationPreview.idempotencyKey,
 };
 
+const creationSource = {
+  contract: { name: "LearningTrackCreationSourceV1", version: "1.0.0" },
+  state: "READY",
+  capabilities: ["create_learning_track"],
+  growthPlan: creationPreview.growthPlan,
+  trackPortfolio: {
+    currentTrackCount: creationPreview.constraint.currentTrackCountBefore,
+    currentTrackLimit: creationPreview.constraint.currentTrackLimit,
+  },
+  goals: [
+    {
+      readinessGoalKey: creationPreview.source.readinessGoalKey,
+      title: creationPreview.source.readinessGoalTitle,
+      profileLabel: "Backend interview profile",
+      profileVersionKey: creationPreview.source.profileVersionKey,
+      roadmapPresent: creationPreview.source.roadmapVersionId !== null,
+      aggregateVersion: creationPreview.source.readinessGoalVersion,
+    },
+  ],
+} as const;
+
+const creationCommand = {
+  readinessGoalKey: creationPreview.source.readinessGoalKey,
+  expectedReadinessGoalVersion: creationPreview.expectedReadinessGoalVersion,
+  title: creationPreview.learningTrack.title,
+  priority: creationPreview.learningTrack.priority,
+  defaultSessionMinutes: creationPreview.learningTrack.defaultSessionMinutes,
+  expectedGrowthPlanVersion: creationPreview.expectedGrowthPlanVersion,
+  reason: creationPreview.reason,
+  requestId: creationPreview.requestId,
+};
+
 const admissionSource = {
   contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
   state: "READY",
@@ -233,6 +272,88 @@ describe("Growth Plan database boundary", () => {
       p_request_id: admissionCommand.requestId,
       p_preview_digest: admissionPreview.previewDigest,
     });
+  });
+
+  it("loads, previews, and applies Track creation without browser authority selectors", async () => {
+    const sourceRpc = vi.fn().mockResolvedValue({ data: creationSource, error: null });
+    await expect(loadLearningTrackCreationSourceV1(client(sourceRpc))).resolves.toEqual(
+      creationSource,
+    );
+    expect(sourceRpc).toHaveBeenCalledWith(GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1);
+
+    const previewRpc = vi.fn().mockResolvedValue({ data: creationPreview, error: null });
+    await expect(
+      previewLearningTrackCreationV1(client(previewRpc), creationCommand),
+    ).resolves.toEqual(creationPreview);
+    expect(previewRpc).toHaveBeenCalledWith(PREVIEW_LEARNING_TRACK_CREATION_RPC_V1, {
+      p_readiness_goal_key: creationCommand.readinessGoalKey,
+      p_expected_readiness_goal_version: creationCommand.expectedReadinessGoalVersion,
+      p_title: creationCommand.title,
+      p_priority: creationCommand.priority,
+      p_default_session_minutes: creationCommand.defaultSessionMinutes,
+      p_expected_growth_plan_version: creationCommand.expectedGrowthPlanVersion,
+      p_reason: creationCommand.reason,
+      p_request_id: creationCommand.requestId,
+    });
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_workspace_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_growth_plan_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_readiness_goal_id");
+
+    const result = {
+      contract: { name: "LearningTrackCreationApplyResultV1", version: "1.0.0" },
+      commandId,
+      createdTrack: creationPreview.learningTrack,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    } as const;
+    const applyRpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    await expect(
+      applyLearningTrackCreationV1(client(applyRpc), {
+        ...creationCommand,
+        previewDigest: creationPreview.previewDigest,
+      }),
+    ).resolves.toEqual(result);
+    expect(applyRpc).toHaveBeenCalledWith(APPLY_LEARNING_TRACK_CREATION_RPC_V1, {
+      p_readiness_goal_key: creationCommand.readinessGoalKey,
+      p_expected_readiness_goal_version: creationCommand.expectedReadinessGoalVersion,
+      p_title: creationCommand.title,
+      p_priority: creationCommand.priority,
+      p_default_session_minutes: creationCommand.defaultSessionMinutes,
+      p_expected_growth_plan_version: creationCommand.expectedGrowthPlanVersion,
+      p_reason: creationCommand.reason,
+      p_request_id: creationCommand.requestId,
+      p_preview_digest: creationPreview.previewDigest,
+    });
+  });
+
+  it("rejects malformed Track creation inputs before any RPC", async () => {
+    const rpc = vi.fn();
+    await expect(
+      previewLearningTrackCreationV1(client(rpc), {
+        ...creationCommand,
+        title: " bad",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewLearningTrackCreationV1(client(rpc), {
+        ...creationCommand,
+        defaultSessionMinutes: 0,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewLearningTrackCreationV1(client(rpc), {
+        ...creationCommand,
+        requestId: "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      applyLearningTrackCreationV1(client(rpc), {
+        ...creationCommand,
+        previewDigest: "not-a-digest",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("rejects malformed manual admission inputs before any RPC", async () => {

@@ -10,6 +10,14 @@ import {
   type GrowthPlanInitializationPreviewV1,
   type GrowthPlanSetupSourceV1,
 } from "../../../shared/contracts/growth-plan-initialization-control";
+import {
+  decodeLearningTrackCreationApplyResultV1 as decodeLearningTrackCreationApplyResult,
+  decodeLearningTrackCreationPreviewV1 as decodeLearningTrackCreationPreview,
+  decodeLearningTrackCreationSourceV1 as decodeLearningTrackCreationSource,
+  type LearningTrackCreationApplyResultV1,
+  type LearningTrackCreationPreviewV1,
+  type LearningTrackCreationSourceV1,
+} from "../../../shared/contracts/learning-track-creation-control";
 import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
 import {
   decodeLearningTrackActivityAdmissionApplyResultV1 as decodeLearningTrackActivityAdmissionApplyResult,
@@ -26,6 +34,9 @@ export type {
   GrowthPlanInitializationApplyResultV1,
   GrowthPlanInitializationPreviewV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackCreationApplyResultV1,
+  LearningTrackCreationPreviewV1,
+  LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionApplyResultV1,
   LearningTrackActivityAdmissionPreviewV1,
   LearningTrackActivityAdmissionSourceV1,
@@ -453,6 +464,25 @@ export function decodeGrowthPlanInitializationApplyResultV1(
   value: unknown,
 ): GrowthPlanInitializationApplyResultV1 {
   return decodeGrowthPlanInitializationApplyResult(value);
+}
+
+/** Decodes the bounded current-personal additional-Track creation source. */
+export function decodeLearningTrackCreationSourceV1(value: unknown): LearningTrackCreationSourceV1 {
+  return decodeLearningTrackCreationSource(value);
+}
+
+/** Decodes an exact additional-Track creation preview. */
+export function decodeLearningTrackCreationPreviewV1(
+  value: unknown,
+): LearningTrackCreationPreviewV1 {
+  return decodeLearningTrackCreationPreview(value);
+}
+
+/** Decodes the atomic additional-Track creation receipt. */
+export function decodeLearningTrackCreationApplyResultV1(
+  value: unknown,
+): LearningTrackCreationApplyResultV1 {
+  return decodeLearningTrackCreationApplyResult(value);
 }
 
 /** Decodes the bounded personal-activity selector composed by Planning. */

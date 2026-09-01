@@ -4,6 +4,11 @@ import type {
   GrowthPlanSetupSourceV1,
 } from "../../shared/contracts/growth-plan-initialization-control";
 import type {
+  LearningTrackCreationApplyResultV1,
+  LearningTrackCreationPreviewV1,
+  LearningTrackCreationSourceV1,
+} from "../../shared/contracts/learning-track-creation-control";
+import type {
   LearningTrackActivityAdmissionApplyResultV1,
   LearningTrackActivityAdmissionPreviewV1,
   LearningTrackActivityAdmissionSourceV1,
@@ -204,6 +209,7 @@ export type PlanPreviewV1 =
   | LearningTrackLifecyclePreviewV1
   | LearningTrackPriorityMinimumPreviewV1
   | GrowthPlanInitializationPreviewV1
+  | LearningTrackCreationPreviewV1
   | LearningTrackActivityAdmissionPreviewV1;
 
 export interface CurrentGrowthPlanV1 {
@@ -221,6 +227,9 @@ export type {
   GrowthPlanInitializationApplyResultV1,
   GrowthPlanInitializationPreviewV1,
   GrowthPlanSetupSourceV1,
+  LearningTrackCreationApplyResultV1,
+  LearningTrackCreationPreviewV1,
+  LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionApplyResultV1,
   LearningTrackActivityAdmissionPreviewV1,
   LearningTrackActivityAdmissionSourceV1,
