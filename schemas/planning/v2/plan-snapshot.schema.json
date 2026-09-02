@@ -1,0 +1,880 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v2/plan-snapshot.schema.json",
+  "title": "PlanSnapshotV2",
+  "description": "Immutable deterministic output from planner-engine/0.2.0.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "engineVersion",
+    "policyVersion",
+    "inputFingerprint",
+    "calculatedAsOf",
+    "validUntil",
+    "timeZone",
+    "weekStart",
+    "weekEnd",
+    "recommendationState",
+    "warningCodes",
+    "capacity",
+    "reviewSummary",
+    "nearestDeadline",
+    "readiness",
+    "actions"
+  ],
+  "properties": {
+    "engineVersion": {
+      "const": "planner-engine/0.2.0"
+    },
+    "policyVersion": {
+      "const": "planning-policy/0.2"
+    },
+    "inputFingerprint": {
+      "type": "string",
+      "pattern": "^planning-input:[a-f0-9]{64}$"
+    },
+    "calculatedAsOf": {
+      "$ref": "#/$defs/instant"
+    },
+    "validUntil": {
+      "$ref": "#/$defs/instant"
+    },
+    "timeZone": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^(?:UTC|[A-Za-z_]+(?:/[A-Za-z0-9._+-]+)+)$"
+    },
+    "weekStart": {
+      "$ref": "#/$defs/instant"
+    },
+    "weekEnd": {
+      "$ref": "#/$defs/instant"
+    },
+    "recommendationState": {
+      "enum": [
+        "CURRENT",
+        "NO_PLAN",
+        "PLAN_PAUSED",
+        "NO_CAPACITY",
+        "NO_CANDIDATES"
+      ]
+    },
+    "warningCodes": {
+      "type": "array",
+      "maxItems": 10,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]{1,127}$"
+      }
+    },
+    "capacity": {
+      "$ref": "#/$defs/capacity"
+    },
+    "reviewSummary": {
+      "$ref": "#/$defs/reviewSummary"
+    },
+    "nearestDeadline": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/deadline"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "readiness": {
+      "type": "array",
+      "maxItems": 30,
+      "items": {
+        "$ref": "#/$defs/readiness"
+      }
+    },
+    "actions": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    }
+  },
+  "$defs": {
+    "instant": {
+      "type": "string",
+      "format": "date-time",
+      "maxLength": 40
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "goalKey": {
+      "type": "string",
+      "pattern": "^goal:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "profileVersionKey": {
+      "type": "string",
+      "pattern": "^target:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "activityKey": {
+      "type": "string",
+      "pattern": "^activity:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "candidateKey": {
+      "type": "string",
+      "pattern": "^(?:candidate:[a-z0-9][a-z0-9-]{1,100}|active-focus:[0-9a-f-]{36})$"
+    },
+    "nullableCapacityMinutes": {
+      "oneOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "capacity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "weeklyCapacityMinutes",
+        "consumedMinutesThisWeek",
+        "remainingMinutesThisWeek",
+        "sessionLimitMinutes"
+      ],
+      "properties": {
+        "weeklyCapacityMinutes": {
+          "$ref": "#/$defs/nullableCapacityMinutes"
+        },
+        "consumedMinutesThisWeek": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000000
+        },
+        "remainingMinutesThisWeek": {
+          "$ref": "#/$defs/nullableCapacityMinutes"
+        },
+        "sessionLimitMinutes": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1440
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "reviewSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projectionState",
+        "overdueCount",
+        "dueTodayCount",
+        "validUntil"
+      ],
+      "properties": {
+        "projectionState": {
+          "enum": [
+            "CURRENT",
+            "PENDING",
+            "NOT_STARTED"
+          ]
+        },
+        "overdueCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "dueTodayCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "validUntil": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/instant"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "deadline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "sourceId",
+        "sourceVersion",
+        "readinessGoalKey",
+        "title",
+        "deadlineAt"
+      ],
+      "properties": {
+        "kind": {
+          "const": "CAMPAIGN"
+        },
+        "sourceId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "sourceVersion": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,18}$"
+        },
+        "readinessGoalKey": {
+          "$ref": "#/$defs/goalKey"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "deadlineAt": {
+          "$ref": "#/$defs/instant"
+        }
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gapCode",
+        "competencyRef",
+        "dimension"
+      ],
+      "properties": {
+        "gapCode": {
+          "enum": [
+            "FAILED_MANDATORY_FLOOR",
+            "UNKNOWN_MANDATORY_FLOOR",
+            "UNKNOWN_REQUIREMENT",
+            "KNOWN_SHORTFALL"
+          ]
+        },
+        "competencyRef": {
+          "type": "string",
+          "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+        },
+        "dimension": {
+          "enum": [
+            "KNOWLEDGE",
+            "RECALL",
+            "APPLICATION",
+            "INTERVIEW_EXECUTION"
+          ]
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "readinessGoalKey",
+        "targetProfileVersionKey",
+        "availability",
+        "reason",
+        "snapshotId",
+        "inputFingerprint",
+        "calculatedAsOf",
+        "validUntil",
+        "status",
+        "coverage",
+        "confidence",
+        "blockers",
+        "blockerCount",
+        "gapCount",
+        "unknownGapCount",
+        "criticalGap"
+      ],
+      "properties": {
+        "readinessGoalKey": {
+          "$ref": "#/$defs/goalKey"
+        },
+        "targetProfileVersionKey": {
+          "$ref": "#/$defs/profileVersionKey"
+        },
+        "availability": {
+          "enum": [
+            "CURRENT",
+            "UNAVAILABLE"
+          ]
+        },
+        "reason": {
+          "oneOf": [
+            {
+              "enum": [
+                "GOAL_INACTIVE",
+                "NOT_MATERIALIZED",
+                "REBUILDING",
+                "STALE",
+                "ERROR"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "oneOf": [
+            {
+              "enum": [
+                "NOT_READY",
+                "INSUFFICIENT_EVIDENCE",
+                "READY",
+                "DEVELOPING"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "snapshotId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "inputFingerprint": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^readiness-input:[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "calculatedAsOf": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/instant"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "validUntil": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/instant"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "coverage": {
+          "oneOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confidence": {
+          "oneOf": [
+            {
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "blockers": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/blocker"
+          }
+        },
+        "blockerCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "gapCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 250
+        },
+        "unknownGapCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 250
+        },
+        "criticalGap": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/gap"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "ruleKey"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,127}$"
+        },
+        "ruleKey": {
+          "type": "string",
+          "pattern": "^rule:[a-z0-9][a-z0-9-]{1,100}$"
+        }
+      }
+    },
+    "scoreFactor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "points"
+      ],
+      "properties": {
+        "code": {
+          "enum": [
+            "ACTIVE_FOCUS_RESUME",
+            "CAMPAIGN_DEADLINE",
+            "CAMPAIGN_SOURCE",
+            "ENERGY_EXACT_FIT",
+            "ENERGY_HIGHER_MISMATCH",
+            "ENERGY_LOWER_FIT",
+            "PREREQUISITE_UNLOCK",
+            "PREREQUISITE_UNKNOWN",
+            "RECENT_REPETITION",
+            "REVIEW_DUE_TODAY",
+            "REVIEW_OVERDUE",
+            "TARGET_FAILED_MANDATORY_FLOOR",
+            "TARGET_KNOWN_SHORTFALL",
+            "TARGET_UNKNOWN_MANDATORY_FLOOR",
+            "TARGET_UNKNOWN_REQUIREMENT",
+            "TRACK_PRIORITY",
+            "TRACK_PROTECTED_MINIMUM",
+            "TRACK_CADENCE_DEFICIT"
+          ]
+        },
+        "points": {
+          "type": "integer",
+          "minimum": -100000,
+          "maximum": 100000
+        }
+      }
+    },
+    "reasonRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/activeFocusReasonRef"
+        },
+        {
+          "$ref": "#/$defs/targetGapReasonRef"
+        },
+        {
+          "$ref": "#/$defs/reviewReasonRef"
+        },
+        {
+          "$ref": "#/$defs/trackReasonRef"
+        },
+        {
+          "$ref": "#/$defs/campaignReasonRef"
+        }
+      ]
+    },
+    "activeFocusReasonRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factorCode",
+        "kind",
+        "focusSessionId"
+      ],
+      "properties": {
+        "factorCode": {
+          "const": "ACTIVE_FOCUS_RESUME"
+        },
+        "kind": {
+          "const": "ACTIVE_FOCUS"
+        },
+        "focusSessionId": {
+          "$ref": "#/$defs/uuid"
+        }
+      }
+    },
+    "targetGapReasonRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factorCode",
+        "kind",
+        "gapCode",
+        "readinessGoalKey",
+        "competencyRef",
+        "dimension"
+      ],
+      "properties": {
+        "factorCode": {
+          "enum": [
+            "TARGET_FAILED_MANDATORY_FLOOR",
+            "TARGET_KNOWN_SHORTFALL",
+            "TARGET_UNKNOWN_MANDATORY_FLOOR",
+            "TARGET_UNKNOWN_REQUIREMENT"
+          ]
+        },
+        "kind": {
+          "const": "TARGET_GAP"
+        },
+        "gapCode": {
+          "enum": [
+            "FAILED_MANDATORY_FLOOR",
+            "UNKNOWN_MANDATORY_FLOOR",
+            "UNKNOWN_REQUIREMENT",
+            "KNOWN_SHORTFALL"
+          ]
+        },
+        "readinessGoalKey": {
+          "$ref": "#/$defs/goalKey"
+        },
+        "competencyRef": {
+          "type": "string",
+          "pattern": "^competency:[a-z0-9][a-z0-9-]{1,100}$"
+        },
+        "dimension": {
+          "enum": [
+            "KNOWLEDGE",
+            "RECALL",
+            "APPLICATION",
+            "INTERVIEW_EXECUTION"
+          ]
+        }
+      }
+    },
+    "reviewReasonRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factorCode",
+        "kind",
+        "reviewItemId",
+        "bucket",
+        "dueAt"
+      ],
+      "properties": {
+        "factorCode": {
+          "enum": [
+            "REVIEW_DUE_TODAY",
+            "REVIEW_OVERDUE"
+          ]
+        },
+        "kind": {
+          "const": "REVIEW_ITEM"
+        },
+        "reviewItemId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "bucket": {
+          "enum": [
+            "DUE_TODAY",
+            "OVERDUE"
+          ]
+        },
+        "dueAt": {
+          "$ref": "#/$defs/instant"
+        }
+      }
+    },
+    "trackReasonRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factorCode",
+        "kind",
+        "trackId",
+        "trackKey"
+      ],
+      "properties": {
+        "factorCode": {
+          "enum": [
+            "TRACK_PRIORITY",
+            "TRACK_PROTECTED_MINIMUM",
+            "TRACK_CADENCE_DEFICIT"
+          ]
+        },
+        "kind": {
+          "const": "TRACK"
+        },
+        "trackId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "trackKey": {
+          "type": "string",
+          "pattern": "^track:[a-z0-9][a-z0-9-]{1,100}$"
+        }
+      }
+    },
+    "campaignReasonRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "factorCode",
+        "kind",
+        "campaignId",
+        "campaignVersion",
+        "readinessGoalKey",
+        "deadlineAt",
+        "daysUntilDeadline"
+      ],
+      "properties": {
+        "factorCode": {
+          "enum": [
+            "CAMPAIGN_DEADLINE",
+            "CAMPAIGN_SOURCE"
+          ]
+        },
+        "kind": {
+          "const": "CAMPAIGN"
+        },
+        "campaignId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "campaignVersion": {
+          "type": "string",
+          "pattern": "^[1-9][0-9]{0,18}$"
+        },
+        "readinessGoalKey": {
+          "$ref": "#/$defs/goalKey"
+        },
+        "deadlineAt": {
+          "$ref": "#/$defs/instant"
+        },
+        "daysUntilDeadline": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36500
+        }
+      }
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rank",
+        "actionKind",
+        "candidateKey",
+        "focusSessionId",
+        "readinessGoalKey",
+        "activityKey",
+        "trackId",
+        "planAttribution",
+        "title",
+        "durationMinutes",
+        "durationSource",
+        "energy",
+        "sourceSignals",
+        "score",
+        "scoreFactors",
+        "reasonRefs",
+        "expectedBenefit",
+        "reason"
+      ],
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "actionKind": {
+          "enum": [
+            "START",
+            "RESUME"
+          ]
+        },
+        "candidateKey": {
+          "$ref": "#/$defs/candidateKey"
+        },
+        "focusSessionId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "readinessGoalKey": {
+          "$ref": "#/$defs/goalKey"
+        },
+        "activityKey": {
+          "$ref": "#/$defs/activityKey"
+        },
+        "trackId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planAttribution": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/planAttribution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "durationMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 480
+        },
+        "durationSource": {
+          "enum": [
+            "ACTIVE_FOCUS",
+            "PLANNING_ACTIVITY",
+            "REVIEW_POLICY"
+          ]
+        },
+        "energy": {
+          "oneOf": [
+            {
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sourceSignals": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "GROWTH_PLAN",
+              "CAMPAIGN",
+              "REVIEW",
+              "ACTIVE_FOCUS"
+            ]
+          }
+        },
+        "score": {
+          "type": "integer",
+          "minimum": -1000000,
+          "maximum": 1000000
+        },
+        "scoreFactors": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "$ref": "#/$defs/scoreFactor"
+          }
+        },
+        "reasonRefs": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/reasonRef"
+          }
+        },
+        "expectedBenefit": {
+          "enum": [
+            "RESUME_ACTIVE_FOCUS",
+            "REDUCE_MANDATORY_BLOCKER",
+            "VERIFY_MANDATORY_REQUIREMENT",
+            "COMPLETE_OVERDUE_REVIEW",
+            "COMPLETE_DUE_REVIEW",
+            "REDUCE_TARGET_GAP",
+            "REDUCE_UNCERTAINTY",
+            "PROTECT_TRACK_CADENCE",
+            "ADVANCE_CAMPAIGN",
+            "ADVANCE_GROWTH_TRACK"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        }
+      }
+    },
+    "planAttribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planSnapshotId",
+        "candidateKey",
+        "trackId"
+      ],
+      "properties": {
+        "planSnapshotId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "candidateKey": {
+          "$ref": "#/$defs/candidateKey"
+        },
+        "trackId": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -91,11 +91,12 @@ Cadence affects ranking as a soft factor only:
 
 This is a calculation-contract change, not an in-place reinterpretation of V1. D2c introduces:
 
-- `planning-completed-work/0.2`, which retains every v0.1 duration and repetition rule and adds the
-  per-Track evidence-bearing session count;
+- [`planning-completed-work/0.2`](../policies/PLANNING_COMPLETED_WORK_POLICY_V0.2.md), which retains
+  every v0.1 duration and repetition rule and adds the per-Track evidence-bearing session count;
 - `PlanningCalculationInputV2`, which adds `cadencePerWeek` and
   `completedCadenceSessionsThisWeek` to each Track;
-- `planner-engine/0.2.0` and `planning-policy/0.2`;
+- `planner-engine/0.2.0` and
+  [`planning-policy/0.2`](../policies/PLANNING_POLICY_V0.2.md);
 - `PlanSnapshotV2`, whose factor vocabulary admits `TRACK_CADENCE_DEFICIT`.
 
 Historical V1 inputs and snapshots remain valid and queryable with their original engine and policy

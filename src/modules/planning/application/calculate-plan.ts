@@ -1,12 +1,16 @@
 import { planningInputSemanticViolations } from "../../../shared/contracts/planning-semantics";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
-import { calculateVerifiedPlan } from "../domain/calculate-plan";
+import { calculateVerifiedPlan, calculateVerifiedPlanV2 } from "../domain/calculate-plan";
 import {
   PlanningInputError,
   type CalculatePlanInput,
+  type CalculatePlanInputV2,
   type PlanningPolicy,
+  type PlanningPolicyV2,
   type PlanSnapshot,
+  type PlanSnapshotV2,
   type VerifiedCalculatePlanInput,
+  type VerifiedCalculatePlanInputV2,
 } from "../domain/planning-types";
 
 /** The only public raw-input entry point for the Planning calculation. */
@@ -22,4 +26,29 @@ export function calculatePlan(input: CalculatePlanInput, policy: PlanningPolicy)
     throw new PlanningInputError(`Planning input contract rejected: ${semantic.join(",")}`);
   }
   return calculateVerifiedPlan(input as VerifiedCalculatePlanInput, policy);
+}
+
+/** Raw-input entry point for the versioned D2c Planning calculation. */
+export function calculatePlanV2(
+  input: CalculatePlanInputV2,
+  policy: PlanningPolicyV2,
+): PlanSnapshotV2 {
+  const structural = validateSchema("planning-input-v2", input);
+  if (!structural.valid) {
+    throw new PlanningInputError(
+      `Planning input contract rejected: ${structural.violations.map(({ code }) => code).join(",")}`,
+    );
+  }
+  const semantic = planningInputSemanticViolations(input);
+  if (semantic.length > 0) {
+    throw new PlanningInputError(`Planning input contract rejected: ${semantic.join(",")}`);
+  }
+  const result = calculateVerifiedPlanV2(input as VerifiedCalculatePlanInputV2, policy);
+  const resultStructural = validateSchema("plan-snapshot-v2", result);
+  if (!resultStructural.valid) {
+    throw new PlanningInputError(
+      `Planning result contract rejected: ${resultStructural.violations.map(({ code }) => code).join(",")}`,
+    );
+  }
+  return result;
 }

@@ -1,12 +1,14 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { calculatePlan } from "./calculate-plan";
+import { calculatePlan, calculatePlanV2 } from "./calculate-plan";
 import {
   assemblePlanSnapshotInput,
+  assemblePlanSnapshotInputV2,
   PlanningProjectionSourceError,
 } from "./assemble-plan-snapshot-input";
 import { PLANNING_POLICY_V0_1 } from "../domain/planning-policy-v0.1";
+import { PLANNING_POLICY_V0_2 } from "../domain/planning-policy-v0.2";
 
 const trackedActivityId = "26000000-0000-4000-8000-000000000105";
 
@@ -143,6 +145,7 @@ function sourceBundle() {
           lifecycle: "ACTIVE",
           priority: 80,
           protectedMinimumMinutes: 60,
+          cadencePerWeek: 3,
           defaultSessionMinutes: 25,
         },
       ],
@@ -316,6 +319,74 @@ describe("assemblePlanSnapshotInput", () => {
     expect(input.growthPlan?.consumedMinutesThisWeek).toBe(0);
     expect(input.growthPlan?.tracks[0]?.meaningfulMinutesThisWeek).toBe(0);
     expect(input.candidates[0]?.repetitionWindowEndsAt).toBeNull();
+  });
+
+  it("assembles V2 cadence from the same evidence-bearing current-week session set", () => {
+    const currentEvidence = terminalSession();
+    const completionOnly = terminalSession({ evidenceBearing: false });
+    const stopped = terminalSession({ state: "STOPPED", evidenceBearing: false });
+    const priorWeekEvidence = terminalSession({
+      startedAt: "2026-08-30T09:00:00Z",
+      endedAt: "2026-08-30T09:25:00Z",
+    });
+    const source = withWork([currentEvidence, completionOnly, stopped, priorWeekEvidence]);
+
+    const v1 = assemblePlanSnapshotInput(source);
+    const v2 = assemblePlanSnapshotInputV2(source);
+
+    expect(v1.growthPlan?.tracks[0]).not.toHaveProperty("cadencePerWeek");
+    expect(v2).toMatchObject({
+      completedWorkPolicyVersion: "planning-completed-work/0.2",
+      growthPlan: {
+        tracks: [
+          {
+            cadencePerWeek: 3,
+            completedCadenceSessionsThisWeek: 1,
+          },
+        ],
+      },
+    });
+    expect(v2.inputFingerprint).not.toBe(v1.inputFingerprint);
+    const result = calculatePlanV2(v2, PLANNING_POLICY_V0_2);
+    expect(result).toMatchObject({
+      engineVersion: "planner-engine/0.2.0",
+      policyVersion: "planning-policy/0.2",
+    });
+  });
+
+  it("keeps the V2 cadence window half-open at weekEnd", () => {
+    const source = sourceBundle();
+    const endedAtWeekEnd = terminalSession({
+      startedAt: "2026-09-06T23:35:00Z",
+      endedAt: "2026-09-07T00:00:00Z",
+    });
+    const input = assemblePlanSnapshotInputV2(
+      withWork([endedAtWeekEnd], {
+        ...source,
+        claimAsOf: "2026-09-07T00:05:00+00:00",
+      }),
+    );
+
+    expect(input.growthPlan?.tracks[0]?.completedCadenceSessionsThisWeek).toBe(0);
+  });
+
+  it("refuses duplicate activity attribution instead of overwriting it", () => {
+    const source = sourceBundle();
+    const duplicate = {
+      ...source,
+      plan: {
+        ...source.plan,
+        activities: [...source.plan.activities, structuredClone(source.plan.activities[0]!)],
+      },
+    };
+
+    for (const assemble of [assemblePlanSnapshotInput, assemblePlanSnapshotInputV2]) {
+      expect(() => assemble(duplicate)).toThrowError(
+        expect.objectContaining<Partial<PlanningProjectionSourceError>>({
+          code: "OWNER_FENCE_CONFLICT",
+        }),
+      );
+    }
   });
 
   it("counts an evidence-bearing completion as capacity, cadence credit, and repetition", () => {

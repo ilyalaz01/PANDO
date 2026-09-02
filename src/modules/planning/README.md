@@ -81,6 +81,10 @@ The accepted next increment is
 It defines cadence as a soft desired count of evidence-bearing completed Focus sessions per
 workspace week, separate from protected minutes, and requires versioned V2 Planning input/snapshot
 contracts plus engine, policy, and completed-work successors before the setting can affect Today.
+The additive calculation contracts are recorded in
+[`Planning Policy v0.2`](../../../docs/policies/PLANNING_POLICY_V0.2.md) and
+[`Planning Completed Work Policy v0.2`](../../../docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.2.md);
+V1 inputs and snapshots remain on their unchanged historical schemas and exact version tuple.
 
 ## Phase 4A implementation route
 

@@ -1,4 +1,5 @@
 export const PLANNER_ENGINE_VERSION = "planner-engine/0.1.0" as const;
+export const PLANNER_ENGINE_VERSION_V2 = "planner-engine/0.2.0" as const;
 
 export type EnergyMode = "LOW" | "MEDIUM" | "HIGH";
 export type EstimateConfidence = "LOW" | "MEDIUM" | "HIGH";
@@ -38,6 +39,12 @@ export interface PlanningPolicy {
   readonly activeFocusResumePoints: number;
 }
 
+export interface PlanningPolicyV2 extends PlanningPolicy {
+  readonly version: "planning-policy/0.2";
+  readonly cadenceDeficitOnePoints: number;
+  readonly cadenceDeficitMultiplePoints: number;
+}
+
 export interface PlanningTrackInput {
   readonly trackId: string;
   readonly trackKey: string;
@@ -52,6 +59,11 @@ export interface PlanningTrackInput {
   readonly defaultSessionMinutes: number;
 }
 
+export interface PlanningTrackInputV2 extends PlanningTrackInput {
+  readonly cadencePerWeek: number;
+  readonly completedCadenceSessionsThisWeek: number;
+}
+
 export interface GrowthPlanInput {
   readonly growthPlanId: string;
   readonly version: string;
@@ -59,6 +71,10 @@ export interface GrowthPlanInput {
   readonly weeklyCapacityMinutes: number;
   readonly consumedMinutesThisWeek: number;
   readonly tracks: readonly PlanningTrackInput[];
+}
+
+export interface GrowthPlanInputV2 extends Omit<GrowthPlanInput, "tracks"> {
+  readonly tracks: readonly PlanningTrackInputV2[];
 }
 
 export interface CampaignInput {
@@ -214,8 +230,16 @@ export interface CalculatePlanInput {
   readonly candidates: readonly PlanningCandidateInput[];
 }
 
+export interface CalculatePlanInputV2 extends Omit<CalculatePlanInput, "growthPlan"> {
+  readonly completedWorkPolicyVersion: "planning-completed-work/0.2";
+  readonly growthPlan: GrowthPlanInputV2 | null;
+}
+
 declare const verifiedPlanningInput: unique symbol;
 export type VerifiedCalculatePlanInput = CalculatePlanInput & {
+  readonly [verifiedPlanningInput]: true;
+};
+export type VerifiedCalculatePlanInputV2 = CalculatePlanInputV2 & {
   readonly [verifiedPlanningInput]: true;
 };
 
@@ -240,6 +264,13 @@ export type PlanScoreFactorCode =
 
 export interface PlanScoreFactor {
   readonly code: PlanScoreFactorCode;
+  readonly points: number;
+}
+
+export type PlanScoreFactorCodeV2 = PlanScoreFactorCode | "TRACK_CADENCE_DEFICIT";
+
+export interface PlanScoreFactorV2 {
+  readonly code: PlanScoreFactorCodeV2;
   readonly points: number;
 }
 
@@ -296,6 +327,15 @@ export type PlanReasonRef =
       readonly daysUntilDeadline: number;
     };
 
+export type PlanReasonRefV2 =
+  | PlanReasonRef
+  | {
+      readonly factorCode: "TRACK_CADENCE_DEFICIT";
+      readonly kind: "TRACK";
+      readonly trackId: string;
+      readonly trackKey: string;
+    };
+
 export interface PlannedAction {
   readonly rank: number;
   readonly actionKind: "START" | "RESUME";
@@ -315,6 +355,11 @@ export interface PlannedAction {
   readonly reasonRefs: readonly PlanReasonRef[];
   readonly expectedBenefit: ExpectedBenefitCode;
   readonly reason: string;
+}
+
+export interface PlannedActionV2 extends Omit<PlannedAction, "scoreFactors" | "reasonRefs"> {
+  readonly scoreFactors: readonly PlanScoreFactorV2[];
+  readonly reasonRefs: readonly PlanReasonRefV2[];
 }
 
 export interface PlanSnapshot {
@@ -363,6 +408,12 @@ export interface PlanSnapshot {
     readonly criticalGap: ReadinessGapInput | null;
   }[];
   readonly actions: readonly PlannedAction[];
+}
+
+export interface PlanSnapshotV2 extends Omit<PlanSnapshot, "engineVersion" | "actions"> {
+  readonly engineVersion: typeof PLANNER_ENGINE_VERSION_V2;
+  readonly policyVersion: "planning-policy/0.2";
+  readonly actions: readonly PlannedActionV2[];
 }
 
 export class PlanningInputError extends Error {

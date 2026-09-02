@@ -15,10 +15,12 @@ import {
 } from "../../mastery/application/prerequisite-satisfaction-v1";
 import type {
   CalculatePlanInput,
+  CalculatePlanInputV2,
   PlanningCandidateInput,
   PlanningReadinessInput,
   PlanningSourceRevision,
   PlanningTrackInput,
+  PlanningTrackInputV2,
   ReviewSignalInput,
 } from "../domain/planning-types";
 
@@ -28,6 +30,7 @@ import type {
  * Evidence owner facts into consumed capacity, per-track cadence credit, and recent repetition.
  */
 export const COMPLETED_WORK_POLICY_VERSION = "planning-completed-work/0.1";
+export const COMPLETED_WORK_POLICY_VERSION_V2 = "planning-completed-work/0.2";
 export const PREREQUISITE_POLICY_VERSION = "mastery-prerequisite-satisfaction/0.1";
 
 /** 168 elapsed hours, never seven calendar days: a local offset change cannot resize the window. */
@@ -383,7 +386,10 @@ function uniqueBy<T>(items: readonly T[], key: (item: T) => string, label: strin
   return [...result.values()];
 }
 
-export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
+function assemblePlanSnapshotInputInternal(
+  source: unknown,
+  calculationContract: "V1" | "V2",
+): CalculatePlanInput | CalculatePlanInputV2 {
   const bundle = asJsonObject(source, "Planning source bundle");
   const claimAsOf = provenanceInstant(bundle.claimAsOf, "claimAsOf");
   const calendar = asJsonObject(bundle.calendar, "calendar");
@@ -395,6 +401,7 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
   const evidence = asJsonObject(bundle.evidence, "evidence");
   const asOfMs = Date.parse(claimAsOf);
   const weekStartMs = Date.parse(weekStart);
+  const weekEndMs = Date.parse(weekEnd);
   const workSessions = completedWorkSessions(bundle, weekStartMs, asOfMs);
   const repetitionCutoffMs = asOfMs - REPETITION_WINDOW_MILLISECONDS;
   const review = asJsonObject(bundle.review, "review");
@@ -492,18 +499,21 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
 
   const repetitionCutoffInstants: string[] = [];
   const rawPlan = bundle.plan === null ? null : asJsonObject(bundle.plan, "plan");
-  let growthPlan: CalculatePlanInput["growthPlan"] = null;
+  let growthPlan: CalculatePlanInput["growthPlan"] | CalculatePlanInputV2["growthPlan"] = null;
   let candidates: PlanningCandidateInput[] = [];
   if (rawPlan !== null) {
     const rawTracks = objectArray(rawPlan.tracks, "plan.tracks");
     const rawActivities = objectArray(rawPlan.activities, "plan.activities");
-    const trackByActivityId = new Map(
-      rawActivities.map((activity) => [
-        requiredString(activity, "customActivityId"),
-        requiredString(activity, "trackId"),
-      ]),
-    );
+    const trackByActivityId = new Map<string, string>();
+    for (const activity of rawActivities) {
+      const customActivityId = requiredString(activity, "customActivityId");
+      if (trackByActivityId.has(customActivityId)) {
+        fail("OWNER_FENCE_CONFLICT", "Planning source repeats an activity attribution");
+      }
+      trackByActivityId.set(customActivityId, requiredString(activity, "trackId"));
+    }
     const meaningfulMinutesByTrack = new Map<string, number>();
+    const completedCadenceSessionsByTrack = new Map<string, number>();
     for (const session of workSessions) {
       if (!session.completed || !session.evidenceBearing) continue;
       const attributedTrackId = trackByActivityId.get(session.customActivityId);
@@ -515,6 +525,12 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         (meaningfulMinutesByTrack.get(attributedTrackId) ?? 0) +
           countedMinutes(session, weekStartMs),
       );
+      if (session.endedAtMs >= weekStartMs && session.endedAtMs < weekEndMs) {
+        completedCadenceSessionsByTrack.set(
+          attributedTrackId,
+          (completedCadenceSessionsByTrack.get(attributedTrackId) ?? 0) + 1,
+        );
+      }
     }
     const creditedMinutes = [...meaningfulMinutesByTrack.values()].reduce(
       (total, minutes) => total + minutes,
@@ -526,11 +542,11 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         "track cadence credit cannot exceed consumed capacity",
       );
     }
-    const tracks: PlanningTrackInput[] = rawTracks.map((track) => {
+    const tracks: (PlanningTrackInput | PlanningTrackInputV2)[] = rawTracks.map((track) => {
       const target = targetByGoalId.get(requiredString(track, "readinessGoalId"));
       if (target === undefined) fail("MISSING_TARGET_SOURCE", "Track readiness source is missing");
       const trackId = requiredString(track, "trackId");
-      return {
+      const base: PlanningTrackInput = {
         trackId,
         trackKey: requiredString(track, "trackKey"),
         title: requiredString(track, "title"),
@@ -543,6 +559,13 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         meaningfulMinutesThisWeek: meaningfulMinutesByTrack.get(trackId) ?? 0,
         defaultSessionMinutes: integer(track, "defaultSessionMinutes"),
       };
+      return calculationContract === "V2"
+        ? {
+            ...base,
+            cadencePerWeek: integer(track, "cadencePerWeek"),
+            completedCadenceSessionsThisWeek: completedCadenceSessionsByTrack.get(trackId) ?? 0,
+          }
+        : base;
     });
     const trackById = new Map(tracks.map((track) => [track.trackId, track]));
     const rawTrackById = new Map(
@@ -706,14 +729,17 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
         review: reviewSignal,
       };
     });
-    growthPlan = {
+    const growthPlanBase = {
       growthPlanId: requiredString(rawPlan, "growthPlanId"),
       version: requiredString(rawPlan, "version"),
       lifecycle: requiredString(rawPlan, "lifecycle") as "ACTIVE" | "PAUSED",
       weeklyCapacityMinutes: integer(rawPlan, "weeklyCapacityMinutes"),
       consumedMinutesThisWeek,
-      tracks,
     };
+    growthPlan =
+      calculationContract === "V2"
+        ? { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInputV2[] }
+        : { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInput[] };
   }
 
   if (
@@ -750,9 +776,12 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     ...prerequisiteValidityInstants,
     ...readiness.map((item) => (item.availability === "CURRENT" ? item.validUntil : null)),
   ]);
-  const unsigned: CalculatePlanInput = {
+  const unsigned: CalculatePlanInput | CalculatePlanInputV2 = {
     inputFingerprint: "planning-input:" + "0".repeat(64),
-    completedWorkPolicyVersion: COMPLETED_WORK_POLICY_VERSION,
+    completedWorkPolicyVersion:
+      calculationContract === "V2"
+        ? COMPLETED_WORK_POLICY_VERSION_V2
+        : COMPLETED_WORK_POLICY_VERSION,
     prerequisiteEngineVersion: MASTERY_PREREQUISITE_ENGINE_VERSION,
     prerequisitePolicyVersion: PREREQUISITE_POLICY_VERSION,
     evaluationHorizon: {
@@ -795,4 +824,12 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
     candidates,
   };
   return { ...unsigned, inputFingerprint: planningInputFingerprint(unsigned) };
+}
+
+export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
+  return assemblePlanSnapshotInputInternal(source, "V1") as CalculatePlanInput;
+}
+
+export function assemblePlanSnapshotInputV2(source: unknown): CalculatePlanInputV2 {
+  return assemblePlanSnapshotInputInternal(source, "V2") as CalculatePlanInputV2;
 }

@@ -1,23 +1,30 @@
 import { parseInstant, toCanonicalInstant } from "../../../shared/domain/utc-instant";
 import {
   PLANNER_ENGINE_VERSION,
+  PLANNER_ENGINE_VERSION_V2,
   PlanningInputError,
   type CalculatePlanInput,
   type EnergyMode,
   type ExpectedBenefitCode,
   type PlanScoreFactor,
   type PlanScoreFactorCode,
+  type PlanScoreFactorV2,
   type PlanReasonRef,
+  type PlanReasonRefV2,
   type PlanSnapshot,
-  type PlannedAction,
+  type PlanSnapshotV2,
+  type PlannedActionV2,
   type PlanningCandidateInput,
   type PlanningPolicy,
+  type PlanningPolicyV2,
   type PlanningReadinessInput,
   type PlanningSourceSignal,
   type PlanningTrackInput,
+  type PlanningTrackInputV2,
   type ReadinessGapInput,
   type ReadinessGapCode,
   type VerifiedCalculatePlanInput,
+  type VerifiedCalculatePlanInputV2,
 } from "./planning-types";
 
 const ENERGY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;
@@ -35,10 +42,19 @@ const REPETITION_WINDOW_MILLISECONDS = 168 * 60 * 60 * 1000;
 
 interface ScoredCandidate {
   readonly candidate: PlanningCandidateInput;
-  readonly factors: readonly PlanScoreFactor[];
+  readonly factors: readonly PlanScoreFactorV2[];
   readonly strongestGap: ReadinessGapInput | null;
   readonly effectiveTrack: PlanningTrackInput | null;
   readonly score: number;
+}
+
+type InternalPlanSnapshot = Omit<PlanSnapshotV2, "engineVersion" | "policyVersion"> & {
+  readonly engineVersion: typeof PLANNER_ENGINE_VERSION | typeof PLANNER_ENGINE_VERSION_V2;
+  readonly policyVersion: string;
+};
+
+function hasCadence(track: PlanningTrackInput): track is PlanningTrackInputV2 {
+  return "cadencePerWeek" in track && "completedCadenceSessionsThisWeek" in track;
 }
 
 function fail(message: string): never {
@@ -129,6 +145,22 @@ function validatePolicy(policy: PlanningPolicy): void {
     policy.campaignDeadlinePoints.within21Days < policy.campaignDeadlinePoints.within42Days
   ) {
     fail("campaign deadline points must not increase as the deadline moves farther away");
+  }
+}
+
+function validateCadencePolicy(policy: PlanningPolicyV2): void {
+  if (policy.version !== "planning-policy/0.2") {
+    fail("V2 cadence calculation requires planning-policy/0.2");
+  }
+  requireInteger(policy.cadenceDeficitOnePoints, 0, 100_000, "policy.cadenceDeficitOnePoints");
+  requireInteger(
+    policy.cadenceDeficitMultiplePoints,
+    0,
+    100_000,
+    "policy.cadenceDeficitMultiplePoints",
+  );
+  if (policy.cadenceDeficitMultiplePoints < policy.cadenceDeficitOnePoints) {
+    fail("cadence deficit points must not decrease for a larger deficit");
   }
 }
 
@@ -387,8 +419,13 @@ function validateCandidate(
   }
 }
 
-function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
+function validateInput(
+  input: CalculatePlanInput,
+  policy: PlanningPolicy,
+  cadencePolicy: PlanningPolicyV2 | null,
+) {
   validatePolicy(policy);
+  if (cadencePolicy !== null) validateCadencePolicy(cadencePolicy);
   if (!/^planning-input:[a-f0-9]{64}$/u.test(input.inputFingerprint)) {
     fail("input.inputFingerprint must be a canonical SHA-256 fingerprint");
   }
@@ -527,6 +564,16 @@ function validateInput(input: CalculatePlanInput, policy: PlanningPolicy) {
     }
     for (const track of input.growthPlan.tracks) {
       validateTrack(track);
+      if (cadencePolicy !== null) {
+        if (!hasCadence(track)) fail("V2 planning tracks require cadence progress");
+        requireInteger(track.cadencePerWeek, 0, 100, "track.cadencePerWeek");
+        requireInteger(
+          track.completedCadenceSessionsThisWeek,
+          0,
+          500,
+          "track.completedCadenceSessionsThisWeek",
+        );
+      }
       if (trackById.has(track.trackId)) fail(`duplicate trackId ${track.trackId}`);
       trackById.set(track.trackId, track);
     }
@@ -705,7 +752,10 @@ function energyRank(value: EnergyMode): number {
   return ENERGY_VALUES.indexOf(value);
 }
 
-function factor(code: PlanScoreFactorCode, points: number): PlanScoreFactor | null {
+function factor<Code extends PlanScoreFactorV2["code"]>(
+  code: Code,
+  points: number,
+): { readonly code: Code; readonly points: number } | null {
   return points === 0 ? null : { code, points };
 }
 
@@ -825,6 +875,7 @@ function scoreCandidate(
   input: CalculatePlanInput,
   trackById: ReadonlyMap<string, PlanningTrackInput>,
   policy: PlanningPolicy,
+  cadencePolicy: PlanningPolicyV2 | null,
 ): ScoredCandidate | null {
   const sources = effectiveSources(candidate, input, trackById);
   if (sources.length === 0 || candidate.prerequisiteState === "BLOCKED") return null;
@@ -838,7 +889,7 @@ function scoreCandidate(
     return null;
   }
 
-  const factors: (PlanScoreFactor | null)[] = [];
+  const factors: (PlanScoreFactorV2 | null)[] = [];
   const matchedGap = strongestGap(
     candidate,
     input.readiness.find(({ readinessGoalKey }) => readinessGoalKey === candidate.readinessGoalKey),
@@ -863,6 +914,22 @@ function scoreCandidate(
     factors.push(factor("TRACK_PRIORITY", activeTrack.priority));
     if (activeTrack.meaningfulMinutesThisWeek < activeTrack.protectedMinimumMinutes) {
       factors.push(factor("TRACK_PROTECTED_MINIMUM", policy.protectedMinimumDeficitPoints));
+    }
+    if (cadencePolicy !== null && hasCadence(activeTrack)) {
+      const deficit = Math.max(
+        activeTrack.cadencePerWeek - activeTrack.completedCadenceSessionsThisWeek,
+        0,
+      );
+      if (deficit > 0) {
+        factors.push(
+          factor(
+            "TRACK_CADENCE_DEFICIT",
+            deficit === 1
+              ? cadencePolicy.cadenceDeficitOnePoints
+              : cadencePolicy.cadenceDeficitMultiplePoints,
+          ),
+        );
+      }
     }
   }
 
@@ -908,7 +975,7 @@ function scoreCandidate(
   );
 
   const presentFactors = factors
-    .filter((value): value is PlanScoreFactor => value !== null)
+    .filter((value): value is PlanScoreFactorV2 => value !== null)
     .sort((left, right) => compareCodePoints(left.code, right.code));
   return {
     candidate: {
@@ -924,7 +991,7 @@ function scoreCandidate(
   };
 }
 
-function expectedBenefit(factors: readonly PlanScoreFactor[]): ExpectedBenefitCode {
+function expectedBenefit(factors: readonly PlanScoreFactorV2[]): ExpectedBenefitCode {
   const codes = new Set(factors.map(({ code }) => code));
   if (codes.has("TARGET_FAILED_MANDATORY_FLOOR")) {
     return "REDUCE_MANDATORY_BLOCKER";
@@ -934,12 +1001,22 @@ function expectedBenefit(factors: readonly PlanScoreFactor[]): ExpectedBenefitCo
   if (codes.has("REVIEW_DUE_TODAY")) return "COMPLETE_DUE_REVIEW";
   if (codes.has("TARGET_UNKNOWN_REQUIREMENT")) return "REDUCE_UNCERTAINTY";
   if (codes.has("TARGET_KNOWN_SHORTFALL")) return "REDUCE_TARGET_GAP";
-  if (codes.has("TRACK_PROTECTED_MINIMUM")) return "PROTECT_TRACK_CADENCE";
+  if (codes.has("TRACK_PROTECTED_MINIMUM") || codes.has("TRACK_CADENCE_DEFICIT")) {
+    return "PROTECT_TRACK_CADENCE";
+  }
   if (codes.has("CAMPAIGN_SOURCE")) return "ADVANCE_CAMPAIGN";
   return "ADVANCE_GROWTH_TRACK";
 }
 
-function explanation(benefit: ExpectedBenefitCode, durationMinutes: number): string {
+function explanation(
+  benefit: ExpectedBenefitCode,
+  durationMinutes: number,
+  factors: readonly PlanScoreFactorV2[] = [],
+  v2CadenceWording = false,
+): string {
+  const factorCodes = new Set(factors.map(({ code }) => code));
+  const protectsMinimum = factorCodes.has("TRACK_PROTECTED_MINIMUM");
+  const restoresCadence = factorCodes.has("TRACK_CADENCE_DEFICIT");
   const lead: Readonly<Record<ExpectedBenefitCode, string>> = {
     RESUME_ACTIVE_FOCUS: "Resume the Focus Session already in progress",
     REDUCE_MANDATORY_BLOCKER: "Addresses a mandatory target blocker",
@@ -948,7 +1025,13 @@ function explanation(benefit: ExpectedBenefitCode, durationMinutes: number): str
     COMPLETE_DUE_REVIEW: "Completes a review due today",
     REDUCE_TARGET_GAP: "Works on a current target shortfall",
     REDUCE_UNCERTAINTY: "Collects evidence in an unknown target area",
-    PROTECT_TRACK_CADENCE: "Protects a track minimum that is not met yet",
+    PROTECT_TRACK_CADENCE: !v2CadenceWording
+      ? "Protects a track minimum that is not met yet"
+      : protectsMinimum && restoresCadence
+        ? "Protects hard track minutes and restores its soft weekly session rhythm"
+        : restoresCadence
+          ? "Restores a soft weekly track session rhythm"
+          : "Protects a hard track minimum that is not met yet",
     ADVANCE_CAMPAIGN: "Advances the active deadline-driven campaign",
     ADVANCE_GROWTH_TRACK: "Advances the highest-value active growth track",
   };
@@ -1067,13 +1150,13 @@ function readinessSummary(
 
 function candidateReasonRefs(
   candidate: PlanningCandidateInput,
-  factors: readonly PlanScoreFactor[],
+  factors: readonly PlanScoreFactorV2[],
   matchedGap: ReadinessGapInput | null,
   effectiveTrack: PlanningTrackInput | null,
   input: CalculatePlanInput,
-): readonly PlanReasonRef[] {
+): readonly PlanReasonRefV2[] {
   const campaign = input.campaign;
-  const refs: PlanReasonRef[] = [];
+  const refs: PlanReasonRefV2[] = [];
   for (const { code } of factors) {
     if (code.startsWith("TARGET_") && matchedGap) {
       refs.push({
@@ -1093,7 +1176,9 @@ function candidateReasonRefs(
         dueAt: toCanonicalInstant(parsePlanningInstant(candidate.review.dueAt, "review.dueAt")),
       });
     } else if (
-      (code === "TRACK_PRIORITY" || code === "TRACK_PROTECTED_MINIMUM") &&
+      (code === "TRACK_PRIORITY" ||
+        code === "TRACK_PROTECTED_MINIMUM" ||
+        code === "TRACK_CADENCE_DEFICIT") &&
       effectiveTrack
     ) {
       refs.push({
@@ -1119,13 +1204,19 @@ function candidateReasonRefs(
   return refs.sort((left, right) => compareCodePoints(left.factorCode, right.factorCode));
 }
 
-export function calculateVerifiedPlan(
-  input: VerifiedCalculatePlanInput,
+function calculateVerifiedPlanInternal(
+  input: VerifiedCalculatePlanInput | VerifiedCalculatePlanInputV2,
   policy: PlanningPolicy,
-): PlanSnapshot {
-  const { asOfMs, validUntilMs, weekStartMs, weekEndMs, trackById } = validateInput(input, policy);
+  engineVersion: typeof PLANNER_ENGINE_VERSION | typeof PLANNER_ENGINE_VERSION_V2,
+  cadencePolicy: PlanningPolicyV2 | null,
+): InternalPlanSnapshot {
+  const { asOfMs, validUntilMs, weekStartMs, weekEndMs, trackById } = validateInput(
+    input,
+    policy,
+    cadencePolicy,
+  );
   const common = {
-    engineVersion: PLANNER_ENGINE_VERSION,
+    engineVersion,
     policyVersion: policy.version,
     inputFingerprint: input.inputFingerprint,
     calculatedAsOf: toLosslessPlanningInstant(input.evaluationHorizon.asOf, asOfMs),
@@ -1151,7 +1242,7 @@ export function calculateVerifiedPlan(
   if (input.activeFocus) {
     const benefit = "RESUME_ACTIVE_FOCUS" as const;
     const resumeFactor = factor("ACTIVE_FOCUS_RESUME", policy.activeFocusResumePoints);
-    const actions: readonly PlannedAction[] = [
+    const actions: readonly PlannedActionV2[] = [
       {
         rank: 1,
         actionKind: "RESUME",
@@ -1204,7 +1295,7 @@ export function calculateVerifiedPlan(
   }
 
   const scored = input.candidates
-    .map((candidate) => scoreCandidate(candidate, input, trackById, policy))
+    .map((candidate) => scoreCandidate(candidate, input, trackById, policy, cadencePolicy))
     .filter((candidate): candidate is ScoredCandidate => candidate !== null)
     .sort(
       (left, right) =>
@@ -1214,7 +1305,7 @@ export function calculateVerifiedPlan(
     )
     .slice(0, policy.maximumActions);
 
-  const actions: readonly PlannedAction[] = scored.map((scoredCandidate, index) => {
+  const actions: readonly PlannedActionV2[] = scored.map((scoredCandidate, index) => {
     const { candidate, factors, score, strongestGap: matchedGap, effectiveTrack } = scoredCandidate;
     const benefit = expectedBenefit(factors);
     return {
@@ -1235,7 +1326,7 @@ export function calculateVerifiedPlan(
       scoreFactors: factors,
       reasonRefs: candidateReasonRefs(candidate, factors, matchedGap, effectiveTrack, input),
       expectedBenefit: benefit,
-      reason: explanation(benefit, candidate.estimatedMinutes),
+      reason: explanation(benefit, candidate.estimatedMinutes, factors, cadencePolicy !== null),
     };
   });
 
@@ -1247,4 +1338,33 @@ export function calculateVerifiedPlan(
         : "NO_CANDIDATES";
 
   return { ...common, recommendationState, actions };
+}
+
+export function calculateVerifiedPlan(
+  input: VerifiedCalculatePlanInput,
+  policy: PlanningPolicy,
+): PlanSnapshot {
+  const result = calculateVerifiedPlanInternal(input, policy, PLANNER_ENGINE_VERSION, null);
+  if (policy.version !== "planning-policy/0.1") {
+    fail("V1 calculation requires planning-policy/0.1");
+  }
+  if (input.completedWorkPolicyVersion !== "planning-completed-work/0.1") {
+    fail("V1 calculation requires planning-completed-work/0.1");
+  }
+  return result as PlanSnapshot;
+}
+
+export function calculateVerifiedPlanV2(
+  input: VerifiedCalculatePlanInputV2,
+  policy: PlanningPolicyV2,
+): PlanSnapshotV2 {
+  if (input.completedWorkPolicyVersion !== "planning-completed-work/0.2") {
+    fail("V2 cadence calculation requires planning-completed-work/0.2");
+  }
+  return calculateVerifiedPlanInternal(
+    input,
+    policy,
+    PLANNER_ENGINE_VERSION_V2,
+    policy,
+  ) as PlanSnapshotV2;
 }

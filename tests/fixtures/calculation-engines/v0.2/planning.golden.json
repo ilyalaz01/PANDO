@@ -1,0 +1,621 @@
+{
+  "input": {
+    "inputFingerprint": "planning-input:194f10841b2698f7b0b4ff2c7b2987f9ef6ef339f5c7bfa7beaf3c41ff82cab8",
+    "completedWorkPolicyVersion": "planning-completed-work/0.2",
+    "prerequisiteEngineVersion": "mastery-prerequisite-engine/0.1.0",
+    "prerequisitePolicyVersion": "mastery-prerequisite-satisfaction/0.1",
+    "evaluationHorizon": {
+      "asOf": "2026-09-01T12:00:00Z",
+      "validUntil": "2026-09-01T18:00:00Z",
+      "timeZone": "Asia/Jerusalem",
+      "weekStart": "2026-08-30T21:00:00Z",
+      "weekEnd": "2026-09-06T21:00:00Z"
+    },
+    "sourceRevisions": [
+      {
+        "owner": "CATALOG",
+        "key": "catalog:python",
+        "revision": "7"
+      },
+      {
+        "owner": "EVIDENCE",
+        "key": "completed-work",
+        "revision": "evidence-completed-work:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      {
+        "owner": "FOCUS",
+        "key": "focus:active",
+        "revision": "11"
+      },
+      {
+        "owner": "FOCUS",
+        "key": "focus:completed-work",
+        "revision": "12"
+      },
+      {
+        "owner": "MASTERY",
+        "key": "mastery:evidence",
+        "revision": "42"
+      },
+      {
+        "owner": "OVERLAY",
+        "key": "overlay:activities",
+        "revision": "9"
+      },
+      {
+        "owner": "REVIEW",
+        "key": "review:schedule",
+        "revision": "15"
+      }
+    ],
+    "growthPlan": {
+      "growthPlanId": "10000000-0000-4000-8000-000000000001",
+      "version": "3",
+      "lifecycle": "ACTIVE",
+      "weeklyCapacityMinutes": 600,
+      "consumedMinutesThisWeek": 180,
+      "tracks": [
+        {
+          "trackId": "11000000-0000-4000-8000-000000000001",
+          "trackKey": "track:python",
+          "title": "Practical Python",
+          "version": "2",
+          "readinessGoalKey": "goal:nvidia-verification",
+          "targetProfileVersionKey": "target:nvidia-swe-v1",
+          "lifecycle": "ACTIVE",
+          "priority": 80,
+          "protectedMinimumMinutes": 180,
+          "meaningfulMinutesThisWeek": 60,
+          "defaultSessionMinutes": 45,
+          "cadencePerWeek": 3,
+          "completedCadenceSessionsThisWeek": 1
+        },
+        {
+          "trackId": "11000000-0000-4000-8000-000000000002",
+          "trackKey": "track:algorithms",
+          "title": "Algorithms",
+          "version": "1",
+          "readinessGoalKey": "goal:nvidia-verification",
+          "targetProfileVersionKey": "target:nvidia-swe-v1",
+          "lifecycle": "ACTIVE",
+          "priority": 70,
+          "protectedMinimumMinutes": 120,
+          "meaningfulMinutesThisWeek": 120,
+          "defaultSessionMinutes": 35,
+          "cadencePerWeek": 1,
+          "completedCadenceSessionsThisWeek": 1
+        }
+      ]
+    },
+    "campaign": {
+      "campaignId": "12000000-0000-4000-8000-000000000001",
+      "version": "1",
+      "title": "NVIDIA systems interview",
+      "readinessGoalKey": "goal:nvidia-verification",
+      "targetProfileVersionKey": "target:nvidia-swe-v1",
+      "deadlineAt": "2026-09-11T12:00:00Z"
+    },
+    "sessionLimitMinutes": 120,
+    "energyPreference": "MEDIUM",
+    "activeFocus": null,
+    "readiness": [
+      {
+        "availability": "CURRENT",
+        "reason": null,
+        "readinessGoalKey": "goal:nvidia-verification",
+        "targetProfileVersionKey": "target:nvidia-swe-v1",
+        "snapshotId": "14000000-0000-4000-8000-000000000001",
+        "inputFingerprint": "readiness-input:1111111111111111111111111111111111111111111111111111111111111111",
+        "calculatedAsOf": "2026-09-01T11:59:00Z",
+        "validUntil": "2026-09-02T00:00:00Z",
+        "status": "NOT_READY",
+        "coverage": 0.8,
+        "confidence": "MEDIUM",
+        "blockers": [
+          {
+            "code": "MANDATORY_FLOOR_FAILED",
+            "ruleKey": "rule:networking-floor"
+          }
+        ],
+        "gaps": [
+          {
+            "gapCode": "FAILED_MANDATORY_FLOOR",
+            "competencyRef": "competency:networking-tcp-ip",
+            "dimension": "APPLICATION"
+          },
+          {
+            "gapCode": "UNKNOWN_REQUIREMENT",
+            "competencyRef": "competency:python-typing",
+            "dimension": "APPLICATION"
+          },
+          {
+            "gapCode": "KNOWN_SHORTFALL",
+            "competencyRef": "competency:python-error-handling",
+            "dimension": "APPLICATION"
+          }
+        ]
+      }
+    ],
+    "reviewSummary": {
+      "projectionState": "CURRENT",
+      "overdueCount": 1,
+      "dueTodayCount": 1,
+      "validUntil": "2026-09-01T18:00:00Z"
+    },
+    "candidates": [
+      {
+        "candidateKey": "candidate:network-debug",
+        "readinessGoalKey": "goal:nvidia-verification",
+        "targetProfileVersionKey": "target:nvidia-swe-v1",
+        "activityKey": "activity:network-debug",
+        "title": "Debug a TCP connection",
+        "estimatedMinutes": 45,
+        "energy": "HIGH",
+        "durationSource": "PLANNING_ACTIVITY",
+        "sourceSignals": [
+          "GROWTH_PLAN",
+          "CAMPAIGN"
+        ],
+        "trackId": "11000000-0000-4000-8000-000000000001",
+        "competencyImpacts": [
+          {
+            "competencyRef": "competency:networking-tcp-ip",
+            "dimension": "APPLICATION"
+          }
+        ],
+        "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": {
+          "total": 0,
+          "satisfied": 0,
+          "blocked": 0,
+          "unknown": 0
+        },
+        "unlockCount": 2,
+        "repetitionsInLast7Days": 0,
+        "oldestRepetitionEndedAt": null,
+        "repetitionWindowEndsAt": null,
+        "review": null
+      },
+      {
+        "candidateKey": "candidate:typing-review",
+        "readinessGoalKey": "goal:nvidia-verification",
+        "targetProfileVersionKey": "target:nvidia-swe-v1",
+        "activityKey": "activity:typing-review",
+        "title": "Explain Python typing choices",
+        "estimatedMinutes": 30,
+        "energy": "MEDIUM",
+        "durationSource": "PLANNING_ACTIVITY",
+        "sourceSignals": [
+          "GROWTH_PLAN",
+          "REVIEW"
+        ],
+        "trackId": "11000000-0000-4000-8000-000000000001",
+        "competencyImpacts": [
+          {
+            "competencyRef": "competency:python-typing",
+            "dimension": "APPLICATION"
+          }
+        ],
+        "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": {
+          "total": 0,
+          "satisfied": 0,
+          "blocked": 0,
+          "unknown": 0
+        },
+        "unlockCount": 0,
+        "repetitionsInLast7Days": 1,
+        "oldestRepetitionEndedAt": "2026-08-25T21:30:00.000Z",
+        "repetitionWindowEndsAt": "2026-09-01T21:30:00.000Z",
+        "review": {
+          "reviewItemId": "13000000-0000-4000-8000-000000000001",
+          "bucket": "OVERDUE",
+          "dueAt": "2026-08-31T12:00:00Z"
+        }
+      },
+      {
+        "candidateKey": "candidate:error-review",
+        "readinessGoalKey": "goal:nvidia-verification",
+        "targetProfileVersionKey": "target:nvidia-swe-v1",
+        "activityKey": "activity:error-review",
+        "title": "Review Python error handling",
+        "estimatedMinutes": 25,
+        "energy": null,
+        "durationSource": "REVIEW_POLICY",
+        "sourceSignals": [
+          "REVIEW"
+        ],
+        "trackId": null,
+        "competencyImpacts": [
+          {
+            "competencyRef": "competency:python-error-handling",
+            "dimension": "APPLICATION"
+          }
+        ],
+        "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": {
+          "total": 0,
+          "satisfied": 0,
+          "blocked": 0,
+          "unknown": 0
+        },
+        "unlockCount": 0,
+        "repetitionsInLast7Days": 0,
+        "oldestRepetitionEndedAt": null,
+        "repetitionWindowEndsAt": null,
+        "review": {
+          "reviewItemId": "13000000-0000-4000-8000-000000000002",
+          "bucket": "DUE_TODAY",
+          "dueAt": "2026-09-01T18:00:00Z"
+        }
+      },
+      {
+        "candidateKey": "candidate:algorithm-drill",
+        "readinessGoalKey": "goal:nvidia-verification",
+        "targetProfileVersionKey": "target:nvidia-swe-v1",
+        "activityKey": "activity:algorithm-drill",
+        "title": "Solve a graph traversal drill",
+        "estimatedMinutes": 35,
+        "energy": null,
+        "durationSource": "PLANNING_ACTIVITY",
+        "sourceSignals": [
+          "GROWTH_PLAN"
+        ],
+        "trackId": "11000000-0000-4000-8000-000000000002",
+        "competencyImpacts": [
+          {
+            "competencyRef": "competency:algorithms-graph-traversal",
+            "dimension": "APPLICATION"
+          }
+        ],
+        "prerequisiteState": "SATISFIED",
+        "prerequisiteSummary": {
+          "total": 0,
+          "satisfied": 0,
+          "blocked": 0,
+          "unknown": 0
+        },
+        "unlockCount": 3,
+        "repetitionsInLast7Days": 0,
+        "oldestRepetitionEndedAt": null,
+        "repetitionWindowEndsAt": null,
+        "review": null
+      }
+    ]
+  },
+  "expected": {
+    "engineVersion": "planner-engine/0.2.0",
+    "policyVersion": "planning-policy/0.2",
+    "inputFingerprint": "planning-input:194f10841b2698f7b0b4ff2c7b2987f9ef6ef339f5c7bfa7beaf3c41ff82cab8",
+    "calculatedAsOf": "2026-09-01T12:00:00.000Z",
+    "validUntil": "2026-09-01T18:00:00.000Z",
+    "timeZone": "Asia/Jerusalem",
+    "weekStart": "2026-08-30T21:00:00.000Z",
+    "weekEnd": "2026-09-06T21:00:00.000Z",
+    "warningCodes": [],
+    "capacity": {
+      "weeklyCapacityMinutes": 600,
+      "consumedMinutesThisWeek": 180,
+      "remainingMinutesThisWeek": 420,
+      "sessionLimitMinutes": 120
+    },
+    "reviewSummary": {
+      "projectionState": "CURRENT",
+      "overdueCount": 1,
+      "dueTodayCount": 1,
+      "validUntil": "2026-09-01T18:00:00.000Z"
+    },
+    "nearestDeadline": {
+      "kind": "CAMPAIGN",
+      "sourceId": "12000000-0000-4000-8000-000000000001",
+      "sourceVersion": "1",
+      "readinessGoalKey": "goal:nvidia-verification",
+      "title": "NVIDIA systems interview",
+      "deadlineAt": "2026-09-11T12:00:00.000Z"
+    },
+    "readiness": [
+      {
+        "readinessGoalKey": "goal:nvidia-verification",
+        "targetProfileVersionKey": "target:nvidia-swe-v1",
+        "availability": "CURRENT",
+        "reason": null,
+        "snapshotId": "14000000-0000-4000-8000-000000000001",
+        "inputFingerprint": "readiness-input:1111111111111111111111111111111111111111111111111111111111111111",
+        "calculatedAsOf": "2026-09-01T11:59:00.000Z",
+        "validUntil": "2026-09-02T00:00:00.000Z",
+        "status": "NOT_READY",
+        "coverage": 0.8,
+        "confidence": "MEDIUM",
+        "blockers": [
+          {
+            "code": "MANDATORY_FLOOR_FAILED",
+            "ruleKey": "rule:networking-floor"
+          }
+        ],
+        "blockerCount": 1,
+        "gapCount": 3,
+        "unknownGapCount": 1,
+        "criticalGap": {
+          "gapCode": "FAILED_MANDATORY_FLOOR",
+          "competencyRef": "competency:networking-tcp-ip",
+          "dimension": "APPLICATION"
+        }
+      }
+    ],
+    "recommendationState": "CURRENT",
+    "actions": [
+      {
+        "rank": 1,
+        "actionKind": "START",
+        "candidateKey": "candidate:network-debug",
+        "focusSessionId": null,
+        "readinessGoalKey": "goal:nvidia-verification",
+        "activityKey": "activity:network-debug",
+        "trackId": "11000000-0000-4000-8000-000000000001",
+        "planAttribution": null,
+        "title": "Debug a TCP connection",
+        "durationMinutes": 45,
+        "durationSource": "PLANNING_ACTIVITY",
+        "energy": "HIGH",
+        "sourceSignals": [
+          "CAMPAIGN",
+          "GROWTH_PLAN"
+        ],
+        "score": 1220,
+        "scoreFactors": [
+          {
+            "code": "CAMPAIGN_DEADLINE",
+            "points": 200
+          },
+          {
+            "code": "CAMPAIGN_SOURCE",
+            "points": 250
+          },
+          {
+            "code": "ENERGY_HIGHER_MISMATCH",
+            "points": -200
+          },
+          {
+            "code": "PREREQUISITE_UNLOCK",
+            "points": 40
+          },
+          {
+            "code": "TARGET_FAILED_MANDATORY_FLOOR",
+            "points": 500
+          },
+          {
+            "code": "TRACK_CADENCE_DEFICIT",
+            "points": 150
+          },
+          {
+            "code": "TRACK_PRIORITY",
+            "points": 80
+          },
+          {
+            "code": "TRACK_PROTECTED_MINIMUM",
+            "points": 200
+          }
+        ],
+        "reasonRefs": [
+          {
+            "factorCode": "CAMPAIGN_DEADLINE",
+            "kind": "CAMPAIGN",
+            "campaignId": "12000000-0000-4000-8000-000000000001",
+            "campaignVersion": "1",
+            "readinessGoalKey": "goal:nvidia-verification",
+            "deadlineAt": "2026-09-11T12:00:00.000Z",
+            "daysUntilDeadline": 10
+          },
+          {
+            "factorCode": "CAMPAIGN_SOURCE",
+            "kind": "CAMPAIGN",
+            "campaignId": "12000000-0000-4000-8000-000000000001",
+            "campaignVersion": "1",
+            "readinessGoalKey": "goal:nvidia-verification",
+            "deadlineAt": "2026-09-11T12:00:00.000Z",
+            "daysUntilDeadline": 10
+          },
+          {
+            "factorCode": "TARGET_FAILED_MANDATORY_FLOOR",
+            "kind": "TARGET_GAP",
+            "gapCode": "FAILED_MANDATORY_FLOOR",
+            "readinessGoalKey": "goal:nvidia-verification",
+            "competencyRef": "competency:networking-tcp-ip",
+            "dimension": "APPLICATION"
+          },
+          {
+            "factorCode": "TRACK_CADENCE_DEFICIT",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000001",
+            "trackKey": "track:python"
+          },
+          {
+            "factorCode": "TRACK_PRIORITY",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000001",
+            "trackKey": "track:python"
+          },
+          {
+            "factorCode": "TRACK_PROTECTED_MINIMUM",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000001",
+            "trackKey": "track:python"
+          }
+        ],
+        "expectedBenefit": "REDUCE_MANDATORY_BLOCKER",
+        "reason": "Addresses a mandatory target blocker; estimated 45 minutes."
+      },
+      {
+        "rank": 2,
+        "actionKind": "START",
+        "candidateKey": "candidate:typing-review",
+        "focusSessionId": null,
+        "readinessGoalKey": "goal:nvidia-verification",
+        "activityKey": "activity:typing-review",
+        "trackId": "11000000-0000-4000-8000-000000000001",
+        "planAttribution": null,
+        "title": "Explain Python typing choices",
+        "durationMinutes": 30,
+        "durationSource": "PLANNING_ACTIVITY",
+        "energy": "MEDIUM",
+        "sourceSignals": [
+          "GROWTH_PLAN",
+          "REVIEW"
+        ],
+        "score": 1130,
+        "scoreFactors": [
+          {
+            "code": "ENERGY_EXACT_FIT",
+            "points": 75
+          },
+          {
+            "code": "RECENT_REPETITION",
+            "points": -75
+          },
+          {
+            "code": "REVIEW_OVERDUE",
+            "points": 450
+          },
+          {
+            "code": "TARGET_UNKNOWN_REQUIREMENT",
+            "points": 250
+          },
+          {
+            "code": "TRACK_CADENCE_DEFICIT",
+            "points": 150
+          },
+          {
+            "code": "TRACK_PRIORITY",
+            "points": 80
+          },
+          {
+            "code": "TRACK_PROTECTED_MINIMUM",
+            "points": 200
+          }
+        ],
+        "reasonRefs": [
+          {
+            "factorCode": "REVIEW_OVERDUE",
+            "kind": "REVIEW_ITEM",
+            "reviewItemId": "13000000-0000-4000-8000-000000000001",
+            "bucket": "OVERDUE",
+            "dueAt": "2026-08-31T12:00:00.000Z"
+          },
+          {
+            "factorCode": "TARGET_UNKNOWN_REQUIREMENT",
+            "kind": "TARGET_GAP",
+            "gapCode": "UNKNOWN_REQUIREMENT",
+            "readinessGoalKey": "goal:nvidia-verification",
+            "competencyRef": "competency:python-typing",
+            "dimension": "APPLICATION"
+          },
+          {
+            "factorCode": "TRACK_CADENCE_DEFICIT",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000001",
+            "trackKey": "track:python"
+          },
+          {
+            "factorCode": "TRACK_PRIORITY",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000001",
+            "trackKey": "track:python"
+          },
+          {
+            "factorCode": "TRACK_PROTECTED_MINIMUM",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000001",
+            "trackKey": "track:python"
+          }
+        ],
+        "expectedBenefit": "COMPLETE_OVERDUE_REVIEW",
+        "reason": "Refreshes an overdue competency; estimated 30 minutes."
+      },
+      {
+        "rank": 3,
+        "actionKind": "START",
+        "candidateKey": "candidate:error-review",
+        "focusSessionId": null,
+        "readinessGoalKey": "goal:nvidia-verification",
+        "activityKey": "activity:error-review",
+        "trackId": null,
+        "planAttribution": null,
+        "title": "Review Python error handling",
+        "durationMinutes": 25,
+        "durationSource": "REVIEW_POLICY",
+        "energy": null,
+        "sourceSignals": [
+          "REVIEW"
+        ],
+        "score": 700,
+        "scoreFactors": [
+          {
+            "code": "REVIEW_DUE_TODAY",
+            "points": 350
+          },
+          {
+            "code": "TARGET_KNOWN_SHORTFALL",
+            "points": 350
+          }
+        ],
+        "reasonRefs": [
+          {
+            "factorCode": "REVIEW_DUE_TODAY",
+            "kind": "REVIEW_ITEM",
+            "reviewItemId": "13000000-0000-4000-8000-000000000002",
+            "bucket": "DUE_TODAY",
+            "dueAt": "2026-09-01T18:00:00.000Z"
+          },
+          {
+            "factorCode": "TARGET_KNOWN_SHORTFALL",
+            "kind": "TARGET_GAP",
+            "gapCode": "KNOWN_SHORTFALL",
+            "readinessGoalKey": "goal:nvidia-verification",
+            "competencyRef": "competency:python-error-handling",
+            "dimension": "APPLICATION"
+          }
+        ],
+        "expectedBenefit": "COMPLETE_DUE_REVIEW",
+        "reason": "Completes a review due today; estimated 25 minutes."
+      },
+      {
+        "rank": 4,
+        "actionKind": "START",
+        "candidateKey": "candidate:algorithm-drill",
+        "focusSessionId": null,
+        "readinessGoalKey": "goal:nvidia-verification",
+        "activityKey": "activity:algorithm-drill",
+        "trackId": "11000000-0000-4000-8000-000000000002",
+        "planAttribution": null,
+        "title": "Solve a graph traversal drill",
+        "durationMinutes": 35,
+        "durationSource": "PLANNING_ACTIVITY",
+        "energy": null,
+        "sourceSignals": [
+          "GROWTH_PLAN"
+        ],
+        "score": 130,
+        "scoreFactors": [
+          {
+            "code": "PREREQUISITE_UNLOCK",
+            "points": 60
+          },
+          {
+            "code": "TRACK_PRIORITY",
+            "points": 70
+          }
+        ],
+        "reasonRefs": [
+          {
+            "factorCode": "TRACK_PRIORITY",
+            "kind": "TRACK",
+            "trackId": "11000000-0000-4000-8000-000000000002",
+            "trackKey": "track:algorithms"
+          }
+        ],
+        "expectedBenefit": "ADVANCE_GROWTH_TRACK",
+        "reason": "Advances the highest-value active growth track; estimated 35 minutes."
+      }
+    ]
+  }
+}
