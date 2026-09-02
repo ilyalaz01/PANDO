@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   loadAdmissionV2: vi.fn(),
   loadTerminal: vi.fn(),
   loadCadence: vi.fn(),
+  loadReplacement: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -40,6 +41,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadLearningTrackActivityAdmissionSourceV2: mocks.loadAdmissionV2,
   loadLearningTrackTerminalLifecycleSourceV1: mocks.loadTerminal,
   loadLearningTrackCadenceSourceV1: mocks.loadCadence,
+  loadGrowthPlanReplacementSourceV1: mocks.loadReplacement,
 }));
 
 import PlanPage from "./page";
@@ -300,6 +302,36 @@ const noPlanCadenceSource = {
   learningTracks: [],
 } as const;
 
+const replacementSource = {
+  contract: { name: "GrowthPlanReplacementSourceV1", version: "1.0.0" },
+  state: "REPLACEMENT_AVAILABLE",
+  capabilities: ["replace_growth_plan"],
+  currentPlan: {
+    title: "Backend interview readiness",
+    lifecycle: "ACTIVE",
+    weeklyCapacityMinutes: 600,
+    aggregateVersion: "4",
+    childTracks: { total: 2, active: 1, paused: 1, completed: 0, archived: 0 },
+  },
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend Engineer",
+      profileVersionKey: "target:backend-engineer-v1",
+      roadmapPresent: true,
+      aggregateVersion: "3",
+    },
+  ],
+} as const;
+const noPlanReplacementSource = {
+  contract: { name: "GrowthPlanReplacementSourceV1", version: "1.0.0" },
+  state: "NO_CURRENT_PLAN",
+  capabilities: [],
+  currentPlan: null,
+  goals: [],
+} as const;
+
 describe("PlanPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -312,6 +344,7 @@ describe("PlanPage", () => {
     mocks.loadAdmissionV2.mockResolvedValue(selectedTrackAdmissionSource);
     mocks.loadTerminal.mockResolvedValue(terminalLifecycleSource);
     mocks.loadCadence.mockResolvedValue(cadenceSource);
+    mocks.loadReplacement.mockResolvedValue(replacementSource);
   });
 
   it("authenticates and loads the actor-scoped current Growth Plan", async () => {
@@ -388,6 +421,7 @@ describe("PlanPage", () => {
     mocks.loadCreation.mockResolvedValue(noPlanLearningTrackCreationSource);
     mocks.loadTerminal.mockResolvedValue(noPlanTerminalLifecycleSource);
     mocks.loadCadence.mockResolvedValue(noPlanCadenceSource);
+    mocks.loadReplacement.mockResolvedValue(noPlanReplacementSource);
     mocks.loadAdmission.mockResolvedValue(noPlanActivityAdmissionSource);
     render(await PlanPage());
     expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();

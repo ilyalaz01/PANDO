@@ -1,0 +1,35 @@
+{
+  "contract": {
+    "name": "GrowthPlanReplacementApplyResultV1",
+    "version": "1.0.0"
+  },
+  "commandId": "80000000-0000-4000-8000-000000000001",
+  "archivedPlan": {
+    "growthPlanId": "50000000-0000-4000-8000-000000000001",
+    "title": "Frontend readiness",
+    "lifecycle": "ARCHIVED",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "5"
+  },
+  "createdPlan": {
+    "growthPlanId": "60000000-0000-8000-8000-000000000001",
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 420,
+    "aggregateVersion": "1"
+  },
+  "createdTrack": {
+    "learningTrackId": "70000000-0000-8000-8000-000000000001",
+    "trackKey": "track:70000000-0000-8000-8000-000000000001",
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "priority": 50,
+    "protectedMinimumMinutes": 0,
+    "cadencePerWeek": 0,
+    "defaultSessionMinutes": 30,
+    "aggregateVersion": "1"
+  },
+  "projectionState": "PENDING",
+  "planningDeliveryId": "90000000-0000-4000-8000-000000000001",
+  "emittedEventIds": ["a0000000-0000-4000-8000-000000000001"]
+}

@@ -16,6 +16,7 @@ import {
   applyLearningTrackPriorityMinimumV1,
   applyLearningTrackCadenceV1,
   applyGrowthPlanInitializationV1,
+  applyGrowthPlanReplacementV1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
   previewGrowthPlanCapacityV1,
@@ -28,6 +29,7 @@ import {
   previewLearningTrackPriorityMinimumV1,
   previewLearningTrackCadenceV1,
   previewGrowthPlanInitializationV1,
+  previewGrowthPlanReplacementV1,
   PlanConflictError,
   PlanInputError,
 } from "../../ui/plan/server/database-plan";
@@ -254,6 +256,21 @@ function initializationInput(formData: FormData): {
   };
 }
 
+function replacementInput(formData: FormData): {
+  readinessGoalKey: string;
+  expectedReadinessGoalVersion: string;
+  expectedGrowthPlanVersion: string;
+  weeklyCapacityMinutes: number;
+  defaultSessionMinutes: number;
+  trackPriority: number;
+  reason: string;
+  requestId: string;
+} {
+  const expectedGrowthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  if (!VERSION.test(expectedGrowthPlanVersion)) throw new PlanInputError();
+  return { ...initializationInput(formData), expectedGrowthPlanVersion };
+}
+
 function learningTrackCreationInput(formData: FormData): {
   readinessGoalKey: string;
   expectedReadinessGoalVersion: string;
@@ -364,6 +381,76 @@ function failure(error: unknown, invalidMessage?: string): PlanActionState {
     status: "unavailable",
     message: "PANDO could not change this plan. Nothing changed; try again.",
   };
+}
+
+export async function previewGrowthPlanReplacementAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = replacementInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewGrowthPlanReplacementV1(client, {
+      readinessGoalKey: value.readinessGoalKey,
+      expectedReadinessGoalVersion: value.expectedReadinessGoalVersion,
+      expectedGrowthPlanVersion: value.expectedGrowthPlanVersion,
+      weeklyCapacityMinutes: value.weeklyCapacityMinutes,
+      defaultSessionMinutes: value.defaultSessionMinutes,
+      trackPriority: value.trackPriority,
+      reason: value.reason,
+      idempotencyKey: value.requestId,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "Replacement preview ready. Confirm only if these exact facts are correct."
+        : "This replacement is no longer applicable. Reload the Plan and start again.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current readiness goal, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyGrowthPlanReplacementAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = replacementInput(formData);
+    const previewDigest = field(formData, "previewDigest");
+    if (!/^[a-f0-9]{64}$/u.test(previewDigest)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyGrowthPlanReplacementV1(client, {
+      readinessGoalKey: value.readinessGoalKey,
+      expectedReadinessGoalVersion: value.expectedReadinessGoalVersion,
+      expectedGrowthPlanVersion: value.expectedGrowthPlanVersion,
+      weeklyCapacityMinutes: value.weeklyCapacityMinutes,
+      defaultSessionMinutes: value.defaultSessionMinutes,
+      trackPriority: value.trackPriority,
+      reason: value.reason,
+      idempotencyKey: value.requestId,
+      previewDigest,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Growth Plan replaced. The previous Plan is archived history; recalculation is pending.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current readiness goal, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
 }
 
 export async function previewGrowthPlanInitializationAction(

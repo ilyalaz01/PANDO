@@ -11,6 +11,7 @@ import type {
   LearningTrackActivityAdmissionSourceV2,
   LearningTrackTerminalLifecycleSourceV1,
   LearningTrackCadenceSourceV1,
+  GrowthPlanReplacementSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
@@ -241,6 +242,129 @@ const cadenceSource: LearningTrackCadenceSourceV1 = {
     completedCadenceSessionsThisWeek: index === 0 ? 1 : 0,
     capabilities: ["set_track_cadence"],
   })),
+};
+
+const replacementSource: GrowthPlanReplacementSourceV1 = {
+  contract: { name: "GrowthPlanReplacementSourceV1", version: "1.0.0" },
+  state: "REPLACEMENT_AVAILABLE",
+  capabilities: ["replace_growth_plan"],
+  currentPlan: {
+    title: plan.title,
+    lifecycle: plan.lifecycle,
+    weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+    aggregateVersion: plan.aggregateVersion,
+    childTracks: { total: 3, active: 1, paused: 1, completed: 1, archived: 0 },
+  },
+  goals: [
+    {
+      readinessGoalKey: "goal:backend-interview-readiness",
+      title: "Backend interview readiness",
+      profileLabel: "Backend Engineer at Northwind",
+      profileVersionKey: "target:backend-engineer-v1",
+      roadmapPresent: true,
+      aggregateVersion: "3",
+    },
+  ],
+};
+
+const replacementPreviewState: PlanActionState = {
+  status: "previewed",
+  message: "Replacement preview ready. Confirm only if these exact facts are correct.",
+  preview: {
+    contract: { name: "GrowthPlanReplacementPreviewV1", version: "1.0.0" },
+    digestVersion: "growth-plan-replacement-preview-digest/1.0.0",
+    identityVersion: "planning-create-identity/1.0.0",
+    operation: "replace_growth_plan",
+    commandType: "planning.replace_growth_plan_v1",
+    idempotencyKey: "32000000-0000-4000-8000-000000000031",
+    reason: "Switching my long-term direction.",
+    expectedReadinessGoalVersion: "3",
+    expectedGrowthPlanVersion: plan.aggregateVersion,
+    source: {
+      readinessGoalId: "32000000-0000-4000-8000-000000000032",
+      readinessGoalKey: "goal:backend-interview-readiness",
+      readinessGoalTitle: "Backend interview readiness",
+      readinessGoalLifecycle: "ACTIVE",
+      readinessGoalVersion: "3",
+      profileVersionId: "32000000-0000-4000-8000-000000000033",
+      profileVersionKey: "target:backend-engineer-v1",
+      sourceKind: "ROADMAP_TEMPLATE_VERSION",
+      sourceRef: "32000000-0000-4000-8000-000000000034",
+      roadmapVersionId: "32000000-0000-4000-8000-000000000034",
+      sourceOwnerRevision: "readiness-goal:3",
+    },
+    before: {
+      lifetimePlanCount: 1,
+      currentPlanCount: 1,
+      growthPlan: {
+        growthPlanId: plan.growthPlanId,
+        title: plan.title,
+        lifecycle: plan.lifecycle,
+        weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+        aggregateVersion: plan.aggregateVersion,
+      },
+      childTracks: {
+        total: 3,
+        active: 1,
+        paused: 1,
+        completed: 1,
+        archived: 0,
+        fingerprint: "b".repeat(64),
+      },
+    },
+    after: {
+      lifetimePlanCount: 2,
+      currentPlanCount: 1,
+      currentPlanLimit: 1,
+      archivedPlan: {
+        growthPlanId: plan.growthPlanId,
+        title: plan.title,
+        lifecycle: "ARCHIVED",
+        weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+        aggregateVersion: String(Number(plan.aggregateVersion) + 1),
+      },
+      growthPlan: {
+        growthPlanId: "32000000-0000-8000-8000-000000000035",
+        title: "Backend interview readiness",
+        lifecycle: "ACTIVE",
+        weeklyCapacityMinutes: 480,
+        aggregateVersion: "1",
+      },
+      learningTrack: {
+        learningTrackId: "32000000-0000-8000-8000-000000000036",
+        trackKey: "track:32000000-0000-8000-8000-000000000036",
+        title: "Backend interview readiness",
+        lifecycle: "ACTIVE",
+        priority: 50,
+        protectedMinimumMinutes: 0,
+        cadencePerWeek: 0,
+        defaultSessionMinutes: 30,
+        aggregateVersion: "1",
+      },
+    },
+    canApply: true,
+    blockingReasons: [],
+    warnings: [
+      { code: "ARCHIVED_PLAN_IS_READ_ONLY" },
+      { code: "CURRENT_TRACKS_NOT_COPIED" },
+      { code: "INITIAL_TRACK_HAS_NO_ACTIVITIES" },
+    ],
+    retained: {
+      readinessGoal: true,
+      archivedPlan: true,
+      learningTrackHistory: true,
+      activitiesAndEvidence: true,
+      mastery: true,
+      reviews: true,
+      planSnapshots: true,
+    },
+    recalculationAfterApply: {
+      projectionState: "PENDING",
+      eventChangeKind: "PLAN_REPLACED",
+      consumerName: "planning.plan_snapshot_v1",
+    },
+    previewDigest: "c".repeat(64),
+  },
 };
 
 const cadencePreviewState: PlanActionState = {
@@ -913,6 +1037,7 @@ export default async function PlanFixturePage({
   const showsActivityV2 = previewKind.startsWith("activity-v2");
   const showsTerminal = previewKind.startsWith("terminal");
   const showsCadence = previewKind.startsWith("track-cadence");
+  const showsReplacement = previewKind.startsWith("plan-replacement");
   const creationSource =
     previewKind === "track-create-no-goals"
       ? creationSourceState("NO_ACTIVE_GOALS")
@@ -969,6 +1094,9 @@ export default async function PlanFixturePage({
           initialCadencePreviewState={
             previewKind === "track-cadence" ? cadencePreviewState : initialPlanActionState
           }
+          initialReplacementPreviewState={
+            previewKind === "plan-replacement" ? replacementPreviewState : initialPlanActionState
+          }
           initialInitializationPreviewState={
             showsInitialization ? initializationPreviewState : initialPlanActionState
           }
@@ -982,7 +1110,8 @@ export default async function PlanFixturePage({
             showsCreation ||
             showsActivity ||
             showsTerminal ||
-            showsCadence
+            showsCadence ||
+            showsReplacement
               ? initialPlanActionState
               : previewState
           }
@@ -1021,6 +1150,7 @@ export default async function PlanFixturePage({
               }
             : {})}
           {...(showsCadence ? { cadenceSource } : {})}
+          {...(showsReplacement ? { replacementSource } : {})}
           tracksWorkspace={
             showsInitialization
               ? setupTracksWorkspace

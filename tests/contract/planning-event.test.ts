@@ -29,6 +29,10 @@ import trackCadenceBoundaryFixture from "./fixtures/events/v1/planning-track-cad
 import trackCadenceInvalidFixture from "./fixtures/events/v1/planning-track-cadence.invalid.json";
 import trackCadenceMaliciousFixture from "./fixtures/events/v1/planning-track-cadence.malicious.json";
 import trackCadenceValidFixture from "./fixtures/events/v1/planning-track-cadence.valid.json";
+import planReplacedBoundaryFixture from "./fixtures/events/v1/planning-plan-replaced.boundary.json";
+import planReplacedInvalidFixture from "./fixtures/events/v1/planning-plan-replaced.invalid.json";
+import planReplacedMaliciousFixture from "./fixtures/events/v1/planning-plan-replaced.malicious.json";
+import planReplacedValidFixture from "./fixtures/events/v1/planning-plan-replaced.valid.json";
 import trackCreatedBoundaryFixture from "./fixtures/events/v1/planning-track-created.boundary.json";
 import trackCreatedInvalidFixture from "./fixtures/events/v1/planning-track-created.invalid.json";
 import trackCreatedMaliciousFixture from "./fixtures/events/v1/planning-track-created.malicious.json";
@@ -82,6 +86,37 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", trackCreatedBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", trackCreatedInvalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", trackCreatedMaliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", planReplacedValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", planReplacedBoundaryFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", planReplacedInvalidFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", planReplacedMaliciousFixture).valid).toBe(false);
+  });
+
+  it("keeps the replacement wake-up minimal, bigint-safe, and free of copied Plan detail", () => {
+    expect(Object.keys(planReplacedValidFixture.payload).sort()).toEqual([
+      "archived_growth_plan_id",
+      "archived_growth_plan_version",
+      "change_kind",
+      "growth_plan_id",
+      "learning_track_id",
+      "profile_version_id",
+      "readiness_goal_id",
+    ]);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...planReplacedValidFixture,
+        payload: {
+          ...planReplacedValidFixture.payload,
+          growth_plan_id: planReplacedValidFixture.payload.archived_growth_plan_id,
+        },
+      }).valid,
+    ).toBe(true);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...planReplacedValidFixture,
+        payload: { ...planReplacedValidFixture.payload, weekly_capacity_minutes: 600 },
+      }).valid,
+    ).toBe(false);
   });
 
   it("covers only the registered initialization, admission, lifecycle, capacity, and Track-input variants", () => {

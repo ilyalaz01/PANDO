@@ -1,0 +1,105 @@
+{
+  "contract": {
+    "name": "GrowthPlanReplacementPreviewV1",
+    "version": "1.0.0"
+  },
+  "digestVersion": "growth-plan-replacement-preview-digest/1.0.0",
+  "identityVersion": "planning-create-identity/1.0.0",
+  "operation": "replace_growth_plan",
+  "commandType": "planning.replace_growth_plan_v1",
+  "idempotencyKey": "10000000-0000-4000-8000-000000000001",
+  "reason": "Switching to the backend target",
+  "expectedReadinessGoalVersion": "8",
+  "expectedGrowthPlanVersion": "3",
+  "source": {
+    "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+    "readinessGoalKey": "goal:backend-readiness",
+    "readinessGoalTitle": "Backend readiness",
+    "readinessGoalLifecycle": "ACTIVE",
+    "readinessGoalVersion": "7",
+    "profileVersionId": "30000000-0000-4000-8000-000000000001",
+    "profileVersionKey": "target:backend-engineer-v1",
+    "sourceKind": "TARGET_PROFILE_REQUIREMENT_COLLECTION",
+    "sourceRef": "40000000-0000-4000-8000-000000000001",
+    "roadmapVersionId": "40000000-0000-4000-8000-000000000001",
+    "sourceOwnerRevision": "readiness-goal:7"
+  },
+  "before": {
+    "lifetimePlanCount": 1,
+    "currentPlanCount": 1,
+    "growthPlan": {
+      "growthPlanId": "50000000-0000-4000-8000-000000000001",
+      "title": "Frontend readiness",
+      "lifecycle": "ACTIVE",
+      "weeklyCapacityMinutes": 600,
+      "aggregateVersion": "4"
+    },
+    "childTracks": {
+      "total": 9,
+      "active": 1,
+      "paused": 1,
+      "completed": 0,
+      "archived": 1,
+      "fingerprint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  },
+  "after": {
+    "lifetimePlanCount": 5,
+    "currentPlanCount": 1,
+    "currentPlanLimit": 1,
+    "archivedPlan": {
+      "growthPlanId": "50000000-0000-4000-8000-000000000001",
+      "title": "Frontend readiness",
+      "lifecycle": "ARCHIVED",
+      "weeklyCapacityMinutes": 600,
+      "aggregateVersion": "9"
+    },
+    "growthPlan": {
+      "growthPlanId": "60000000-0000-8000-8000-000000000001",
+      "title": "Different title",
+      "lifecycle": "ACTIVE",
+      "weeklyCapacityMinutes": 420,
+      "aggregateVersion": "1"
+    },
+    "learningTrack": {
+      "learningTrackId": "70000000-0000-8000-8000-000000000001",
+      "trackKey": "track:70000000-0000-8000-8000-000000000002",
+      "title": "Backend readiness",
+      "lifecycle": "ACTIVE",
+      "priority": 50,
+      "protectedMinimumMinutes": 0,
+      "cadencePerWeek": 0,
+      "defaultSessionMinutes": 30,
+      "aggregateVersion": "1"
+    }
+  },
+  "canApply": true,
+  "blockingReasons": [
+    {
+      "code": "PLANNING_CREATE_IDENTITY_COLLISION"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "ARCHIVED_PLAN_IS_READ_ONLY"
+    },
+    {
+      "code": "INITIAL_TRACK_HAS_NO_ACTIVITIES"
+    }
+  ],
+  "retained": {
+    "readinessGoal": true,
+    "archivedPlan": true,
+    "learningTrackHistory": true,
+    "activitiesAndEvidence": true,
+    "mastery": true,
+    "reviews": true,
+    "planSnapshots": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "PLAN_REPLACED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "f94eaac136309a98bab2ba11f52df530171c17d52705adcc1a6123765e95933a"
+}

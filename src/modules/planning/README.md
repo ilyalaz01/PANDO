@@ -95,7 +95,17 @@ exactly one current Growth Plan with archive only inside atomic replacement, pla
 whole-local-day availability windows that cap but never raise weekly capacity, campaign deadlines
 as a workspace-local date with a derived exclusive instant, allocation overrides that temporarily
 replace a Track's own priority, protected minimum, and cadence, and one purpose-specific
-campaign-lifecycle coordinator. The next Planning outcome is D3a, Growth Plan replacement only.
+campaign-lifecycle coordinator.
+
+D3a is implemented as one atomic Planning-owned `replace_growth_plan` command. It archives the
+outgoing Plan with exactly one version increment and creates the incoming Plan plus one initial
+Track in the same transaction, so an initialized workspace always has exactly one current Plan and
+there is still no standalone archive command. Tracks, activity attributions, Focus sessions,
+Evidence, Mastery, Reviews, and immutable snapshots are retained and never copied; the clock-free
+digest binds the outgoing Plan identity, its ordered child-Track fingerprint, and both expected
+versions. See
+[`PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md`](../../../docs/implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md).
+The next Planning outcome is D3b availability windows.
 
 ## Phase 4A implementation route
 

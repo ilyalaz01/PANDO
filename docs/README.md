@@ -41,7 +41,11 @@ recorded in the supporting
 [Phase 4B lifecycle command design](design/PHASE_4B_LIFECYCLE_COMMANDS.md). The cross-context
 decisions that design left open for D3–D5 — current-plan replacement, availability windows,
 Campaign deadlines, allocation meaning, and the coordinator boundary — are settled in
-[ADR-0010](adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md).
+[ADR-0010](adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md). The first slice
+that ADR ordered is defined by
+[Phase 4B D3a Growth Plan replacement](design/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md) and recorded
+in the
+[D3a implementation status](implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md).
 
 [Phase 4B D2a Growth Plan weekly-capacity design](design/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
 Its delivered slices and verification evidence are tracked in the

@@ -11,6 +11,14 @@ import {
   type GrowthPlanSetupSourceV1,
 } from "../../../shared/contracts/growth-plan-initialization-control";
 import {
+  decodeGrowthPlanReplacementApplyResultV1 as decodeGrowthPlanReplacementApplyResult,
+  decodeGrowthPlanReplacementPreviewV1 as decodeGrowthPlanReplacementPreview,
+  decodeGrowthPlanReplacementSourceV1 as decodeGrowthPlanReplacementSource,
+  type GrowthPlanReplacementApplyResultV1,
+  type GrowthPlanReplacementPreviewV1,
+  type GrowthPlanReplacementSourceV1,
+} from "../../../shared/contracts/growth-plan-replacement-control";
+import {
   decodeLearningTrackCreationApplyResultV1 as decodeLearningTrackCreationApplyResult,
   decodeLearningTrackCreationPreviewV1 as decodeLearningTrackCreationPreview,
   decodeLearningTrackCreationSourceV1 as decodeLearningTrackCreationSource,
@@ -53,6 +61,9 @@ export type {
   GrowthPlanInitializationApplyResultV1,
   GrowthPlanInitializationPreviewV1,
   GrowthPlanSetupSourceV1,
+  GrowthPlanReplacementApplyResultV1,
+  GrowthPlanReplacementPreviewV1,
+  GrowthPlanReplacementSourceV1,
   LearningTrackCreationApplyResultV1,
   LearningTrackCreationPreviewV1,
   LearningTrackCreationSourceV1,
@@ -569,6 +580,25 @@ export function decodeLearningTrackCadenceApplyResultV1(
 /** Decodes the bounded current-personal first-Plan setup selector. */
 export function decodeGrowthPlanSetupSourceV1(value: unknown): GrowthPlanSetupSourceV1 {
   return decodeGrowthPlanSetupSource(value);
+}
+
+/** Decodes the bounded replacement source without exposing archived Plan detail. */
+export function decodeGrowthPlanReplacementSourceV1(value: unknown): GrowthPlanReplacementSourceV1 {
+  return decodeGrowthPlanReplacementSource(value);
+}
+
+/** Decodes the exact archive-plus-create replacement preview. */
+export function decodeGrowthPlanReplacementPreviewV1(
+  value: unknown,
+): GrowthPlanReplacementPreviewV1 {
+  return decodeGrowthPlanReplacementPreview(value);
+}
+
+/** Decodes the atomic replacement command response. */
+export function decodeGrowthPlanReplacementApplyResultV1(
+  value: unknown,
+): GrowthPlanReplacementApplyResultV1 {
+  return decodeGrowthPlanReplacementApplyResult(value);
 }
 
 /** Decodes an exact first-Plan creation preview. */

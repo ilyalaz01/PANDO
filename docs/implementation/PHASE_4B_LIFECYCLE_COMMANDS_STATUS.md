@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1, D1b, and D2a–D2c complete; D3–D5 ADR and implementation pending
+Status: D1, D1b, D2a–D2c, and D3a complete; D3b–D5 implementation pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-02
 
@@ -92,6 +92,7 @@ records cover [admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md),
 [ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md); it settles
 current-plan replacement, availability windows, Campaign deadline and allocation meaning, the
 paused-plan campaign rule, the coordinator boundary, and the calculation versions each remaining
-slice introduces. The next bounded outcome is D3a, the Growth Plan replacement slice defined in
-ADR-0010 §9. Do not start availability, Campaign, or coordinator work before D3a is complete,
-verified, documented, and committed.
+slice introduces. D3a, the Growth Plan replacement slice defined in ADR-0010 §9, is complete; see the
+[D3a implementation status](PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md). The next bounded
+outcome is D3b availability windows. Do not start Campaign or coordinator work before D3b is
+complete, verified, documented, and committed.

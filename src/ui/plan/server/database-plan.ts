@@ -6,6 +6,9 @@ import {
   decodeGrowthPlanInitializationApplyResultV1,
   decodeGrowthPlanInitializationPreviewV1,
   decodeGrowthPlanSetupSourceV1,
+  decodeGrowthPlanReplacementApplyResultV1,
+  decodeGrowthPlanReplacementPreviewV1,
+  decodeGrowthPlanReplacementSourceV1,
   decodeLearningTrackCreationApplyResultV1,
   decodeLearningTrackCreationPreviewV1,
   decodeLearningTrackCreationSourceV1,
@@ -37,6 +40,9 @@ import {
   type GrowthPlanInitializationApplyResultV1,
   type GrowthPlanInitializationPreviewV1,
   type GrowthPlanSetupSourceV1,
+  type GrowthPlanReplacementApplyResultV1,
+  type GrowthPlanReplacementPreviewV1,
+  type GrowthPlanReplacementSourceV1,
   type LearningTrackCreationApplyResultV1,
   type LearningTrackCreationPreviewV1,
   type LearningTrackCreationSourceV1,
@@ -87,6 +93,10 @@ export const GET_LEARNING_TRACK_CADENCE_SOURCE_RPC_V1 =
 export const PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1 = "preview_learning_track_cadence_v1" as const;
 export const APPLY_LEARNING_TRACK_CADENCE_RPC_V1 = "apply_learning_track_cadence_v1" as const;
 export const GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1 = "get_growth_plan_setup_source_v1" as const;
+export const GET_GROWTH_PLAN_REPLACEMENT_SOURCE_RPC_V1 =
+  "get_growth_plan_replacement_source_v1" as const;
+export const PREVIEW_GROWTH_PLAN_REPLACEMENT_RPC_V1 = "preview_growth_plan_replacement_v1" as const;
+export const APPLY_GROWTH_PLAN_REPLACEMENT_RPC_V1 = "apply_growth_plan_replacement_v1" as const;
 export const PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
   "preview_growth_plan_initialization_v1" as const;
 export const APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
@@ -225,6 +235,19 @@ export interface GrowthPlanInitializationPreviewCommandV1 {
 }
 
 export interface GrowthPlanInitializationApplyCommandV1 extends GrowthPlanInitializationPreviewCommandV1 {
+  readonly previewDigest: string;
+}
+export interface GrowthPlanReplacementPreviewCommandV1 {
+  readonly readinessGoalKey: string;
+  readonly expectedReadinessGoalVersion: string;
+  readonly expectedGrowthPlanVersion: string;
+  readonly weeklyCapacityMinutes: number;
+  readonly defaultSessionMinutes: number;
+  readonly trackPriority: number;
+  readonly reason: string;
+  readonly idempotencyKey: string;
+}
+export interface GrowthPlanReplacementApplyCommandV1 extends GrowthPlanReplacementPreviewCommandV1 {
   readonly previewDigest: string;
 }
 
@@ -381,6 +404,25 @@ function validTrackCadencePreview(command: LearningTrackCadencePreviewCommandV1)
   );
 }
 
+function validReplacementPreview(command: GrowthPlanReplacementPreviewCommandV1): boolean {
+  return (
+    GOAL_KEY.test(command.readinessGoalKey) &&
+    validVersion(command.expectedReadinessGoalVersion) &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    Number.isInteger(command.weeklyCapacityMinutes) &&
+    command.weeklyCapacityMinutes >= 0 &&
+    command.weeklyCapacityMinutes <= 10_080 &&
+    Number.isInteger(command.defaultSessionMinutes) &&
+    command.defaultSessionMinutes >= 1 &&
+    command.defaultSessionMinutes <= 480 &&
+    Number.isInteger(command.trackPriority) &&
+    command.trackPriority >= 0 &&
+    command.trackPriority <= 100 &&
+    validReason(command.reason) &&
+    LOWERCASE_UUID.test(command.idempotencyKey)
+  );
+}
+
 function validInitializationPreview(command: GrowthPlanInitializationPreviewCommandV1): boolean {
   return (
     GOAL_KEY.test(command.readinessGoalKey) &&
@@ -469,6 +511,9 @@ async function rpc(
     | typeof PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1
     | typeof APPLY_LEARNING_TRACK_CADENCE_RPC_V1
     | typeof GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1
+    | typeof GET_GROWTH_PLAN_REPLACEMENT_SOURCE_RPC_V1
+    | typeof PREVIEW_GROWTH_PLAN_REPLACEMENT_RPC_V1
+    | typeof APPLY_GROWTH_PLAN_REPLACEMENT_RPC_V1
     | typeof PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1
     | typeof APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1
     | typeof GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1
@@ -1022,6 +1067,91 @@ export async function applyGrowthPlanInitializationV1(
       await rpc(client, APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1, {
         p_readiness_goal_key: command.readinessGoalKey,
         p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_weekly_capacity_minutes: command.weeklyCapacityMinutes,
+        p_default_session_minutes: command.defaultSessionMinutes,
+        p_track_priority: command.trackPriority,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+        p_preview_digest: command.previewDigest,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads the session-resolved replacement source without exposing another workspace's Plan. */
+export async function loadGrowthPlanReplacementSourceV1(
+  client: PandoSupabaseClient,
+): Promise<GrowthPlanReplacementSourceV1> {
+  try {
+    return decodeGrowthPlanReplacementSourceV1(
+      await rpc(client, GET_GROWTH_PLAN_REPLACEMENT_SOURCE_RPC_V1),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Previews the exact Plan archive plus the incoming Plan and Track. */
+export async function previewGrowthPlanReplacementV1(
+  client: PandoSupabaseClient,
+  command: GrowthPlanReplacementPreviewCommandV1,
+): Promise<GrowthPlanReplacementPreviewV1> {
+  if (!validReplacementPreview(command)) throw new PlanInputError();
+  try {
+    return decodeGrowthPlanReplacementPreviewV1(
+      await rpc(client, PREVIEW_GROWTH_PLAN_REPLACEMENT_RPC_V1, {
+        p_readiness_goal_key: command.readinessGoalKey,
+        p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_weekly_capacity_minutes: command.weeklyCapacityMinutes,
+        p_default_session_minutes: command.defaultSessionMinutes,
+        p_track_priority: command.trackPriority,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the replacement that matches the confirmed preview digest. */
+export async function applyGrowthPlanReplacementV1(
+  client: PandoSupabaseClient,
+  command: GrowthPlanReplacementApplyCommandV1,
+): Promise<GrowthPlanReplacementApplyResultV1> {
+  if (!validReplacementPreview(command) || !SHA_256_HEX.test(command.previewDigest)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeGrowthPlanReplacementApplyResultV1(
+      await rpc(client, APPLY_GROWTH_PLAN_REPLACEMENT_RPC_V1, {
+        p_readiness_goal_key: command.readinessGoalKey,
+        p_expected_readiness_goal_version: command.expectedReadinessGoalVersion,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
         p_weekly_capacity_minutes: command.weeklyCapacityMinutes,
         p_default_session_minutes: command.defaultSessionMinutes,
         p_track_priority: command.trackPriority,

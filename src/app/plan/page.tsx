@@ -18,6 +18,7 @@ import {
   loadLearningTrackActivityAdmissionSourceV2,
   loadLearningTrackTerminalLifecycleSourceV1,
   loadLearningTrackCadenceSourceV1,
+  loadGrowthPlanReplacementSourceV1,
 } from "../../ui/plan/server/database-plan";
 import type {
   CurrentGrowthPlanV1,
@@ -27,6 +28,7 @@ import type {
   LearningTrackCreationSourceV1,
   LearningTrackTerminalLifecycleSourceV1,
   LearningTrackCadenceSourceV1,
+  GrowthPlanReplacementSourceV1,
 } from "../../ui/plan/plan-types";
 
 export const dynamic = "force-dynamic";
@@ -175,6 +177,25 @@ function terminalLifecycleReadAgrees(
   });
 }
 
+function replacementReadAgrees(
+  workspace: CurrentGrowthPlanV1,
+  tracksWorkspace: CurrentLearningTracksV1,
+  source: GrowthPlanReplacementSourceV1,
+): boolean {
+  const plan = workspace.currentPlan;
+  if (plan === null) return source.state === "NO_CURRENT_PLAN";
+  if (source.state === "NO_CURRENT_PLAN") return false;
+  if (source.state !== "REPLACEMENT_AVAILABLE") return true;
+  const childTracks = source.currentPlan.childTracks;
+  return (
+    source.currentPlan.title === plan.title &&
+    source.currentPlan.lifecycle === plan.lifecycle &&
+    source.currentPlan.weeklyCapacityMinutes === plan.weeklyCapacityMinutes &&
+    source.currentPlan.aggregateVersion === plan.aggregateVersion &&
+    childTracks.total >= tracksWorkspace.learningTracks.length
+  );
+}
+
 function cadenceReadAgrees(
   workspace: CurrentGrowthPlanV1,
   tracksWorkspace: CurrentLearningTracksV1,
@@ -276,6 +297,8 @@ export default async function PlanPage({
   let terminalLifecycleUnavailable = malformedHistoryCursor;
   let cadenceSource: LearningTrackCadenceSourceV1 | undefined;
   let cadenceUnavailable = false;
+  let replacementSource: GrowthPlanReplacementSourceV1 | undefined;
+  let replacementUnavailable = false;
   try {
     const client = await createPandoServerComponentClient();
     const authorizedClient = (await verifyPandoSession(client)).client;
@@ -286,6 +309,7 @@ export default async function PlanPage({
       learningTrackCreationSource,
       terminalLifecycleSource,
       cadenceSource,
+      replacementSource,
     ] = await Promise.all([
       loadCurrentGrowthPlanV1(authorizedClient),
       loadCurrentLearningTracksV1(authorizedClient),
@@ -297,6 +321,7 @@ export default async function PlanPage({
             () => undefined,
           ),
       loadLearningTrackCadenceSourceV1(authorizedClient).catch(() => undefined),
+      loadGrowthPlanReplacementSourceV1(authorizedClient).catch(() => undefined),
     ]);
     activityAdmissionSource = await loadActivityAdmissionSource(
       authorizedClient,
@@ -315,6 +340,8 @@ export default async function PlanPage({
         !terminalLifecycleReadAgrees(workspace, tracksWorkspace, terminalLifecycleSource)) ||
       (cadenceSource !== undefined &&
         !cadenceReadAgrees(workspace, tracksWorkspace, cadenceSource)) ||
+      (replacementSource !== undefined &&
+        !replacementReadAgrees(workspace, tracksWorkspace, replacementSource)) ||
       (activityAdmissionSource !== undefined &&
         !activityAdmissionReadAgrees(
           workspace,
@@ -330,6 +357,7 @@ export default async function PlanPage({
         learningTrackCreationSource,
         terminalLifecycleSource,
         cadenceSource,
+        replacementSource,
       ] = await Promise.all([
         loadCurrentGrowthPlanV1(authorizedClient),
         loadCurrentLearningTracksV1(authorizedClient),
@@ -342,6 +370,7 @@ export default async function PlanPage({
               terminalHistoryCursor,
             ).catch(() => undefined),
         loadLearningTrackCadenceSourceV1(authorizedClient).catch(() => undefined),
+        loadGrowthPlanReplacementSourceV1(authorizedClient).catch(() => undefined),
       ]);
       activityAdmissionSource = await loadActivityAdmissionSource(
         authorizedClient,
@@ -381,9 +410,19 @@ export default async function PlanPage({
     ) {
       cadenceSource = undefined;
     }
+    if (
+      replacementSource !== undefined &&
+      !replacementReadAgrees(workspace, tracksWorkspace, replacementSource)
+    ) {
+      replacementSource = undefined;
+    }
+    if (replacementSource !== undefined && replacementSource.state === "NO_CURRENT_PLAN") {
+      replacementSource = undefined;
+    }
     learningTrackCreationUnavailable = learningTrackCreationSource === undefined;
     terminalLifecycleUnavailable = malformedHistoryCursor || terminalLifecycleSource === undefined;
     cadenceUnavailable = cadenceSource === undefined;
+    replacementUnavailable = workspace.currentPlan !== null && replacementSource === undefined;
     activityAdmissionUnavailable =
       (tracksWorkspace.learningTracks.length === 1 || selectedActivityTrackKey !== undefined) &&
       activityAdmissionSource === undefined;
@@ -426,6 +465,7 @@ export default async function PlanPage({
           {...(activityAdmissionSource === undefined ? {} : { activityAdmissionSource })}
           {...(terminalLifecycleSource === undefined ? {} : { terminalLifecycleSource })}
           {...(cadenceSource === undefined ? {} : { cadenceSource })}
+          {...(replacementSource === undefined ? {} : { replacementSource })}
           {...(terminalHistoryCursor === undefined ? {} : { terminalHistoryCursor })}
           {...(terminalHistoryNextPageHref === undefined
             ? {}
@@ -438,6 +478,7 @@ export default async function PlanPage({
           activityAdmissionUnavailable={activityAdmissionUnavailable}
           terminalLifecycleUnavailable={terminalLifecycleUnavailable}
           cadenceUnavailable={cadenceUnavailable}
+          replacementUnavailable={replacementUnavailable}
           setupSource={setupSource}
           tracksWorkspace={tracksWorkspace}
           workspace={workspace}

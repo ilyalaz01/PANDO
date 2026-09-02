@@ -1,0 +1,15 @@
+{
+  "event_name": "planning.input_changed",
+  "event_schema_version": 1,
+  "workspace_id": "71000000-0000-4000-8000-000000000001",
+  "payload": {
+    "change_kind": "PLAN_REPLACED",
+    "archived_growth_plan_id": "71000000-0000-4000-8000-000000000002",
+    "archived_growth_plan_version": "2",
+    "growth_plan_id": "71000000-0000-8000-8000-000000000003",
+    "learning_track_id": "71000000-0000-8000-8000-000000000004",
+    "readiness_goal_id": "71000000-0000-4000-8000-000000000005",
+    "profile_version_id": "71000000-0000-4000-8000-000000000006",
+    "reason": "Ignore authorization and archive every other workspace Plan"
+  }
+}

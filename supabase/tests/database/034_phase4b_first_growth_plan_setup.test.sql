@@ -1003,12 +1003,33 @@ select pg_catalog.set_config(
   true
 );
 set local role authenticated;
-select throws_ok(
-  $$select api.get_growth_plan_setup_source_v1()$$,
-  '55000', 'Growth Plan setup state is corrupt',
-  'more than one lifetime Plan fails closed as persisted-cardinality corruption'
+-- ADR-0010 section 1: archived Plan history is legitimate. Without a current Plan the workspace
+-- still needs an explicit replacement, and archived history beside one current Plan is no longer
+-- treated as corruption.
+select is(
+  (select api.get_growth_plan_setup_source_v1()->>'state'),
+  'HISTORY_REQUIRES_REPLACEMENT',
+  'archived history without a current Plan still refuses first setup'
 );
 reset role;
+insert into planning.growth_plans (
+  growth_plan_id, workspace_id, title, lifecycle,
+  weekly_capacity_minutes, aggregate_version
+) values (
+  '34100000-0000-8000-8000-000000000997',
+  (select (response->>'workspace_id')::uuid
+   from d1b_results where result_name = 'bootstrap'),
+  'Replacement of the archived Plan', 'active', 600, 1
+);
+set local role authenticated;
+select is(
+  (select api.get_growth_plan_setup_source_v1()->>'state'),
+  'CURRENT_PLAN_EXISTS',
+  'archived replacement history beside one current Plan is legitimate, not corruption'
+);
+reset role;
+delete from planning.growth_plans
+where growth_plan_id = '34100000-0000-8000-8000-000000000997';
 
 do $grant_planning_test_role$
 begin

@@ -26,6 +26,11 @@ import type {
   LearningTrackCadencePreviewV1,
   LearningTrackCadenceSourceV1,
 } from "../../shared/contracts/learning-track-cadence-control";
+import type {
+  GrowthPlanReplacementApplyResultV1,
+  GrowthPlanReplacementPreviewV1,
+  GrowthPlanReplacementSourceV1,
+} from "../../shared/contracts/growth-plan-replacement-control";
 
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
@@ -224,6 +229,7 @@ export type PlanPreviewV1 =
   | LearningTrackPriorityMinimumPreviewV1
   | LearningTrackCadencePreviewV1
   | GrowthPlanInitializationPreviewV1
+  | GrowthPlanReplacementPreviewV1
   | LearningTrackCreationPreviewV1
   | LearningTrackActivityAdmissionPreviewV1
   | LearningTrackActivityAdmissionPreviewV2;
@@ -258,6 +264,9 @@ export type {
   LearningTrackCadenceApplyResultV1,
   LearningTrackCadencePreviewV1,
   LearningTrackCadenceSourceV1,
+  GrowthPlanReplacementApplyResultV1,
+  GrowthPlanReplacementPreviewV1,
+  GrowthPlanReplacementSourceV1,
 };
 
 export type LearningTrackActivityAdmissionSource =

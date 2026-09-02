@@ -3,25 +3,57 @@
   "$id": "https://pando.local/schemas/events/v1/planning-event.schema.json",
   "title": "PANDO Planning Input Event V1",
   "oneOf": [
-    { "$ref": "#/$defs/growthPlanInitialized" },
-    { "$ref": "#/$defs/trackCreated" },
-    { "$ref": "#/$defs/trackActivityAdmitted" },
-    { "$ref": "#/$defs/planLifecycleChanged" },
-    { "$ref": "#/$defs/planCapacityChanged" },
-    { "$ref": "#/$defs/trackLifecycleChanged" },
-    { "$ref": "#/$defs/trackTerminalLifecycleChanged" },
-    { "$ref": "#/$defs/trackPriorityMinimumChanged" },
-    { "$ref": "#/$defs/trackCadenceChanged" }
+    {
+      "$ref": "#/$defs/growthPlanInitialized"
+    },
+    {
+      "$ref": "#/$defs/trackCreated"
+    },
+    {
+      "$ref": "#/$defs/trackActivityAdmitted"
+    },
+    {
+      "$ref": "#/$defs/planLifecycleChanged"
+    },
+    {
+      "$ref": "#/$defs/planCapacityChanged"
+    },
+    {
+      "$ref": "#/$defs/trackLifecycleChanged"
+    },
+    {
+      "$ref": "#/$defs/trackTerminalLifecycleChanged"
+    },
+    {
+      "$ref": "#/$defs/trackPriorityMinimumChanged"
+    },
+    {
+      "$ref": "#/$defs/trackCadenceChanged"
+    },
+    {
+      "$ref": "#/$defs/planReplaced"
+    }
   ],
   "$defs": {
     "growthPlanInitialized": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -35,13 +67,27 @@
             "profile_version_id"
           ],
           "properties": {
-            "change_kind": { "const": "INITIALIZED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "growth_plan_version": { "$ref": "#/$defs/safePositiveInteger" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/safePositiveInteger" },
-            "readiness_goal_id": { "$ref": "#/$defs/uuid" },
-            "profile_version_id": { "$ref": "#/$defs/uuid" }
+            "change_kind": {
+              "const": "INITIALIZED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "growth_plan_version": {
+              "$ref": "#/$defs/safePositiveInteger"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/safePositiveInteger"
+            },
+            "readiness_goal_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "profile_version_id": {
+              "$ref": "#/$defs/uuid"
+            }
           }
         }
       }
@@ -49,11 +95,22 @@
     "trackActivityAdmitted": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -66,11 +123,21 @@
             "candidate_key"
           ],
           "properties": {
-            "change_kind": { "const": "TRACK_ACTIVITY_ADMITTED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
-            "custom_activity_id": { "$ref": "#/$defs/uuid" },
+            "change_kind": {
+              "const": "TRACK_ACTIVITY_ADMITTED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "custom_activity_id": {
+              "$ref": "#/$defs/uuid"
+            },
             "candidate_key": {
               "type": "string",
               "pattern": "^candidate:[a-z0-9][a-z0-9-]{1,100}$"
@@ -82,11 +149,22 @@
     "planLifecycleChanged": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -97,10 +175,21 @@
             "lifecycle"
           ],
           "properties": {
-            "change_kind": { "const": "PLAN_LIFECYCLE_CHANGED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "growth_plan_version": { "$ref": "#/$defs/positiveBigint" },
-            "lifecycle": { "enum": ["ACTIVE", "PAUSED"] }
+            "change_kind": {
+              "const": "PLAN_LIFECYCLE_CHANGED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "growth_plan_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "lifecycle": {
+              "enum": [
+                "ACTIVE",
+                "PAUSED"
+              ]
+            }
           }
         }
       }
@@ -108,11 +197,22 @@
     "planCapacityChanged": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -123,10 +223,20 @@
             "weekly_capacity_minutes"
           ],
           "properties": {
-            "change_kind": { "const": "PLAN_CAPACITY_CHANGED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "growth_plan_version": { "$ref": "#/$defs/positiveBigint" },
-            "weekly_capacity_minutes": { "type": "integer", "minimum": 0, "maximum": 10080 }
+            "change_kind": {
+              "const": "PLAN_CAPACITY_CHANGED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "growth_plan_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "weekly_capacity_minutes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10080
+            }
           }
         }
       }
@@ -134,21 +244,51 @@
     "trackLifecycleChanged": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["change_kind", "growth_plan_id", "learning_track_id", "learning_track_version", "lifecycle"],
+          "required": [
+            "change_kind",
+            "growth_plan_id",
+            "learning_track_id",
+            "learning_track_version",
+            "lifecycle"
+          ],
           "properties": {
-            "change_kind": { "const": "TRACK_LIFECYCLE_CHANGED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
-            "lifecycle": { "enum": ["ACTIVE", "PAUSED"] }
+            "change_kind": {
+              "const": "TRACK_LIFECYCLE_CHANGED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "lifecycle": {
+              "enum": [
+                "ACTIVE",
+                "PAUSED"
+              ]
+            }
           }
         }
       }
@@ -156,11 +296,22 @@
     "trackPriorityMinimumChanged": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -173,11 +324,23 @@
             "protected_minimum_minutes"
           ],
           "properties": {
-            "change_kind": { "const": "TRACK_PRIORITY_MINIMUM_CHANGED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
-            "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "change_kind": {
+              "const": "TRACK_PRIORITY_MINIMUM_CHANGED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
             "protected_minimum_minutes": {
               "type": "integer",
               "minimum": 0,
@@ -190,11 +353,22 @@
     "trackCadenceChanged": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -206,11 +380,23 @@
             "cadence_per_week"
           ],
           "properties": {
-            "change_kind": { "const": "TRACK_CADENCE_CHANGED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
-            "cadence_per_week": { "type": "integer", "minimum": 0, "maximum": 100 }
+            "change_kind": {
+              "const": "TRACK_CADENCE_CHANGED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "cadence_per_week": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
           }
         }
       }
@@ -218,11 +404,22 @@
     "trackTerminalLifecycleChanged": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -234,11 +431,24 @@
             "lifecycle"
           ],
           "properties": {
-            "change_kind": { "const": "TRACK_TERMINAL_LIFECYCLE_CHANGED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
-            "lifecycle": { "enum": ["COMPLETED", "ARCHIVED"] }
+            "change_kind": {
+              "const": "TRACK_TERMINAL_LIFECYCLE_CHANGED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "lifecycle": {
+              "enum": [
+                "COMPLETED",
+                "ARCHIVED"
+              ]
+            }
           }
         }
       }
@@ -246,11 +456,22 @@
     "trackCreated": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
       "properties": {
-        "event_name": { "const": "planning.input_changed" },
-        "event_schema_version": { "const": 1 },
-        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
         "payload": {
           "type": "object",
           "additionalProperties": false,
@@ -263,17 +484,89 @@
             "profile_version_id"
           ],
           "properties": {
-            "change_kind": { "const": "TRACK_CREATED" },
-            "growth_plan_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_id": { "$ref": "#/$defs/uuid" },
-            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
-            "readiness_goal_id": { "$ref": "#/$defs/uuid" },
-            "profile_version_id": { "$ref": "#/$defs/uuid" }
+            "change_kind": {
+              "const": "TRACK_CREATED"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "readiness_goal_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "profile_version_id": {
+              "$ref": "#/$defs/uuid"
+            }
           }
         }
       }
     },
-    "uuid": { "type": "string", "format": "uuid" },
+    "planReplaced": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
+      "properties": {
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "archived_growth_plan_id",
+            "archived_growth_plan_version",
+            "growth_plan_id",
+            "learning_track_id",
+            "readiness_goal_id",
+            "profile_version_id"
+          ],
+          "properties": {
+            "change_kind": {
+              "const": "PLAN_REPLACED"
+            },
+            "archived_growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "archived_growth_plan_version": {
+              "$ref": "#/$defs/positiveBigint"
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "learning_track_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "readiness_goal_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "profile_version_id": {
+              "$ref": "#/$defs/uuid"
+            }
+          }
+        }
+      }
+    },
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
     "safePositiveInteger": {
       "type": "integer",
       "minimum": 1,

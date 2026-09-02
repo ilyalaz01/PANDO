@@ -235,10 +235,11 @@ idempotency key; clients cannot replace the previewed body at apply time.
    The completed D2c increment is
    [Learning Track cadence](PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
 3. **D3 — availability and plan replacement.** The decisions are recorded in
-   [ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md). D3a is the
-   smallest reversible slice: Growth Plan replacement only, clock-free, with no new calculation
-   contract. D3b then adds dated availability windows, their non-overlap invariant, the persisted
-   clock-bound proposal, and deterministic capacity composition.
+   [ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md). The
+   completed D3a slice is
+   [Growth Plan replacement](PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md): clock-free, with no new
+   calculation contract. D3b then adds dated availability windows, their non-overlap invariant, the
+   persisted clock-bound proposal, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
    and Interview Campaigns; add draft/start/deadline/target/end/cancel commands and owner events.
 5. **D5 — campaign overlays and atomic lifecycle coordination.** Add Planning allocation overrides,

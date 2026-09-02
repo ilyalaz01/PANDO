@@ -111,6 +111,24 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await page.getByRole("button", { name: "Confirm cadence" }).focus();
   await expect(page.getByRole("button", { name: "Confirm cadence" })).toBeFocused();
 
+  await openFixture(page, "?preview=plan-replacement");
+  const replacementRegion = page.getByRole("region", { name: "Replace this Growth Plan" });
+  await replacementRegion.getByLabel("New Plan target").focus();
+  await page.keyboard.press("Tab");
+  await expect(replacementRegion.getByLabel("New weekly capacity (minutes)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(replacementRegion.getByLabel("Default session (minutes)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(replacementRegion.getByLabel("First Track priority")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(replacementRegion.getByLabel("Reason")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    replacementRegion.getByRole("button", { name: "Preview Growth Plan replacement" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Confirm and replace Growth Plan" }).focus();
+  await expect(page.getByRole("button", { name: "Confirm and replace Growth Plan" })).toBeFocused();
+
   await openActivityFixture(page);
   await page.getByLabel("Personal activity").focus();
   await page.keyboard.press("Tab");
@@ -241,6 +259,21 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
 
+  await openFixture(page, "?preview=plan-replacement");
+  const replacementDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(replacementDimensions.scrollWidth).toBeLessThanOrEqual(replacementDimensions.clientWidth);
+  for (const control of [
+    page.getByLabel("New weekly capacity (minutes)"),
+    page.getByRole("button", { name: "Preview Growth Plan replacement" }),
+    page.getByRole("button", { name: "Confirm and replace Growth Plan" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
   await openSetupFixture(page);
   const setupDimensions = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
@@ -361,6 +394,16 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   expect(cadenceStyles.outlineStyle).not.toBe("none");
   expect(cadenceStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 
+  await openFixture(page, "?preview=plan-replacement");
+  const replacementControl = page.getByRole("button", { name: "Confirm and replace Growth Plan" });
+  await replacementControl.focus();
+  const replacementStyles = await replacementControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(replacementStyles.outlineStyle).not.toBe("none");
+  expect(replacementStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
   await openSetupFixture(page);
   const setupControl = page.getByRole("button", { name: "Confirm and create Growth Plan" });
   await setupControl.focus();
@@ -444,6 +487,12 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(cadenceResults.violations).toEqual([]);
+
+  await openFixture(page, "?preview=plan-replacement");
+  const replacementResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(replacementResults.violations).toEqual([]);
 
   await openSetupFixture(page);
   const setupResults = await new AxeBuilder({ page })
@@ -668,6 +717,26 @@ test("shows exact soft cadence consequences without inventing progress or capaci
     page.getByText(/does not reserve minutes, prove Mastery, or block planning/iu),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Confirm cadence" })).toBeEnabled();
+});
+
+test("shows exact Growth Plan replacement consequences and retained history", async ({ page }) => {
+  await openFixture(page, "?preview=plan-replacement");
+  const region = page.getByRole("region", { name: "Replace this Growth Plan" });
+  await expect(region).toContainText("archives");
+  const comparison = page.getByLabel("Exact Growth Plan replacement preview");
+  await expect(comparison).toContainText(
+    "3 total · 1 active · 1 paused · 1 completed · 0 archived",
+  );
+  await expect(comparison).toContainText("ARCHIVED · version 5");
+  await expect(comparison).toContainText("Recalculation pending");
+  await expect(comparison).toContainText(/Preserved: archived Plan and its Tracks/u);
+  await expect(page.getByText(/Its Learning Tracks stay with the archived Plan/u)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Confirm and replace Growth Plan" })).toBeEnabled();
+
+  await page.getByLabel("New weekly capacity (minutes)").fill("300");
+  await expect(page.getByRole("button", { name: "Confirm and replace Growth Plan" })).toHaveCount(
+    0,
+  );
 });
 
 test("shows exact terminal Track consequences and keeps archived history read-only", async ({

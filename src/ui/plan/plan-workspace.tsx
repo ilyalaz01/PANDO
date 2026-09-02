@@ -13,6 +13,7 @@ import type {
   LearningTrackCreationSourceV1,
   LearningTrackTerminalLifecycleSourceV1,
   LearningTrackCadenceSourceV1,
+  GrowthPlanReplacementSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
@@ -22,6 +23,7 @@ import type {
 import { initialPlanActionState, type PlanActionState } from "./plan-action-state";
 import styles from "./plan.module.css";
 import { GrowthPlanSetup } from "./growth-plan-setup";
+import { GrowthPlanReplacement } from "./growth-plan-replacement";
 import { ActivityAdmission } from "./activity-admission";
 import { LearningTrackCreation } from "./learning-track-creation";
 import { LearningTrackTerminalLifecycle } from "./learning-track-terminal-lifecycle";
@@ -313,6 +315,8 @@ export function PlanWorkspace({
   terminalLifecycleUnavailable = false,
   cadenceSource,
   cadenceUnavailable = false,
+  replacementSource,
+  replacementUnavailable = false,
   terminalHistoryCursor,
   terminalHistoryNextHref,
   terminalHistoryRecoveryHref = "/plan",
@@ -334,6 +338,8 @@ export function PlanWorkspace({
   initialTerminalLifecycleApplyState = initialPlanActionState,
   initialCadencePreviewState = initialPlanActionState,
   initialCadenceApplyState = initialPlanActionState,
+  initialReplacementPreviewState = initialPlanActionState,
+  initialReplacementApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
@@ -347,6 +353,8 @@ export function PlanWorkspace({
   readonly terminalLifecycleUnavailable?: boolean;
   readonly cadenceSource?: LearningTrackCadenceSourceV1;
   readonly cadenceUnavailable?: boolean;
+  readonly replacementSource?: GrowthPlanReplacementSourceV1;
+  readonly replacementUnavailable?: boolean;
   readonly terminalHistoryCursor?: string;
   readonly terminalHistoryNextHref?: string;
   readonly terminalHistoryRecoveryHref?: string;
@@ -368,6 +376,8 @@ export function PlanWorkspace({
   readonly initialTerminalLifecycleApplyState?: PlanActionState;
   readonly initialCadencePreviewState?: PlanActionState;
   readonly initialCadenceApplyState?: PlanActionState;
+  readonly initialReplacementPreviewState?: PlanActionState;
+  readonly initialReplacementApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -407,6 +417,7 @@ export function PlanWorkspace({
   const [activityAdmissionDismissalVersion, setActivityAdmissionDismissalVersion] = useState(0);
   const [terminalLifecycleDismissalVersion, setTerminalLifecycleDismissalVersion] = useState(0);
   const [cadenceDismissalVersion, setCadenceDismissalVersion] = useState(0);
+  const [replacementDismissalVersion, setReplacementDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -576,11 +587,16 @@ export function PlanWorkspace({
     setCadenceDismissalVersion((version) => version + 1);
   }
 
+  function dismissReplacementIntent() {
+    setReplacementDismissalVersion((version) => version + 1);
+  }
+
   function dismissAdditiveIntents() {
     dismissLearningTrackCreationIntent();
     dismissActivityAdmissionIntent();
     dismissTerminalLifecycleIntent();
     dismissCadenceIntent();
+    dismissReplacementIntent();
   }
 
   if (!plan)
@@ -879,6 +895,29 @@ export function PlanWorkspace({
           >
             Load first history page
           </Link>
+        </section>
+      ) : null}
+      {replacementSource !== undefined ? (
+        <GrowthPlanReplacement
+          dismissalVersion={replacementDismissalVersion}
+          initialApplyState={initialReplacementApplyState}
+          initialPreviewState={initialReplacementPreviewState}
+          onIntentStart={() => {
+            dismissLearningTrackCreationIntent();
+            dismissActivityAdmissionIntent();
+            dismissTerminalLifecycleIntent();
+            dismissCadenceIntent();
+            dismissOtherPlanIntents();
+          }}
+          source={replacementSource}
+        />
+      ) : replacementUnavailable ? (
+        <section aria-labelledby="growth-plan-replacement-heading" className={styles.panel}>
+          <h2 id="growth-plan-replacement-heading">Replace this Growth Plan</h2>
+          <p>
+            Growth Plan replacement is temporarily unavailable. Other Plan controls remain
+            available; nothing changed.
+          </p>
         </section>
       ) : null}
       {cadenceSource !== undefined ? (
