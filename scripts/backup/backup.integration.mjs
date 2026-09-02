@@ -6,6 +6,8 @@ import { createCipheriv, randomBytes, scrypt as scryptCallback } from "node:cryp
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+
+import { findFreePort, setDbPort, setProjectId } from "../database/verify-database-core.mjs";
 const root = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const cli = join(root, "node_modules", "supabase", "dist", "supabase.js");
 function run(program, args, options = {}) {
@@ -124,9 +126,11 @@ try {
   await mkdir(workdir);
   await cp(join(root, "supabase"), join(workdir, "supabase"), { recursive: true });
   const config = await readFile(join(workdir, "supabase", "config.toml"), "utf8");
-  const isolatedConfig = config.replace('project_id = "pando"', 'project_id = "' + project + '"');
-  if (!isolatedConfig.includes('project_id = "' + project + '"'))
+  const dbPort = await findFreePort();
+  const isolatedConfig = setDbPort(setProjectId(config, project), dbPort);
+  if (!isolatedConfig.includes('project_id = "' + project + '"')) {
     throw new Error("Refusing to start a non-isolated Supabase project");
+  }
   await writeFile(join(workdir, "supabase", "config.toml"), isolatedConfig);
   await writeFile(secret, randomBytes(48), { mode: 0o600 });
   const env = { ...process.env, PANDO_BACKUP_PASSPHRASE_FILE: secret };
