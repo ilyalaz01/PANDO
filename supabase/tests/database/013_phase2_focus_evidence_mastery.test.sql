@@ -488,6 +488,13 @@ select is((select count(*) from phase2_claims), 2::bigint,
   'the fixed worker claims both due Mastery deliveries without caller-selected scope');
 select is((select response->>'inputWatermark' from phase2_worker_inputs limit 1), '2',
   'worker input reloads the current authoritative ledger watermark');
+select ok(
+  (select pg_catalog.bool_and(
+    (response->>'calculationAsOf')::timestamptz >=
+      (response->'evidence'->0->>'occurredAt')::timestamptz
+  ) from phase2_worker_inputs),
+  'worker input uses a database-issued clock no earlier than its authoritative Evidence'
+);
 select ok((select bool_and((response->'evidence'->0->>'invalidated')::boolean)
   from phase2_worker_inputs),
   'worker input folds the immutable correction over the original evidence');

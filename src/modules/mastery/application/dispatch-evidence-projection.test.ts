@@ -34,6 +34,7 @@ function input() {
     workspaceId: claim().workspace_id,
     competencyId: "competency:python-typing",
     inputWatermark: "1",
+    calculationAsOf: "2026-08-27T09:00:00.000000Z",
     evidence: [
       {
         evidenceId: "50000000-0000-4000-8000-000000000001",
@@ -68,9 +69,12 @@ describe("Evidence to Mastery dispatcher", () => {
       if (name === "complete_mastery_evidence_projection_v1") return { data: true, error: null };
       throw new Error(`unexpected ${name} ${String(parameters)}`);
     });
-    await expect(
-      dispatchMasteryEvidenceProjection(client(rpc), () => new Date("2026-08-27T09:00:00.000Z")),
-    ).resolves.toEqual({ configured: true, claimed: 1, completed: 1, retried: 0 });
+    await expect(dispatchMasteryEvidenceProjection(client(rpc))).resolves.toEqual({
+      configured: true,
+      claimed: 1,
+      completed: 1,
+      retried: 0,
+    });
     expect(rpc).toHaveBeenCalledWith("load_mastery_evidence_projection_v1", {
       p_delivery_id: deliveryId,
       p_lease_token: leaseToken,
@@ -87,6 +91,7 @@ describe("Evidence to Mastery dispatcher", () => {
         policyVersion: "mastery-readiness-policy/0.1",
         competencyId: "competency:python-typing",
         inputWatermark: "1",
+        calculatedAsOf: "2026-08-27T09:00:00.000Z",
         achievementLevel: "COMPLETED",
       },
     });
@@ -100,9 +105,12 @@ describe("Evidence to Mastery dispatcher", () => {
       if (name === "fail_mastery_evidence_projection_v1") return { data: "retry", error: null };
       throw new Error(`unexpected ${name}`);
     });
-    await expect(
-      dispatchMasteryEvidenceProjection(client(rpc), () => new Date("2026-08-27T09:00:00.000Z")),
-    ).resolves.toEqual({ configured: true, claimed: 1, completed: 0, retried: 1 });
+    await expect(dispatchMasteryEvidenceProjection(client(rpc))).resolves.toEqual({
+      configured: true,
+      claimed: 1,
+      completed: 0,
+      retried: 1,
+    });
     expect(rpc).toHaveBeenCalledWith(
       "fail_mastery_evidence_projection_v1",
       expect.objectContaining({
@@ -129,14 +137,40 @@ describe("Evidence to Mastery dispatcher", () => {
       }
       throw new Error(`unexpected ${name}`);
     });
-    const summary = await dispatchMasteryEvidenceProjection(
-      client(rpc),
-      () => new Date("2026-08-27T09:00:00.000Z"),
-    );
+    const summary = await dispatchMasteryEvidenceProjection(client(rpc));
     expect(summary).toEqual({ configured: true, claimed: 1, completed: 0, retried: 1 });
     expect(rpc).toHaveBeenCalledWith(
       "fail_mastery_evidence_projection_v1",
       expect.objectContaining({ p_failure_class: "INVALID_CONTRACT" }),
+    );
+  });
+
+  it("requires the database-issued calculation clock in the projection transport", async () => {
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "claim_mastery_evidence_projection_v1") return { data: [claim()], error: null };
+      if (name === "load_mastery_evidence_projection_v1") {
+        const withoutClock = structuredClone(input()) as Record<string, unknown>;
+        delete withoutClock.calculationAsOf;
+        return { data: withoutClock, error: null };
+      }
+      if (name === "fail_mastery_evidence_projection_v1") {
+        return { data: "dead_letter", error: null };
+      }
+      throw new Error(`unexpected ${name}`);
+    });
+
+    await expect(dispatchMasteryEvidenceProjection(client(rpc))).resolves.toEqual({
+      configured: true,
+      claimed: 1,
+      completed: 0,
+      retried: 1,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "fail_mastery_evidence_projection_v1",
+      expect.objectContaining({
+        p_failure_class: "INVALID_CONTRACT",
+        p_error_code: "INVALID_PROJECTION_INPUT",
+      }),
     );
   });
 

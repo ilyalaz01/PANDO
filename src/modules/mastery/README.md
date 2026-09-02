@@ -40,11 +40,13 @@ classification counts and never imports Mastery.
 ## Implemented Phase 2 projection boundary
 
 Evidence events enqueue only the fixed `mastery.evidence_projection_v1` consumer. The server-only
-dispatcher claims bounded leased deliveries, reloads the authoritative effective ledger, calls the
-pure engine with an explicit clock and accepted policy, and applies the result through a
-service-only RPC. Application checks the current ledger watermark and lease before atomically
-inserting an immutable snapshot, advancing the current pointer, writing the consumer receipt, and
-completing the delivery.
+dispatcher claims bounded leased deliveries, reloads the authoritative effective ledger together
+with a database-issued calculation clock, calls the pure engine with that explicit clock and the
+accepted policy, and applies the result through a service-only RPC. Keeping Evidence timestamps and
+the calculation clock on one database timeline prevents host/container clock skew from
+dead-lettering newly committed Evidence as future input. Application checks the current ledger
+watermark and lease before atomically inserting an immutable snapshot, advancing the current
+pointer, writing the consumer receipt, and completing the delivery.
 
 Snapshot identity includes engine, policy, projection generation (`live-v1` for this worker), and
 input watermark. This keeps live retries idempotent without preventing later side-by-side policy,

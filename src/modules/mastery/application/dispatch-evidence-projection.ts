@@ -79,15 +79,20 @@ function evidenceInput(value: unknown, index: number): MasteryEvidenceInput {
   };
 }
 
-function decodeProjectionInput(value: unknown): CalculateCompetencyStateInput {
+function decodeProjectionInput(value: unknown): Readonly<{
+  calculationAsOf: string;
+  input: CalculateCompetencyStateInput;
+}> {
   const input = asJsonObject(value, "Mastery projection input");
   const competencyId = asString(input.competencyId);
   const inputWatermark = asString(input.inputWatermark);
+  const calculationAsOf = asString(input.calculationAsOf);
   if (
     competencyId === undefined ||
     !COMPETENCY_REF.test(competencyId) ||
     inputWatermark === undefined ||
-    !/^[1-9][0-9]{0,18}$/u.test(inputWatermark)
+    !/^[1-9][0-9]{0,18}$/u.test(inputWatermark) ||
+    calculationAsOf === undefined
   ) {
     throw new TypeError("Mastery projection identity is invalid");
   }
@@ -96,9 +101,12 @@ function decodeProjectionInput(value: unknown): CalculateCompetencyStateInput {
     throw new TypeError("Mastery projection watermark exceeds the safe transport range");
   }
   return {
-    competencyId,
-    inputWatermark,
-    evidence: asArray(input.evidence).map(evidenceInput),
+    calculationAsOf,
+    input: {
+      competencyId,
+      inputWatermark,
+      evidence: asArray(input.evidence).map(evidenceInput),
+    },
   };
 }
 
@@ -222,7 +230,6 @@ function decodeClaim(rawClaim: unknown, index: number): MasteryClaim {
 async function processClaim(
   client: PandoSupabaseClient,
   claim: MasteryClaim,
-  now: () => Date,
 ): Promise<"completed" | "retried"> {
   const handlerController = new AbortController();
   const handlerTimeout = setTimeout(
@@ -239,14 +246,14 @@ async function processClaim(
       },
       handlerController.signal,
     );
-    let input: CalculateCompetencyStateInput;
+    let decodedInput: ReturnType<typeof decodeProjectionInput>;
     try {
-      input = decodeProjectionInput(rawInput);
+      decodedInput = decodeProjectionInput(rawInput);
     } catch {
       throw new MasteryProjectionInputContractError();
     }
-    const state = calculateCompetencyState(input, MASTERY_POLICY_V0_1, {
-      asOf: now().toISOString(),
+    const state = calculateCompetencyState(decodedInput.input, MASTERY_POLICY_V0_1, {
+      asOf: decodedInput.calculationAsOf,
     });
     if (state.engineVersion !== MASTERY_ENGINE_VERSION) {
       throw new TypeError("Mastery engine version drifted");
@@ -258,7 +265,7 @@ async function processClaim(
         p_delivery_id: claim.deliveryId,
         p_lease_token: claim.leaseToken,
         p_expected_event_position: claim.eventPosition,
-        p_expected_input_watermark: Number(input.inputWatermark),
+        p_expected_input_watermark: Number(decodedInput.input.inputWatermark),
         p_state: state as unknown as Json,
       },
       handlerController.signal,
@@ -296,12 +303,11 @@ async function processClaim(
 
 export async function dispatchMasteryEvidenceProjection(
   client: PandoSupabaseClient,
-  now: () => Date = () => new Date(),
 ): Promise<MasteryDispatchSummary> {
   const rawClaims = await checkedRpc(client, "claim_mastery_evidence_projection_v1");
   if (!Array.isArray(rawClaims)) throw new TypeError("Mastery claim response must be an array");
   const claims = rawClaims.map(decodeClaim);
-  const outcomes = await Promise.all(claims.map((claim) => processClaim(client, claim, now)));
+  const outcomes = await Promise.all(claims.map((claim) => processClaim(client, claim)));
   const completed = outcomes.filter((outcome) => outcome === "completed").length;
   return {
     configured: true,
