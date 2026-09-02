@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1, D1b, D2a, and D2b1–D2b4 complete; cadence D2c design accepted and implementation pending; D3–D5 pending
+Status: D1, D1b, and D2a–D2c complete; D3–D5 ADR and implementation pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-02
 
@@ -19,7 +19,7 @@ Learning Track pause/resume with a protected-capacity resume check and retained 
 [D2b1 implementation record](PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md). D2b2 adds one atomic
 priority/protected-minimum edit with active-capacity and current-order freshness; see the
 [D2b2 implementation record](PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md). Growth Plan
-archive, cadence, availability, Campaigns, and Agent Control transport remain later work. D1b
+replacement/archive, availability, Campaigns, and Agent Control transport remain later work. D1b
 closes the fresh-user no-Plan gap through the exact setup flow recorded in the
 [D1b implementation record](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md). D2b3 adds an exact
 additional-Track creation command and bounded destination-aware activity admission without changing
@@ -28,8 +28,8 @@ the released sole-Track admission meaning; see the
 D2b4 adds separate completion/archive contracts, bounded terminal history, and exact terminal
 confirmation without broadening the released pause/resume meaning; see the
 [D2b4 implementation record](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md). The
-remaining D2 concept now has an accepted design in
-[D2c Learning Track cadence](../design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
+D2c adds the separate soft weekly cadence command plus the V2 Planning calculation rollout; see the
+[D2c implementation record](PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md).
 
 ## Owner boundary and contracts
 
@@ -84,11 +84,10 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D1b, D2b1–D2b4, settings, and exact manual activity admission are complete. The implementation
+D1b, D2a–D2c, settings, and exact manual activity admission are complete. The implementation
 records cover [admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md),
 [D2b3](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md), and
-[D2b4](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md). The next bounded D2 outcome is
-the accepted [cadence design](../design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md), which should be
-implemented before D3. Do not enter D3
-availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
-design are recorded.
+[D2b4](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md), and
+[D2c](PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md). The next bounded outcome is the focused D3–D5
+lifecycle ADR. Do not implement availability/replacement or Campaign work before the decisions
+required by the D0 design are recorded.

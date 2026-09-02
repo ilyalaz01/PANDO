@@ -44,7 +44,8 @@ target Track and atomically commits its receipt, minimal event, and fixed snapsh
 D2b2 is implemented as a separate priority/protected-minimum command that reuses the D2b1 current
 read without broadening its lifecycle contract. It atomically proposes both resulting values,
 enforces active-only capacity, reports paused-Track resume consequences without blocking the saved
-edit, and binds both the active-capacity and current-order fingerprints. Cadence remains deferred.
+edit, and binds both the active-capacity and current-order fingerprints. Cadence remains a
+separate soft preference rather than part of this hard capacity command.
 See
 [`PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md).
 
@@ -76,7 +77,7 @@ minimal event plus one snapshot delivery. Completion makes no Evidence, Mastery,
 claim. See
 [`PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
 
-The accepted next increment is
+The completed D2c increment is
 [`PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md`](../../../docs/design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
 It defines cadence as a soft desired count of evidence-bearing completed Focus sessions per
 workspace week, separate from protected minutes, and requires versioned V2 Planning input/snapshot
@@ -85,6 +86,11 @@ The additive calculation contracts are recorded in
 [`Planning Policy v0.2`](../../../docs/policies/PLANNING_POLICY_V0.2.md) and
 [`Planning Completed Work Policy v0.2`](../../../docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.2.md);
 V1 inputs and snapshots remain on their unchanged historical schemas and exact version tuple.
+The persisted control, authenticated `/plan` flow, dual-contract worker, and V2 rollout are recorded
+in
+[`PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md).
+The next Planning outcome is the focused D3–D5 lifecycle ADR required before availability or Growth
+Plan replacement implementation.
 
 ## Phase 4A implementation route
 

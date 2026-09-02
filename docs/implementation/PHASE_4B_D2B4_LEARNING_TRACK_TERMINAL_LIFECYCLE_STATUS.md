@@ -81,8 +81,6 @@ input.
 
 ## Next bounded outcome
 
-Cadence is the remaining D2 concept. Its semantics, version transition, and owner contract are now
-fixed in the accepted [D2c cadence design](../design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md); implement
-that bounded outcome next. Do not enter D3
-availability/replacement or D4–D5 Campaign work before the focused decisions required by the parent
-lifecycle design are accepted.
+The subsequent [D2c cadence outcome](PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md) is complete. The
+next bounded outcome is the focused D3–D5 lifecycle ADR. Do not implement availability/replacement
+or Campaign work before the decisions required by the parent lifecycle design are accepted.

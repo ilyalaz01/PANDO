@@ -68,8 +68,10 @@ Terminal Track lifecycle is defined by the accepted
 [Phase 4B D2b4 Learning Track completion and archive design](design/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE.md).
 Its delivered command, bounded history, UI, and verification evidence are recorded in the
 [D2b4 implementation status](implementation/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
-The remaining D2 cadence semantics are now fixed in the accepted
-[Phase 4B D2c Learning Track cadence design](design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
+The completed D2 cadence slice is defined by the accepted
+[Phase 4B D2c Learning Track cadence design](design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md) and
+recorded in the
+[D2c implementation status](implementation/PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md).
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 

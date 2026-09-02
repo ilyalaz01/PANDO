@@ -67,39 +67,42 @@ Human roadmap position:
 - D2b2 — authenticated Learning Track priority/protected-minimum preview/apply and `/plan` control:
   complete.
 - D1b — first Growth Plan preview/confirm setup and authenticated browser journey: complete.
-- Remaining D2–D5 — Track creation/terminal/cadence, availability, and Campaign commands: pending.
+- D2b3 — additional Learning Track creation and destination-aware activity admission: complete.
+- D2b4 — Learning Track completion, archive, and bounded terminal history: complete.
+- D2c — soft weekly cadence control plus V2 Planning input/snapshot activation: complete.
+- D3–D5 — availability, Growth Plan replacement, and Campaign commands: ADR-gated and pending.
 - E — authenticated ChatGPT Work/Codex control plane: pending.
 - F — Preparation Pack browser workflow and Prompt Library UI: pending.
 - G — integration and operational hardening: pending.
 - H — deployment and release hardening: pending.
 
-The first complete Today-to-Focus browser journey plus first Growth Plan setup, Growth Plan
-lifecycle/capacity and Learning Track pause/resume/settings commands are implemented and verified.
-The initial Track is deliberately empty. Add a safe manual activity-admission flow before adding
-more Tracks.
+The complete Today-to-Focus browser journey plus first Growth Plan setup, Growth Plan
+lifecycle/capacity, Learning Track lifecycle/settings/cadence, additional Track creation, and safe
+destination-aware activity admission are implemented and verified.
 
-## Current bounded outcome: manual activity admission preview/confirm
+## Current bounded outcome: focused D3–D5 lifecycle ADR
 
-Begin with a focused design over the existing hardened
-`api.add_learning_track_activity_v1` owner command. Preserve its ownership, locking,
-idempotency and outbox behavior while replacing every remaining manual/direct bypass with the same
-exact preview and explicit confirmation discipline used by the released Plan controls.
+Do not implement availability, Growth Plan replacement/archive, or Campaign commands until one
+focused ADR settles the product-semantic decisions required by
+`docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md` §10. The canonical documents and accepted owner
+boundaries remain authoritative.
 
 Required outcome:
 
-- settle the compact actor-scoped source read and exact preview/apply contract before writing UI;
-- let the browser submit only opaque server-returned activity and Track selectors, version fences,
-  bounded editable values, reason, digest and request key;
-- derive workspace, Plan/Track/activity authority, capacity constraints and event payload on the
-  server; preserve same-key replay and atomic receipt/state/event/delivery;
-- expose the flow on `/plan` with stale/blocked/error states, keyboard/responsive/accessibility
-  coverage and a real authenticated persistence/reload proof;
-- preserve existing activities, evidence and history; do not add an alternate Planning write path;
-- do not add additional Track creation, cadence, terminal transitions, Plan replacement,
-  availability, Campaigns or Agent Control transport in this outcome.
+- require exactly one current Growth Plan after initialization and define atomic replacement that
+  archives the old Plan while preserving its Tracks and history without silent copying;
+- define bounded availability-window identity, interval/time-zone behavior, overlap and adjacency,
+  precedence, effective capacity, protected-minimum conflicts, and update/removal version fences;
+- define Campaign deadline representation, post-deadline behavior, allocation meaning, and the
+  interaction between an active Campaign and a paused Growth Plan;
+- keep Planning as owner of Plans, Tracks, availability, capacity, ranking, and snapshots; keep
+  Targets as owner of Campaigns, Goals, deadlines, and Target Profiles;
+- record calculation-contract/version consequences and the smallest reversible D3 implementation
+  slice, with explicit migration and rollback/roll-forward behavior;
+- make no production-code or schema change in the ADR outcome.
 
-Run every proportionate gate before handoff. Only after the initial Track can receive useful work
-should D2b3 additional Track creation begin.
+After the ADR is accepted, implement D3 availability and Growth Plan replacement as the next bounded
+vertical outcome. Do not begin D4–D5 Campaign work or Agent Control transport in the D3 slice.
 
 ## Architecture and safety rules
 

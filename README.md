@@ -17,9 +17,9 @@ every freshness state, explains the primary recommendation and bounded alternati
 resumes the exact attributed Focus session through opaque selectors.
 The authenticated `/plan` page now creates the first Growth Plan and initial empty Learning Track
 through an exact preview/confirm setup, then reads the current Plan through a session-resolved
-Planning boundary and applies Plan lifecycle, weekly-capacity, Learning Track pause/resume, or Track
-priority/protected-minimum changes only after an exact before/after preview and explicit
-confirmation. The same page can create another current Learning Track against an exact active Goal,
+Planning boundary and applies Plan lifecycle, weekly-capacity, Learning Track pause/resume, Track
+priority/protected-minimum, or soft weekly-cadence changes only after an exact before/after preview
+and explicit confirmation. The same page can create another current Learning Track against an exact active Goal,
 then loads bounded activity choices for one explicitly selected destination Track. The released
 sole-Track admission remains compatible; neither path accepts
 workspace, aggregate, Goal, profile, or activity UUID authority from the browser. Capacity changes,
@@ -51,8 +51,9 @@ immutable snapshots behind its current-pointer boundary. The live server boundar
 current recommendation and safely run the authenticated Today-to-Focus journey. First Growth Plan
 setup, Plan pause/resume, default weekly-capacity control, Learning Track pause/resume, Track
 priority/protected-minimum editing, additional Track creation, and destination-aware manual activity
-admission, completion, and archive are complete Phase 4B command slices. Cadence, availability,
-Campaign, and live Agent Control increments remain later work.
+admission, completion, archive, and soft weekly cadence are complete Phase 4B command slices.
+Availability, Growth Plan replacement, Campaign, and live Agent Control increments remain later
+work; their remaining lifecycle semantics are ADR-gated.
 
 ## Prerequisites
 

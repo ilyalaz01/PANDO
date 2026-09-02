@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command design
 
-Status: implementation design (D0); D1, D1b, D2a, D2b1–D2b4, and manual activity admission implemented; cadence D2c accepted; D3–D5 pending
+Status: implementation design (D0); D1, D1b, D2a, D2b1–D2c, and manual activity admission implemented; D3–D5 pending
 Date: 2026-08-29  
 Canonical basis: `docs/00_PRODUCT_CONSTITUTION.md` through `docs/06_PROMPT_LIBRARY_UX.md`
 
@@ -227,7 +227,7 @@ idempotency key; clients cannot replace the previewed body at apply time.
    completed D2b3 outcome is [additional Learning Track creation and destination-track admission](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
    The accepted terminal increment is
    [D2b4 Learning Track completion and archive](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE.md).
-   The remaining accepted D2c increment is
+   The completed D2c increment is
    [Learning Track cadence](PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
 3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
    plan archive/new-plan replacement, and deterministic capacity composition.
