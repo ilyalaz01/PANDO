@@ -109,7 +109,7 @@ select ok(
         and privilege.table_name = 'learning_tracks'
         and privilege.privilege_type = 'UPDATE'
     ) = array[
-      'aggregate_version', 'lifecycle', 'priority',
+      'aggregate_version', 'cadence_per_week', 'lifecycle', 'priority',
       'protected_minimum_minutes', 'updated_at'
     ]::information_schema.sql_identifier[],
   'Planning owner retains only the cumulative exact Track command update columns'

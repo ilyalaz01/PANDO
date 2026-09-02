@@ -25,6 +25,10 @@ import trackPriorityMinimumBoundaryFixture from "./fixtures/events/v1/planning-t
 import trackPriorityMinimumInvalidFixture from "./fixtures/events/v1/planning-track-priority-minimum.invalid.json";
 import trackPriorityMinimumMaliciousFixture from "./fixtures/events/v1/planning-track-priority-minimum.malicious.json";
 import trackPriorityMinimumValidFixture from "./fixtures/events/v1/planning-track-priority-minimum.valid.json";
+import trackCadenceBoundaryFixture from "./fixtures/events/v1/planning-track-cadence.boundary.json";
+import trackCadenceInvalidFixture from "./fixtures/events/v1/planning-track-cadence.invalid.json";
+import trackCadenceMaliciousFixture from "./fixtures/events/v1/planning-track-cadence.malicious.json";
+import trackCadenceValidFixture from "./fixtures/events/v1/planning-track-cadence.valid.json";
 import trackCreatedBoundaryFixture from "./fixtures/events/v1/planning-track-created.boundary.json";
 import trackCreatedInvalidFixture from "./fixtures/events/v1/planning-track-created.invalid.json";
 import trackCreatedMaliciousFixture from "./fixtures/events/v1/planning-track-created.malicious.json";
@@ -70,6 +74,10 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", trackPriorityMinimumMaliciousFixture).valid).toBe(
       false,
     );
+    expect(validateSchema("planning-event-v1", trackCadenceValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackCadenceBoundaryFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", trackCadenceInvalidFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", trackCadenceMaliciousFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", trackCreatedValidFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", trackCreatedBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", trackCreatedInvalidFixture).valid).toBe(false);
@@ -147,6 +155,22 @@ describe("Planning Input Event V1", () => {
       validateSchema("planning-event-v1", {
         ...trackPriorityMinimumBoundaryFixture,
         payload: { ...trackPriorityMinimumBoundaryFixture.payload, priority: -1 },
+      }).valid,
+    ).toBe(false);
+  });
+
+  it("keeps Track cadence wake-ups exact, minimal, bounded, and bigint-safe", () => {
+    expect(trackCadenceValidFixture.payload).toEqual({
+      change_kind: "TRACK_CADENCE_CHANGED",
+      growth_plan_id: "30000000-0000-4000-8000-000000000020",
+      learning_track_id: "30000000-0000-4000-8000-000000000021",
+      learning_track_version: "8",
+      cadence_per_week: 3,
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...trackCadenceValidFixture,
+        payload: { ...trackCadenceValidFixture.payload, learning_track_version: 8 },
       }).valid,
     ).toBe(false);
   });

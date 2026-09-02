@@ -1,0 +1,17 @@
+{
+  "contract": { "name": "LearningTrackCadenceApplyResultV1", "version": "1.0.0" },
+  "commandId": "30000000-0000-4000-8000-000000000041",
+  "changedTrack": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 80,
+    "protectedMinimumMinutes": 120,
+    "cadencePerWeek": 3,
+    "aggregateVersion": "8"
+  },
+  "projectionState": "PENDING",
+  "planningDeliveryId": "30000000-0000-4000-8000-000000000042",
+  "emittedEventIds": ["30000000-0000-4000-8000-000000000043"]
+}

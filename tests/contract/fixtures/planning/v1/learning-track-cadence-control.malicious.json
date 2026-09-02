@@ -1,0 +1,13 @@
+{
+  "contract": { "name": "LearningTrackCadenceSourceV1", "version": "1.0.0" },
+  "growthPlan": null,
+  "progress": {
+    "state": "UNAVAILABLE",
+    "snapshotId": null,
+    "appliedAttemptId": null,
+    "inputFingerprint": null,
+    "calculatedAsOf": null
+  },
+  "learningTracks": [],
+  "workspaceId": "30000000-0000-4000-8000-000000000001"
+}

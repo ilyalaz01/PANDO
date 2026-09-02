@@ -1,0 +1,61 @@
+{
+  "contract": { "name": "LearningTrackCadencePreviewV1", "version": "1.0.0" },
+  "operation": "set_track_cadence",
+  "reason": "No actual change",
+  "expectedGrowthPlanVersion": "4",
+  "expectedLearningTrackVersion": "7",
+  "growthPlan": {
+    "growthPlanId": "30000000-0000-4000-8000-000000000020",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 600,
+    "aggregateVersion": "4"
+  },
+  "before": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 80,
+    "protectedMinimumMinutes": 120,
+    "cadencePerWeek": 3,
+    "aggregateVersion": "7"
+  },
+  "after": {
+    "learningTrackId": "30000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 80,
+    "protectedMinimumMinutes": 120,
+    "cadencePerWeek": 3,
+    "aggregateVersion": "8"
+  },
+  "progress": {
+    "state": "UNAVAILABLE",
+    "snapshotId": null,
+    "appliedAttemptId": null,
+    "inputFingerprint": null,
+    "calculatedAsOf": null,
+    "completedCadenceSessionsThisWeek": null,
+    "beforeCadenceDeficit": null,
+    "afterCadenceDeficit": null
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [{ "code": "CADENCE_PROGRESS_PENDING" }],
+  "unchanged": {
+    "priority": true,
+    "protectedMinimumMinutes": true,
+    "learningTrackActivities": true,
+    "planSnapshots": true,
+    "focusSessions": true,
+    "evidence": true,
+    "masteryAndReadiness": true,
+    "review": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+}

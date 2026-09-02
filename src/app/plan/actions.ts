@@ -14,6 +14,7 @@ import {
   applyLearningTrackActivityAdmissionV1,
   applyLearningTrackActivityAdmissionV2,
   applyLearningTrackPriorityMinimumV1,
+  applyLearningTrackCadenceV1,
   applyGrowthPlanInitializationV1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
@@ -25,6 +26,7 @@ import {
   previewLearningTrackActivityAdmissionV1,
   previewLearningTrackActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1,
+  previewLearningTrackCadenceV1,
   previewGrowthPlanInitializationV1,
   PlanConflictError,
   PlanInputError,
@@ -173,6 +175,37 @@ function trackPriorityMinimumInput(formData: FormData): {
     trackKey,
     priority: Number(priority),
     protectedMinimumMinutes: Number(protectedMinimumMinutes),
+    growthPlanVersion,
+    learningTrackVersion,
+    reason,
+  };
+}
+
+function trackCadenceInput(formData: FormData): {
+  trackKey: string;
+  cadencePerWeek: number;
+  growthPlanVersion: string;
+  learningTrackVersion: string;
+  reason: string;
+} {
+  const trackKey = field(formData, "trackKey");
+  const cadencePerWeek = field(formData, "cadencePerWeek");
+  const growthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const learningTrackVersion = field(formData, "expectedLearningTrackVersion");
+  const reason = field(formData, "reason");
+  if (
+    !TRACK_KEY.test(trackKey) ||
+    !PRIORITY.test(cadencePerWeek) ||
+    Number(cadencePerWeek) > 100 ||
+    !VERSION.test(growthPlanVersion) ||
+    !VERSION.test(learningTrackVersion) ||
+    !validReason(reason)
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    trackKey,
+    cadencePerWeek: Number(cadencePerWeek),
     growthPlanVersion,
     learningTrackVersion,
     reason,
@@ -779,6 +812,70 @@ export async function applyLearningTrackPriorityMinimumAction(
     return failure(
       error,
       "Choose a current Track, use whole values in range, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function previewLearningTrackCadenceAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = trackCadenceInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewLearningTrackCadenceV1(client, {
+      trackKey: value.trackKey,
+      cadencePerWeek: value.cadencePerWeek,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+    });
+    return {
+      status: "previewed",
+      message: "Track cadence preview ready. Confirm only if these exact facts are correct.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current Track, use a whole cadence from 0 to 100, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyLearningTrackCadenceAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = trackCadenceInput(formData);
+    const digest = field(formData, "previewDigest");
+    const requestIdValue = field(formData, "requestId");
+    if (!/^[a-f0-9]{64}$/u.test(digest) || !UUID.test(requestIdValue)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyLearningTrackCadenceV1(client, {
+      trackKey: value.trackKey,
+      cadencePerWeek: value.cadencePerWeek,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+      previewDigest: digest,
+      idempotencyKey: `learning-track-cadence:v1:${requestIdValue}`,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Track cadence changed. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose a current Track, use a whole cadence from 0 to 100, and enter a reason. Nothing changed.",
     );
   }
 }

@@ -13,6 +13,7 @@ vi.mock("../../app/plan/actions", () => ({
   applyLearningTrackPriorityMinimumAction: vi.fn(),
   applyGrowthPlanInitializationAction: vi.fn(),
   applyLearningTrackActivityAdmissionAction: vi.fn(),
+  applyLearningTrackCadenceAction: vi.fn(),
   previewGrowthPlanCapacityAction: vi.fn(),
   previewGrowthPlanLifecycleAction: vi.fn(),
   previewLearningTrackCreationAction: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock("../../app/plan/actions", () => ({
   previewLearningTrackPriorityMinimumAction: vi.fn(),
   previewGrowthPlanInitializationAction: vi.fn(),
   previewLearningTrackActivityAdmissionAction: vi.fn(),
+  previewLearningTrackCadenceAction: vi.fn(),
 }));
 
 import type { PlanActionState } from "./plan-action-state";
@@ -30,6 +32,8 @@ import type {
   GrowthPlanCapacityPreviewV1,
   LearningTrackActivityAdmissionPreviewV1,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackCadencePreviewV1,
+  LearningTrackCadenceSourceV1,
   LearningTrackCreationSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
@@ -42,6 +46,7 @@ import {
 import admissionPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import creationPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 import terminalPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.valid.json";
+import cadencePreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.valid.json";
 import { PlanWorkspace } from "./plan-workspace";
 
 const workspace: CurrentGrowthPlanV1 = {
@@ -87,6 +92,33 @@ const tracksWorkspace: CurrentLearningTracksV1 = {
       capabilities: ["resume_track"],
     },
   ],
+};
+
+const cadenceSource: LearningTrackCadenceSourceV1 = {
+  contract: { name: "LearningTrackCadenceSourceV1", version: "1.0.0" },
+  growthPlan: tracksWorkspace.growthPlan,
+  progress: {
+    state: "CURRENT",
+    snapshotId: "30000000-0000-4000-8000-000000000031",
+    appliedAttemptId: "30000000-0000-4000-8000-000000000032",
+    inputFingerprint:
+      "planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    calculatedAsOf: "2026-09-02T10:00:00.000Z",
+  },
+  learningTracks: [
+    {
+      ...tracksWorkspace.learningTracks[1]!,
+      cadencePerWeek: 1,
+      completedCadenceSessionsThisWeek: 2,
+      capabilities: ["set_track_cadence"],
+    },
+  ],
+};
+
+const cadencePreviewed: PlanActionState = {
+  status: "previewed",
+  message: "Cadence preview ready.",
+  preview: cadencePreviewFixture as unknown as LearningTrackCadencePreviewV1,
 };
 
 const previewed: PlanActionState = {
@@ -476,6 +508,24 @@ describe("PlanWorkspace", () => {
     fireEvent.click(screen.getByRole("button", { name: "Preview change" }));
     await waitFor(() => {
       expect(screen.queryByRole("button", { name: "Confirm and apply" })).not.toBeInTheDocument();
+    });
+  });
+
+  it("dismisses an exact cadence confirmation when a sibling Plan intent changes", async () => {
+    render(
+      <PlanWorkspace
+        cadenceSource={cadenceSource}
+        initialCadencePreviewState={cadencePreviewed}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm cadence" })).toBeEnabled();
+    fireEvent.change(screen.getByLabelText("Why is this changing?"), {
+      target: { value: "A sibling Plan intent." },
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: "Confirm cadence" })).not.toBeInTheDocument();
     });
   });
 

@@ -21,6 +21,11 @@ import type {
   LearningTrackTerminalLifecyclePreviewV1,
   LearningTrackTerminalLifecycleSourceV1,
 } from "../../shared/contracts/learning-track-terminal-lifecycle-control";
+import type {
+  LearningTrackCadenceApplyResultV1,
+  LearningTrackCadencePreviewV1,
+  LearningTrackCadenceSourceV1,
+} from "../../shared/contracts/learning-track-cadence-control";
 
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
@@ -217,6 +222,7 @@ export type PlanPreviewV1 =
   | LearningTrackLifecyclePreviewV1
   | LearningTrackTerminalLifecyclePreviewV1
   | LearningTrackPriorityMinimumPreviewV1
+  | LearningTrackCadencePreviewV1
   | GrowthPlanInitializationPreviewV1
   | LearningTrackCreationPreviewV1
   | LearningTrackActivityAdmissionPreviewV1
@@ -249,6 +255,9 @@ export type {
   LearningTrackTerminalLifecycleApplyResultV1,
   LearningTrackTerminalLifecyclePreviewV1,
   LearningTrackTerminalLifecycleSourceV1,
+  LearningTrackCadenceApplyResultV1,
+  LearningTrackCadencePreviewV1,
+  LearningTrackCadenceSourceV1,
 };
 
 export type LearningTrackActivityAdmissionSource =

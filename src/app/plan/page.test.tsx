@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   loadAdmission: vi.fn(),
   loadAdmissionV2: vi.fn(),
   loadTerminal: vi.fn(),
+  loadCadence: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -38,6 +39,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadLearningTrackActivityAdmissionSourceV1: mocks.loadAdmission,
   loadLearningTrackActivityAdmissionSourceV2: mocks.loadAdmissionV2,
   loadLearningTrackTerminalLifecycleSourceV1: mocks.loadTerminal,
+  loadLearningTrackCadenceSourceV1: mocks.loadCadence,
 }));
 
 import PlanPage from "./page";
@@ -80,6 +82,30 @@ const currentPlanSetupSource = {
   state: "CURRENT_PLAN_EXISTS",
   capabilities: [],
   goals: [],
+} as const;
+const cadenceSource = {
+  contract: { name: "LearningTrackCadenceSourceV1", version: "1.0.0" },
+  growthPlan: {
+    growthPlanId: workspace.currentPlan.growthPlanId,
+    lifecycle: workspace.currentPlan.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan.aggregateVersion,
+  },
+  progress: {
+    state: "CURRENT",
+    snapshotId: "s",
+    appliedAttemptId: "a",
+    inputFingerprint: "f",
+    calculatedAsOf: "2026-09-02T10:00:00.000Z",
+  },
+  learningTracks: [
+    {
+      ...tracksWorkspace.learningTracks[0],
+      cadencePerWeek: 2,
+      completedCadenceSessionsThisWeek: 1,
+      capabilities: ["set_track_cadence"],
+    },
+  ],
 } as const;
 const activityAdmissionSource = {
   contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
@@ -261,6 +287,18 @@ const noPlanTerminalLifecycleSource = {
   terminalHistory: [],
   historyPage: { hasMore: false, nextCursor: null },
 } as const;
+const noPlanCadenceSource = {
+  contract: { name: "LearningTrackCadenceSourceV1", version: "1.0.0" },
+  growthPlan: null,
+  progress: {
+    state: "UNAVAILABLE",
+    snapshotId: null,
+    appliedAttemptId: null,
+    inputFingerprint: null,
+    calculatedAsOf: null,
+  },
+  learningTracks: [],
+} as const;
 
 describe("PlanPage", () => {
   beforeEach(() => {
@@ -273,6 +311,7 @@ describe("PlanPage", () => {
     mocks.loadAdmission.mockResolvedValue(activityAdmissionSource);
     mocks.loadAdmissionV2.mockResolvedValue(selectedTrackAdmissionSource);
     mocks.loadTerminal.mockResolvedValue(terminalLifecycleSource);
+    mocks.loadCadence.mockResolvedValue(cadenceSource);
   });
 
   it("authenticates and loads the actor-scoped current Growth Plan", async () => {
@@ -282,6 +321,7 @@ describe("PlanPage", () => {
     expect(mocks.loadSetup).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadCreation).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadTerminal).toHaveBeenCalledWith({ authorized: true }, undefined);
+    expect(mocks.loadCadence).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadAdmission).toHaveBeenCalledWith({ authorized: true });
     expect(screen.getByRole("link", { name: "Skip to Plan" })).toHaveAttribute(
       "href",
@@ -347,6 +387,7 @@ describe("PlanPage", () => {
     mocks.loadSetup.mockResolvedValue(availableSetupSource);
     mocks.loadCreation.mockResolvedValue(noPlanLearningTrackCreationSource);
     mocks.loadTerminal.mockResolvedValue(noPlanTerminalLifecycleSource);
+    mocks.loadCadence.mockResolvedValue(noPlanCadenceSource);
     mocks.loadAdmission.mockResolvedValue(noPlanActivityAdmissionSource);
     render(await PlanPage());
     expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();
@@ -386,6 +427,27 @@ describe("PlanPage", () => {
     expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
     expect(screen.getByText(/Activity choices are temporarily unavailable/iu)).toBeVisible();
     expect(screen.queryByText(/private overlay/iu)).not.toBeInTheDocument();
+  });
+
+  it("keeps cadence independently unavailable when its source fails", async () => {
+    mocks.loadCadence.mockRejectedValueOnce(new Error("private cadence detail"));
+    render(await PlanPage());
+    expect(screen.getByText(/Track cadence is temporarily unavailable/iu)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
+    expect(screen.queryByText(/private cadence detail/iu)).not.toBeInTheDocument();
+  });
+
+  it("retries and isolates a cadence source with a stale Track version", async () => {
+    mocks.loadCadence.mockResolvedValue({
+      ...cadenceSource,
+      learningTracks: [{ ...cadenceSource.learningTracks[0], aggregateVersion: "99" }],
+    });
+    render(await PlanPage());
+    expect(mocks.loadCadence).toHaveBeenCalledTimes(2);
+    expect(screen.getByText(/Track cadence is temporarily unavailable/iu)).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Preview cadence change" }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps core Plan controls available when only Track creation choices fail to load", async () => {

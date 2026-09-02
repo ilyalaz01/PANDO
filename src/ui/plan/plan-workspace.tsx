@@ -12,6 +12,7 @@ import type {
   GrowthPlanLifecyclePreviewV1,
   LearningTrackCreationSourceV1,
   LearningTrackTerminalLifecycleSourceV1,
+  LearningTrackCadenceSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
@@ -24,6 +25,7 @@ import { GrowthPlanSetup } from "./growth-plan-setup";
 import { ActivityAdmission } from "./activity-admission";
 import { LearningTrackCreation } from "./learning-track-creation";
 import { LearningTrackTerminalLifecycle } from "./learning-track-terminal-lifecycle";
+import { LearningTrackCadence } from "./learning-track-cadence";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -309,6 +311,8 @@ export function PlanWorkspace({
   selectedActivityAdmissionTrackKey,
   terminalLifecycleSource,
   terminalLifecycleUnavailable = false,
+  cadenceSource,
+  cadenceUnavailable = false,
   terminalHistoryCursor,
   terminalHistoryNextHref,
   terminalHistoryRecoveryHref = "/plan",
@@ -328,6 +332,8 @@ export function PlanWorkspace({
   initialActivityAdmissionApplyState = initialPlanActionState,
   initialTerminalLifecyclePreviewState = initialPlanActionState,
   initialTerminalLifecycleApplyState = initialPlanActionState,
+  initialCadencePreviewState = initialPlanActionState,
+  initialCadenceApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
@@ -339,6 +345,8 @@ export function PlanWorkspace({
   readonly selectedActivityAdmissionTrackKey?: string;
   readonly terminalLifecycleSource?: LearningTrackTerminalLifecycleSourceV1;
   readonly terminalLifecycleUnavailable?: boolean;
+  readonly cadenceSource?: LearningTrackCadenceSourceV1;
+  readonly cadenceUnavailable?: boolean;
   readonly terminalHistoryCursor?: string;
   readonly terminalHistoryNextHref?: string;
   readonly terminalHistoryRecoveryHref?: string;
@@ -358,6 +366,8 @@ export function PlanWorkspace({
   readonly initialActivityAdmissionApplyState?: PlanActionState;
   readonly initialTerminalLifecyclePreviewState?: PlanActionState;
   readonly initialTerminalLifecycleApplyState?: PlanActionState;
+  readonly initialCadencePreviewState?: PlanActionState;
+  readonly initialCadenceApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -396,6 +406,7 @@ export function PlanWorkspace({
     useState(0);
   const [activityAdmissionDismissalVersion, setActivityAdmissionDismissalVersion] = useState(0);
   const [terminalLifecycleDismissalVersion, setTerminalLifecycleDismissalVersion] = useState(0);
+  const [cadenceDismissalVersion, setCadenceDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -561,10 +572,15 @@ export function PlanWorkspace({
     setTerminalLifecycleDismissalVersion((version) => version + 1);
   }
 
+  function dismissCadenceIntent() {
+    setCadenceDismissalVersion((version) => version + 1);
+  }
+
   function dismissAdditiveIntents() {
     dismissLearningTrackCreationIntent();
     dismissActivityAdmissionIntent();
     dismissTerminalLifecycleIntent();
+    dismissCadenceIntent();
   }
 
   if (!plan)
@@ -792,6 +808,7 @@ export function PlanWorkspace({
           onIntentStart={() => {
             dismissActivityAdmissionIntent();
             dismissTerminalLifecycleIntent();
+            dismissCadenceIntent();
             dismissOtherPlanIntents();
           }}
           source={learningTrackCreationSource}
@@ -816,6 +833,7 @@ export function PlanWorkspace({
           onIntentStart={() => {
             dismissLearningTrackCreationIntent();
             dismissTerminalLifecycleIntent();
+            dismissCadenceIntent();
             dismissOtherPlanIntents();
           }}
           sourceUnavailable={activityAdmissionUnavailable}
@@ -839,6 +857,7 @@ export function PlanWorkspace({
           onIntentStart={() => {
             dismissLearningTrackCreationIntent();
             dismissActivityAdmissionIntent();
+            dismissCadenceIntent();
             dismissOtherPlanIntents();
           }}
           source={terminalLifecycleSource}
@@ -860,6 +879,28 @@ export function PlanWorkspace({
           >
             Load first history page
           </Link>
+        </section>
+      ) : null}
+      {cadenceSource !== undefined ? (
+        <LearningTrackCadence
+          dismissalVersion={cadenceDismissalVersion}
+          initialApplyState={initialCadenceApplyState}
+          initialPreviewState={initialCadencePreviewState}
+          onIntentStart={() => {
+            dismissLearningTrackCreationIntent();
+            dismissActivityAdmissionIntent();
+            dismissTerminalLifecycleIntent();
+            dismissOtherPlanIntents();
+          }}
+          source={cadenceSource}
+        />
+      ) : cadenceUnavailable ? (
+        <section aria-labelledby="track-cadence-heading" className={styles.panel}>
+          <h2 id="track-cadence-heading">Track cadence</h2>
+          <p>
+            Track cadence is temporarily unavailable. Other Plan controls remain available; nothing
+            changed.
+          </p>
         </section>
       ) : null}
       {effectiveTrackPreview ? (

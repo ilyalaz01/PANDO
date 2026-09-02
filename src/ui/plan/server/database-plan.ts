@@ -27,6 +27,9 @@ import {
   decodeLearningTrackTerminalLifecycleSourceV1,
   decodeLearningTrackPriorityMinimumApplyResultV1,
   decodeLearningTrackPriorityMinimumPreviewV1,
+  decodeLearningTrackCadenceApplyResultV1,
+  decodeLearningTrackCadencePreviewV1,
+  decodeLearningTrackCadenceSourceV1,
   type CurrentLearningTracksV1,
   type CurrentGrowthPlanV1,
   type GrowthPlanCapacityApplyResultV1,
@@ -55,6 +58,9 @@ import {
   type LearningTrackTerminalLifecycleSourceV1,
   type LearningTrackPriorityMinimumApplyResultV1,
   type LearningTrackPriorityMinimumPreviewV1,
+  type LearningTrackCadenceApplyResultV1,
+  type LearningTrackCadencePreviewV1,
+  type LearningTrackCadenceSourceV1,
 } from "./plan-workspace-v1";
 
 export const GET_CURRENT_GROWTH_PLAN_RPC_V1 = "get_current_growth_plan_v1" as const;
@@ -76,6 +82,10 @@ export const PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
   "preview_learning_track_priority_minimum_v1" as const;
 export const APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
   "apply_learning_track_priority_minimum_v1" as const;
+export const GET_LEARNING_TRACK_CADENCE_SOURCE_RPC_V1 =
+  "get_learning_track_cadence_source_v1" as const;
+export const PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1 = "preview_learning_track_cadence_v1" as const;
+export const APPLY_LEARNING_TRACK_CADENCE_RPC_V1 = "apply_learning_track_cadence_v1" as const;
 export const GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1 = "get_growth_plan_setup_source_v1" as const;
 export const PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1 =
   "preview_growth_plan_initialization_v1" as const;
@@ -187,6 +197,19 @@ export interface LearningTrackPriorityMinimumPreviewCommandV1 {
 }
 
 export interface LearningTrackPriorityMinimumApplyCommandV1 extends LearningTrackPriorityMinimumPreviewCommandV1 {
+  readonly previewDigest: string;
+  readonly idempotencyKey: string;
+}
+
+export interface LearningTrackCadencePreviewCommandV1 {
+  readonly trackKey: string;
+  readonly cadencePerWeek: number;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly reason: string;
+}
+
+export interface LearningTrackCadenceApplyCommandV1 extends LearningTrackCadencePreviewCommandV1 {
   readonly previewDigest: string;
   readonly idempotencyKey: string;
 }
@@ -346,6 +369,18 @@ function validTrackPriorityMinimumPreview(
   );
 }
 
+function validTrackCadencePreview(command: LearningTrackCadencePreviewCommandV1): boolean {
+  return (
+    TRACK_KEY.test(command.trackKey) &&
+    Number.isInteger(command.cadencePerWeek) &&
+    command.cadencePerWeek >= 0 &&
+    command.cadencePerWeek <= 100 &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validVersion(command.expectedLearningTrackVersion) &&
+    validReason(command.reason)
+  );
+}
+
 function validInitializationPreview(command: GrowthPlanInitializationPreviewCommandV1): boolean {
   return (
     GOAL_KEY.test(command.readinessGoalKey) &&
@@ -430,6 +465,9 @@ async function rpc(
     | typeof APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
     | typeof APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
+    | typeof GET_LEARNING_TRACK_CADENCE_SOURCE_RPC_V1
+    | typeof PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_CADENCE_RPC_V1
     | typeof GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1
     | typeof PREVIEW_GROWTH_PLAN_INITIALIZATION_RPC_V1
     | typeof APPLY_GROWTH_PLAN_INITIALIZATION_RPC_V1
@@ -820,6 +858,90 @@ export async function applyLearningTrackPriorityMinimumV1(
         p_track_key: command.trackKey,
         p_priority: command.priority,
         p_protected_minimum_minutes: command.protectedMinimumMinutes,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_preview_digest: command.previewDigest,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads cadence settings plus only compatible V2 current-week progress. */
+export async function loadLearningTrackCadenceSourceV1(
+  client: PandoSupabaseClient,
+): Promise<LearningTrackCadenceSourceV1> {
+  try {
+    return decodeLearningTrackCadenceSourceV1(
+      await rpc(client, GET_LEARNING_TRACK_CADENCE_SOURCE_RPC_V1),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds an exact cadence preview while Planning resolves progress and authority. */
+export async function previewLearningTrackCadenceV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackCadencePreviewCommandV1,
+): Promise<LearningTrackCadencePreviewV1> {
+  if (!validTrackCadencePreview(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackCadencePreviewV1(
+      await rpc(client, PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_cadence_per_week: command.cadencePerWeek,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only a confirmed cadence preview through Planning's atomic command. */
+export async function applyLearningTrackCadenceV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackCadenceApplyCommandV1,
+): Promise<LearningTrackCadenceApplyResultV1> {
+  if (
+    !validTrackCadencePreview(command) ||
+    !SHA_256_HEX.test(command.previewDigest) ||
+    !validIdempotencyKey(command.idempotencyKey)
+  ) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackCadenceApplyResultV1(
+      await rpc(client, APPLY_LEARNING_TRACK_CADENCE_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_cadence_per_week: command.cadencePerWeek,
         p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
         p_expected_learning_track_version: command.expectedLearningTrackVersion,
         p_preview_digest: command.previewDigest,

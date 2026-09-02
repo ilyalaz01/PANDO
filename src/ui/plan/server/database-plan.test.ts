@@ -12,6 +12,8 @@ import admissionPreviewV2 from "../../../../tests/contract/fixtures/planning/v1/
 import creationPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 import terminalPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.valid.json";
 import terminalSource from "../../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.boundary.json";
+import cadencePreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.valid.json";
+import cadenceSource from "../../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.boundary.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
@@ -28,6 +30,7 @@ import {
   applyLearningTrackActivityAdmissionV1,
   applyLearningTrackActivityAdmissionV2,
   applyLearningTrackPriorityMinimumV1,
+  applyLearningTrackCadenceV1,
   GET_CURRENT_GROWTH_PLAN_RPC_V1,
   GET_CURRENT_LEARNING_TRACKS_RPC_V1,
   GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1,
@@ -35,6 +38,10 @@ import {
   GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1,
   GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2,
   GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1,
+  GET_LEARNING_TRACK_CADENCE_SOURCE_RPC_V1,
+  PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1,
+  APPLY_LEARNING_TRACK_CADENCE_RPC_V1,
+  loadLearningTrackCadenceSourceV1,
   loadCurrentGrowthPlanV1,
   loadCurrentLearningTracksV1,
   loadGrowthPlanSetupSourceV1,
@@ -63,6 +70,7 @@ import {
   previewLearningTrackActivityAdmissionV1,
   previewLearningTrackActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1,
+  previewLearningTrackCadenceV1,
   APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
@@ -143,6 +151,13 @@ const trackSettingsCommand = {
   expectedGrowthPlanVersion: "4",
   expectedLearningTrackVersion: "7",
   reason: "Move algorithms behind the current backend focus.",
+};
+const cadenceCommand = {
+  trackKey: "track:algorithms",
+  cadencePerWeek: 3,
+  expectedGrowthPlanVersion: "4",
+  expectedLearningTrackVersion: "7",
+  reason: cadencePreview.reason,
 };
 
 const initializationSource = {
@@ -982,5 +997,47 @@ describe("Growth Plan database boundary", () => {
       }),
     ).rejects.toThrow(PlanInputError);
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("loads, previews, and applies cadence with only bounded RPC fields", async () => {
+    const sourceRpc = vi.fn().mockResolvedValue({ data: cadenceSource, error: null });
+    await expect(loadLearningTrackCadenceSourceV1(client(sourceRpc))).resolves.toEqual(
+      cadenceSource,
+    );
+    expect(sourceRpc).toHaveBeenCalledWith(GET_LEARNING_TRACK_CADENCE_SOURCE_RPC_V1);
+    const previewRpc = vi.fn().mockResolvedValue({ data: cadencePreview, error: null });
+    await expect(
+      previewLearningTrackCadenceV1(client(previewRpc), cadenceCommand),
+    ).resolves.toEqual(cadencePreview);
+    expect(previewRpc).toHaveBeenCalledWith(PREVIEW_LEARNING_TRACK_CADENCE_RPC_V1, {
+      p_track_key: "track:algorithms",
+      p_cadence_per_week: 3,
+      p_expected_growth_plan_version: "4",
+      p_expected_learning_track_version: "7",
+      p_reason: cadencePreview.reason,
+    });
+    const result = {
+      contract: { name: "LearningTrackCadenceApplyResultV1", version: "1.0.0" },
+      commandId,
+      changedTrack: cadencePreview.after,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+    const applyRpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    await expect(
+      applyLearningTrackCadenceV1(client(applyRpc), {
+        ...cadenceCommand,
+        previewDigest: cadencePreview.previewDigest,
+        idempotencyKey: "learning-track-cadence:v1:request",
+      }),
+    ).resolves.toEqual(result);
+    expect(applyRpc).toHaveBeenCalledWith(
+      APPLY_LEARNING_TRACK_CADENCE_RPC_V1,
+      expect.objectContaining({
+        p_cadence_per_week: 3,
+        p_preview_digest: cadencePreview.previewDigest,
+      }),
+    );
   });
 });

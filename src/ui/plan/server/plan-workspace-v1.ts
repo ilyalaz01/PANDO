@@ -41,6 +41,12 @@ import {
   type LearningTrackActivityAdmissionSourceV2,
 } from "../../../shared/contracts/learning-track-activity-admission-control";
 import { learningTrackPriorityMinimumControlSemanticViolations } from "../../../shared/contracts/learning-track-priority-minimum-control";
+import {
+  learningTrackCadenceControlSemanticViolations,
+  type LearningTrackCadenceApplyResultV1,
+  type LearningTrackCadencePreviewV1,
+  type LearningTrackCadenceSourceV1,
+} from "../../../shared/contracts/learning-track-cadence-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
 
 export type {
@@ -60,6 +66,9 @@ export type {
   LearningTrackTerminalLifecycleOperationV1,
   LearningTrackTerminalLifecyclePreviewV1,
   LearningTrackTerminalLifecycleSourceV1,
+  LearningTrackCadenceApplyResultV1,
+  LearningTrackCadencePreviewV1,
+  LearningTrackCadenceSourceV1,
 };
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -413,6 +422,23 @@ function decodeTrackPriorityMinimum(value: unknown, expectedName: string): unkno
   return value;
 }
 
+function decodeTrackCadence(value: unknown, expectedName: string): unknown {
+  const structural = validateSchema("learning-track-cadence-control-v1", value);
+  if (!structural.valid || learningTrackCadenceControlSemanticViolations(value).length > 0) {
+    throw new GrowthPlanControlContractError();
+  }
+  const contract = (value as { readonly contract?: unknown }).contract;
+  if (
+    typeof contract !== "object" ||
+    contract === null ||
+    !Object.hasOwn(contract, "name") ||
+    (contract as { readonly name?: unknown }).name !== expectedName
+  ) {
+    throw new GrowthPlanControlContractError();
+  }
+  return value;
+}
+
 /** Decodes the minimized, current-personal Planning read model before it reaches UI code. */
 export function decodeCurrentGrowthPlanV1(value: unknown): CurrentGrowthPlanV1 {
   return decode(value, "CurrentGrowthPlanV1") as CurrentGrowthPlanV1;
@@ -515,6 +541,29 @@ export function decodeLearningTrackPriorityMinimumApplyResultV1(
     value,
     "LearningTrackPriorityMinimumApplyResultV1",
   ) as LearningTrackPriorityMinimumApplyResultV1;
+}
+
+/** Decodes the bounded cadence source without exposing Planning's normalized input. */
+export function decodeLearningTrackCadenceSourceV1(value: unknown): LearningTrackCadenceSourceV1 {
+  return decodeTrackCadence(value, "LearningTrackCadenceSourceV1") as LearningTrackCadenceSourceV1;
+}
+
+/** Decodes the exact cadence and compatible current-week progress preview. */
+export function decodeLearningTrackCadencePreviewV1(value: unknown): LearningTrackCadencePreviewV1 {
+  return decodeTrackCadence(
+    value,
+    "LearningTrackCadencePreviewV1",
+  ) as LearningTrackCadencePreviewV1;
+}
+
+/** Decodes the atomic cadence command response. */
+export function decodeLearningTrackCadenceApplyResultV1(
+  value: unknown,
+): LearningTrackCadenceApplyResultV1 {
+  return decodeTrackCadence(
+    value,
+    "LearningTrackCadenceApplyResultV1",
+  ) as LearningTrackCadenceApplyResultV1;
 }
 
 /** Decodes the bounded current-personal first-Plan setup selector. */

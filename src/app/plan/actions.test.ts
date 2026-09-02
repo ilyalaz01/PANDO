@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   applyTrack: vi.fn(),
   applyTerminalTrack: vi.fn(),
   applyTrackSettings: vi.fn(),
+  applyCadence: vi.fn(),
   applyInitialization: vi.fn(),
   createClient: vi.fn(),
   preview: vi.fn(),
@@ -19,6 +20,7 @@ const mocks = vi.hoisted(() => ({
   previewTrack: vi.fn(),
   previewTerminalTrack: vi.fn(),
   previewTrackSettings: vi.fn(),
+  previewCadence: vi.fn(),
   previewInitialization: vi.fn(),
   revalidate: vi.fn(),
   verifySession: vi.fn(),
@@ -42,6 +44,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   applyLearningTrackLifecycleV1: mocks.applyTrack,
   applyLearningTrackTerminalLifecycleV1: mocks.applyTerminalTrack,
   applyLearningTrackPriorityMinimumV1: mocks.applyTrackSettings,
+  applyLearningTrackCadenceV1: mocks.applyCadence,
   applyGrowthPlanInitializationV1: mocks.applyInitialization,
   previewGrowthPlanCapacityV1: mocks.previewCapacity,
   previewLearningTrackCreationV1: mocks.previewCreation,
@@ -51,6 +54,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   previewLearningTrackActivityAdmissionV1: mocks.previewActivityAdmission,
   previewLearningTrackActivityAdmissionV2: mocks.previewActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1: mocks.previewTrackSettings,
+  previewLearningTrackCadenceV1: mocks.previewCadence,
   previewGrowthPlanInitializationV1: mocks.previewInitialization,
   PlanConflictError: classes.PlanConflictError,
   PlanInputError: classes.PlanInputError,
@@ -74,12 +78,15 @@ import {
   previewLearningTrackActivityAdmissionAction,
   previewLearningTrackPriorityMinimumAction,
   previewGrowthPlanInitializationAction,
+  previewLearningTrackCadenceAction,
+  applyLearningTrackCadenceAction,
 } from "./actions";
 
 import admissionPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import admissionPreviewV2 from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-v2.valid.json";
 import creationPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 import terminalTrackPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.valid.json";
+import cadencePreview from "../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.valid.json";
 
 const client = { requestScoped: true };
 const requestId = "10000000-0000-4000-8000-000000000001";
@@ -363,6 +370,19 @@ function trackSettingsForm(): FormData {
   return data;
 }
 
+function cadenceForm(): FormData {
+  const data = new FormData();
+  data.set("trackKey", "track:algorithms");
+  data.set("cadencePerWeek", "3");
+  data.set("expectedGrowthPlanVersion", cadencePreview.expectedGrowthPlanVersion);
+  data.set("expectedLearningTrackVersion", cadencePreview.expectedLearningTrackVersion);
+  data.set("reason", cadencePreview.reason);
+  data.set("previewDigest", cadencePreview.previewDigest);
+  data.set("requestId", requestId);
+  data.set("workspaceId", "attacker-selected-workspace");
+  return data;
+}
+
 function initializationForm(): FormData {
   const data = new FormData();
   data.set("readinessGoalKey", "goal:backend-interview-readiness");
@@ -448,6 +468,8 @@ describe("Plan Server Actions", () => {
     mocks.applyTerminalTrack.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrackSettings.mockResolvedValue(trackSettingsPreview);
     mocks.applyTrackSettings.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.previewCadence.mockResolvedValue(cadencePreview);
+    mocks.applyCadence.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewInitialization.mockResolvedValue(initializationPreview);
     mocks.applyInitialization.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewActivityAdmission.mockResolvedValue(admissionPreview);
@@ -785,6 +807,42 @@ describe("Plan Server Actions", () => {
       previewLearningTrackPriorityMinimumAction(initialPlanActionState, malformed),
     ).resolves.toMatchObject({ status: "invalid" });
     expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+
+  it("previews and applies cadence through bounded selectors and exact digest", async () => {
+    await expect(
+      previewLearningTrackCadenceAction(initialPlanActionState, cadenceForm()),
+    ).resolves.toMatchObject({ status: "previewed", preview: cadencePreview });
+    expect(mocks.previewCadence).toHaveBeenCalledWith(client, {
+      trackKey: "track:algorithms",
+      cadencePerWeek: 3,
+      expectedGrowthPlanVersion: "4",
+      expectedLearningTrackVersion: "7",
+      reason: cadencePreview.reason,
+    });
+    await expect(
+      applyLearningTrackCadenceAction(initialPlanActionState, cadenceForm()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyCadence).toHaveBeenCalledWith(
+      client,
+      expect.objectContaining({
+        trackKey: "track:algorithms",
+        cadencePerWeek: 3,
+        previewDigest: cadencePreview.previewDigest,
+        idempotencyKey: `learning-track-cadence:v1:${requestId}`,
+      }),
+    );
+  });
+
+  it("rejects cadence values outside 0..100 before the adapter", async () => {
+    for (const value of ["-1", "101", "3.5", ""] as const) {
+      const malformed = cadenceForm();
+      malformed.set("cadencePerWeek", value);
+      await expect(
+        previewLearningTrackCadenceAction(initialPlanActionState, malformed),
+      ).resolves.toMatchObject({ status: "invalid" });
+    }
+    expect(mocks.previewCadence).not.toHaveBeenCalled();
   });
 
   it("previews and applies manual activity admission using only bounded public selectors", async () => {

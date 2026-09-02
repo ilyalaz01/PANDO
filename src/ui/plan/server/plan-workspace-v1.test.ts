@@ -4,6 +4,8 @@ import boundary from "../../../../tests/contract/fixtures/planning/v1/growth-pla
 import preview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-control.valid.json";
 import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-lifecycle-control.valid.json";
 import trackSettingsPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json";
+import cadencePreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.valid.json";
+import cadenceSource from "../../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.boundary.json";
 import admissionPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import {
   decodeCurrentLearningTracksV1,
@@ -19,6 +21,8 @@ import {
   decodeLearningTrackActivityAdmissionSourceV1,
   decodeLearningTrackPriorityMinimumApplyResultV1,
   decodeLearningTrackPriorityMinimumPreviewV1,
+  decodeLearningTrackCadencePreviewV1,
+  decodeLearningTrackCadenceSourceV1,
   GrowthPlanControlContractError,
 } from "./plan-workspace-v1";
 
@@ -61,6 +65,14 @@ describe("Growth Plan control V1 server decoder", () => {
     expect(decodeCurrentGrowthPlanV1(boundary)).toEqual(boundary);
     expect(decodeGrowthPlanLifecyclePreviewV1(preview)).toEqual(preview);
     expect(decodeGrowthPlanLifecycleApplyResultV1(applyResult())).toEqual(applyResult());
+  });
+
+  it("decodes cadence source and preview only through their exact variants", () => {
+    expect(decodeLearningTrackCadenceSourceV1(cadenceSource)).toEqual(cadenceSource);
+    expect(decodeLearningTrackCadencePreviewV1(cadencePreview)).toEqual(cadencePreview);
+    expect(() => decodeLearningTrackCadenceSourceV1(cadencePreview)).toThrow(
+      GrowthPlanControlContractError,
+    );
   });
 
   it("rejects a schema-valid wrong variant at every RPC boundary", () => {

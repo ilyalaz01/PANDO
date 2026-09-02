@@ -98,6 +98,18 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_learning_track_cadence_v1: {
+        Args: {
+          p_cadence_per_week: number
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_reason: string
+          p_track_key: string
+        }
+        Returns: Json
+      }
       apply_learning_track_creation_v1: {
         Args: {
           p_default_session_minutes: number
@@ -390,6 +402,7 @@ export type Database = {
         Args: { p_track_key: string }
         Returns: Json
       }
+      get_learning_track_cadence_source_v1: { Args: never; Returns: Json }
       get_learning_track_creation_source_v1: { Args: never; Returns: Json }
       get_learning_track_terminal_lifecycle_source_v1: {
         Args: { p_history_cursor?: string }
@@ -503,6 +516,16 @@ export type Database = {
           p_expected_learning_track_version: string
           p_reason: string
           p_request_id: string
+          p_track_key: string
+        }
+        Returns: Json
+      }
+      preview_learning_track_cadence_v1: {
+        Args: {
+          p_cadence_per_week: number
+          p_expected_growth_plan_version: string
+          p_expected_learning_track_version: string
+          p_reason: string
           p_track_key: string
         }
         Returns: Json

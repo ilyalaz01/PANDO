@@ -10,7 +10,8 @@
     { "$ref": "#/$defs/planCapacityChanged" },
     { "$ref": "#/$defs/trackLifecycleChanged" },
     { "$ref": "#/$defs/trackTerminalLifecycleChanged" },
-    { "$ref": "#/$defs/trackPriorityMinimumChanged" }
+    { "$ref": "#/$defs/trackPriorityMinimumChanged" },
+    { "$ref": "#/$defs/trackCadenceChanged" }
   ],
   "$defs": {
     "growthPlanInitialized": {
@@ -182,6 +183,34 @@
               "minimum": 0,
               "maximum": 10080
             }
+          }
+        }
+      }
+    },
+    "trackCadenceChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_name", "event_schema_version", "workspace_id", "payload"],
+      "properties": {
+        "event_name": { "const": "planning.input_changed" },
+        "event_schema_version": { "const": 1 },
+        "workspace_id": { "$ref": "#/$defs/uuid" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "growth_plan_id",
+            "learning_track_id",
+            "learning_track_version",
+            "cadence_per_week"
+          ],
+          "properties": {
+            "change_kind": { "const": "TRACK_CADENCE_CHANGED" },
+            "growth_plan_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_id": { "$ref": "#/$defs/uuid" },
+            "learning_track_version": { "$ref": "#/$defs/positiveBigint" },
+            "cadence_per_week": { "type": "integer", "minimum": 0, "maximum": 100 }
           }
         }
       }

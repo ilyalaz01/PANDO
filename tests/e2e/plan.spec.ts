@@ -99,6 +99,18 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Confirm Track settings" })).toBeFocused();
 
+  await openFixture(page, "?preview=track-cadence");
+  const cadenceRegion = page.getByRole("region", { name: "Track cadence" });
+  await cadenceRegion.getByLabel("Track", { exact: true }).focus();
+  await page.keyboard.press("Tab");
+  await expect(cadenceRegion.getByLabel("Evidence-bearing sessions per week")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(cadenceRegion.getByLabel("Why should this cadence change now?")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(cadenceRegion.getByRole("button", { name: "Preview cadence change" })).toBeFocused();
+  await page.getByRole("button", { name: "Confirm cadence" }).focus();
+  await expect(page.getByRole("button", { name: "Confirm cadence" })).toBeFocused();
+
   await openActivityFixture(page);
   await page.getByLabel("Personal activity").focus();
   await page.keyboard.press("Tab");
@@ -207,6 +219,23 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     page.getByLabel("Priority (0–100)"),
     page.getByLabel("Protected weekly minimum in minutes (0–10080)"),
     page.getByRole("button", { name: "Confirm Track settings" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
+  await openFixture(page, "?preview=track-cadence");
+  const cadenceDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(cadenceDimensions.scrollWidth).toBeLessThanOrEqual(cadenceDimensions.clientWidth);
+  const cadenceRegion = page.getByRole("region", { name: "Track cadence" });
+  for (const control of [
+    cadenceRegion.getByLabel("Track", { exact: true }),
+    cadenceRegion.getByLabel("Evidence-bearing sessions per week"),
+    cadenceRegion.getByRole("button", { name: "Preview cadence change" }),
+    page.getByRole("button", { name: "Confirm cadence" }),
   ]) {
     const controlBox = await control.boundingBox();
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
@@ -322,6 +351,16 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   expect(settingsStyles.outlineStyle).not.toBe("none");
   expect(settingsStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 
+  await openFixture(page, "?preview=track-cadence");
+  const cadenceControl = page.getByRole("button", { name: "Confirm cadence" });
+  await cadenceControl.focus();
+  const cadenceStyles = await cadenceControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(cadenceStyles.outlineStyle).not.toBe("none");
+  expect(cadenceStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
   await openSetupFixture(page);
   const setupControl = page.getByRole("button", { name: "Confirm and create Growth Plan" });
   await setupControl.focus();
@@ -399,6 +438,12 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(settingsResults.violations).toEqual([]);
+
+  await openFixture(page, "?preview=track-cadence");
+  const cadenceResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(cadenceResults.violations).toEqual([]);
 
   await openSetupFixture(page);
   const setupResults = await new AxeBuilder({ page })
@@ -607,6 +652,22 @@ test("shows exact Track settings consequences and blocks active minima over capa
     page.getByRole("region", { name: "Review Learning Track settings" }).getByRole("alert"),
   ).toContainText("need at least 560 weekly minutes");
   await expect(page.getByRole("button", { name: "Confirm Track settings" })).toHaveCount(0);
+});
+
+test("shows exact soft cadence consequences without inventing progress or capacity", async ({
+  page,
+}) => {
+  await openFixture(page, "?preview=track-cadence");
+  const comparison = page.getByLabel("Exact Learning Track cadence preview");
+  await expect(comparison).toContainText("System design");
+  await expect(comparison).toContainText("2 sessions per week");
+  await expect(comparison).toContainText("3 sessions per week");
+  await expect(comparison).toContainText("Cadence deficit");
+  await expect(page.getByText(/A value of 0 means no cadence target/iu)).toBeVisible();
+  await expect(
+    page.getByText(/does not reserve minutes, prove Mastery, or block planning/iu),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Confirm cadence" })).toBeEnabled();
 });
 
 test("shows exact terminal Track consequences and keeps archived history read-only", async ({

@@ -10,6 +10,7 @@ import type {
   LearningTrackActivityAdmissionSourceV1,
   LearningTrackActivityAdmissionSourceV2,
   LearningTrackTerminalLifecycleSourceV1,
+  LearningTrackCadenceSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
@@ -216,6 +217,87 @@ const terminalLifecycleSourcePageTwo: LearningTrackTerminalLifecycleSourceV1 = {
     },
   ],
   historyPage: { hasMore: false, nextCursor: null },
+};
+
+const cadenceSource: LearningTrackCadenceSourceV1 = {
+  contract: { name: "LearningTrackCadenceSourceV1", version: "1.0.0" },
+  growthPlan: tracksWorkspace.growthPlan,
+  progress: {
+    state: "CURRENT",
+    snapshotId: "31000000-0000-4000-8000-000000000021",
+    appliedAttemptId: "31000000-0000-4000-8000-000000000022",
+    inputFingerprint: `planning-input:${"a".repeat(64)}`,
+    calculatedAsOf: "2026-09-02T10:00:00.000Z",
+  },
+  learningTracks: tracksWorkspace.learningTracks.map((track, index) => ({
+    learningTrackId: track.learningTrackId,
+    trackKey: track.trackKey,
+    title: track.title,
+    lifecycle: track.lifecycle,
+    priority: track.priority,
+    protectedMinimumMinutes: track.protectedMinimumMinutes,
+    cadencePerWeek: index === 0 ? 2 : 0,
+    aggregateVersion: track.aggregateVersion,
+    completedCadenceSessionsThisWeek: index === 0 ? 1 : 0,
+    capabilities: ["set_track_cadence"],
+  })),
+};
+
+const cadencePreviewState: PlanActionState = {
+  status: "previewed",
+  message: "Track cadence preview ready. Confirm only if these exact facts are correct.",
+  preview: {
+    contract: { name: "LearningTrackCadencePreviewV1", version: "1.0.0" },
+    operation: "set_track_cadence",
+    reason: "Build a steady systems practice rhythm.",
+    expectedGrowthPlanVersion: plan.aggregateVersion,
+    expectedLearningTrackVersion: tracksWorkspace.learningTracks[0]!.aggregateVersion,
+    growthPlan: tracksWorkspace.growthPlan!,
+    before: {
+      learningTrackId: cadenceSource.learningTracks[0]!.learningTrackId,
+      trackKey: cadenceSource.learningTracks[0]!.trackKey,
+      title: cadenceSource.learningTracks[0]!.title,
+      lifecycle: cadenceSource.learningTracks[0]!.lifecycle,
+      priority: cadenceSource.learningTracks[0]!.priority,
+      protectedMinimumMinutes: cadenceSource.learningTracks[0]!.protectedMinimumMinutes,
+      cadencePerWeek: 2,
+      aggregateVersion: cadenceSource.learningTracks[0]!.aggregateVersion,
+    },
+    after: {
+      learningTrackId: cadenceSource.learningTracks[0]!.learningTrackId,
+      trackKey: cadenceSource.learningTracks[0]!.trackKey,
+      title: cadenceSource.learningTracks[0]!.title,
+      lifecycle: cadenceSource.learningTracks[0]!.lifecycle,
+      priority: cadenceSource.learningTracks[0]!.priority,
+      protectedMinimumMinutes: cadenceSource.learningTracks[0]!.protectedMinimumMinutes,
+      cadencePerWeek: 3,
+      aggregateVersion: "3",
+    },
+    progress: {
+      ...cadenceSource.progress,
+      completedCadenceSessionsThisWeek: 1,
+      beforeCadenceDeficit: 1,
+      afterCadenceDeficit: 2,
+    },
+    canApply: true,
+    blockingReasons: [],
+    warnings: [],
+    unchanged: {
+      priority: true,
+      protectedMinimumMinutes: true,
+      learningTrackActivities: true,
+      planSnapshots: true,
+      focusSessions: true,
+      evidence: true,
+      masteryAndReadiness: true,
+      review: true,
+    },
+    recalculationAfterApply: {
+      projectionState: "PENDING",
+      consumerName: "planning.plan_snapshot_v1",
+    },
+    previewDigest: "9".repeat(64),
+  },
 };
 
 const terminalLifecyclePreviewState: PlanActionState = {
@@ -830,6 +912,7 @@ export default async function PlanFixturePage({
   const showsActivity = previewKind.startsWith("activity");
   const showsActivityV2 = previewKind.startsWith("activity-v2");
   const showsTerminal = previewKind.startsWith("terminal");
+  const showsCadence = previewKind.startsWith("track-cadence");
   const creationSource =
     previewKind === "track-create-no-goals"
       ? creationSourceState("NO_ACTIVE_GOALS")
@@ -883,6 +966,9 @@ export default async function PlanFixturePage({
           initialTerminalLifecyclePreviewState={
             previewKind === "terminal" ? terminalLifecyclePreviewState : initialPlanActionState
           }
+          initialCadencePreviewState={
+            previewKind === "track-cadence" ? cadencePreviewState : initialPlanActionState
+          }
           initialInitializationPreviewState={
             showsInitialization ? initializationPreviewState : initialPlanActionState
           }
@@ -895,7 +981,8 @@ export default async function PlanFixturePage({
             showsTrackSettings ||
             showsCreation ||
             showsActivity ||
-            showsTerminal
+            showsTerminal ||
+            showsCadence
               ? initialPlanActionState
               : previewState
           }
@@ -933,6 +1020,7 @@ export default async function PlanFixturePage({
                   : {}),
               }
             : {})}
+          {...(showsCadence ? { cadenceSource } : {})}
           tracksWorkspace={
             showsInitialization
               ? setupTracksWorkspace
