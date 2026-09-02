@@ -78,10 +78,10 @@ describe("LearningTrackTerminalLifecycle", () => {
   it("derives operations from lifecycle and keeps archived history read-only", () => {
     render(<LearningTrackTerminalLifecycle source={source} />);
     const selector = screen.getByLabelText("Track");
-    expect(screen.getByRole("option", { name: /Working memory drills — Active/u })).toBeVisible();
-    expect(screen.getByRole("option", { name: /Completed history — Completed/u })).toBeVisible();
+    expect(screen.getByRole("option", { name: "Algorithms — Active" })).toBeVisible();
+    expect(screen.getByRole("option", { name: "Completed history — Completed" })).toBeVisible();
     expect(
-      screen.getByRole("option", { name: /Archived history — Archived · read-only/u }),
+      screen.getByRole("option", { name: "Archived history — Archived · read-only" }),
     ).toBeVisible();
     fireEvent.change(selector, { target: { value: "track:completed-history" } });
     expect(screen.queryByLabelText("Complete Track")).not.toBeInTheDocument();
