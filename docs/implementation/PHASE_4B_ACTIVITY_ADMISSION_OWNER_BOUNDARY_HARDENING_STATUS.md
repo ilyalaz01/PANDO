@@ -60,5 +60,5 @@ version changed.
 
 Continue D2b with a separate Learning Track priority/protected-minimum edit design. It must settle
 the exact preview, aggregate fences, priority ordering effects, and protected-capacity invariant
-before implementation. Track creation, terminal lifecycle commands, and cadence remain later
-increments.
+before implementation. Subsequent work completed Track creation and terminal lifecycle; cadence
+remains the later D2 increment.

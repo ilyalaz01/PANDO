@@ -2,7 +2,7 @@
 
 Status: D1, D1b, D2a, and D2b1–D2b4 complete; cadence D2 and D3–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
-Completed: 2026-09-01
+Completed: 2026-09-02
 
 ## Delivered outcome
 

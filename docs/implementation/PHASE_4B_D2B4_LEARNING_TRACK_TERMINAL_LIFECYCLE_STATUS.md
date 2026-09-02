@@ -59,8 +59,8 @@ Verified on Windows against the committed dependency set:
 
 - `pnpm verify` — PASS: formatting, lint, strict TypeScript, 15 database-runner checks, 3
   backup-archive unit checks, 381 contract tests, 3 performance tests, 911 unit/coverage tests,
-  production build, and 35/35 Chromium E2E/accessibility tests. Coverage: 87.56% statements,
-  81.33% branches, 92.27% functions, and 88.96% lines.
+  production build, and 35/35 Chromium E2E/accessibility tests. Coverage: 87.49% statements,
+  81.29% branches, 92.21% functions, and 88.89% lines.
 - `pnpm verify:db` — PASS from a clean migration: 44 pgTAP files, 2838 assertions, and
   warning-level database lint with no findings.
 - `pnpm verify:auth` — PASS in an isolated migrated stack, including the existing authenticated
