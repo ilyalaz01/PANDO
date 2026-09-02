@@ -18,6 +18,7 @@ import growthPlanControlSchema from "../../../schemas/planning/v1/growth-plan-co
 import growthPlanCapacityControlSchema from "../../../schemas/planning/v1/growth-plan-capacity-control.schema.json";
 import growthPlanInitializationControlSchema from "../../../schemas/planning/v1/growth-plan-initialization-control.schema.json";
 import growthPlanReplacementControlSchema from "../../../schemas/planning/v1/growth-plan-replacement-control.schema.json";
+import availabilityWindowControlSchema from "../../../schemas/planning/v1/availability-window-control.schema.json";
 import learningTrackActivityAdmissionControlSchema from "../../../schemas/planning/v1/learning-track-activity-admission-control.schema.json";
 import learningTrackCadenceControlSchema from "../../../schemas/planning/v1/learning-track-cadence-control.schema.json";
 import learningTrackCreationControlSchema from "../../../schemas/planning/v1/learning-track-creation-control.schema.json";
@@ -55,6 +56,7 @@ export const schemaNames = [
   "growth-plan-capacity-control-v1",
   "growth-plan-initialization-control-v1",
   "growth-plan-replacement-control-v1",
+  "availability-window-control-v1",
   "learning-track-creation-control-v1",
   "learning-track-activity-admission-control-v1",
   "learning-track-cadence-control-v1",
@@ -95,6 +97,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "growth-plan-capacity-control-v1": growthPlanCapacityControlSchema,
   "growth-plan-initialization-control-v1": growthPlanInitializationControlSchema,
   "growth-plan-replacement-control-v1": growthPlanReplacementControlSchema,
+  "availability-window-control-v1": availabilityWindowControlSchema,
   "learning-track-creation-control-v1": learningTrackCreationControlSchema,
   "learning-track-activity-admission-control-v1": learningTrackActivityAdmissionControlSchema,
   "learning-track-cadence-control-v1": learningTrackCadenceControlSchema,
