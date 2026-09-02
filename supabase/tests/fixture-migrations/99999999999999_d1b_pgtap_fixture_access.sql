@@ -17,7 +17,9 @@ grant execute on function
   planning.derive_first_growth_plan_identity_v1(uuid, text, text, text),
   planning.build_first_growth_plan_preview_v1(
     uuid, jsonb, bigint, integer, integer, integer, text, text
-  )
+  ),
+  planning.derive_growth_plan_replacement_identity_v1(uuid, text, text, text),
+  planning.plan_replaced_event_payload_v1_is_valid(jsonb)
   to postgres;
 reset role;
 

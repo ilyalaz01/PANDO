@@ -12,14 +12,10 @@ import { type ContractViolation, type ValidationResult, validationResult } from 
 import { validateSchema } from "./schema-registry";
 
 export type AvailabilityWindowOperationV1 =
-  | "create_availability_window"
-  | "change_availability_window"
-  | "remove_availability_window";
+  "create_availability_window" | "change_availability_window" | "remove_availability_window";
 
 export type AvailabilityWindowSourceState =
-  | "AVAILABILITY_AVAILABLE"
-  | "WINDOW_LIMIT_REACHED"
-  | "NO_CURRENT_PLAN";
+  "AVAILABILITY_AVAILABLE" | "WINDOW_LIMIT_REACHED" | "NO_CURRENT_PLAN";
 
 export interface AvailabilityWindowStateV1 {
   readonly windowKey: string;
@@ -46,11 +42,15 @@ export type AvailabilityWindowSourceV1 =
         readonly lifecycle: "ACTIVE" | "PAUSED";
         readonly weeklyCapacityMinutes: number;
         readonly aggregateVersion: string;
+        readonly timeZone: string;
+        readonly currentLocalDate: string;
         readonly activeWindowCount: number;
+        readonly activeWindowLimit: 60;
         readonly removedWindowCount: number;
         readonly capacityUsesAvailability: boolean;
       };
       readonly availabilityWindows: readonly AvailabilityWindowStateV1[];
+      readonly removedAvailabilityWindows: readonly AvailabilityWindowStateV1[];
     }
   | {
       readonly contract: { readonly name: "AvailabilityWindowSourceV1"; readonly version: "1.0.0" };
@@ -58,6 +58,7 @@ export type AvailabilityWindowSourceV1 =
       readonly capabilities: readonly [];
       readonly growthPlan: null;
       readonly availabilityWindows: readonly [];
+      readonly removedAvailabilityWindows: readonly [];
     };
 
 export interface AvailabilityWindowPreviewV1 {
@@ -93,7 +94,9 @@ export interface AvailabilityWindowPreviewV1 {
       | "AVAILABILITY_WINDOW_ALREADY_REMOVED"
       | "PLANNING_CREATE_IDENTITY_COLLISION";
   }[];
-  readonly warnings: readonly { readonly code: "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY" }[];
+  readonly warnings: readonly {
+    readonly code: "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY" | "AVAILABILITY_WINDOW_IN_THE_PAST";
+  }[];
   readonly retained: {
     readonly growthPlan: true;
     readonly learningTracks: true;
@@ -157,9 +160,61 @@ function rangeViolations(window: JsonObject, path: string): ContractViolation[] 
   return [];
 }
 
+function removedWindowViolations(root: JsonObject): ContractViolation[] {
+  const violations: ContractViolation[] = [];
+  const removed = asArray(root.removedAvailabilityWindows).map((item) =>
+    asJsonObject(item, "removed availability window"),
+  );
+  if (removed.length > 20) {
+    violations.push(
+      semanticViolation(
+        "AVAILABILITY_WINDOW_REMOVED_PAGE_SIZE",
+        "/removedAvailabilityWindows",
+        "The removed-window history page is bounded to 20 rows.",
+      ),
+    );
+  }
+  if (removed.some((window) => window.lifecycle !== "REMOVED")) {
+    violations.push(
+      semanticViolation(
+        "AVAILABILITY_WINDOW_LIFECYCLE",
+        "/removedAvailabilityWindows",
+        "The removed-window history page lists only removed windows.",
+      ),
+    );
+  }
+  const order = removed.map((window) => `${String(window.startsOn)}|${String(window.windowKey)}`);
+  for (let index = 1; index < order.length; index += 1) {
+    if (order[index]! > order[index - 1]!) {
+      violations.push(
+        semanticViolation(
+          "AVAILABILITY_WINDOW_ORDER",
+          "/removedAvailabilityWindows",
+          "Removed availability windows use newest-start-date-first then window-key order.",
+        ),
+      );
+      break;
+    }
+  }
+  for (const [index, window] of removed.entries()) {
+    violations.push(...rangeViolations(window, `/removedAvailabilityWindows/${index}`));
+    if (hasControlCharacters(window.label)) {
+      violations.push(
+        semanticViolation(
+          "AVAILABILITY_WINDOW_UNSAFE_TEXT",
+          `/removedAvailabilityWindows/${index}/label`,
+          "A window label must not contain control characters.",
+        ),
+      );
+    }
+  }
+  return violations;
+}
+
 function sourceSemanticViolations(root: JsonObject): ContractViolation[] {
   const violations: ContractViolation[] = [];
   if (root.state === "NO_CURRENT_PLAN") return violations;
+  violations.push(...removedWindowViolations(root));
   const plan = asJsonObject(root.growthPlan, "availability growth plan");
   const windows = asArray(root.availabilityWindows).map((item) =>
     asJsonObject(item, "availability window"),
@@ -232,11 +287,7 @@ function sourceSemanticViolations(root: JsonObject): ContractViolation[] {
   const expected =
     root.state === "WINDOW_LIMIT_REACHED"
       ? ["change_availability_window", "remove_availability_window"]
-      : [
-          "create_availability_window",
-          "change_availability_window",
-          "remove_availability_window",
-        ];
+      : ["create_availability_window", "change_availability_window", "remove_availability_window"];
   if (capabilities.length !== expected.length || capabilities.some((c, i) => c !== expected[i])) {
     violations.push(
       semanticViolation(
@@ -255,7 +306,8 @@ function previewSemanticViolations(root: JsonObject): ContractViolation[] {
   const before = asJsonObject(root.before, "availability before");
   const after = asJsonObject(root.after, "availability after");
   const afterWindow = asJsonObject(after.window, "proposed window");
-  const beforeWindow = before.window === null ? null : asJsonObject(before.window, "current window");
+  const beforeWindow =
+    before.window === null ? null : asJsonObject(before.window, "current window");
   const operation = String(root.operation);
   const activeBefore = asNumber(before.activeWindowCount) ?? 0;
   const activeAfter = asNumber(after.activeWindowCount) ?? 0;
@@ -435,8 +487,7 @@ function applySemanticViolations(root: JsonObject): ContractViolation[] {
       ),
     );
   }
-  const expectedLifecycle =
-    root.operation === "remove_availability_window" ? "REMOVED" : "ACTIVE";
+  const expectedLifecycle = root.operation === "remove_availability_window" ? "REMOVED" : "ACTIVE";
   if (window.lifecycle !== expectedLifecycle) {
     violations.push(
       semanticViolation(

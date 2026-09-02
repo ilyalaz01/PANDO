@@ -1,0 +1,61 @@
+{
+  "contract": {
+    "name": "AvailabilityWindowPreviewV1",
+    "version": "1.0.0"
+  },
+  "digestVersion": "availability-window-preview-digest/1.0.0",
+  "identityVersion": "planning-create-identity/1.0.0",
+  "operation": "create_availability_window",
+  "commandType": "planning.change_availability_window_v1",
+  "idempotencyKey": "'; DROP TABLE planning.availability_windows; --",
+  "reason": "Drop\u0000 table",
+  "expectedGrowthPlanVersion": "3",
+  "growthPlan": {
+    "growthPlanId": "70000000-0000-8000-8000-000000000001",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 420,
+    "aggregateVersion": "3"
+  },
+  "before": {
+    "activeWindowCount": 2,
+    "removedWindowCount": 1,
+    "activeWindowFingerprint": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "window": null
+  },
+  "after": {
+    "activeWindowCount": 3,
+    "window": {
+      "windowKey": "window:../../../etc/passwd",
+      "availabilityWindowId": "76000000-0000-8000-8000-000000000001",
+      "startsOn": "2026-10-01",
+      "endsOn": "2026-10-03",
+      "timeZone": "America/New_York",
+      "availableMinutes": 180,
+      "energy": "LOW",
+      "label": "<script>alert(document.cookie)</script>",
+      "lifecycle": "ACTIVE",
+      "aggregateVersion": "1"
+    }
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [
+    {
+      "code": "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY"
+    }
+  ],
+  "retained": {
+    "growthPlan": true,
+    "learningTracks": true,
+    "activitiesAndEvidence": true,
+    "mastery": true,
+    "reviews": true,
+    "planSnapshots": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "AVAILABILITY_CHANGED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}

@@ -83,6 +83,44 @@ for all to pando_planning_api
 using (identity.is_workspace_member(workspace_id))
 with check (identity.is_workspace_member(workspace_id));
 
+-- The recorded time zone is validated by the Identity-owned predicate the workspace column already
+-- uses, so the Planning owner role must be able to evaluate it while inserting a window. The
+-- predicate stays unreachable from anon, authenticated, and service_role.
+do $migration_identity_api_membership$
+begin
+  execute pg_catalog.format('grant pando_identity_api to %I with set true', current_user);
+end
+$migration_identity_api_membership$;
+set role pando_identity_api;
+grant execute on function identity.is_known_time_zone(text) to pando_planning_api;
+reset role;
+do $migration_identity_api_membership_revoke$
+begin
+  execute pg_catalog.format('revoke pando_identity_api from %I', current_user);
+end
+$migration_identity_api_membership_revoke$;
+
+-- Availability is stated in whole local days, so the command resolves the workspace time zone and
+-- current local date through the released Identity calendar owner query.
+do $migration_identity_membership$
+begin
+  execute pg_catalog.format(
+    'grant pando_identity_planning_source to %I with set true', current_user
+  );
+end
+$migration_identity_membership$;
+set role pando_identity_planning_source;
+grant execute on function identity.read_planning_calendar_source_v1(uuid, timestamptz)
+  to pando_planning_api;
+reset role;
+do $migration_identity_membership_revoke$
+begin
+  execute pg_catalog.format(
+    'revoke pando_identity_planning_source from %I', current_user
+  );
+end
+$migration_identity_membership_revoke$;
+
 create function planning.derive_availability_window_identity_v1(
   p_workspace_id uuid,
   p_command_type text,
@@ -254,6 +292,8 @@ create function planning.build_availability_window_preview_v1(
   p_constraint jsonb,
   p_current_window jsonb,
   p_proposed_window jsonb,
+  p_active_window_count_after integer,
+  p_warning_codes text[],
   p_blocking_reason text,
   p_reason text,
   p_idempotency_key text
@@ -266,7 +306,6 @@ as $function$
 declare
   v_can_apply boolean;
   v_warnings jsonb;
-  v_warning_codes text[];
   v_names text[];
   v_values text[];
   v_digest_input text;
@@ -279,7 +318,27 @@ begin
      or p_growth_plan_lifecycle not in ('active', 'paused')
      or p_growth_plan_version is null or p_growth_plan_version < 1
      or p_expected_growth_plan_version is null or p_expected_growth_plan_version < 1
-     or p_proposed_window is null then
+     or p_constraint is null or p_proposed_window is null
+     or p_active_window_count_after is null or p_active_window_count_after < 0 then
+    raise exception using errcode = '22023',
+      message = 'availability window preview input is invalid';
+  end if;
+  if p_blocking_reason is not null and p_blocking_reason not in (
+       'AVAILABILITY_WINDOW_OVERLAPS_EXISTING', 'AVAILABILITY_WINDOW_LIMIT_REACHED',
+       'AVAILABILITY_WINDOW_ALREADY_REMOVED', 'PLANNING_CREATE_IDENTITY_COLLISION'
+     ) then
+    raise exception using errcode = '22023',
+      message = 'availability window preview input is invalid';
+  end if;
+  if p_warning_codes is null
+     or pg_catalog.cardinality(p_warning_codes) < 1
+     or p_warning_codes[1] <> 'AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY'
+     or exists (
+       select 1 from pg_catalog.unnest(p_warning_codes) as warning(code)
+       where warning.code not in (
+         'AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY', 'AVAILABILITY_WINDOW_IN_THE_PAST'
+       )
+     ) then
     raise exception using errcode = '22023',
       message = 'availability window preview input is invalid';
   end if;
@@ -293,12 +352,14 @@ begin
   end if;
 
   v_can_apply := p_blocking_reason is null;
-  v_warnings := pg_catalog.jsonb_build_array(
-    pg_catalog.jsonb_build_object('code', 'AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY')
-  );
-  select pg_catalog.array_agg(warning.value->>'code' order by warning.ordinality)
-  into v_warning_codes
-  from pg_catalog.jsonb_array_elements(v_warnings) with ordinality as warning(value, ordinality);
+  select coalesce(
+    pg_catalog.jsonb_agg(
+      pg_catalog.jsonb_build_object('code', warning.code) order by warning.ordinality
+    ),
+    '[]'::jsonb
+  )
+  into v_warnings
+  from pg_catalog.unnest(p_warning_codes) with ordinality as warning(code, ordinality);
 
   v_names := array[
     'digestVersion','contractVersion','identityVersion','workspaceId','operation','commandType',
@@ -309,7 +370,7 @@ begin
     'beforeLabel','beforeLifecycle','beforeVersion','afterWindowKey','afterAvailabilityWindowId',
     'afterStartsOn','afterEndsOn','afterTimeZone','afterAvailableMinutes','afterEnergy',
     'afterLabel','afterLifecycle','afterVersion','canApply','blockingReasonCode','warningCount'
-  ] || pg_catalog.array_fill('warningCode'::text, array[pg_catalog.cardinality(v_warning_codes)])
+  ] || pg_catalog.array_fill('warningCode'::text, array[pg_catalog.cardinality(p_warning_codes)])
     || array[
     'retainedGrowthPlan','retainedLearningTracks','retainedActivitiesAndEvidence','retainedMastery',
     'retainedReviews','retainedPlanSnapshots','projectionStateAfterApply','eventChangeKind',
@@ -321,12 +382,7 @@ begin
     p_idempotency_key,p_reason,p_expected_growth_plan_version::text,
     pg_catalog.lower(p_growth_plan_id::text),pg_catalog.upper(p_growth_plan_lifecycle),
     p_growth_plan_weekly_capacity_minutes::text,p_growth_plan_version::text,
-    (p_constraint->>'activeWindowCount'),
-    case p_operation
-      when 'create_availability_window' then ((p_constraint->>'activeWindowCount')::integer + 1)
-      when 'remove_availability_window' then ((p_constraint->>'activeWindowCount')::integer - 1)
-      else (p_constraint->>'activeWindowCount')::integer
-    end::text,
+    (p_constraint->>'activeWindowCount'),p_active_window_count_after::text,
     (p_constraint->>'removedWindowCount'),(p_constraint->>'activeWindowFingerprint'),
     coalesce(p_current_window->>'windowKey',''),coalesce(p_current_window->>'startsOn',''),
     coalesce(p_current_window->>'endsOn',''),coalesce(p_current_window->>'timeZone',''),
@@ -338,12 +394,16 @@ begin
     p_proposed_window->>'availableMinutes',coalesce(p_proposed_window->>'energy',''),
     coalesce(p_proposed_window->>'label',''),p_proposed_window->>'lifecycle',
     p_proposed_window->>'aggregateVersion',pg_catalog.lower(v_can_apply::text),
-    coalesce(p_blocking_reason,''),pg_catalog.cardinality(v_warning_codes)::text
-  ] || v_warning_codes || array[
+    coalesce(p_blocking_reason,''),pg_catalog.cardinality(p_warning_codes)::text
+  ] || p_warning_codes || array[
     'true','true','true','true','true','true','PENDING','AVAILABILITY_CHANGED',
     'planning.plan_snapshot_v1'
   ];
   v_digest_input := planning.frame_named_fields_v1(v_names, v_values);
+  if v_digest_input is null then
+    raise exception using errcode = '55000',
+      message = 'availability window digest framing failed';
+  end if;
   v_digest := pg_catalog.encode(
     extensions.digest(pg_catalog.convert_to(v_digest_input, 'UTF8'), 'sha256'), 'hex'
   );
@@ -372,11 +432,7 @@ begin
       'window', coalesce(p_current_window, 'null'::jsonb)
     ),
     'after', pg_catalog.jsonb_build_object(
-      'activeWindowCount', case p_operation
-        when 'create_availability_window' then (p_constraint->>'activeWindowCount')::integer + 1
-        when 'remove_availability_window' then (p_constraint->>'activeWindowCount')::integer - 1
-        else (p_constraint->>'activeWindowCount')::integer
-      end,
+      'activeWindowCount', p_active_window_count_after,
       'window', p_proposed_window
     ),
     'canApply', v_can_apply,
@@ -395,25 +451,6 @@ begin
   );
 end
 $function$;
-
-do $migration_identity_membership$
-begin
-  execute pg_catalog.format(
-    'grant pando_identity_planning_source to %I with set true', current_user
-  );
-end
-$migration_identity_membership$;
-set role pando_identity_planning_source;
-grant execute on function identity.read_planning_calendar_source_v1(uuid, timestamptz)
-  to pando_planning_api;
-reset role;
-do $migration_identity_membership_revoke$
-begin
-  execute pg_catalog.format(
-    'revoke pando_identity_planning_source from %I', current_user
-  );
-end
-$migration_identity_membership_revoke$;
 
 create function planning.resolve_availability_window_preview_v1(
   p_workspace_id uuid,
@@ -441,13 +478,17 @@ declare
   v_time_zone text;
   v_today date;
   v_constraint jsonb;
+  v_active_before integer;
+  v_active_after integer;
   v_current planning.availability_windows%rowtype;
   v_current_json jsonb := null;
   v_window_id uuid;
   v_window_key text;
   v_proposed jsonb;
+  v_proposed_ends_on date;
   v_blocker text := null;
   v_overlaps boolean;
+  v_warning_codes text[];
 begin
   select plan.* into v_plan
   from planning.growth_plans as plan
@@ -461,6 +502,7 @@ begin
   v_time_zone := v_calendar->>'timeZone';
   v_today := (p_as_of at time zone v_time_zone)::date;
   v_constraint := planning.availability_window_constraint_v1(p_workspace_id, v_plan.growth_plan_id);
+  v_active_before := (v_constraint->>'activeWindowCount')::integer;
 
   if p_operation = 'create_availability_window' then
     v_window_id := planning.derive_availability_window_identity_v1(
@@ -478,9 +520,11 @@ begin
          or window_row.window_key = v_window_key
     ) then
       v_blocker := 'PLANNING_CREATE_IDENTITY_COLLISION';
-    elsif (v_constraint->>'activeWindowCount')::integer >= 60 then
+    elsif v_active_before >= 60 then
       v_blocker := 'AVAILABILITY_WINDOW_LIMIT_REACHED';
     end if;
+    v_proposed_ends_on := p_ends_on;
+    v_active_after := v_active_before + 1;
     v_proposed := pg_catalog.jsonb_build_object(
       'windowKey', v_window_key,
       'availabilityWindowId', pg_catalog.lower(v_window_id::text),
@@ -543,6 +587,8 @@ begin
       if v_blocker is null and v_overlaps then
         v_blocker := 'AVAILABILITY_WINDOW_OVERLAPS_EXISTING';
       end if;
+      v_proposed_ends_on := p_ends_on;
+      v_active_after := v_active_before;
       v_proposed := pg_catalog.jsonb_build_object(
         'windowKey', v_window_key,
         'availabilityWindowId', pg_catalog.lower(v_window_id::text),
@@ -556,6 +602,9 @@ begin
         'aggregateVersion', (v_current.aggregate_version + 1)::text
       );
     else
+      v_proposed_ends_on := v_current.ends_on;
+      v_active_after := v_active_before
+        - case when v_current.lifecycle = 'active' then 1 else 0 end;
       v_proposed := pg_catalog.jsonb_build_object(
         'windowKey', v_window_key,
         'availabilityWindowId', pg_catalog.lower(v_window_id::text),
@@ -585,10 +634,18 @@ begin
     end if;
   end if;
 
+  -- D3b1 stores availability without changing capacity, so every preview says so plainly. A
+  -- window whose last local day is already behind the workspace's current local date is history.
+  v_warning_codes := array['AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY'];
+  if v_proposed_ends_on < v_today then
+    v_warning_codes := v_warning_codes || array['AVAILABILITY_WINDOW_IN_THE_PAST'::text];
+  end if;
+
   return planning.build_availability_window_preview_v1(
     p_workspace_id, p_operation, v_plan.growth_plan_id, v_plan.lifecycle,
     v_plan.weekly_capacity_minutes, v_plan.aggregate_version, p_expected_growth_plan_version,
-    v_constraint, v_current_json, v_proposed, v_blocker, p_reason, p_idempotency_key
+    v_constraint, v_current_json, v_proposed, v_active_after, v_warning_codes, v_blocker,
+    p_reason, p_idempotency_key
   );
 end
 $function$;
@@ -677,7 +734,12 @@ declare
   v_plan planning.growth_plans%rowtype;
   v_current_count integer;
   v_constraint jsonb;
+  v_calendar jsonb;
+  v_time_zone text;
+  v_today date;
+  v_active_count integer;
   v_windows jsonb := '[]'::jsonb;
+  v_removed jsonb := '[]'::jsonb;
 begin
   if identity.jwt_subject() is null then
     raise exception using errcode = '28000', message = 'an authenticated user is required';
@@ -703,7 +765,8 @@ begin
       'state', 'NO_CURRENT_PLAN',
       'capabilities', '[]'::jsonb,
       'growthPlan', 'null'::jsonb,
-      'availabilityWindows', '[]'::jsonb
+      'availabilityWindows', '[]'::jsonb,
+      'removedAvailabilityWindows', '[]'::jsonb
     );
   end if;
 
@@ -714,6 +777,13 @@ begin
   v_constraint := planning.availability_window_constraint_v1(
     v_workspace_id, v_plan.growth_plan_id
   );
+  v_active_count := (v_constraint->>'activeWindowCount')::integer;
+  v_calendar := identity.read_planning_calendar_source_v1(
+    v_workspace_id, pg_catalog.clock_timestamp()
+  );
+  v_time_zone := v_calendar->>'timeZone';
+  v_today := (pg_catalog.clock_timestamp() at time zone v_time_zone)::date;
+
   select coalesce(pg_catalog.jsonb_agg(
     pg_catalog.jsonb_build_object(
       'windowKey', window_row.window_key,
@@ -732,16 +802,41 @@ begin
     and window_row.growth_plan_id = v_plan.growth_plan_id
     and window_row.lifecycle = 'active';
 
+  -- Removal is retained history, so the source exposes a bounded newest-first page of it. The
+  -- total stays available as removedWindowCount, which is how a client knows the page is partial.
+  select coalesce(pg_catalog.jsonb_agg(
+    pg_catalog.jsonb_build_object(
+      'windowKey', page.window_key,
+      'startsOn', page.starts_on::text,
+      'endsOn', page.ends_on::text,
+      'timeZone', page.time_zone,
+      'availableMinutes', page.available_minutes,
+      'energy', page.energy,
+      'label', page.label,
+      'lifecycle', pg_catalog.upper(page.lifecycle),
+      'aggregateVersion', page.aggregate_version::text
+    ) order by page.starts_on desc, page.window_key collate "C"
+  ), '[]'::jsonb) into v_removed
+  from (
+    select window_row.*
+    from planning.availability_windows as window_row
+    where window_row.workspace_id = v_workspace_id
+      and window_row.growth_plan_id = v_plan.growth_plan_id
+      and window_row.lifecycle = 'removed'
+    order by window_row.starts_on desc, window_row.window_key collate "C"
+    limit 20
+  ) as page;
+
   return pg_catalog.jsonb_build_object(
     'contract', pg_catalog.jsonb_build_object(
       'name', 'AvailabilityWindowSourceV1', 'version', '1.0.0'
     ),
     'state', case
-      when (v_constraint->>'activeWindowCount')::integer >= 60 then 'WINDOW_LIMIT_REACHED'
+      when v_active_count >= 60 then 'WINDOW_LIMIT_REACHED'
       else 'AVAILABILITY_AVAILABLE'
     end,
     'capabilities', case
-      when (v_constraint->>'activeWindowCount')::integer >= 60
+      when v_active_count >= 60
         then pg_catalog.jsonb_build_array(
           'change_availability_window', 'remove_availability_window'
         )
@@ -753,11 +848,15 @@ begin
       'lifecycle', pg_catalog.upper(v_plan.lifecycle),
       'weeklyCapacityMinutes', v_plan.weekly_capacity_minutes,
       'aggregateVersion', v_plan.aggregate_version::text,
-      'activeWindowCount', (v_constraint->>'activeWindowCount')::integer,
+      'timeZone', v_time_zone,
+      'currentLocalDate', v_today::text,
+      'activeWindowCount', v_active_count,
+      'activeWindowLimit', 60,
       'removedWindowCount', (v_constraint->>'removedWindowCount')::integer,
       'capacityUsesAvailability', false
     ),
-    'availabilityWindows', v_windows
+    'availabilityWindows', v_windows,
+    'removedAvailabilityWindows', v_removed
   );
 end
 $function$;
@@ -1047,7 +1146,8 @@ alter function planning.availability_window_constraint_v1(uuid, uuid)
 alter function planning.availability_changed_event_payload_v1_is_valid(jsonb)
   owner to pando_planning_api;
 alter function planning.build_availability_window_preview_v1(
-  uuid, text, uuid, text, integer, bigint, bigint, jsonb, jsonb, jsonb, text, text, text
+  uuid, text, uuid, text, integer, bigint, bigint, jsonb, jsonb, jsonb, integer, text[],
+  text, text, text
 ) owner to pando_planning_api;
 alter function planning.resolve_availability_window_preview_v1(
   uuid, text, text, date, date, integer, text, text, bigint, bigint, text, text, timestamptz
@@ -1068,7 +1168,8 @@ revoke all on function
   planning.availability_window_constraint_v1(uuid, uuid),
   planning.availability_changed_event_payload_v1_is_valid(jsonb),
   planning.build_availability_window_preview_v1(
-    uuid, text, uuid, text, integer, bigint, bigint, jsonb, jsonb, jsonb, text, text, text
+    uuid, text, uuid, text, integer, bigint, bigint, jsonb, jsonb, jsonb, integer, text[],
+    text, text, text
   ),
   planning.resolve_availability_window_preview_v1(
     uuid, text, text, date, date, integer, text, text, bigint, bigint, text, text, timestamptz

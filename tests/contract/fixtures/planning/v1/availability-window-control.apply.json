@@ -1,0 +1,24 @@
+{
+  "contract": {
+    "name": "AvailabilityWindowApplyResultV1",
+    "version": "1.0.0"
+  },
+  "commandId": "79000000-0000-4000-8000-000000000001",
+  "operation": "change_availability_window",
+  "availabilityWindow": {
+    "windowKey": "window:7a000000-0000-8000-8000-000000000001",
+    "availabilityWindowId": "7a000000-0000-8000-8000-000000000001",
+    "startsOn": "2026-11-01",
+    "endsOn": "2026-11-05",
+    "timeZone": "Europe/Berlin",
+    "availableMinutes": 240,
+    "energy": "MEDIUM",
+    "label": "Half days",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "2"
+  },
+  "activeWindowCount": 4,
+  "projectionState": "PENDING",
+  "planningDeliveryId": "7b000000-0000-4000-8000-000000000001",
+  "emittedEventIds": ["7c000000-0000-4000-8000-000000000001"]
+}

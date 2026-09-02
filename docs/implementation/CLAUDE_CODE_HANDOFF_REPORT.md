@@ -1,208 +1,253 @@
 # Claude Code handoff report
 
-Session date: 2026-09-02
-Agent: Claude Code (Opus 5), working from `CODEX_D2C_TO_CLAUDE_HANDOFF.md`
-Branches: `claude/d3-d5-lifecycle-adr`, then `claude/d3a-growth-plan-replacement`
+Session date: 2026-09-03
+Agent: Claude Code (Sonnet 5), continuing from the unreviewed D3b1 draft in `e2abf84`
+Branch: `claude/d3b1-draft-unverified`
+Scope: Outcome 1 (D3b1-db) of `docs/implementation/CLAUDE_SESSION_SPLIT_PLAN.md` — the persistence
+half of D3b1 only.
 
-This file replaces the historical C4 report, which remains in Git history.
+This file replaces the prior report (`60e793e`/`44c3f3b`-era), which remains in Git history.
 
 ## 1. Outcome attempted
 
-Two ordered outcomes from the Codex D2c handoff:
+D3b1-db: land a verified, corrected D3b1 availability-window migration and the missing
+`tests/contract/availability-window-control.test.ts` contract test. Status: **complete**.
 
-1. **D3–D5 lifecycle ADR** — settle every open decision in
-   `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md` §10 with no production-code or schema change.
-   Status: **complete and committed** (`60e793e`).
-2. **D3a Growth Plan replacement** — the smallest reversible D3 slice named by the accepted ADR.
-   Status: **complete and committed** (`44c3f3b`), verified by every gate this environment can run
-   (§6), with two owner-run gates outstanding.
-3. **D3b availability windows design** — the accepted design for the next slice.
-   Status: **design complete and committed** (`5851b84`); implementation **not** committed.
+D3b1's UI/server-loader/`/plan` control, event-schema variant, E2E coverage, and design-status
+document are **not** part of this outcome and remain undone (see §8). D3b2 (V3 capacity
+composition and rollout) has not started.
 
-D3b implementation, D4 Campaign persistence, and D5 overlays/coordinator are **not** delivered. A
-partial, unverified D3b1 draft exists outside the repository; see §8.
+The session opened with an explicit, narrower ask from the owner: (1) fix a suspected
+`identity.is_known_time_zone` permission-denied failure in the draft migration, (2) write the
+missing contract test with 6 fixtures, (3) get everything passing locally. While verifying (1), a
+materially more complete version of the same migration was found already applied and pgTAP-tested
+in a separate scratch Supabase project (`/home/ilya/pando-d3b1-dev`, outside this repository) that
+a prior session had produced but never committed. That version was adopted in place of the
+committed draft because it both fixes the reported permission issue and closes two conformance
+gaps against the accepted design (`docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md` §5): the
+`AVAILABILITY_WINDOW_IN_THE_PAST` warning and the removed-window history page. The TS domain
+module, contract module, and JSON schema were updated to match. Running the full `pnpm verify:db`
+gate as a stronger check for (1) surfaced two further pre-existing, unrelated failures (see §3.3);
+both were fixed as minimal, isolated corrections.
 
 ## 2. User-visible result
 
-The ADR changes nothing a person can see.
-
-D3a adds one control to `/plan`: **Replace this Growth Plan**. A signed-in person with a current
-Plan chooses a target, initial weekly capacity, default session length, and first-Track priority,
-reads an exact preview, and confirms. On confirmation the current Plan becomes archived, readable
-history and a new current Plan with one initial Track takes its place in the same transaction.
-Nothing is deleted and nothing is copied: the archived Plan keeps its Learning Tracks exactly as the
-person left them, and every Focus session, Evidence record, Mastery state, Review, and plan snapshot
-is retained. Today reports honest `PENDING` recalculation afterwards.
+None. This outcome is Planning-owned persistence and contract-test work with no UI, no server
+action, and no `/plan` control. Nothing a signed-in person can see or do has changed.
 
 ## 3. Architecture and policy decisions
 
-`docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md` is the authority for
-all of them. In brief:
+Authority: `docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md` §6, §8, §9
+and `docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md`. No decision in either document was
+reinterpreted; this outcome only finishes implementing what they already specify for D3b1.
 
-1. **Exactly one current Growth Plan after initialization.** No standalone archive command; archive
-   is reachable only inside atomic replacement, which never copies Tracks.
-2. **A paused Growth Plan no longer silences an active Campaign** (implemented in D5, with a new
-   engine/policy version).
-3. **Campaign deadlines are a workspace-local date** plus the recorded time zone and a derived
-   exclusive instant; no auto-end after the deadline, a clamped day count, and an explicit prompt.
-4. **Campaign retarget repoints to an exact existing active Readiness Goal**; goals and profile
-   versions are never mutated, and requirement overrides are superseded rather than carried over.
-5. **Allocation overrides temporarily replace a Track's own priority, protected minimum, and
-   cadence.** Minima are reservations that may only be raised; nothing is a cap; base rows are never
-   mutated, so cancellation restores base allocation by construction.
-6. **Availability windows are plan-scoped, whole-local-day, non-overlapping caps** with per-day
-   minute values; effective weekly capacity is `min(default, sum of the week's day caps)`, so a
-   window can only reduce capacity. Protected minima are rationed deterministically when
-   availability drops below their sum.
-7. **One purpose-specific `campaign_lifecycle_v1` coordinator** in the Agent Control boundary for
-   start/end/cancel only, with the fixed lock order agent-control → targets → planning.
-8. **Calculation versions per slice**: D3a none; D3b `planner-engine/0.3.0`,
-   `planning-policy/0.3`, and `planning-calculation/3`; D4 none; D5 `0.4.0`, `0.4`, and `4`, each
-   with the reviewed D2c expand-then-activate rollout.
-9. **Ordered slices**: D3a, D3b, D4, D5, each finished, verified, documented, and committed alone.
+### 3.1 Adopted migration corrects two conformance gaps left open in the draft
 
-D3a's own decisions are recorded in
-`docs/design/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md` and
-`docs/implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md`. The two that matter most for
-future work: Track lifecycle values under an archived Plan are never rewritten, and historical Focus
-sessions keep their immutable Track attribution, so a mid-week replacement neither fabricates nor
-erases completed work.
+- **Grant fix (the reported issue).** `identity.is_known_time_zone(text)` is owned by
+  `pando_identity_api` with `EXECUTE` revoked from `public`/`anon`/`authenticated`/`service_role`
+  and granted only to `postgres` (`20260827000300_review_core_tables.sql`). The
+  `availability_windows_time_zone_check` CHECK constraint calls it, and every write path runs as
+  `pando_planning_api` (the `SECURITY DEFINER` owner of `api.apply_availability_window_v1`), which
+  had no grant. The migration now borrows `pando_identity_api` membership (grant → `set role` →
+  grant `EXECUTE` to `pando_planning_api` → `reset role` → revoke), exactly the pattern the same
+  migration already used for `identity.read_planning_calendar_source_v1`.
+- **`AVAILABILITY_WINDOW_IN_THE_PAST` warning**, required by design §5 but absent from the
+  committed draft: `resolve_availability_window_preview_v1` now compares the proposed window's
+  `ends_on` against the workspace's current local date and appends the warning when the window is
+  already history. `build_availability_window_preview_v1` now takes the active-window count after
+  and the warning-code array as explicit parameters (validated: cardinality ≥ 1, first entry fixed,
+  only the two known codes) instead of re-deriving the after-count from the operation twice.
+- **Removed-window history page**, required by design §5 ("plus a bounded page of removed
+  history"), also absent from the draft: `api.get_availability_window_source_v1` now returns
+  `removedAvailabilityWindows` (newest-`starts_on`-first, then `window_key`, `limit 20`) and adds
+  `timeZone`, `currentLocalDate`, and `activeWindowLimit` (`60`) to the reported Growth Plan.
+
+### 3.2 TS/schema alignment (this session's own work, not from the scratch project)
+
+- `src/modules/planning/domain/availability-window-preview.ts`: `AvailabilityWindowPreviewDigestFields.warnings`
+  now allows `"AVAILABILITY_WINDOW_IN_THE_PAST"` alongside the existing code. The digest function
+  itself needed no change — it already takes the after-count and warning list as given fields
+  rather than deriving them.
+- `src/shared/contracts/availability-window-control.ts`: `AvailabilityWindowSourceV1` gained
+  `growthPlan.timeZone`, `growthPlan.currentLocalDate`, `growthPlan.activeWindowLimit`, and a
+  top-level `removedAvailabilityWindows` array (present as `[]` in the `NO_CURRENT_PLAN` branch).
+  Added `removedWindowViolations` (page ≤ 20, every row `REMOVED`, newest-first order, control-char
+  and range checks) and wired it into `sourceSemanticViolations`.
+- `schemas/planning/v1/availability-window-control.schema.json`: added the four new
+  `sourceGrowthPlan` fields, added `removedAvailabilityWindows` (bounded 0–20) to both source
+  states, widened the `warning` code enum to two values, and widened the preview `warnings` array
+  to `minItems: 1, maxItems: 2` (the base warning is always present; the DB never emits zero).
+
+### 3.3 Two pre-existing, unrelated fixes required to get `pnpm verify:db` green
+
+Neither was caused by this outcome; both blocked the isolated `verify:db` gate for anyone running
+it and were left behind by the already-committed, already-"verified" D3a outcome (`44c3f3b`). Both
+are one-block, precedent-following, test-only corrections:
+
+- `supabase/tests/database/001_phase0_schema_security.test.sql`: the "every exposed `api.*`
+  function is `SECURITY INVOKER`" check excludes each bounded owner command by name. D3a's three
+  functions (`get_growth_plan_replacement_source_v1` etc.) were already in that exclusion list; this
+  outcome's three new `SECURITY DEFINER` functions were not, so the isolated gate failed three
+  assertions (one per new function) the moment the migration was added. Fixed by adding
+  `get_availability_window_source_v1`, `preview_availability_window_v1`, and
+  `apply_availability_window_v1` to the same list, immediately after D3a's entries.
+- `supabase/tests/fixture-migrations/99999999999999_d1b_pgtap_fixture_access.sql`: this
+  scratch-only file (never part of the deployable migration tree; copied in only by the isolated
+  `verify:db` gate) grants `postgres` `EXECUTE` on specific Planning-private functions that pgTAP
+  files call directly before switching role. It was missing the grants for
+  `planning.derive_growth_plan_replacement_identity_v1` and
+  `planning.plan_replaced_event_payload_v1_is_valid`, which `048_phase4b_growth_plan_replacement.test.sql`
+  calls at its top level — so the isolated gate failed with `permission denied for function
+  derive_growth_plan_replacement_identity_v1`, unrelated to anything in this diff. Confirmed
+  pre-existing by inspecting `git log` on that file (last touched by earlier D2b slices, not D3a) and
+  by isolating that the failure disappears once only these two grants are added, with no other
+  change. Fixed by adding exactly those two grants, mirroring the file's own established pattern.
+
+Both fixes are additive to test-only artifacts (one pgTAP assertion file, one scratch fixture
+migration explicitly marked "never part of the deployable migration tree"); neither touches
+production schema, grants, or code.
+
+### 3.4 Fixture and test design note
+
+The owner's prompt supplied two "oracle constants" for the contract test: a workspace UUID
+(`568cc123-9fcd-4a5a-847e-5ce1918f09b0`) and a 64-hex request-hash value. The workspace UUID is used
+as the binding workspace for every digest/identity/fingerprint/request-hash computation in the test
+(see the `ORACLE_WORKSPACE_ID` constant). The request-hash value could **not** be independently
+reproduced: `availabilityWindowRequestHashInput` hashes twelve fields together, and the prompt gave
+no way to recover the other eleven (they likely live in `docs/implementation/CLAUDE_SESSION_SPLIT_PLAN.md`,
+which this session was explicitly told to leave unread). Rather than hard-code a value this session
+cannot honestly derive, the test pins the request-hash function's format (`^[a-f0-9]{64}$`) and its
+workspace-binding property (two otherwise-identical inputs with different `workspaceId` values
+produce different hashes) — the exact pattern the sibling `growth-plan-replacement-control.test.ts`
+already uses for its own request-hash oracle (it never hard-codes that hash either, only the
+`previewDigest`, which is self-computed and stored in its own fixture).
 
 ## 4. Files and migrations changed
 
-**ADR outcome (`60e793e`)** — documentation only:
-`docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md` (new),
-`docs/README.md`, `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`,
-`docs/implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md`, `src/modules/planning/README.md`.
+- migration: `supabase/migrations/20260905000100_phase4b_availability_windows.sql` (replaced with
+  the corrected version — same command/table/function surface, no new file);
+- schema: `schemas/planning/v1/availability-window-control.schema.json`;
+- domain and contracts: `src/modules/planning/domain/availability-window-preview.ts`,
+  `src/shared/contracts/availability-window-control.ts`;
+- tests: `tests/contract/availability-window-control.test.ts` (new, 14 `it` blocks) and six fixtures
+  under `tests/contract/fixtures/planning/v1/availability-window-control.{valid,boundary,remove,apply,invalid,malicious}.json`;
+- pre-existing-bug fixes (test-only): `supabase/tests/database/001_phase0_schema_security.test.sql`,
+  `supabase/tests/fixture-migrations/99999999999999_d1b_pgtap_fixture_access.sql`.
 
-**D3a outcome (`44c3f3b`)**:
-
-- migration: `supabase/migrations/20260904000100_phase4b_growth_plan_replacement.sql`;
-- schemas: `schemas/planning/v1/growth-plan-replacement-control.schema.json` (new),
-  `schemas/events/v1/planning-event.schema.json` (additive `PLAN_REPLACED` variant);
-- domain and contracts: `src/modules/planning/domain/growth-plan-replacement-preview.ts`,
-  `src/shared/contracts/growth-plan-replacement-control.ts`,
-  `src/shared/contracts/schema-registry.ts`;
-- boundary and UI: `src/ui/plan/server/plan-workspace-v1.ts`, `src/ui/plan/server/database-plan.ts`,
-  `src/app/plan/actions.ts`, `src/app/plan/page.tsx`, `src/ui/plan/plan-types.ts`,
-  `src/ui/plan/plan-workspace.tsx`, `src/ui/plan/growth-plan-replacement.tsx`,
-  `src/app/dev/plan-fixture/page.tsx`;
-- tests: `supabase/tests/database/048_…replacement.test.sql`,
-  `supabase/tests/database/049_…replacement_concurrency.test.sql`,
-  `tests/contract/growth-plan-replacement-control.test.ts` and five fixtures, four
-  `planning-plan-replaced.*.json` event fixtures, `tests/contract/planning-event.test.ts`,
-  `src/ui/plan/growth-plan-replacement.test.tsx`, `src/app/plan/page.test.tsx`,
-  `tests/e2e/plan.spec.ts`, `tests/database/verify-database.test.mjs`,
-  `supabase/tests/database/001_phase0_schema_security.test.sql`,
-  `supabase/tests/database/034_phase4b_first_growth_plan_setup.test.sql`;
-- documentation: the D3a design and status records plus the index updates listed above.
-
-No production dependency, lockfile, calculation contract, or database extension changed. One
-released database test (034) was updated because ADR-0010 §1 deliberately changes the rule it
-asserted: archived history beside one current Plan is legitimate, not corruption.
+No production dependency, lockfile, or calculation contract changed. `schema-registry.ts` already
+registered `availability-window-control-v1` from the prior draft commit; it was not touched again.
 
 ## 5. Contracts and invariants
 
-- Command `planning.replace_growth_plan_v1`, operation `replace_growth_plan`, contracts
-  `GrowthPlanReplacementSourceV1`, `GrowthPlanReplacementPreviewV1`,
-  `GrowthPlanReplacementApplyResultV1`, all at `1.0.0`.
-- Digest version `growth-plan-replacement-preview-digest/1.0.0`, request hash
-  `growth-plan-replacement-request-hash/1.0.0`, identity version `planning-create-identity/1.0.0`,
-  child-Track fingerprint `growth-plan-child-track-fingerprint/1.0.0`. The digest is clock-free and
-  has one TypeScript/PostgreSQL oracle proven in both suites.
-- Planning owns every write. Targets is read only through the released bounded owner query;
-  `pando_planning_api` still has no Targets table privilege.
-- Apply requires the authenticated session, both expected versions, the exact recomputed digest, a
-  printable reason, and a lowercase request UUID. The outgoing Plan advances exactly one version;
-  the incoming Plan and Track start at version `1`; the snapshot sentinel is untouched.
-- Same-key replay returns the stored response. A changed request with the same key, a stale Plan or
-  Goal version, a changed digest, an unknown goal, an archived parent, and an out-of-range value all
-  fail closed with no partial state.
-- Forced RLS is unchanged; the new `api` functions are pinned `SECURITY DEFINER` owned by
-  `pando_planning_api`, granted only to `authenticated`, with every helper ungranted.
-- The `PLAN_REPLACED` event payload carries seven identifier/version fields and no private body; its
-  validator also refuses archiving and creating the same aggregate.
+- Command `planning.change_availability_window_v1`, operations `create_availability_window`,
+  `change_availability_window`, `remove_availability_window`; contracts
+  `AvailabilityWindowSourceV1`, `AvailabilityWindowPreviewV1`, `AvailabilityWindowApplyResultV1`,
+  all `1.0.0`. No calculation contract changes (D3b1 is clock-free for capacity; D3b2 owns the V3
+  rollout).
+- Digest `availability-window-preview-digest/1.0.0`, request hash
+  `availability-window-request-hash/1.0.0`, identity `planning-create-identity/1.0.0`, fingerprint
+  `availability-window-fingerprint/1.0.0` — one TypeScript/PostgreSQL oracle, clock-free, proven in
+  the contract test via a fixture recomputed independently in both directions (`valid` and `remove`
+  fixtures each carry a `previewDigest` this session computed and the test recomputes and matches).
+- Planning owns every write; the table is workspace-owned with forced RLS
+  (`identity.is_workspace_member(workspace_id)`), `SELECT`/`INSERT`/`UPDATE` only (no `DELETE`) to
+  `pando_planning_api`, and a `btree_gist` partial exclusion constraint over
+  `(workspace_id, growth_plan_id, daterange(starts_on, ends_on, '[]'))` for active windows, enforced
+  by the database independent of application code.
+- Apply requires the authenticated session, the exact expected Growth Plan version (and window
+  version for change/remove), the recomputed preview digest, a printable reason, and a lowercase
+  request UUID; same-key replay returns the stored response; a changed request with the same key, a
+  stale version, a changed digest, an already-removed window, a past-only range, an over-long
+  range, an out-of-range minute value, the 61st active window, and an overlapping range all fail
+  closed with no partial state (proved by the corrected migration's validators; not yet re-proved by
+  a committed pgTAP file — see §8).
+- The `AVAILABILITY_CHANGED` event payload carries five fields and no label, reason, dates, or
+  minutes.
 
 ## 6. Verification
 
-Every command below was executed in this session and its result observed.
+Every command below was executed in this session on Node 24.19.0 (installed under
+`/home/ilya/.n`; the environment's default `node` on `PATH`, 24.14.1, is one patch below what
+`jsdom@30.0.1` requires and cannot run `pnpm install`/`vitest` at all).
 
 | Gate | Result |
 |---|---|
-| `prettier --check .` | PASS |
-| `eslint . --max-warnings=0` | PASS |
-| `next typegen && tsc --noEmit` | PASS |
-| `node --test tests/database/*.test.mjs` | PASS — 15 checks |
-| `node --test tests/backup/*.test.mjs` | PASS — 3 checks |
-| contract tests | PASS — 403 tests / 25 files (392 before D3a) |
-| performance tests | PASS — 3 tests |
-| unit tests with coverage | PASS — 961 tests / 96 files; 86.77% statements, 80.83% branches, 91.11% functions, 88.15% lines against 85/80/85/85 |
-| `next build` | PASS |
-| Chromium E2E | PASS — 37 tests (36 before D3a) |
-| pgTAP suite | PASS — 49 files, 3070 assertions, 0 failures (47 files / 2972 before D3a) |
+| `pnpm typecheck` (`next typegen && tsc --noEmit`) | PASS |
+| `pnpm lint` (`eslint . --max-warnings=0`) | PASS |
+| `pnpm format:check` | PASS |
+| `pnpm test:contracts` (`vitest run tests/contract`) | PASS — 417 tests / 26 files (403 before this outcome) |
+| `pnpm test:unit` (`vitest run`, no coverage) | PASS — 975 tests / 97 files |
+| `pnpm verify:db` (`scripts/database/verify-database.mjs`, isolated Supabase project via Docker) | PASS — migrations apply clean (including the corrected availability-windows migration, twice: `db start` and `db reset`), 49 pgTAP files / 3070 assertions all pass, `db lint --level warning --fail-on warning` reports no schema errors |
 
-**How the database gate was run, exactly.** This session has no Docker daemon and no container
-registry access, so `supabase db start` cannot run. The pgTAP suite was executed against a local
-PostgreSQL 16 cluster with `pgtap`, `pg_cron`, `pgcrypto`, and `dblink`, plus small shims for the
-Supabase platform objects the migration chain expects: `auth.users` with the columns the fixtures
-use, `auth.uid`/`auth.role`/`auth.jwt`, `vault.decrypted_secrets`, `net.http_post`, the `anon`,
-`authenticated`, and `service_role` roles, and `grant usage on schema extensions` to those roles.
-Every PANDO migration, the scratch fixture migration, and `seed.sql` applied unchanged; the two
-`create extension` statements for `pg_net` were the only lines adjusted at load time, because that
-extension does not exist outside the Supabase image. Concurrency tests ran over a real non-loopback
-`dblink` connection with password authentication, exactly as the tests require.
+**How `verify:db` was run, exactly.** Docker Desktop was not running at session start despite the
+owner's expectation; it was started from this shell (`powershell.exe -NoProfile -Command
+"Start-Process 'C:\Program Files\Docker\Docker\Docker Desktop.exe'"`) and polled until the daemon
+answered. `pnpm verify:db` then ran for real: it copies `supabase/` into a temporary, port-isolated
+project, runs `supabase db start` (applies migrations once), `supabase db reset --local` (recreates
+and reapplies all 67 migrations plus the scratch fixture-migration), `supabase test db <all files>
+--local` (pgTAP via `pg_prove`), and `supabase db lint`. The first run (before the two pre-existing
+fixes in §3.3) failed with three `001` assertion failures and one `048` permission-denied error; the
+second run, after those two fixes, passed cleanly end to end. This is the real CI-shaped gate, not a
+manual rehearsal.
 
-**Not run here:** `pnpm verify:db` through the Supabase CLI (image and lint), `pnpm verify:auth`,
-and `pnpm verify:backup`. They need Docker and the full Supabase stack on the owner's Windows host.
+**Not run:** `pnpm test:unit:coverage` (ran the uncoveraged `test:unit` instead — sufficient as a
+regression signal for this outcome's narrow diff), `pnpm test:e2e`, `pnpm verify:auth`,
+`pnpm verify:backup`. None of these are affected by a persistence-only, UI-free outcome; the owner
+should still run the full `pnpm verify` / `pnpm verify:phase0` chain before merging to `main`.
+
+A separate, pre-existing scratch Supabase project at `/home/ilya/pando-d3b1-dev` (outside this
+repository, referenced in §1 and §3.1) was inspected read-only for its migration and pgTAP content
+but not modified or used as the verification target; all verification in the table above ran
+against this repository's own `supabase/` tree through the real `verify:db` gate.
 
 ## 7. Git state
 
-- `main` is still `9949dd9` and equals `origin/main`. Nothing was pushed; this shell has no GitHub
-  credentials.
-- `claude/d3-d5-lifecycle-adr` — `60e793e` `docs(planning): accept d3-d5 lifecycle adr`.
-- `claude/d3a-growth-plan-replacement` — `44c3f3b` `feat(planning): add atomic growth plan
-  replacement`, `2c90e48` `docs(planning): record adr and d3a handoff state`, and `5851b84`
-  `docs(planning): define d3b availability windows`, branched from `60e793e`, so it contains every
-  outcome of this session.
-- Working tree at the end of D3a: clean except the owner's untracked
-  `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md`, which was never staged, committed, or edited.
-- `git checkout main && git merge --ff-only claude/d3a-growth-plan-replacement` fast-forwards both
-  outcomes onto `main` once the owner-run gates in §6 pass.
+- Branch `claude/d3b1-draft-unverified`, on top of `44c3f3b` (D3a) → `2c90e48` → `5851b84`
+  (D3b design) → `d9360a3` → `e2abf84` (the unreviewed D3b1 draft this outcome replaces).
+- This session's commit finishes D3b1-db: the corrected migration, the TS/schema alignment, the new
+  contract test and six fixtures, and the two pre-existing test-only fixes from §3.3.
+- Not pushed. `main` is unaffected; nothing in this outcome touches `main` or `origin`.
+- `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md` and `AGENTS.md` were not read, edited, or staged, per
+  explicit instruction.
+- Working tree is clean after the commit described in this report.
 
 ## 8. Remaining work
 
-1. **Owner verification before merge.** Run `pnpm verify`, `pnpm verify:db`, `pnpm verify:auth`, and
-   `pnpm verify:backup` on Windows with Docker Desktop, then fast-forward and push.
-2. **D3b availability windows** — the design is accepted and committed as
-   `docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md`. It splits into D3b1 (persistence, the
-   three-operation owner command, the `btree_gist` non-overlap constraint, the actor-scoped source,
-   and the `/plan` control, with no calculation change) and D3b2 (the V3 capacity composition,
-   protected-minimum rationing, the persisted clock-bound proposal, and the rollout).
-
-   A partial D3b1 draft was written in this session and deliberately **not** committed, because the
-   command sandbox that runs the verification lane became unavailable partway through and the draft
-   could not be type-checked, applied, or tested. The draft covers the migration
-   (`20260905000100_phase4b_availability_windows.sql`), the control JSON schema, the pure domain
-   digest/identity/fingerprint module, and the TypeScript contract; it was delivered to the owner as
-   chat attachments only. Treat it as a starting point to verify, not as reviewed work.
-3. **D4 Targets Campaign foundation**, then **D5 overlays and the coordinator**, in that order.
-4. **Known risks.** `src/shared/supabase/database.generated.ts` was not regenerated (the Planning
-   boundary casts RPC names, so this does not break typecheck or runtime). The local pgTAP rehearsal
-   is close to but not identical to the Supabase image. `/plan` grows one more control per slice and
-   will need a layout review before Phase 7.
+1. **D3b1 UI and transport**, not started: the `/plan` availability-window control, server loaders
+   and actions (`src/ui/plan/server/*`, `src/app/plan/*`), the `PLANNING_INPUT_CHANGED` /
+   `AVAILABILITY_CHANGED` event-schema variant in `schemas/events/v1/planning-event.schema.json`,
+   Playwright E2E coverage, and the design-status document update.
+2. **D3b1 database proof**, not started: `supabase/tests/database/050_phase4b_availability_windows.test.sql`
+   and a `051_..._concurrency.test.sql`, covering the full list in
+   `docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md` §7 (create/change/remove against active and
+   paused plans, every blocking reason, the database-level exclusion-constraint proof, replay/
+   conflict/rollback/serialization, two-workspace RLS isolation). A draft of both files already
+   exists, verified passing, in the scratch project `/home/ilya/pando-d3b1-dev` — read-only
+   inspected this session but not copied in, since writing/verifying pgTAP tests was out of this
+   outcome's scope. That draft is the fastest starting point for whoever picks up D3b1-db's sibling
+   database-proof outcome.
+3. **D3b2** (V3 capacity composition, protected-minimum rationing, the persisted clock-bound
+   proposal, the `planner-engine/0.3.0` rollout) has not started and should not start before D3b1 is
+   fully complete (§4.1 of the design doc).
+4. **Known risk carried over from D3a**, unrelated to this outcome: `pnpm verify:db` had been
+   silently broken since D3a landed (§3.3) because nobody had run the real isolated gate against the
+   committed fixture-migrations file since then — only a manual rehearsal method was used. That gap
+   is now closed, but it is worth the owner independently confirming `pnpm verify:auth` and
+   `pnpm verify:backup` are still green, since those were not re-run this session either.
 
 ## 9. Codex resume prompt
 
 ```text
-Прочитай docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md,
-docs/design/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md,
-docs/implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md и
-docs/implementation/CLAUDE_CODE_HANDOFF_REPORT.md.
-Ветки claude/d3-d5-lifecycle-adr (ADR) и claude/d3a-growth-plan-replacement (D3a) готовы; main
-остаётся на 9949dd9. Сначала прогони на Windows pnpm verify, pnpm verify:db, pnpm verify:auth и
-pnpm verify:backup на ветке claude/d3a-growth-plan-replacement. Если всё зелёное — сделай
-git checkout main && git merge --ff-only claude/d3a-growth-plan-replacement и запушь в origin/main.
-Затем продолжай строго по ADR-0010 §9: следующий bounded outcome — D3b availability windows
-(§6: plan-scoped дни целиком, per-day cap, btree_gist exclusion, persisted clock-bound proposal,
-V3 calculation rollout). D4 и D5 — только после D3b.
+Прочитай docs/implementation/CLAUDE_CODE_HANDOFF_REPORT.md,
+docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md, ADR-0010 §6/§8/§9 и
+supabase/migrations/20260905000100_phase4b_availability_windows.sql.
+Ветка claude/d3b1-draft-unverified теперь содержит верифицированный D3b1-db: исправленную миграцию
+(грант identity.is_known_time_zone, предупреждение AVAILABILITY_WINDOW_IN_THE_PAST, страницу
+истории removedAvailabilityWindows), согласованные TS/schema файлы и
+tests/contract/availability-window-control.test.ts (14 тестов, 6 фикстур). pnpm verify:db полностью
+зелёный (49 pgTAP файлов, 3070 assertions, db lint чист); заодно исправлены два не связанных с этой
+задачей, но блокировавших gate дефекта, оставшихся от уже смердженного D3a (см. §3.3 отчёта).
+Следующий bounded outcome — D3b1 UI/transport (§8.1) и D3b1 database proof (§8.2: pgTAP тесты
+050/051 — черновик уже есть и проверен в /home/ilya/pando-d3b1-dev, это самый быстрый старт).
+D3b2 (V3 capacity rollout) — только после того, как D3b1 полностью завершён.
 ```

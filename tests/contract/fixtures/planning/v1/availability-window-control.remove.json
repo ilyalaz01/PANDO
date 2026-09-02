@@ -1,0 +1,75 @@
+{
+  "contract": {
+    "name": "AvailabilityWindowPreviewV1",
+    "version": "1.0.0"
+  },
+  "digestVersion": "availability-window-preview-digest/1.0.0",
+  "identityVersion": "planning-create-identity/1.0.0",
+  "operation": "remove_availability_window",
+  "commandType": "planning.change_availability_window_v1",
+  "idempotencyKey": "7d000000-0000-4000-8000-000000000002",
+  "reason": "Window is stale and already in the past",
+  "expectedGrowthPlanVersion": "1",
+  "growthPlan": {
+    "growthPlanId": "77000000-0000-8000-8000-000000000001",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 0,
+    "aggregateVersion": "1"
+  },
+  "before": {
+    "activeWindowCount": 1,
+    "removedWindowCount": 3,
+    "activeWindowFingerprint": "f1595d8211287577eee498017cf3eabeb2dfad9aa83241cb0676ac51fb1edb97",
+    "window": {
+      "windowKey": "window:78000001-0000-8000-8000-000000000001",
+      "availabilityWindowId": "78000001-0000-8000-8000-000000000001",
+      "startsOn": "2026-08-01",
+      "endsOn": "2026-08-02",
+      "timeZone": "UTC",
+      "availableMinutes": 1440,
+      "energy": null,
+      "label": null,
+      "lifecycle": "ACTIVE",
+      "aggregateVersion": "5"
+    }
+  },
+  "after": {
+    "activeWindowCount": 0,
+    "window": {
+      "windowKey": "window:78000001-0000-8000-8000-000000000001",
+      "availabilityWindowId": "78000001-0000-8000-8000-000000000001",
+      "startsOn": "2026-08-01",
+      "endsOn": "2026-08-02",
+      "timeZone": "UTC",
+      "availableMinutes": 1440,
+      "energy": null,
+      "label": null,
+      "lifecycle": "REMOVED",
+      "aggregateVersion": "6"
+    }
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [
+    {
+      "code": "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY"
+    },
+    {
+      "code": "AVAILABILITY_WINDOW_IN_THE_PAST"
+    }
+  ],
+  "retained": {
+    "growthPlan": true,
+    "learningTracks": true,
+    "activitiesAndEvidence": true,
+    "mastery": true,
+    "reviews": true,
+    "planSnapshots": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "AVAILABILITY_CHANGED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "149416162bd9988530d93df653d5a7e48071276fd2fe522b9ce4f4a46133aa11"
+}

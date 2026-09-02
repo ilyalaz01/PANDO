@@ -1,0 +1,61 @@
+{
+  "contract": {
+    "name": "AvailabilityWindowPreviewV1",
+    "version": "1.0.0"
+  },
+  "digestVersion": "availability-window-preview-digest/1.0.0",
+  "identityVersion": "planning-create-identity/1.0.0",
+  "operation": "create_availability_window",
+  "commandType": "planning.change_availability_window_v1",
+  "idempotencyKey": "73000000-0000-4000-8000-000000000001",
+  "reason": "Block off finals week",
+  "expectedGrowthPlanVersion": "3",
+  "growthPlan": {
+    "growthPlanId": "70000000-0000-8000-8000-000000000001",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 420,
+    "aggregateVersion": "3"
+  },
+  "before": {
+    "activeWindowCount": 2,
+    "removedWindowCount": 1,
+    "activeWindowFingerprint": "389822789a5b114e009493f9683fb40d6586a63a55b324d90a68043af0329d44",
+    "window": null
+  },
+  "after": {
+    "activeWindowCount": 3,
+    "window": {
+      "windowKey": "window:76000001-0000-8000-8000-000000000001",
+      "availabilityWindowId": "76000001-0000-8000-8000-000000000001",
+      "startsOn": "2026-10-01",
+      "endsOn": "2026-10-03",
+      "timeZone": "America/New_York",
+      "availableMinutes": 180,
+      "energy": "LOW",
+      "label": "Conference travel",
+      "lifecycle": "ACTIVE",
+      "aggregateVersion": "1"
+    }
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [
+    {
+      "code": "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY"
+    }
+  ],
+  "retained": {
+    "growthPlan": true,
+    "learningTracks": true,
+    "activitiesAndEvidence": true,
+    "mastery": true,
+    "reviews": true,
+    "planSnapshots": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "eventChangeKind": "AVAILABILITY_CHANGED",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "8b85a822fe0c83ded1a8cb1d7c3e13494b92886cdcb6570a06a699c4f6e8738f"
+}

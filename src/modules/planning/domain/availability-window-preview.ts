@@ -5,15 +5,12 @@ export const AVAILABILITY_WINDOW_PREVIEW_DIGEST_VERSION =
   "availability-window-preview-digest/1.0.0" as const;
 export const AVAILABILITY_WINDOW_REQUEST_HASH_VERSION =
   "availability-window-request-hash/1.0.0" as const;
-export const AVAILABILITY_WINDOW_COMMAND_TYPE =
-  "planning.change_availability_window_v1" as const;
+export const AVAILABILITY_WINDOW_COMMAND_TYPE = "planning.change_availability_window_v1" as const;
 export const AVAILABILITY_WINDOW_FINGERPRINT_VERSION =
   "availability-window-fingerprint/1.0.0" as const;
 
 export type AvailabilityWindowOperation =
-  | "create_availability_window"
-  | "change_availability_window"
-  | "remove_availability_window";
+  "create_availability_window" | "change_availability_window" | "remove_availability_window";
 
 export interface AvailabilityWindowIdentityFields {
   readonly workspaceId: string;
@@ -97,7 +94,9 @@ export interface AvailabilityWindowPreviewDigestFields {
   };
   readonly canApply: boolean;
   readonly blockingReasonCode: string | null;
-  readonly warnings: readonly "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY"[];
+  readonly warnings: readonly (
+    "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY" | "AVAILABILITY_WINDOW_IN_THE_PAST"
+  )[];
 }
 
 function optional(value: string | number | null | undefined): string {
@@ -128,7 +127,10 @@ export function availabilityWindowPreviewDigestInput(
       String(plan.weeklyCapacityMinutes),
     ),
     growthPlanCapacityDigestField("growthPlanVersion", plan.aggregateVersion),
-    growthPlanCapacityDigestField("activeWindowCountBefore", String(value.before.activeWindowCount)),
+    growthPlanCapacityDigestField(
+      "activeWindowCountBefore",
+      String(value.before.activeWindowCount),
+    ),
     growthPlanCapacityDigestField("activeWindowCountAfter", String(value.after.activeWindowCount)),
     growthPlanCapacityDigestField("removedWindowCount", String(value.before.removedWindowCount)),
     growthPlanCapacityDigestField("activeWindowFingerprint", value.before.activeWindowFingerprint),

@@ -138,7 +138,10 @@
         "lifecycle",
         "weeklyCapacityMinutes",
         "aggregateVersion",
+        "timeZone",
+        "currentLocalDate",
         "activeWindowCount",
+        "activeWindowLimit",
         "removedWindowCount",
         "capacityUsesAvailability"
       ],
@@ -146,7 +149,10 @@
         "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
         "weeklyCapacityMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
         "aggregateVersion": { "$ref": "#/$defs/positiveBigint" },
+        "timeZone": { "$ref": "#/$defs/timeZone" },
+        "currentLocalDate": { "$ref": "#/$defs/localDate" },
         "activeWindowCount": { "type": "integer", "minimum": 0, "maximum": 60 },
+        "activeWindowLimit": { "const": 60 },
         "removedWindowCount": { "type": "integer", "minimum": 0, "maximum": 100000 },
         "capacityUsesAvailability": { "type": "boolean" }
       }
@@ -154,7 +160,14 @@
     "availabilityAvailable": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contract", "state", "capabilities", "growthPlan", "availabilityWindows"],
+      "required": [
+        "contract",
+        "state",
+        "capabilities",
+        "growthPlan",
+        "availabilityWindows",
+        "removedAvailabilityWindows"
+      ],
       "properties": {
         "contract": { "$ref": "#/$defs/contractSource" },
         "state": { "enum": ["AVAILABILITY_AVAILABLE", "WINDOW_LIMIT_REACHED"] },
@@ -171,19 +184,33 @@
           "minItems": 0,
           "maxItems": 60,
           "items": { "$ref": "#/$defs/windowState" }
+        },
+        "removedAvailabilityWindows": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/windowState" }
         }
       }
     },
     "availabilityUnavailable": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contract", "state", "capabilities", "growthPlan", "availabilityWindows"],
+      "required": [
+        "contract",
+        "state",
+        "capabilities",
+        "growthPlan",
+        "availabilityWindows",
+        "removedAvailabilityWindows"
+      ],
       "properties": {
         "contract": { "$ref": "#/$defs/contractSource" },
         "state": { "const": "NO_CURRENT_PLAN" },
         "capabilities": { "type": "array", "maxItems": 0 },
         "growthPlan": { "type": "null" },
-        "availabilityWindows": { "type": "array", "maxItems": 0 }
+        "availabilityWindows": { "type": "array", "maxItems": 0 },
+        "removedAvailabilityWindows": { "type": "array", "maxItems": 0 }
       }
     },
     "previewGrowthPlan": {
@@ -238,7 +265,11 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["code"],
-      "properties": { "code": { "const": "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY" } }
+      "properties": {
+        "code": {
+          "enum": ["AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY", "AVAILABILITY_WINDOW_IN_THE_PAST"]
+        }
+      }
     },
     "retained": {
       "type": "object",
@@ -313,8 +344,8 @@
         },
         "warnings": {
           "type": "array",
-          "minItems": 0,
-          "maxItems": 1,
+          "minItems": 1,
+          "maxItems": 2,
           "items": { "$ref": "#/$defs/warning" }
         },
         "retained": { "$ref": "#/$defs/retained" },
