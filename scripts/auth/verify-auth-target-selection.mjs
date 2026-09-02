@@ -1449,6 +1449,117 @@ try {
     "priority/minimum apply must advance only the selected Track version once",
   );
 
+  const cadenceSourceBefore = await readinessVerifier.rpc("get_learning_track_cadence_source_v1");
+  assert.equal(
+    cadenceSourceBefore.error,
+    null,
+    "Learning Track cadence source must load before authenticated cadence verification",
+  );
+  assert.equal(cadenceSourceBefore.data?.growthPlan?.aggregateVersion, "4");
+  const cadenceTrackBefore = cadenceSourceBefore.data?.learningTracks?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.ok(cadenceTrackBefore, "the initial Track must remain available for cadence control");
+  assert.equal(cadenceTrackBefore.priority, 80);
+  assert.equal(cadenceTrackBefore.protectedMinimumMinutes, 120);
+  const proposedCadence =
+    cadenceTrackBefore.cadencePerWeek === 100 ? 99 : cadenceTrackBefore.cadencePerWeek + 1;
+  const cadenceForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview cadence change" }),
+  });
+  assert.deepEqual(
+    await cadenceForm
+      .locator("input")
+      .evaluateAll((inputs) =>
+        inputs.map((input) => input.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    ["expectedGrowthPlanVersion", "expectedLearningTrackVersion", "cadencePerWeek"],
+    "cadence preview must expose only version fences and the proposed bounded value",
+  );
+  assert.equal(
+    await cadenceForm.getByLabel("Track", { exact: true }).getAttribute("name"),
+    "trackKey",
+    "cadence must select only the opaque server-returned Track key",
+  );
+  await cadenceForm.getByLabel("Track", { exact: true }).selectOption(initializedTrackKey);
+  await cadenceForm.getByLabel("Evidence-bearing sessions per week").fill(String(proposedCadence));
+  await cadenceForm
+    .getByLabel("Why should this cadence change now?")
+    .fill("Set a visible weekly rhythm without changing protected capacity or claiming progress.");
+  await cadenceForm.getByRole("button", { name: "Preview cadence change" }).click();
+  const cadencePreview = page.getByLabel("Exact Learning Track cadence preview");
+  await cadencePreview
+    .getByText(`${cadenceTrackBefore.cadencePerWeek} sessions per week`, { exact: true })
+    .waitFor();
+  await cadencePreview.getByText(`${proposedCadence} sessions per week`, { exact: true }).waitFor();
+  await cadencePreview.getByText("Cadence deficit", { exact: true }).first().waitFor();
+  assert.equal(
+    await page.getByRole("button", { name: "Confirm cadence" }).isEnabled(),
+    true,
+    "soft cadence must remain applicable without a capacity blocker",
+  );
+  await page.getByRole("button", { name: "Confirm cadence" }).click();
+  await page.getByLabel("Exact Learning Track cadence preview").waitFor({ state: "detached" });
+  const cadenceSourceAfter = await readinessVerifier.rpc("get_learning_track_cadence_source_v1");
+  assert.equal(cadenceSourceAfter.error, null, "Learning Track cadence must reload after apply");
+  assert.equal(
+    cadenceSourceAfter.data?.progress?.state,
+    "PENDING",
+    "cadence apply must remain honest while its V2 planning projection is pending",
+  );
+  const cadenceTrackAfter = cadenceSourceAfter.data?.learningTracks?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.equal(cadenceTrackAfter?.cadencePerWeek, proposedCadence);
+  assert.equal(cadenceTrackAfter?.priority, 80, "cadence must not change Track priority");
+  assert.equal(
+    cadenceTrackAfter?.protectedMinimumMinutes,
+    120,
+    "cadence must not change the protected minimum",
+  );
+  assert.equal(
+    BigInt(cadenceTrackAfter.aggregateVersion),
+    BigInt(cadenceTrackBefore.aggregateVersion) + 1n,
+    "cadence apply must advance only the selected Track version once",
+  );
+  await page.reload();
+  const reloadedCadenceForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Preview cadence change" }),
+  });
+  await reloadedCadenceForm.getByLabel("Track", { exact: true }).selectOption(initializedTrackKey);
+  assert.equal(
+    await reloadedCadenceForm.getByLabel("Evidence-bearing sessions per week").inputValue(),
+    String(proposedCadence),
+    "authenticated /plan reload must retain the changed cadence",
+  );
+  await loadCurrentToday({
+    client: readinessVerifier,
+    baseUrl,
+    dispatchSecret: internalDispatchSecret,
+    label: "post-cadence recalculation",
+  });
+  await page.goto(`${baseUrl}/today`);
+  await page.getByRole("heading", { name: "Choose useful work with a clear reason." }).waitFor();
+  await page.reload();
+  await page.getByRole("heading", { name: "Choose useful work with a clear reason." }).waitFor();
+  await page.goto(`${baseUrl}/plan`);
+  await page.getByRole("heading", { name: "Keep the plan aligned with your life." }).waitFor();
+  const currentCadenceSource = await readinessVerifier.rpc("get_learning_track_cadence_source_v1");
+  assert.equal(currentCadenceSource.error, null, "current cadence source must reload after Today");
+  assert.equal(
+    currentCadenceSource.data?.progress?.state,
+    "CURRENT",
+    "the authenticated cadence edit must finish on a current V2 planning snapshot",
+  );
+  const currentCadenceTrack = currentCadenceSource.data?.learningTracks?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.equal(currentCadenceTrack?.cadencePerWeek, proposedCadence);
+  assert.ok(
+    Number.isInteger(currentCadenceTrack?.completedCadenceSessionsThisWeek),
+    "a current V2 snapshot must expose an observed cadence count rather than Unknown",
+  );
+
   const terminalTrackRegion = page.getByRole("region", {
     name: "Complete or archive a Learning Track",
   });
@@ -1486,7 +1597,7 @@ try {
   assert.equal(completionApplyData.expectedGrowthPlanVersion, "4");
   assert.equal(
     completionApplyData.expectedLearningTrackVersion,
-    trackAfterSettings.aggregateVersion,
+    cadenceTrackAfter.aggregateVersion,
   );
   assert.match(completionApplyData.previewDigest ?? "", /^[a-f0-9]{64}$/u);
   assert.match(completionApplyData.requestId ?? "", /^[0-9a-f-]{36}$/u);
@@ -1521,7 +1632,7 @@ try {
   assert.deepEqual(completedTrack?.capabilities, ["archive_track"]);
   assert.equal(
     BigInt(completedTrack.aggregateVersion),
-    BigInt(trackAfterSettings.aggregateVersion) + 1n,
+    BigInt(cadenceTrackAfter.aggregateVersion) + 1n,
     "completion must advance only the selected Track version once",
   );
   const currentPlanAfterCompletion = await readinessVerifier.rpc("get_current_growth_plan_v1");
@@ -1617,6 +1728,13 @@ try {
   assert.ok(
     trackButtonBox !== null && trackButtonBox.height >= 44,
     "Track lifecycle preview must preserve a 44px touch target",
+  );
+  const cadenceButtonBox = await page
+    .getByRole("button", { name: "Preview cadence change" })
+    .boundingBox();
+  assert.ok(
+    cadenceButtonBox !== null && cadenceButtonBox.height >= 44,
+    "Track cadence preview must preserve a 44px touch target",
   );
   const planAccessibility = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])

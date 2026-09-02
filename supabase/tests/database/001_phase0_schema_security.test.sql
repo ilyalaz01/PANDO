@@ -549,5 +549,34 @@ select ok(
   'PUBLIC has EXECUTE on no Phase 0 function'
 );
 
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname = 'pando_planning_worker'
+  and not owner.rolcanlogin and not owner.rolinherit and not owner.rolbypassrls,
+  'the Planning V2 activation helper is pinned to the Planning worker NOLOGIN role'
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner on owner.oid = procedure.proowner
+where namespace.nspname = 'planning'
+  and procedure.proname = 'enqueue_plan_snapshot_v2_activation_v1';
+
+select ok(
+  not pg_catalog.has_function_privilege(
+    runtime_role.role_name,
+    function_name.signature,
+    'EXECUTE'
+  ),
+  format('%s cannot execute private %s', runtime_role.role_name, function_name.signature)
+)
+from (values ('anon'), ('authenticated'), ('service_role')) as runtime_role(role_name)
+cross join (values
+  ('planning.enqueue_plan_snapshot_v2_activation_v1(uuid)'),
+  ('planning.plan_snapshot_v2_activation_event_is_valid_v1(outbox.events)')
+) as function_name(signature)
+order by runtime_role.role_name, function_name.signature;
+
 select * from finish();
 rollback;

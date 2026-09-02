@@ -679,7 +679,7 @@ begin
       (v_load->>'attemptId')::uuid,
       v_load->>'sourceFence',
       pg_catalog.jsonb_build_object(
-        'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+        'completedWorkPolicyVersion', 'planning-completed-work/0.2',
         'inputFingerprint', v_fingerprint,
         'evaluationHorizon', pg_catalog.jsonb_build_object(
           'asOf', v_load->'claimAsOf',
@@ -689,7 +689,22 @@ begin
           'weekEnd', v_load#>'{sourceBundle,calendar,weekEnd}'
         ),
         'growthPlan', pg_catalog.jsonb_build_object(
-          'growthPlanId', v_load#>'{sourceBundle,plan,growthPlanId}'
+          'growthPlanId', v_load#>>'{sourceBundle,plan,growthPlanId}',
+          'version', v_load#>>'{sourceBundle,plan,version}',
+          'lifecycle', v_load#>>'{sourceBundle,plan,lifecycle}',
+          'weeklyCapacityMinutes', coalesce(v_load#>'{sourceBundle,plan,weeklyCapacityMinutes}', '0'::jsonb),
+          'consumedMinutesThisWeek', 0,
+          'tracks', coalesce((
+            select pg_catalog.jsonb_agg(
+              track.value || pg_catalog.jsonb_build_object(
+                'cadencePerWeek', coalesce(track.value->'cadencePerWeek', '0'::jsonb),
+                'completedCadenceSessionsThisWeek', 0
+              ) order by track.ordinality
+            )
+            from pg_catalog.jsonb_array_elements(
+              coalesce(v_load#>'{sourceBundle,plan,tracks}', '[]'::jsonb)
+            ) with ordinality as track(value, ordinality)
+          ), '[]'::jsonb)
         )
       )
     );
@@ -698,8 +713,8 @@ begin
       v_claim.lease_token,
       (v_load->>'attemptId')::uuid,
       pg_catalog.jsonb_build_object(
-        'engineVersion', 'planner-engine/0.1.0',
-        'policyVersion', 'planning-policy/0.1',
+        'engineVersion', 'planner-engine/0.2.0',
+        'policyVersion', 'planning-policy/0.2',
         'inputFingerprint', v_fingerprint,
         'calculatedAsOf', v_load->'claimAsOf',
         'validUntil', v_load#>'{sourceBundle,calendar,validUntil}',

@@ -297,7 +297,7 @@ select 'record-one', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-one'),
   (select response->>'sourceFence' from today_results where result_name = 'load-one'),
   pg_catalog.jsonb_build_object(
-    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'completedWorkPolicyVersion', 'planning-completed-work/0.2',
     'inputFingerprint',
       'planning-input:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -313,7 +313,16 @@ select 'record-one', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
     ),
     'growthPlan', pg_catalog.jsonb_build_object(
       'growthPlanId', (select response->>'growthPlanId'
-        from today_results where result_name = 'plan-a')
+        from today_results where result_name = 'plan-a'),
+      'version', '1', 'lifecycle', 'ACTIVE', 'weeklyCapacityMinutes', 300,
+      'consumedMinutesThisWeek', 0,
+      'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'trackId', (select response->>'learningTrackId'
+          from today_results where result_name = 'plan-a'),
+        'version', '2', 'lifecycle', 'ACTIVE', 'priority', 80,
+        'protectedMinimumMinutes', 60, 'cadencePerWeek', 0,
+        'completedCadenceSessionsThisWeek', 0
+      ))
     )
   )
 ));
@@ -323,8 +332,8 @@ select 'complete-one', pg_catalog.to_jsonb(api.complete_plan_snapshot_projection
   (select (response->>'lease_token')::uuid from today_results where result_name = 'claim-one'),
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-one'),
   pg_catalog.jsonb_build_object(
-    'engineVersion', 'planner-engine/0.1.0',
-    'policyVersion', 'planning-policy/0.1',
+    'engineVersion', 'planner-engine/0.2.0',
+    'policyVersion', 'planning-policy/0.2',
     'inputFingerprint',
       'planning-input:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
     'calculatedAsOf', (select response->'claimAsOf'
@@ -721,7 +730,7 @@ select 'record-resume', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-resume'),
   (select response->>'sourceFence' from today_results where result_name = 'load-resume'),
   pg_catalog.jsonb_build_object(
-    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'completedWorkPolicyVersion', 'planning-completed-work/0.2',
     'inputFingerprint',
       'planning-input:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -737,7 +746,16 @@ select 'record-resume', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
     ),
     'growthPlan', pg_catalog.jsonb_build_object(
       'growthPlanId', (select response->>'growthPlanId'
-        from today_results where result_name = 'plan-a')
+        from today_results where result_name = 'plan-a'),
+      'version', '1', 'lifecycle', 'ACTIVE', 'weeklyCapacityMinutes', 300,
+      'consumedMinutesThisWeek', 0,
+      'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'trackId', (select response->>'learningTrackId'
+          from today_results where result_name = 'plan-a'),
+        'version', '2', 'lifecycle', 'ACTIVE', 'priority', 80,
+        'protectedMinimumMinutes', 60, 'cadencePerWeek', 0,
+        'completedCadenceSessionsThisWeek', 0
+      ))
     )
   )
 ));
@@ -747,8 +765,8 @@ select 'complete-resume', pg_catalog.to_jsonb(api.complete_plan_snapshot_project
   (select (response->>'lease_token')::uuid from today_results where result_name = 'claim-resume'),
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-resume'),
   pg_catalog.jsonb_build_object(
-    'engineVersion', 'planner-engine/0.1.0',
-    'policyVersion', 'planning-policy/0.1',
+    'engineVersion', 'planner-engine/0.2.0',
+    'policyVersion', 'planning-policy/0.2',
     'inputFingerprint',
       'planning-input:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
     'calculatedAsOf', (select response->'claimAsOf'
@@ -864,7 +882,7 @@ select 'record-error', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-error'),
   (select response->>'sourceFence' from today_results where result_name = 'load-error'),
   pg_catalog.jsonb_build_object(
-    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'completedWorkPolicyVersion', 'planning-completed-work/0.2',
     'inputFingerprint',
       'planning-input:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -880,7 +898,16 @@ select 'record-error', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
     ),
     'growthPlan', pg_catalog.jsonb_build_object(
       'growthPlanId', (select response->>'growthPlanId'
-        from today_results where result_name = 'plan-a')
+        from today_results where result_name = 'plan-a'),
+      'version', '1', 'lifecycle', 'ACTIVE', 'weeklyCapacityMinutes', 300,
+      'consumedMinutesThisWeek', 0,
+      'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'trackId', (select response->>'learningTrackId'
+          from today_results where result_name = 'plan-a'),
+        'version', '2', 'lifecycle', 'ACTIVE', 'priority', 80,
+        'protectedMinimumMinutes', 60, 'cadencePerWeek', 0,
+        'completedCadenceSessionsThisWeek', 0
+      ))
     )
   )
 ));
@@ -1012,7 +1039,7 @@ select 'record-recovery', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select response->>'sourceFence'
    from today_results where result_name = 'load-recovery'),
   pg_catalog.jsonb_build_object(
-    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'completedWorkPolicyVersion', 'planning-completed-work/0.2',
     'inputFingerprint',
       'planning-input:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -1029,7 +1056,16 @@ select 'record-recovery', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
     ),
     'growthPlan', pg_catalog.jsonb_build_object(
       'growthPlanId', (select response->>'growthPlanId'
-        from today_results where result_name = 'plan-a')
+        from today_results where result_name = 'plan-a'),
+      'version', '1', 'lifecycle', 'ACTIVE', 'weeklyCapacityMinutes', 300,
+      'consumedMinutesThisWeek', 0,
+      'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'trackId', (select response->>'learningTrackId'
+          from today_results where result_name = 'plan-a'),
+        'version', '2', 'lifecycle', 'ACTIVE', 'priority', 80,
+        'protectedMinimumMinutes', 60, 'cadencePerWeek', 0,
+        'completedCadenceSessionsThisWeek', 0
+      ))
     )
   )
 ));

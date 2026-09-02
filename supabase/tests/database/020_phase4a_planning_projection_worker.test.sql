@@ -184,8 +184,8 @@ select is(
 select is(
   (select response->>'calculationContractVersion'
    from worker_results where result_name = 'load'),
-  'planning-calculation/1',
-  'expand-only claims retain the historical V1 calculation contract'
+  'planning-calculation/2',
+  'a fresh post-activation attempt uses the V2 calculation contract'
 );
 select ok(
   not exists (
@@ -194,9 +194,9 @@ select ok(
       (select response#>'{sourceBundle,plan,tracks}'
        from worker_results where result_name = 'load')
     ) as track(value)
-    where track.value ? 'cadencePerWeek'
+    where not track.value ? 'cadencePerWeek'
   ),
-  'the historical V1 source bundle and source fence are not relabeled with cadence'
+  'the fresh V2 owner bundle includes the persisted cadence target for worker assembly'
 );
 select is(
   (select pg_catalog.jsonb_array_length(response#>'{sourceBundle,visibleDeliveryIds}')
@@ -237,22 +237,30 @@ select 'record', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from worker_results where result_name = 'load'),
   (select response->>'sourceFence' from worker_results where result_name = 'load'),
   pg_catalog.jsonb_build_object(
-    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'completedWorkPolicyVersion', 'planning-completed-work/0.2',
     'inputFingerprint',
       'planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
       'asOf', (select response->'claimAsOf' from worker_results where result_name = 'load'),
       'validUntil', (select response#>'{sourceBundle,calendar,validUntil}'
-        from worker_results where result_name = 'load'),
-      'timeZone', (select response#>'{sourceBundle,calendar,timeZone}'
-        from worker_results where result_name = 'load'),
-      'weekStart', (select response#>'{sourceBundle,calendar,weekStart}'
-        from worker_results where result_name = 'load'),
-      'weekEnd', (select response#>'{sourceBundle,calendar,weekEnd}'
         from worker_results where result_name = 'load')
     ),
     'growthPlan', pg_catalog.jsonb_build_object(
-      'growthPlanId', (select response->>'growthPlanId' from worker_results where result_name = 'plan')
+      'growthPlanId', (select response->>'growthPlanId'
+        from worker_results where result_name = 'plan'),
+      'version', '1',
+      'lifecycle', 'ACTIVE',
+      'weeklyCapacityMinutes', 300,
+      'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'trackId', (select response->>'learningTrackId'
+          from worker_results where result_name = 'plan'),
+        'version', '1',
+        'lifecycle', 'ACTIVE',
+        'priority', 80,
+        'protectedMinimumMinutes', 60,
+        'cadencePerWeek', 0,
+        'completedCadenceSessionsThisWeek', 0
+      ))
     )
   )
 ));
@@ -263,8 +271,8 @@ select 'complete', pg_catalog.to_jsonb(api.complete_plan_snapshot_projection_v1(
   (select (response->>'lease_token')::uuid from worker_results where result_name = 'claim'),
   (select (response->>'attemptId')::uuid from worker_results where result_name = 'load'),
   pg_catalog.jsonb_build_object(
-    'engineVersion', 'planner-engine/0.1.0',
-    'policyVersion', 'planning-policy/0.1',
+    'engineVersion', 'planner-engine/0.2.0',
+    'policyVersion', 'planning-policy/0.2',
     'inputFingerprint',
       'planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     'calculatedAsOf', (select response->'claimAsOf' from worker_results where result_name = 'load'),
@@ -487,22 +495,30 @@ select 'stale_record', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from worker_results where result_name = 'stale_load'),
   (select response->>'sourceFence' from worker_results where result_name = 'stale_load'),
   pg_catalog.jsonb_build_object(
-    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'completedWorkPolicyVersion', 'planning-completed-work/0.2',
     'inputFingerprint',
       'planning-input:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
       'asOf', (select response->'claimAsOf' from worker_results where result_name = 'stale_load'),
       'validUntil', (select response#>'{sourceBundle,calendar,validUntil}'
-        from worker_results where result_name = 'stale_load'),
-      'timeZone', (select response#>'{sourceBundle,calendar,timeZone}'
-        from worker_results where result_name = 'stale_load'),
-      'weekStart', (select response#>'{sourceBundle,calendar,weekStart}'
-        from worker_results where result_name = 'stale_load'),
-      'weekEnd', (select response#>'{sourceBundle,calendar,weekEnd}'
         from worker_results where result_name = 'stale_load')
     ),
     'growthPlan', pg_catalog.jsonb_build_object(
-      'growthPlanId', (select response->>'growthPlanId' from worker_results where result_name = 'plan')
+      'growthPlanId', (select response->>'growthPlanId'
+        from worker_results where result_name = 'plan'),
+      'version', '1',
+      'lifecycle', 'ACTIVE',
+      'weeklyCapacityMinutes', 300,
+      'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+        'trackId', (select response->>'learningTrackId'
+          from worker_results where result_name = 'plan'),
+        'version', '1',
+        'lifecycle', 'ACTIVE',
+        'priority', 80,
+        'protectedMinimumMinutes', 60,
+        'cadencePerWeek', 0,
+        'completedCadenceSessionsThisWeek', 0
+      ))
     )
   )
 ));
@@ -564,7 +580,7 @@ select ok(
 select throws_ok(
   pg_catalog.format(
     'update planning.plan_snapshot_attempts set calculation_contract_version = %L where attempt_id = %L::uuid',
-    'planning-calculation/2',
+    'planning-calculation/1',
     (select response->>'attemptId' from worker_results where result_name = 'load')
   ),
   '55000',
