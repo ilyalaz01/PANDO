@@ -8,6 +8,7 @@ import trackPreview from "../../../../tests/contract/fixtures/planning/v1/learni
 import trackSettingsPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-priority-minimum-control.valid.json";
 import initializationPreview from "../../../../tests/contract/fixtures/planning/v1/growth-plan-initialization-control.valid.json";
 import admissionPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
+import admissionPreviewV2 from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-v2.valid.json";
 import creationPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
@@ -16,22 +17,26 @@ import {
   APPLY_GROWTH_PLAN_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_CREATION_RPC_V1,
   APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
+  APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
   applyGrowthPlanInitializationV1,
   applyLearningTrackLifecycleV1,
   applyLearningTrackActivityAdmissionV1,
+  applyLearningTrackActivityAdmissionV2,
   applyLearningTrackPriorityMinimumV1,
   GET_CURRENT_GROWTH_PLAN_RPC_V1,
   GET_CURRENT_LEARNING_TRACKS_RPC_V1,
   GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1,
   GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1,
   GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1,
+  GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2,
   loadCurrentGrowthPlanV1,
   loadCurrentLearningTracksV1,
   loadGrowthPlanSetupSourceV1,
   loadLearningTrackCreationSourceV1,
   loadLearningTrackActivityAdmissionSourceV1,
+  loadLearningTrackActivityAdmissionSourceV2,
   PlanConflictError,
   PlanInputError,
   PlanUnavailableError,
@@ -41,6 +46,7 @@ import {
   PREVIEW_LEARNING_TRACK_CREATION_RPC_V1,
   PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
+  PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2,
   PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
@@ -48,6 +54,7 @@ import {
   previewLearningTrackCreationV1,
   previewLearningTrackLifecycleV1,
   previewLearningTrackActivityAdmissionV1,
+  previewLearningTrackActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1,
   APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
@@ -213,6 +220,41 @@ const admissionCommand = {
   requestId: admissionPreview.requestId,
 };
 
+const admissionSourceV2 = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV2", version: "2.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: admissionPreviewV2.growthPlan,
+  selectedTrack: {
+    trackKey: admissionPreviewV2.learningTrack.trackKey,
+    title: admissionPreviewV2.learningTrack.title,
+    lifecycle: admissionPreviewV2.learningTrack.lifecycle,
+    priority: admissionPreviewV2.learningTrack.priority,
+    protectedMinimumMinutes: admissionPreviewV2.learningTrack.protectedMinimumMinutes,
+    defaultSessionMinutes: admissionPreviewV2.learningTrack.defaultSessionMinutes,
+    aggregateVersion: admissionPreviewV2.learningTrack.aggregateVersionBefore,
+  },
+  activities: [
+    {
+      activityKey: admissionPreviewV2.activity.activityKey,
+      title: admissionPreviewV2.activity.title,
+      activityType: admissionPreviewV2.activity.activityType,
+      targetCompetencyRef: admissionPreviewV2.activity.targetCompetencyRef,
+    },
+  ],
+} as const;
+
+const admissionCommandV2 = {
+  trackKey: admissionPreviewV2.learningTrack.trackKey,
+  activityKey: admissionPreviewV2.activity.activityKey,
+  estimatedMinutes: admissionPreviewV2.activity.estimatedMinutes,
+  energy: admissionPreviewV2.activity.energy as "MEDIUM",
+  expectedGrowthPlanVersion: admissionPreviewV2.expectedGrowthPlanVersion,
+  expectedLearningTrackVersion: admissionPreviewV2.expectedLearningTrackVersion,
+  reason: admissionPreviewV2.reason,
+  requestId: admissionPreviewV2.requestId,
+};
+
 describe("Growth Plan database boundary", () => {
   it("loads, previews, and applies manual activity admission without authority IDs", async () => {
     const sourceRpc = vi.fn().mockResolvedValue({ data: admissionSource, error: null });
@@ -271,6 +313,70 @@ describe("Growth Plan database boundary", () => {
       p_reason: admissionCommand.reason,
       p_request_id: admissionCommand.requestId,
       p_preview_digest: admissionPreview.previewDigest,
+    });
+  });
+
+  it("loads, previews, and applies destination-aware activity admission with only the bounded track selector", async () => {
+    const sourceRpc = vi.fn().mockResolvedValue({ data: admissionSourceV2, error: null });
+    await expect(
+      loadLearningTrackActivityAdmissionSourceV2(client(sourceRpc), admissionCommandV2.trackKey),
+    ).resolves.toEqual(admissionSourceV2);
+    expect(sourceRpc).toHaveBeenCalledWith(GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2, {
+      p_track_key: admissionCommandV2.trackKey,
+    });
+
+    const previewRpc = vi.fn().mockResolvedValue({ data: admissionPreviewV2, error: null });
+    await expect(
+      previewLearningTrackActivityAdmissionV2(client(previewRpc), admissionCommandV2),
+    ).resolves.toEqual(admissionPreviewV2);
+    expect(previewRpc).toHaveBeenCalledWith(PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2, {
+      p_track_key: admissionCommandV2.trackKey,
+      p_activity_key: admissionCommandV2.activityKey,
+      p_estimated_minutes: admissionCommandV2.estimatedMinutes,
+      p_energy: admissionCommandV2.energy,
+      p_expected_growth_plan_version: admissionCommandV2.expectedGrowthPlanVersion,
+      p_expected_learning_track_version: admissionCommandV2.expectedLearningTrackVersion,
+      p_reason: admissionCommandV2.reason,
+      p_request_id: admissionCommandV2.requestId,
+    });
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_workspace_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_learning_track_id");
+    expect(previewRpc.mock.calls[0]?.[1]).not.toHaveProperty("p_custom_activity_id");
+
+    const result = {
+      contract: { name: "LearningTrackActivityAdmissionApplyResultV2", version: "2.0.0" },
+      commandId,
+      changedTrack: {
+        trackKey: admissionPreviewV2.learningTrack.trackKey,
+        aggregateVersion: admissionPreviewV2.learningTrack.aggregateVersionAfter,
+      },
+      admittedActivity: {
+        activityKey: admissionPreviewV2.activity.activityKey,
+        candidateKey: admissionPreviewV2.activity.candidateKey,
+        estimatedMinutes: admissionPreviewV2.activity.estimatedMinutes,
+        energy: admissionPreviewV2.activity.energy,
+      },
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    } as const;
+    const applyRpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    await expect(
+      applyLearningTrackActivityAdmissionV2(client(applyRpc), {
+        ...admissionCommandV2,
+        previewDigest: admissionPreviewV2.previewDigest,
+      }),
+    ).resolves.toEqual(result);
+    expect(applyRpc).toHaveBeenCalledWith(APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2, {
+      p_track_key: admissionCommandV2.trackKey,
+      p_activity_key: admissionCommandV2.activityKey,
+      p_estimated_minutes: admissionCommandV2.estimatedMinutes,
+      p_energy: admissionCommandV2.energy,
+      p_expected_growth_plan_version: admissionCommandV2.expectedGrowthPlanVersion,
+      p_expected_learning_track_version: admissionCommandV2.expectedLearningTrackVersion,
+      p_reason: admissionCommandV2.reason,
+      p_request_id: admissionCommandV2.requestId,
+      p_preview_digest: admissionPreviewV2.previewDigest,
     });
   });
 
@@ -379,6 +485,18 @@ describe("Growth Plan database boundary", () => {
     await expect(
       applyLearningTrackActivityAdmissionV1(client(rpc), {
         ...admissionCommand,
+        previewDigest: "not-a-digest",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewLearningTrackActivityAdmissionV2(client(rpc), {
+        ...admissionCommandV2,
+        trackKey: "track:Other",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      applyLearningTrackActivityAdmissionV2(client(rpc), {
+        ...admissionCommandV2,
         previewDigest: "not-a-digest",
       }),
     ).rejects.toThrow(PlanInputError);

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const routerRefresh = vi.hoisted(() => vi.fn());
@@ -35,7 +35,6 @@ import type {
 import {
   previewGrowthPlanLifecycleAction,
   previewLearningTrackCreationAction,
-  previewLearningTrackActivityAdmissionAction,
 } from "../../app/plan/actions";
 import admissionPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import creationPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
@@ -741,10 +740,7 @@ describe("PlanWorkspace", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("starting an activity intent dismisses an older Plan confirmation", async () => {
-    vi.mocked(previewLearningTrackActivityAdmissionAction).mockImplementation(
-      () => new Promise<PlanActionState>(() => undefined),
-    );
+  it("changing an activity intent dismisses an older Plan confirmation", () => {
     render(
       <PlanWorkspace
         activityAdmissionSource={activityAdmissionSource}
@@ -757,10 +753,29 @@ describe("PlanWorkspace", () => {
     fireEvent.change(screen.getByLabelText("Why does this belong in the Plan?"), {
       target: { value: "Add deliberate practice." },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Preview activity" }));
-    await waitFor(() => {
-      expect(screen.queryByRole("button", { name: "Confirm and apply" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Confirm and apply" })).not.toBeInTheDocument();
+  });
+
+  it("changing the activity destination dismisses a Track creation confirmation", () => {
+    render(
+      <PlanWorkspace
+        initialLearningTrackCreationPreviewState={learningTrackCreationPreviewed}
+        learningTrackCreationSource={learningTrackCreationSource}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm and create Learning Track" })).toBeEnabled();
+    const destinationRegion = screen
+      .getByRole("heading", { name: "Choose destination Track" })
+      .closest("section");
+    expect(destinationRegion).not.toBeNull();
+    fireEvent.change(within(destinationRegion!).getByLabelText("Learning Track"), {
+      target: { value: "track:algorithms" },
     });
+    expect(
+      screen.queryByRole("button", { name: "Confirm and create Learning Track" }),
+    ).not.toBeInTheDocument();
   });
 
   it("starting another Plan intent dismisses an activity confirmation", async () => {

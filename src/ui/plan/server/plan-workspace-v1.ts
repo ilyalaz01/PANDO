@@ -21,11 +21,17 @@ import {
 import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
 import {
   decodeLearningTrackActivityAdmissionApplyResultV1 as decodeLearningTrackActivityAdmissionApplyResult,
+  decodeLearningTrackActivityAdmissionApplyResultV2 as decodeLearningTrackActivityAdmissionApplyResultV2Contract,
   decodeLearningTrackActivityAdmissionPreviewV1 as decodeLearningTrackActivityAdmissionPreview,
+  decodeLearningTrackActivityAdmissionPreviewV2 as decodeLearningTrackActivityAdmissionPreviewV2Contract,
   decodeLearningTrackActivityAdmissionSourceV1 as decodeLearningTrackActivityAdmissionSource,
+  decodeLearningTrackActivityAdmissionSourceV2 as decodeLearningTrackActivityAdmissionSourceV2Contract,
   type LearningTrackActivityAdmissionApplyResultV1,
+  type LearningTrackActivityAdmissionApplyResultV2,
   type LearningTrackActivityAdmissionPreviewV1,
+  type LearningTrackActivityAdmissionPreviewV2,
   type LearningTrackActivityAdmissionSourceV1,
+  type LearningTrackActivityAdmissionSourceV2,
 } from "../../../shared/contracts/learning-track-activity-admission-control";
 import { learningTrackPriorityMinimumControlSemanticViolations } from "../../../shared/contracts/learning-track-priority-minimum-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
@@ -38,8 +44,11 @@ export type {
   LearningTrackCreationPreviewV1,
   LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionApplyResultV1,
+  LearningTrackActivityAdmissionApplyResultV2,
   LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionPreviewV2,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackActivityAdmissionSourceV2,
 };
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -492,6 +501,13 @@ export function decodeLearningTrackActivityAdmissionSourceV1(
   return decodeLearningTrackActivityAdmissionSource(value);
 }
 
+/** Decodes the bounded personal-activity selector for one chosen current Track. */
+export function decodeLearningTrackActivityAdmissionSourceV2(
+  value: unknown,
+): LearningTrackActivityAdmissionSourceV2 {
+  return decodeLearningTrackActivityAdmissionSourceV2Contract(value);
+}
+
 /** Decodes an exact, side-effect-free manual activity admission preview. */
 export function decodeLearningTrackActivityAdmissionPreviewV1(
   value: unknown,
@@ -499,9 +515,23 @@ export function decodeLearningTrackActivityAdmissionPreviewV1(
   return decodeLearningTrackActivityAdmissionPreview(value);
 }
 
+/** Decodes an exact, side-effect-free destination-aware activity admission preview. */
+export function decodeLearningTrackActivityAdmissionPreviewV2(
+  value: unknown,
+): LearningTrackActivityAdmissionPreviewV2 {
+  return decodeLearningTrackActivityAdmissionPreviewV2Contract(value);
+}
+
 /** Decodes the atomic manual activity admission receipt. */
 export function decodeLearningTrackActivityAdmissionApplyResultV1(
   value: unknown,
 ): LearningTrackActivityAdmissionApplyResultV1 {
   return decodeLearningTrackActivityAdmissionApplyResult(value);
+}
+
+/** Decodes the atomic destination-aware activity admission receipt. */
+export function decodeLearningTrackActivityAdmissionApplyResultV2(
+  value: unknown,
+): LearningTrackActivityAdmissionApplyResultV2 {
+  return decodeLearningTrackActivityAdmissionApplyResultV2Contract(value);
 }

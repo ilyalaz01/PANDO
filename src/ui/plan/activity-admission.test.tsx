@@ -10,15 +10,21 @@ vi.mock("../../app/plan/actions", () => ({
 }));
 
 import admissionPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
+import admissionPreviewFixtureV2 from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-v2.valid.json";
 import type { PlanActionState } from "./plan-action-state";
 import type {
+  CurrentLearningTrackV1,
   LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionPreviewV2,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackActivityAdmissionSourceV2,
 } from "./plan-types";
 import { ActivityAdmission } from "./activity-admission";
 
 const admissionPreview =
   admissionPreviewFixture as unknown as LearningTrackActivityAdmissionPreviewV1;
+const admissionPreviewV2 =
+  admissionPreviewFixtureV2 as unknown as LearningTrackActivityAdmissionPreviewV2;
 
 const source: LearningTrackActivityAdmissionSourceV1 = {
   contract: { name: "LearningTrackActivityAdmissionSourceV1", version: "1.0.0" },
@@ -49,6 +55,52 @@ const previewed: PlanActionState = {
   message: "Activity preview ready.",
   preview: admissionPreview,
 };
+
+const multiTrackSource: LearningTrackActivityAdmissionSourceV2 = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV2", version: "2.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: admissionPreviewV2.growthPlan,
+  selectedTrack: {
+    trackKey: admissionPreviewV2.learningTrack.trackKey,
+    title: admissionPreviewV2.learningTrack.title,
+    lifecycle: admissionPreviewV2.learningTrack.lifecycle,
+    priority: admissionPreviewV2.learningTrack.priority,
+    protectedMinimumMinutes: admissionPreviewV2.learningTrack.protectedMinimumMinutes,
+    defaultSessionMinutes: admissionPreviewV2.learningTrack.defaultSessionMinutes,
+    aggregateVersion: admissionPreviewV2.learningTrack.aggregateVersionBefore,
+  },
+  activities: [
+    {
+      activityKey: admissionPreviewV2.activity.activityKey,
+      title: admissionPreviewV2.activity.title,
+      activityType: admissionPreviewV2.activity.activityType,
+      targetCompetencyRef: admissionPreviewV2.activity.targetCompetencyRef,
+    },
+  ],
+};
+const multiTracks: readonly CurrentLearningTrackV1[] = [
+  {
+    learningTrackId: "31000000-0000-4000-8000-000000000001",
+    trackKey: "track:system-design",
+    title: "System design",
+    lifecycle: "ACTIVE",
+    priority: 9,
+    protectedMinimumMinutes: 100,
+    aggregateVersion: "2",
+    capabilities: ["pause_track"],
+  },
+  {
+    learningTrackId: "31000000-0000-4000-8000-000000000002",
+    trackKey: admissionPreviewV2.learningTrack.trackKey,
+    title: admissionPreviewV2.learningTrack.title,
+    lifecycle: admissionPreviewV2.learningTrack.lifecycle,
+    priority: admissionPreviewV2.learningTrack.priority,
+    protectedMinimumMinutes: admissionPreviewV2.learningTrack.protectedMinimumMinutes,
+    aggregateVersion: admissionPreviewV2.learningTrack.aggregateVersionBefore,
+    capabilities: ["resume_track"],
+  },
+];
 
 describe("ActivityAdmission", () => {
   beforeEach(() => routerRefresh.mockClear());
@@ -129,5 +181,38 @@ describe("ActivityAdmission", () => {
     expect(
       screen.queryByRole("button", { name: "Confirm and add activity" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("requires an explicit destination Track load when several current Tracks exist", () => {
+    render(<ActivityAdmission tracks={multiTracks} />);
+    expect(screen.getByRole("heading", { name: "Choose destination Track" })).toBeVisible();
+    expect(screen.getByLabelText("Learning Track")).toHaveValue("track:system-design");
+    expect(screen.getByRole("button", { name: "Load activity choices" })).toBeEnabled();
+    expect(
+      screen.getByText(/Choose a current Track above to load its bounded activity choices/iu),
+    ).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Preview activity" })).not.toBeInTheDocument();
+  });
+
+  it("renders the selected destination Track source without preloading every portfolio combination", () => {
+    render(
+      <ActivityAdmission
+        selectedTrackKey={admissionPreviewV2.learningTrack.trackKey}
+        source={multiTrackSource}
+        tracks={multiTracks}
+      />,
+    );
+    expect(screen.getByLabelText("Learning Track")).toHaveValue(
+      admissionPreviewV2.learningTrack.trackKey,
+    );
+    expect(screen.getByText(/Add one accepted personal activity to Algorithms\./iu)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Preview activity" })).toBeEnabled();
+  });
+
+  it("falls back to the first current Track when a selected URL key is stale", () => {
+    render(<ActivityAdmission selectedTrackKey="track:retired" tracks={multiTracks} />);
+    expect(screen.getByLabelText("Learning Track")).toHaveValue("track:system-design");
+    expect(screen.getByRole("button", { name: "Load activity choices" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Preview activity" })).not.toBeInTheDocument();
   });
 });

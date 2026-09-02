@@ -10,6 +10,7 @@ import {
   applyLearningTrackLifecycleV1,
   applyLearningTrackCreationV1,
   applyLearningTrackActivityAdmissionV1,
+  applyLearningTrackActivityAdmissionV2,
   applyLearningTrackPriorityMinimumV1,
   applyGrowthPlanInitializationV1,
   applyGrowthPlanCapacityV1,
@@ -19,6 +20,7 @@ import {
   previewLearningTrackLifecycleV1,
   previewLearningTrackCreationV1,
   previewLearningTrackActivityAdmissionV1,
+  previewLearningTrackActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1,
   previewGrowthPlanInitializationV1,
   PlanConflictError,
@@ -234,6 +236,7 @@ function learningTrackCreationInput(formData: FormData): {
 }
 
 function activityAdmissionInput(formData: FormData): {
+  trackKey: string | null;
   activityKey: string;
   estimatedMinutes: number;
   energy: "LOW" | "MEDIUM" | "HIGH" | null;
@@ -242,6 +245,7 @@ function activityAdmissionInput(formData: FormData): {
   reason: string;
   requestId: string;
 } {
+  const trackKeyInput = field(formData, "trackKey");
   const activityKey = field(formData, "activityKey");
   const estimatedMinutes = field(formData, "estimatedMinutes");
   const energyInput = field(formData, "energy");
@@ -249,8 +253,10 @@ function activityAdmissionInput(formData: FormData): {
   const learningTrackVersion = field(formData, "expectedLearningTrackVersion");
   const reason = field(formData, "reason");
   const requestId = field(formData, "requestId");
+  const trackKey = trackKeyInput === "" ? null : trackKeyInput;
   const energy = energyInput === "" ? null : energyInput;
   if (
+    (trackKey !== null && !TRACK_KEY.test(trackKey)) ||
     !ACTIVITY_KEY.test(activityKey) ||
     !/^[1-9][0-9]{0,2}$/u.test(estimatedMinutes) ||
     Number(estimatedMinutes) > 480 ||
@@ -264,6 +270,7 @@ function activityAdmissionInput(formData: FormData): {
     throw new PlanInputError();
   }
   return {
+    trackKey,
     activityKey,
     estimatedMinutes: Number(estimatedMinutes),
     energy: energy as "LOW" | "MEDIUM" | "HIGH" | null,
@@ -681,15 +688,27 @@ export async function previewLearningTrackActivityAdmissionAction(
     const value = activityAdmissionInput(formData);
     const client = await createPandoServerActionClient();
     await verifyPandoSession(client);
-    const preview = await previewLearningTrackActivityAdmissionV1(client, {
-      activityKey: value.activityKey,
-      estimatedMinutes: value.estimatedMinutes,
-      energy: value.energy,
-      expectedGrowthPlanVersion: value.growthPlanVersion,
-      expectedLearningTrackVersion: value.learningTrackVersion,
-      reason: value.reason,
-      requestId: value.requestId,
-    });
+    const preview =
+      value.trackKey === null
+        ? await previewLearningTrackActivityAdmissionV1(client, {
+            activityKey: value.activityKey,
+            estimatedMinutes: value.estimatedMinutes,
+            energy: value.energy,
+            expectedGrowthPlanVersion: value.growthPlanVersion,
+            expectedLearningTrackVersion: value.learningTrackVersion,
+            reason: value.reason,
+            requestId: value.requestId,
+          })
+        : await previewLearningTrackActivityAdmissionV2(client, {
+            trackKey: value.trackKey,
+            activityKey: value.activityKey,
+            estimatedMinutes: value.estimatedMinutes,
+            energy: value.energy,
+            expectedGrowthPlanVersion: value.growthPlanVersion,
+            expectedLearningTrackVersion: value.learningTrackVersion,
+            reason: value.reason,
+            requestId: value.requestId,
+          });
     return {
       status: "previewed",
       message: preview.canApply
@@ -715,16 +734,28 @@ export async function applyLearningTrackActivityAdmissionAction(
     if (!/^[a-f0-9]{64}$/u.test(previewDigest)) throw new PlanInputError();
     const client = await createPandoServerActionClient();
     await verifyPandoSession(client);
-    await applyLearningTrackActivityAdmissionV1(client, {
-      activityKey: value.activityKey,
-      estimatedMinutes: value.estimatedMinutes,
-      energy: value.energy,
-      expectedGrowthPlanVersion: value.growthPlanVersion,
-      expectedLearningTrackVersion: value.learningTrackVersion,
-      reason: value.reason,
-      requestId: value.requestId,
-      previewDigest,
-    });
+    await (value.trackKey === null
+      ? applyLearningTrackActivityAdmissionV1(client, {
+          activityKey: value.activityKey,
+          estimatedMinutes: value.estimatedMinutes,
+          energy: value.energy,
+          expectedGrowthPlanVersion: value.growthPlanVersion,
+          expectedLearningTrackVersion: value.learningTrackVersion,
+          reason: value.reason,
+          requestId: value.requestId,
+          previewDigest,
+        })
+      : applyLearningTrackActivityAdmissionV2(client, {
+          trackKey: value.trackKey,
+          activityKey: value.activityKey,
+          estimatedMinutes: value.estimatedMinutes,
+          energy: value.energy,
+          expectedGrowthPlanVersion: value.growthPlanVersion,
+          expectedLearningTrackVersion: value.learningTrackVersion,
+          reason: value.reason,
+          requestId: value.requestId,
+          previewDigest,
+        }));
     revalidatePath("/plan");
     revalidatePath("/today");
     return {

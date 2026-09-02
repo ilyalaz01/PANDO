@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
+  LearningTrackActivityAdmissionSource,
   GrowthPlanSetupSourceV1,
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
   LearningTrackCreationSourceV1,
   LearningTrackLifecyclePreviewV1,
-  LearningTrackActivityAdmissionSourceV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
   PlanPreviewV1,
@@ -303,6 +303,7 @@ export function PlanWorkspace({
   learningTrackCreationUnavailable = false,
   activityAdmissionSource,
   activityAdmissionUnavailable = false,
+  selectedActivityAdmissionTrackKey,
   initialPreviewState = initialPlanActionState,
   initialApplyState = initialPlanActionState,
   initialCapacityPreviewState = initialPlanActionState,
@@ -323,8 +324,9 @@ export function PlanWorkspace({
   readonly setupSource?: GrowthPlanSetupSourceV1;
   readonly learningTrackCreationSource?: LearningTrackCreationSourceV1;
   readonly learningTrackCreationUnavailable?: boolean;
-  readonly activityAdmissionSource?: LearningTrackActivityAdmissionSourceV1;
+  readonly activityAdmissionSource?: LearningTrackActivityAdmissionSource;
   readonly activityAdmissionUnavailable?: boolean;
+  readonly selectedActivityAdmissionTrackKey?: string;
   readonly initialPreviewState?: PlanActionState;
   readonly initialApplyState?: PlanActionState;
   readonly initialCapacityPreviewState?: PlanActionState;
@@ -373,7 +375,9 @@ export function PlanWorkspace({
   const [trackSettingsReason, setTrackSettingsReason] = useState("");
   const [trackSettingsDismissed, setTrackSettingsDismissed] = useState(false);
   const [trackSettingsApplyRequestId, setTrackSettingsApplyRequestId] = useState("");
-  const [additiveDismissalVersion, setAdditiveDismissalVersion] = useState(0);
+  const [learningTrackCreationDismissalVersion, setLearningTrackCreationDismissalVersion] =
+    useState(0);
+  const [activityAdmissionDismissalVersion, setActivityAdmissionDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -454,6 +458,17 @@ export function PlanWorkspace({
   const selectedTrack = tracksWorkspace.learningTracks.find(
     (track) => track.trackKey === selectedTrackKey,
   );
+  let selectedActivityAdmissionTrack = null;
+  if (activityAdmissionSource !== undefined && "selectedTrack" in activityAdmissionSource) {
+    selectedActivityAdmissionTrack = activityAdmissionSource.selectedTrack;
+  } else if (activityAdmissionSource !== undefined) {
+    selectedActivityAdmissionTrack = activityAdmissionSource.learningTrack;
+  }
+  const activityAdmissionIdentity =
+    selectedActivityAdmissionTrack?.trackKey ??
+    selectedActivityAdmissionTrackKey ??
+    tracksWorkspace.learningTracks[0]?.trackKey ??
+    "unselected";
   const operation = workspace.capabilities[0] as PlanOperation | undefined;
   const applyStateForPreview =
     preview !== null && preview.previewDigest === submittedPreviewDigest
@@ -509,6 +524,26 @@ export function PlanWorkspace({
       router.refresh();
   }, [applyState, capacityApplyState, router, trackApplyState, trackPriorityMinimumApplyState]);
 
+  function dismissOtherPlanIntents() {
+    setDismissed(true);
+    setCapacityDismissed(true);
+    setTrackDismissed(true);
+    setTrackSettingsDismissed(true);
+  }
+
+  function dismissLearningTrackCreationIntent() {
+    setLearningTrackCreationDismissalVersion((version) => version + 1);
+  }
+
+  function dismissActivityAdmissionIntent() {
+    setActivityAdmissionDismissalVersion((version) => version + 1);
+  }
+
+  function dismissAdditiveIntents() {
+    dismissLearningTrackCreationIntent();
+    dismissActivityAdmissionIntent();
+  }
+
   if (!plan)
     return setupSource === undefined ? (
       <section className={styles.panel}>
@@ -543,7 +578,7 @@ export function PlanWorkspace({
           action={previewAction}
           className={styles.form}
           onSubmit={() => {
-            setAdditiveDismissalVersion((version) => version + 1);
+            dismissAdditiveIntents();
             setDismissed(false);
             setCapacityDismissed(true);
             setTrackDismissed(true);
@@ -657,7 +692,7 @@ export function PlanWorkspace({
               action={trackPreviewAction}
               className={styles.form}
               onSubmit={() => {
-                setAdditiveDismissalVersion((version) => version + 1);
+                dismissAdditiveIntents();
                 setDismissed(true);
                 setCapacityDismissed(true);
                 setTrackDismissed(false);
@@ -725,14 +760,12 @@ export function PlanWorkspace({
       </section>
       {learningTrackCreationSource ? (
         <LearningTrackCreation
-          dismissalVersion={additiveDismissalVersion}
+          dismissalVersion={learningTrackCreationDismissalVersion}
           initialApplyState={initialLearningTrackCreationApplyState}
           initialPreviewState={initialLearningTrackCreationPreviewState}
           onIntentStart={() => {
-            setDismissed(true);
-            setCapacityDismissed(true);
-            setTrackDismissed(true);
-            setTrackSettingsDismissed(true);
+            dismissActivityAdmissionIntent();
+            dismissOtherPlanIntents();
           }}
           source={learningTrackCreationSource}
         />
@@ -745,27 +778,29 @@ export function PlanWorkspace({
           </p>
         </section>
       ) : null}
-      {activityAdmissionSource ? (
+      {tracksWorkspace.learningTracks.length > 0 ||
+      activityAdmissionSource !== undefined ||
+      activityAdmissionUnavailable ? (
         <ActivityAdmission
-          dismissalVersion={additiveDismissalVersion}
+          key={activityAdmissionIdentity}
+          dismissalVersion={activityAdmissionDismissalVersion}
           initialApplyState={initialActivityAdmissionApplyState}
           initialPreviewState={initialActivityAdmissionPreviewState}
           onIntentStart={() => {
-            setDismissed(true);
-            setCapacityDismissed(true);
-            setTrackDismissed(true);
-            setTrackSettingsDismissed(true);
+            dismissLearningTrackCreationIntent();
+            dismissOtherPlanIntents();
           }}
-          source={activityAdmissionSource}
+          sourceUnavailable={activityAdmissionUnavailable}
+          tracks={tracksWorkspace.learningTracks}
+          {...(activityAdmissionSource === undefined ? {} : { source: activityAdmissionSource })}
+          {...((selectedActivityAdmissionTrack?.trackKey ?? selectedActivityAdmissionTrackKey) ===
+          undefined
+            ? {}
+            : {
+                selectedTrackKey:
+                  selectedActivityAdmissionTrack?.trackKey ?? selectedActivityAdmissionTrackKey,
+              })}
         />
-      ) : activityAdmissionUnavailable ? (
-        <section className={styles.panel} aria-labelledby="activity-admission-heading">
-          <h2 id="activity-admission-heading">Add useful work</h2>
-          <p>
-            Activity choices are temporarily unavailable. Other Plan controls remain available;
-            nothing changed.
-          </p>
-        </section>
       ) : null}
       {effectiveTrackPreview ? (
         <section className={styles.panel} aria-labelledby="track-preview-heading">
@@ -887,7 +922,7 @@ export function PlanWorkspace({
             action={trackPriorityMinimumPreviewAction}
             className={styles.form}
             onSubmit={() => {
-              setAdditiveDismissalVersion((version) => version + 1);
+              dismissAdditiveIntents();
               setDismissed(true);
               setCapacityDismissed(true);
               setTrackDismissed(true);
@@ -1139,7 +1174,7 @@ export function PlanWorkspace({
           action={capacityPreviewAction}
           className={styles.form}
           onSubmit={() => {
-            setAdditiveDismissalVersion((version) => version + 1);
+            dismissAdditiveIntents();
             setDismissed(true);
             setCapacityDismissed(false);
             setTrackDismissed(true);

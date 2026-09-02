@@ -10,8 +10,11 @@ import {
   decodeLearningTrackCreationPreviewV1,
   decodeLearningTrackCreationSourceV1,
   decodeLearningTrackActivityAdmissionApplyResultV1,
+  decodeLearningTrackActivityAdmissionApplyResultV2,
   decodeLearningTrackActivityAdmissionPreviewV1,
+  decodeLearningTrackActivityAdmissionPreviewV2,
   decodeLearningTrackActivityAdmissionSourceV1,
+  decodeLearningTrackActivityAdmissionSourceV2,
   decodeGrowthPlanCapacityApplyResultV1,
   decodeGrowthPlanCapacityPreviewV1,
   decodeGrowthPlanLifecycleApplyResultV1,
@@ -35,8 +38,11 @@ import {
   type GrowthPlanLifecycleOperationV1,
   type GrowthPlanLifecyclePreviewV1,
   type LearningTrackActivityAdmissionApplyResultV1,
+  type LearningTrackActivityAdmissionApplyResultV2,
   type LearningTrackActivityAdmissionPreviewV1,
+  type LearningTrackActivityAdmissionPreviewV2,
   type LearningTrackActivityAdmissionSourceV1,
+  type LearningTrackActivityAdmissionSourceV2,
   type LearningTrackLifecycleApplyResultV1,
   type LearningTrackLifecycleOperationV1,
   type LearningTrackLifecyclePreviewV1,
@@ -68,10 +74,16 @@ export const PREVIEW_LEARNING_TRACK_CREATION_RPC_V1 = "preview_learning_track_cr
 export const APPLY_LEARNING_TRACK_CREATION_RPC_V1 = "apply_learning_track_creation_v1" as const;
 export const GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1 =
   "get_learning_track_activity_admission_source_v1" as const;
+export const GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2 =
+  "get_learning_track_activity_admission_source_v2" as const;
 export const PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1 =
   "preview_learning_track_activity_admission_v1" as const;
+export const PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2 =
+  "preview_learning_track_activity_admission_v2" as const;
 export const APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1 =
   "apply_learning_track_activity_admission_v1" as const;
+export const APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2 =
+  "apply_learning_track_activity_admission_v2" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
@@ -192,6 +204,14 @@ export interface LearningTrackActivityAdmissionPreviewCommandV1 {
 }
 
 export interface LearningTrackActivityAdmissionApplyCommandV1 extends LearningTrackActivityAdmissionPreviewCommandV1 {
+  readonly previewDigest: string;
+}
+
+export interface LearningTrackActivityAdmissionPreviewCommandV2 extends LearningTrackActivityAdmissionPreviewCommandV1 {
+  readonly trackKey: string;
+}
+
+export interface LearningTrackActivityAdmissionApplyCommandV2 extends LearningTrackActivityAdmissionPreviewCommandV2 {
   readonly previewDigest: string;
 }
 
@@ -349,6 +369,12 @@ function validActivityAdmissionPreview(
   );
 }
 
+function validActivityAdmissionPreviewV2(
+  command: LearningTrackActivityAdmissionPreviewCommandV2,
+): boolean {
+  return TRACK_KEY.test(command.trackKey) && validActivityAdmissionPreview(command);
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
@@ -369,8 +395,11 @@ async function rpc(
     | typeof PREVIEW_LEARNING_TRACK_CREATION_RPC_V1
     | typeof APPLY_LEARNING_TRACK_CREATION_RPC_V1
     | typeof GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1
+    | typeof GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2
     | typeof PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1
-    | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
+    | typeof PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2
+    | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2,
   parameters?: Record<string, string | number | null>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
@@ -862,6 +891,30 @@ export async function loadLearningTrackActivityAdmissionSourceV1(
   }
 }
 
+/** Loads the bounded, actor-scoped personal activity choices for one selected current Track. */
+export async function loadLearningTrackActivityAdmissionSourceV2(
+  client: PandoSupabaseClient,
+  trackKey: string,
+): Promise<LearningTrackActivityAdmissionSourceV2> {
+  if (!TRACK_KEY.test(trackKey)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackActivityAdmissionSourceV2(
+      await rpc(client, GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2, {
+        p_track_key: trackKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
 /** Builds the exact, side-effect-free manual activity admission preview. */
 export async function previewLearningTrackActivityAdmissionV1(
   client: PandoSupabaseClient,
@@ -871,6 +924,37 @@ export async function previewLearningTrackActivityAdmissionV1(
   try {
     return decodeLearningTrackActivityAdmissionPreviewV1(
       await rpc(client, PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1, {
+        p_activity_key: command.activityKey,
+        p_estimated_minutes: command.estimatedMinutes,
+        p_energy: command.energy,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+        p_request_id: command.requestId,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds the exact, side-effect-free destination-aware manual activity admission preview. */
+export async function previewLearningTrackActivityAdmissionV2(
+  client: PandoSupabaseClient,
+  command: LearningTrackActivityAdmissionPreviewCommandV2,
+): Promise<LearningTrackActivityAdmissionPreviewV2> {
+  if (!validActivityAdmissionPreviewV2(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackActivityAdmissionPreviewV2(
+      await rpc(client, PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2, {
+        p_track_key: command.trackKey,
         p_activity_key: command.activityKey,
         p_estimated_minutes: command.estimatedMinutes,
         p_energy: command.energy,
@@ -903,6 +987,40 @@ export async function applyLearningTrackActivityAdmissionV1(
   try {
     return decodeLearningTrackActivityAdmissionApplyResultV1(
       await rpc(client, APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1, {
+        p_activity_key: command.activityKey,
+        p_estimated_minutes: command.estimatedMinutes,
+        p_energy: command.energy,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+        p_request_id: command.requestId,
+        p_preview_digest: command.previewDigest,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the exact destination-aware activity admission preview the user confirmed. */
+export async function applyLearningTrackActivityAdmissionV2(
+  client: PandoSupabaseClient,
+  command: LearningTrackActivityAdmissionApplyCommandV2,
+): Promise<LearningTrackActivityAdmissionApplyResultV2> {
+  if (!validActivityAdmissionPreviewV2(command) || !SHA_256_HEX.test(command.previewDigest)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackActivityAdmissionApplyResultV2(
+      await rpc(client, APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2, {
+        p_track_key: command.trackKey,
         p_activity_key: command.activityKey,
         p_estimated_minutes: command.estimatedMinutes,
         p_energy: command.energy,

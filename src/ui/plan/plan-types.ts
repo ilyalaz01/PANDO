@@ -10,8 +10,11 @@ import type {
 } from "../../shared/contracts/learning-track-creation-control";
 import type {
   LearningTrackActivityAdmissionApplyResultV1,
+  LearningTrackActivityAdmissionApplyResultV2,
   LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionPreviewV2,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackActivityAdmissionSourceV2,
 } from "../../shared/contracts/learning-track-activity-admission-control";
 
 export type Lifecycle = "ACTIVE" | "PAUSED";
@@ -210,7 +213,8 @@ export type PlanPreviewV1 =
   | LearningTrackPriorityMinimumPreviewV1
   | GrowthPlanInitializationPreviewV1
   | LearningTrackCreationPreviewV1
-  | LearningTrackActivityAdmissionPreviewV1;
+  | LearningTrackActivityAdmissionPreviewV1
+  | LearningTrackActivityAdmissionPreviewV2;
 
 export interface CurrentGrowthPlanV1 {
   readonly contract: { readonly name: "CurrentGrowthPlanV1"; readonly version: "1.0.0" };
@@ -231,6 +235,12 @@ export type {
   LearningTrackCreationPreviewV1,
   LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionApplyResultV1,
+  LearningTrackActivityAdmissionApplyResultV2,
   LearningTrackActivityAdmissionPreviewV1,
+  LearningTrackActivityAdmissionPreviewV2,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackActivityAdmissionSourceV2,
 };
+
+export type LearningTrackActivityAdmissionSource =
+  LearningTrackActivityAdmissionSourceV1 | LearningTrackActivityAdmissionSourceV2;

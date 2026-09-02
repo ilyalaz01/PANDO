@@ -8,6 +8,7 @@ import type {
   GrowthPlanSetupSourceV1,
   LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionSourceV1,
+  LearningTrackActivityAdmissionSourceV2,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
@@ -98,6 +99,30 @@ const readyActivitySource: LearningTrackActivityAdmissionSourceV1 = {
       title: "SQL practice",
       activityType: "MANUAL_CODING",
       targetCompetencyRef: "competency:sql",
+    },
+  ],
+};
+
+const readyActivitySourceV2: LearningTrackActivityAdmissionSourceV2 = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV2", version: "2.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: readyActivitySource.growthPlan,
+  selectedTrack: {
+    trackKey: tracksWorkspace.learningTracks[1]!.trackKey,
+    title: tracksWorkspace.learningTracks[1]!.title,
+    lifecycle: tracksWorkspace.learningTracks[1]!.lifecycle,
+    priority: tracksWorkspace.learningTracks[1]!.priority,
+    protectedMinimumMinutes: tracksWorkspace.learningTracks[1]!.protectedMinimumMinutes,
+    defaultSessionMinutes: 45,
+    aggregateVersion: tracksWorkspace.learningTracks[1]!.aggregateVersion,
+  },
+  activities: [
+    {
+      activityKey: "activity:graph-practice",
+      title: "Graph practice",
+      activityType: "PROJECT",
+      targetCompetencyRef: "competency:graphs",
     },
   ],
 };
@@ -239,6 +264,23 @@ function activitySourceState(
   };
 }
 
+function activitySourceStateV2(
+  state: Exclude<LearningTrackActivityAdmissionSourceV2["state"], "READY" | "NO_CURRENT_PLAN">,
+): LearningTrackActivityAdmissionSourceV2 {
+  return {
+    ...readyActivitySourceV2,
+    state,
+    capabilities: [],
+    selectedTrack:
+      state === "CURRENT_TRACK_PORTFOLIO_UNAVAILABLE" ||
+      state === "NO_CURRENT_TRACKS" ||
+      state === "SELECTED_TRACK_UNAVAILABLE"
+        ? null
+        : readyActivitySourceV2.selectedTrack,
+    activities: [],
+  };
+}
+
 function activityPreviewState(blocked: boolean): PlanActionState {
   return {
     status: "previewed",
@@ -286,6 +328,58 @@ function activityPreviewState(blocked: boolean): PlanActionState {
         consumerName: "planning.plan_snapshot_v1",
       },
       previewDigest: "f".repeat(64),
+    },
+  };
+}
+
+function activityPreviewStateV2(blocked: boolean): PlanActionState {
+  return {
+    status: "previewed",
+    message: blocked
+      ? "This Growth Plan has reached its current activity limit."
+      : "Activity preview ready. Confirm only if these exact facts are correct.",
+    preview: {
+      contract: { name: "LearningTrackActivityAdmissionPreviewV2", version: "2.0.0" },
+      digestVersion: "learning-track-activity-admission-preview-digest/2.0.0",
+      operation: "admit_activity_to_learning_track",
+      commandType: "planning.add_learning_track_activity_v3",
+      requestId: "50000000-0000-4000-8000-000000000031",
+      reason: "Add graph practice to the Algorithms Track.",
+      expectedGrowthPlanVersion: plan.aggregateVersion,
+      expectedLearningTrackVersion: tracksWorkspace.learningTracks[1]!.aggregateVersion,
+      growthPlan: readyActivitySourceV2.growthPlan!,
+      learningTrack: {
+        ...readyActivitySourceV2.selectedTrack!,
+        aggregateVersionBefore: tracksWorkspace.learningTracks[1]!.aggregateVersion,
+        aggregateVersionAfter: "4",
+      },
+      activity: {
+        ...readyActivitySourceV2.activities[0]!,
+        candidateKey: "candidate:50000000-0000-4000-8000-000000000031",
+        estimatedMinutes: 60,
+        energy: "HIGH",
+      },
+      constraint: {
+        planActivityCountBefore: blocked ? 200 : 2,
+        planActivityCountAfter: blocked ? 201 : 3,
+        planActivityLimit: 200,
+        currentTrackOrderFingerprint: "a".repeat(64),
+      },
+      canApply: !blocked,
+      blockingReasons: blocked ? [{ code: "PLAN_ACTIVITY_LIMIT_REACHED" }] : [],
+      warnings: [{ code: "LEARNING_TRACK_PAUSED" }],
+      retained: {
+        activitiesAndEvidence: true,
+        planSnapshots: true,
+        focusSessions: true,
+        masteryAndReadiness: true,
+      },
+      recalculationAfterApply: {
+        projectionState: "PENDING",
+        eventChangeKind: "TRACK_ACTIVITY_ADMITTED",
+        consumerName: "planning.plan_snapshot_v1",
+      },
+      previewDigest: "c".repeat(64),
     },
   };
 }
@@ -602,6 +696,7 @@ export default async function PlanFixturePage({
   const showsInitialization = previewKind === "setup";
   const showsCreation = previewKind.startsWith("track-create");
   const showsActivity = previewKind.startsWith("activity");
+  const showsActivityV2 = previewKind.startsWith("activity-v2");
   const creationSource =
     previewKind === "track-create-no-goals"
       ? creationSourceState("NO_ACTIVE_GOALS")
@@ -610,8 +705,17 @@ export default async function PlanFixturePage({
         : previewKind === "track-create-limit"
           ? creationSourceState("TRACK_PORTFOLIO_LIMIT_REACHED")
           : readyCreationSource;
-  const activitySource =
-    previewKind === "activity-empty"
+  const activitySource = showsActivityV2
+    ? previewKind === "activity-v2-empty"
+      ? activitySourceStateV2("NO_ELIGIBLE_ACTIVITIES")
+      : previewKind === "activity-v2-limit"
+        ? activitySourceStateV2("PLAN_ACTIVITY_LIMIT_REACHED")
+        : previewKind === "activity-v2-overflow"
+          ? activitySourceStateV2("ELIGIBLE_ACTIVITY_PORTFOLIO_OVERFLOW")
+          : previewKind === "activity-v2-stale"
+            ? activitySourceStateV2("SELECTED_TRACK_UNAVAILABLE")
+            : readyActivitySourceV2
+    : previewKind === "activity-empty"
       ? activitySourceState("NO_ELIGIBLE_ACTIVITIES")
       : previewKind === "activity-limit"
         ? activitySourceState("PLAN_ACTIVITY_LIMIT_REACHED")
@@ -637,9 +741,11 @@ export default async function PlanFixturePage({
               : initialPlanActionState
           }
           initialActivityAdmissionPreviewState={
-            previewKind === "activity" || previewKind === "activity-blocked"
-              ? activityPreviewState(previewKind === "activity-blocked")
-              : initialPlanActionState
+            previewKind === "activity-v2" || previewKind === "activity-v2-blocked"
+              ? activityPreviewStateV2(previewKind === "activity-v2-blocked")
+              : previewKind === "activity" || previewKind === "activity-blocked"
+                ? activityPreviewState(previewKind === "activity-blocked")
+                : initialPlanActionState
           }
           initialInitializationPreviewState={
             showsInitialization ? initializationPreviewState : initialPlanActionState
@@ -662,11 +768,21 @@ export default async function PlanFixturePage({
           }
           {...(showsInitialization ? { setupSource } : {})}
           {...(showsCreation ? { learningTrackCreationSource: creationSource } : {})}
-          {...(showsActivity ? { activityAdmissionSource: activitySource } : {})}
+          {...(showsActivity && previewKind !== "activity-v2-unselected"
+            ? { activityAdmissionSource: activitySource }
+            : {})}
+          {...(showsActivityV2 && previewKind !== "activity-v2-unselected"
+            ? {
+                selectedActivityAdmissionTrackKey:
+                  previewKind === "activity-v2-stale"
+                    ? "track:retired"
+                    : tracksWorkspace.learningTracks[1]!.trackKey,
+              }
+            : {})}
           tracksWorkspace={
             showsInitialization
               ? setupTracksWorkspace
-              : showsActivity
+              : showsActivity && !showsActivityV2
                 ? activityTracksWorkspace
                 : tracksWorkspace
           }

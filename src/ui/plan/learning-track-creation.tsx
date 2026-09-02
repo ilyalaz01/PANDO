@@ -213,6 +213,7 @@ export function LearningTrackCreation({
             onChange={(event) => {
               setReadinessGoalKey(event.target.value);
               dismissPreview();
+              onIntentStart?.();
             }}
             value={readinessGoalKey}
           >
@@ -232,6 +233,7 @@ export function LearningTrackCreation({
             onChange={(event) => {
               setTitle(event.target.value);
               dismissPreview();
+              onIntentStart?.();
             }}
             required
             type="text"
@@ -248,6 +250,7 @@ export function LearningTrackCreation({
             onChange={(event) => {
               setPriority(event.target.value);
               dismissPreview();
+              onIntentStart?.();
             }}
             required
             step={1}
@@ -265,6 +268,7 @@ export function LearningTrackCreation({
             onChange={(event) => {
               setDefaultSessionMinutes(event.target.value);
               dismissPreview();
+              onIntentStart?.();
             }}
             required
             step={1}
@@ -279,6 +283,7 @@ export function LearningTrackCreation({
             onChange={(event) => {
               setReason(event.target.value);
               dismissPreview();
+              onIntentStart?.();
             }}
             required
             value={reason}

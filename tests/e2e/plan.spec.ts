@@ -20,6 +20,16 @@ async function openActivityFixture(page: import("@playwright/test").Page, kind =
   await expect(page.getByRole("heading", { name: "Add useful work", level: 2 })).toBeVisible();
 }
 
+async function openMultiTrackActivityFixture(
+  page: import("@playwright/test").Page,
+  kind = "activity-v2",
+) {
+  await openActivityFixture(page, kind);
+  await expect(
+    page.getByRole("heading", { name: "Choose destination Track", level: 2 }),
+  ).toBeVisible();
+}
+
 async function openTrackCreationFixture(
   page: import("@playwright/test").Page,
   kind = "track-create",
@@ -55,6 +65,16 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Preview Track change" })).toBeFocused();
   await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("region", { name: "Choose destination Track" }).getByLabel("Learning Track"),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page
+      .getByRole("region", { name: "Choose destination Track" })
+      .getByRole("button", { name: "Load activity choices" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Confirm Track change" })).toBeFocused();
 
   await openFixture(page, "?preview=track-settings");
@@ -84,6 +104,25 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await expect(page.getByRole("button", { name: "Preview activity" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Confirm and add activity" })).toBeFocused();
+
+  await openMultiTrackActivityFixture(page);
+  const multiTrackActivityDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(multiTrackActivityDimensions.scrollWidth).toBeLessThanOrEqual(
+    multiTrackActivityDimensions.clientWidth,
+  );
+  const destinationRegion = page.getByRole("region", { name: "Choose destination Track" });
+  await destinationRegion.getByLabel("Learning Track").focus();
+  await page.keyboard.press("Tab");
+  await expect(
+    destinationRegion.getByRole("button", { name: "Load activity choices" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("region", { name: "Add useful work" }).getByLabel("Personal activity"),
+  ).toBeFocused();
 
   await openTrackCreationFixture(page);
   const creationRegion = page.getByRole("region", { name: "Create another Learning Track" });
@@ -175,6 +214,17 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
 
+  await openMultiTrackActivityFixture(page);
+  const destinationRegion = page.getByRole("region", { name: "Choose destination Track" });
+  for (const control of [
+    destinationRegion.getByLabel("Learning Track"),
+    destinationRegion.getByRole("button", { name: "Load activity choices" }),
+    page.getByRole("region", { name: "Add useful work" }).getByLabel("Personal activity"),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
   await openTrackCreationFixture(page);
   const creationRegion = page.getByRole("region", { name: "Create another Learning Track" });
   const creationReview = page.getByRole("region", { name: "Review Learning Track creation" });
@@ -242,6 +292,18 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   expect(activityStyles.outlineStyle).not.toBe("none");
   expect(activityStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 
+  await openMultiTrackActivityFixture(page);
+  const destinationControl = page
+    .getByRole("region", { name: "Choose destination Track" })
+    .getByRole("button", { name: "Load activity choices" });
+  await destinationControl.focus();
+  const destinationStyles = await destinationControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(destinationStyles.outlineStyle).not.toBe("none");
+  expect(destinationStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
   await openTrackCreationFixture(page);
   const creationControl = page
     .getByRole("region", { name: "Review Learning Track creation" })
@@ -282,6 +344,12 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .analyze();
   expect(activityResults.violations).toEqual([]);
 
+  await openMultiTrackActivityFixture(page);
+  const multiTrackActivityResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(multiTrackActivityResults.violations).toEqual([]);
+
   await openTrackCreationFixture(page);
   const creationResults = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
@@ -308,9 +376,55 @@ test("shows exact activity admission consequences and all fail-closed source sta
     ["activity-empty", /No accepted personal activity/iu, true],
     ["activity-limit", /already has 200 current activities/iu, false],
     ["activity-overflow", /More than 200 personal activities/iu, true],
-    ["activity-unavailable", /exactly one current Track/iu, false],
+    ["activity-unavailable", /Current Track choices are temporarily unavailable/iu, false],
   ] as const) {
     await openActivityFixture(page, kind);
+    await expect(page.getByText(copy)).toBeVisible();
+    await expect(page.getByRole("button", { name: "Preview activity" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Open Explore" })).toHaveCount(explore ? 1 : 0);
+  }
+});
+
+test("loads one destination portfolio and binds the exact Track in a V2 preview", async ({
+  page,
+}) => {
+  await openMultiTrackActivityFixture(page, "activity-v2-unselected");
+  const destinationRegion = page.getByRole("region", { name: "Choose destination Track" });
+  await expect(destinationRegion.getByLabel("Learning Track").locator("option")).toHaveCount(2);
+  await expect(destinationRegion.getByLabel("Learning Track")).toHaveValue("track:system-design");
+  await expect(
+    page.getByText(/Choose a current Track above to load its bounded activity choices/iu),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Preview activity" })).toHaveCount(0);
+
+  await openMultiTrackActivityFixture(page);
+  await expect(destinationRegion.getByLabel("Learning Track")).toHaveValue("track:algorithms");
+  const activityRegion = page.getByRole("region", { name: "Add useful work" });
+  await expect(activityRegion).toContainText("Algorithms");
+  await expect(activityRegion.getByLabel("Personal activity")).toHaveValue(
+    "activity:graph-practice",
+  );
+  await expect(activityRegion.locator('input[name="trackKey"]')).toHaveValue("track:algorithms");
+  const comparison = page.getByLabel("Exact activity admission preview");
+  await expect(comparison).toContainText("Graph practice");
+  await expect(comparison).toContainText("Algorithms");
+  await expect(page.getByRole("button", { name: "Confirm and add activity" })).toBeEnabled();
+
+  await openMultiTrackActivityFixture(page, "activity-v2-stale");
+  await expect(destinationRegion.getByLabel("Learning Track")).toHaveValue("track:system-design");
+  await expect(page.getByText(/destination Track is no longer current/iu)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Confirm and add activity" })).toHaveCount(0);
+
+  await openMultiTrackActivityFixture(page, "activity-v2-blocked");
+  await expect(page.getByText(/The Plan has reached its 200-activity limit/iu)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Confirm and add activity" })).toHaveCount(0);
+
+  for (const [kind, copy, explore] of [
+    ["activity-v2-empty", /No accepted personal activity/iu, true],
+    ["activity-v2-limit", /already has 200 current activities/iu, false],
+    ["activity-v2-overflow", /More than 200 personal activities/iu, true],
+  ] as const) {
+    await openMultiTrackActivityFixture(page, kind);
     await expect(page.getByText(copy)).toBeVisible();
     await expect(page.getByRole("button", { name: "Preview activity" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Open Explore" })).toHaveCount(explore ? 1 : 0);

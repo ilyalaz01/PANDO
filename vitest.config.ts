@@ -20,7 +20,8 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary"],
       include: ["src/**/*.{ts,tsx}"],
-      exclude: ["src/app/layout.tsx"],
+      // Browser-only development fixtures are exercised by Playwright and are not production code.
+      exclude: ["src/app/layout.tsx", "src/app/dev/**"],
       thresholds: {
         lines: 85,
         branches: 80,

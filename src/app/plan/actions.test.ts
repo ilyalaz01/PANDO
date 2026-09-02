@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   apply: vi.fn(),
   applyActivityAdmission: vi.fn(),
+  applyActivityAdmissionV2: vi.fn(),
   applyCapacity: vi.fn(),
   applyCreation: vi.fn(),
   applyTrack: vi.fn(),
@@ -11,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   createClient: vi.fn(),
   preview: vi.fn(),
   previewActivityAdmission: vi.fn(),
+  previewActivityAdmissionV2: vi.fn(),
   previewCapacity: vi.fn(),
   previewCreation: vi.fn(),
   previewTrack: vi.fn(),
@@ -31,6 +33,7 @@ vi.mock("../../shared/supabase/server", () => ({
 vi.mock("../../shared/supabase/session", () => ({ verifyPandoSession: mocks.verifySession }));
 vi.mock("../../ui/plan/server/database-plan", () => ({
   applyLearningTrackActivityAdmissionV1: mocks.applyActivityAdmission,
+  applyLearningTrackActivityAdmissionV2: mocks.applyActivityAdmissionV2,
   applyGrowthPlanCapacityV1: mocks.applyCapacity,
   applyLearningTrackCreationV1: mocks.applyCreation,
   applyGrowthPlanLifecycleV1: mocks.apply,
@@ -42,6 +45,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   previewGrowthPlanLifecycleV1: mocks.preview,
   previewLearningTrackLifecycleV1: mocks.previewTrack,
   previewLearningTrackActivityAdmissionV1: mocks.previewActivityAdmission,
+  previewLearningTrackActivityAdmissionV2: mocks.previewActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1: mocks.previewTrackSettings,
   previewGrowthPlanInitializationV1: mocks.previewInitialization,
   PlanConflictError: classes.PlanConflictError,
@@ -67,6 +71,7 @@ import {
 } from "./actions";
 
 import admissionPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
+import admissionPreviewV2 from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-v2.valid.json";
 import creationPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
 
 const client = { requestScoped: true };
@@ -367,6 +372,24 @@ function activityAdmissionForm(): FormData {
   return data;
 }
 
+function activityAdmissionFormV2(): FormData {
+  const data = new FormData();
+  data.set("trackKey", admissionPreviewV2.learningTrack.trackKey);
+  data.set("activityKey", admissionPreviewV2.activity.activityKey);
+  data.set("estimatedMinutes", String(admissionPreviewV2.activity.estimatedMinutes));
+  data.set("energy", admissionPreviewV2.activity.energy ?? "");
+  data.set("expectedGrowthPlanVersion", admissionPreviewV2.expectedGrowthPlanVersion);
+  data.set("expectedLearningTrackVersion", admissionPreviewV2.expectedLearningTrackVersion);
+  data.set("reason", admissionPreviewV2.reason);
+  data.set("requestId", admissionPreviewV2.requestId);
+  data.set("previewDigest", admissionPreviewV2.previewDigest);
+  data.set("workspaceId", "attacker-selected-workspace");
+  data.set("growthPlanId", "attacker-selected-plan");
+  data.set("learningTrackId", "attacker-selected-track");
+  data.set("customActivityId", "attacker-selected-activity");
+  return data;
+}
+
 function learningTrackCreationForm(): FormData {
   const data = new FormData();
   data.set("readinessGoalKey", creationPreview.source.readinessGoalKey);
@@ -402,7 +425,9 @@ describe("Plan Server Actions", () => {
     mocks.previewInitialization.mockResolvedValue(initializationPreview);
     mocks.applyInitialization.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewActivityAdmission.mockResolvedValue(admissionPreview);
+    mocks.previewActivityAdmissionV2.mockResolvedValue(admissionPreviewV2);
     mocks.applyActivityAdmission.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.applyActivityAdmissionV2.mockResolvedValue({ projectionState: "PENDING" });
   });
 
   it("returns a pure preview without accepting browser authority fields", async () => {
@@ -771,5 +796,41 @@ describe("Plan Server Actions", () => {
     );
     expect(result).toMatchObject({ status: "conflict", preview: null });
     expect(result.message).not.toMatch(/authority/iu);
+  });
+
+  it("routes destination-aware activity admission through the V2 bounded track selector", async () => {
+    await expect(
+      previewLearningTrackActivityAdmissionAction(
+        initialPlanActionState,
+        activityAdmissionFormV2(),
+      ),
+    ).resolves.toMatchObject({ status: "previewed", preview: admissionPreviewV2 });
+    expect(mocks.previewActivityAdmission).not.toHaveBeenCalled();
+    expect(mocks.previewActivityAdmissionV2).toHaveBeenCalledWith(client, {
+      trackKey: admissionPreviewV2.learningTrack.trackKey,
+      activityKey: admissionPreviewV2.activity.activityKey,
+      estimatedMinutes: admissionPreviewV2.activity.estimatedMinutes,
+      energy: admissionPreviewV2.activity.energy,
+      expectedGrowthPlanVersion: admissionPreviewV2.expectedGrowthPlanVersion,
+      expectedLearningTrackVersion: admissionPreviewV2.expectedLearningTrackVersion,
+      reason: admissionPreviewV2.reason,
+      requestId: admissionPreviewV2.requestId,
+    });
+
+    await expect(
+      applyLearningTrackActivityAdmissionAction(initialPlanActionState, activityAdmissionFormV2()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyActivityAdmission).not.toHaveBeenCalled();
+    expect(mocks.applyActivityAdmissionV2).toHaveBeenCalledWith(client, {
+      trackKey: admissionPreviewV2.learningTrack.trackKey,
+      activityKey: admissionPreviewV2.activity.activityKey,
+      estimatedMinutes: admissionPreviewV2.activity.estimatedMinutes,
+      energy: admissionPreviewV2.activity.energy,
+      expectedGrowthPlanVersion: admissionPreviewV2.expectedGrowthPlanVersion,
+      expectedLearningTrackVersion: admissionPreviewV2.expectedLearningTrackVersion,
+      reason: admissionPreviewV2.reason,
+      requestId: admissionPreviewV2.requestId,
+      previewDigest: admissionPreviewV2.previewDigest,
+    });
   });
 });

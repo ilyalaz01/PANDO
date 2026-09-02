@@ -672,6 +672,102 @@ try {
   );
 
   await page.goto(`${baseUrl}/plan`);
+  const additionalTrackTitle = "Authenticated algorithms lane";
+  const trackCreationRegion = page.getByRole("region", {
+    name: "Create another Learning Track",
+  });
+  await trackCreationRegion.getByRole("button", { name: "Preview Learning Track" }).waitFor();
+  const trackCreationForm = trackCreationRegion.locator("form");
+  assert.deepEqual(
+    await trackCreationForm
+      .locator("input, select, textarea")
+      .evaluateAll((controls) =>
+        controls.map((control) => control.name).filter((name) => !name.startsWith("$ACTION_")),
+      ),
+    [
+      "expectedGrowthPlanVersion",
+      "expectedReadinessGoalVersion",
+      "requestId",
+      "readinessGoalKey",
+      "title",
+      "priority",
+      "defaultSessionMinutes",
+      "reason",
+    ],
+    "additional Track creation must expose only a Goal key, version fences, bounded values, reason, and request UUID",
+  );
+  assert.equal(
+    await trackCreationForm.getByLabel("Target").inputValue(),
+    readinessGoalKey,
+    "additional Track creation must use an actor-scoped Goal key",
+  );
+  await trackCreationForm.getByLabel("Track title").fill(additionalTrackTitle);
+  await trackCreationForm.getByLabel("Priority (0–100)").fill("90");
+  await trackCreationForm.getByLabel("Default session (minutes)").fill("30");
+  await trackCreationForm
+    .getByLabel("Why does this Track belong now?")
+    .fill("Create a separate authenticated lane before destination-aware admission.");
+  await trackCreationForm.getByRole("button", { name: "Preview Learning Track" }).click();
+  const trackCreationPreview = page.getByLabel("Exact Learning Track creation preview");
+  await trackCreationPreview.getByText(additionalTrackTitle, { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Confirm and create Learning Track" }).click();
+  await page
+    .getByRole("region", { name: "Learning Tracks" })
+    .getByText(additionalTrackTitle, { exact: true })
+    .first()
+    .waitFor();
+  await page.reload();
+  await page
+    .getByRole("region", { name: "Learning Tracks" })
+    .getByText(additionalTrackTitle, { exact: true })
+    .first()
+    .waitFor();
+
+  const tracksAfterCreation = await readinessVerifier.rpc("get_current_learning_tracks_v1");
+  assert.equal(tracksAfterCreation.error, null, "additional Track must reload after confirmation");
+  assert.equal(tracksAfterCreation.data?.learningTracks?.length, 2);
+  const initializedTrackAfterCreation = tracksAfterCreation.data.learningTracks.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  const additionalTrack = tracksAfterCreation.data.learningTracks.find(
+    (track) => track.title === additionalTrackTitle,
+  );
+  assert.ok(initializedTrackAfterCreation, "the initial Track must remain current after creation");
+  assert.ok(additionalTrack, "the additional Track must be returned after browser creation");
+  const additionalTrackKey = additionalTrack.trackKey;
+  assert.match(
+    additionalTrackKey,
+    /^track:[a-z0-9][a-z0-9-]{1,100}$/u,
+    "the additional Track must expose only its opaque key",
+  );
+  assert.equal(additionalTrack.aggregateVersion, "1");
+  assert.equal(
+    initializedTrackAfterCreation.aggregateVersion,
+    "1",
+    "additional Track creation must not advance a sibling Track",
+  );
+
+  await page.getByRole("heading", { name: "Add useful work" }).waitFor();
+  assert.equal(
+    await page.getByRole("button", { name: "Preview activity" }).count(),
+    0,
+    "a multi-Track Plan must not preload every Track/activity portfolio",
+  );
+  const destinationRegion = page.getByRole("region", { name: "Choose destination Track" });
+  const destinationSelector = destinationRegion.getByLabel("Learning Track");
+  assert.equal(
+    await destinationSelector.locator("option").count(),
+    2,
+    "destination selection must expose the bounded current Track list",
+  );
+  await destinationSelector.selectOption(additionalTrackKey);
+  await Promise.all([
+    page.waitForURL(
+      (url) =>
+        url.pathname === "/plan" && url.searchParams.get("activityTrack") === additionalTrackKey,
+    ),
+    destinationRegion.getByRole("button", { name: "Load activity choices" }).click(),
+  ]);
   await page.getByRole("heading", { name: "Add useful work" }).waitFor();
   const activityAdmissionForm = page.locator("form").filter({
     has: page.getByRole("button", { name: "Preview activity" }),
@@ -683,6 +779,7 @@ try {
         controls.map((control) => control.name).filter((name) => !name.startsWith("$ACTION_")),
       ),
     [
+      "trackKey",
       "expectedGrowthPlanVersion",
       "expectedLearningTrackVersion",
       "requestId",
@@ -691,7 +788,12 @@ try {
       "energy",
       "reason",
     ],
-    "activity admission must expose only public selectors, bounded values, version fences, reason, and request UUID",
+    "destination-aware admission must expose only the chosen Track key, bounded values, version fences, reason, and request UUID",
+  );
+  assert.equal(
+    await activityAdmissionForm.locator('input[name="trackKey"]').inputValue(),
+    additionalTrackKey,
+    "the V2 command must bind the exact server-returned destination key",
   );
   assert.equal(
     await activityAdmissionForm.getByLabel("Personal activity").inputValue(),
@@ -702,20 +804,39 @@ try {
   await activityAdmissionForm.getByLabel("Energy (optional)").selectOption("MEDIUM");
   await activityAdmissionForm
     .getByLabel("Why does this belong in the Plan?")
-    .fill("Add the authenticated personal activity through an exact Planning preview.");
+    .fill(
+      "Add the authenticated personal activity to the selected Track through an exact preview.",
+    );
   await activityAdmissionForm.getByRole("button", { name: "Preview activity" }).click();
   await page.getByRole("heading", { name: "Review activity admission" }).waitFor();
   await page.getByText(activityTitle, { exact: true }).waitFor();
   await page.getByText("25 minutes", { exact: true }).waitFor();
+  await page
+    .getByLabel("Exact activity admission preview")
+    .getByText(additionalTrackTitle, { exact: true })
+    .waitFor();
   await page.getByRole("button", { name: "Confirm and add activity" }).click();
+  await page.getByText(/No accepted personal activity is ready/iu).waitFor();
+  await page.reload();
   await page.getByText(/No accepted personal activity is ready/iu).waitFor();
 
   const admittedTracks = await readinessVerifier.rpc("get_current_learning_tracks_v1");
   assert.equal(admittedTracks.error, null, "admitted Track must reload after browser confirmation");
+  const admittedDestination = admittedTracks.data?.learningTracks?.find(
+    (track) => track.trackKey === additionalTrackKey,
+  );
+  const retainedSibling = admittedTracks.data?.learningTracks?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
   assert.equal(
-    admittedTracks.data?.learningTracks?.[0]?.aggregateVersion,
+    admittedDestination?.aggregateVersion,
     "2",
-    "manual activity admission must advance only the Track version once",
+    "destination-aware activity admission must advance only the selected Track once",
+  );
+  assert.equal(
+    retainedSibling?.aggregateVersion,
+    "1",
+    "destination-aware activity admission must not advance a sibling Track",
   );
 
   await page.goto(`${baseUrl}/today`);
@@ -1160,10 +1281,12 @@ try {
     null,
     "current Learning Tracks must load before lifecycle verification",
   );
-  assert.equal(currentTracksBeforeLifecycle.data?.learningTracks?.length, 1);
-  const trackVersionBeforeLifecycle = BigInt(
-    currentTracksBeforeLifecycle.data.learningTracks[0].aggregateVersion,
+  assert.equal(currentTracksBeforeLifecycle.data?.learningTracks?.length, 2);
+  const lifecycleTrackBefore = currentTracksBeforeLifecycle.data.learningTracks.find(
+    (track) => track.trackKey === initializedTrackKey,
   );
+  assert.ok(lifecycleTrackBefore, "the initial Track must remain available for lifecycle control");
+  const trackVersionBeforeLifecycle = BigInt(lifecycleTrackBefore.aggregateVersion);
   const trackForm = page.locator("form").filter({
     has: page.getByRole("button", { name: "Preview Track change" }),
   });
@@ -1186,6 +1309,7 @@ try {
     "trackKey",
     "the only browser selector must be the opaque Track key",
   );
+  await trackForm.getByLabel("Learning Track", { exact: true }).selectOption(initializedTrackKey);
   await page
     .getByLabel("Why is this Track changing?")
     .fill("Pause this Track while the authenticated lifecycle boundary verifies retention.");
@@ -1219,14 +1343,17 @@ try {
     .waitFor({ state: "attached" });
   const currentTracksAfterLifecycle = await readinessVerifier.rpc("get_current_learning_tracks_v1");
   assert.equal(currentTracksAfterLifecycle.error, null, "Learning Track must reload after apply");
-  assert.equal(currentTracksAfterLifecycle.data?.learningTracks?.[0]?.lifecycle, "ACTIVE");
+  const lifecycleTrackAfter = currentTracksAfterLifecycle.data?.learningTracks?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.equal(lifecycleTrackAfter?.lifecycle, "ACTIVE");
   assert.equal(
-    BigInt(currentTracksAfterLifecycle.data.learningTracks[0].aggregateVersion),
+    BigInt(lifecycleTrackAfter.aggregateVersion),
     trackVersionBeforeLifecycle + 2n,
     "pause and resume must each advance only the Track version once",
   );
 
-  const trackBeforeSettings = currentTracksAfterLifecycle.data.learningTracks[0];
+  const trackBeforeSettings = lifecycleTrackAfter;
   const trackSettingsForm = page.locator("form").filter({
     has: page.getByRole("button", { name: "Preview Track settings" }),
   });
@@ -1249,6 +1376,9 @@ try {
     "trackKey",
     "Track settings must select only the opaque server-returned Track key",
   );
+  await trackSettingsForm
+    .getByLabel("Learning Track", { exact: true })
+    .selectOption(initializedTrackKey);
   await trackSettingsForm.getByLabel("Priority (0–100)").fill("80");
   await trackSettingsForm.getByLabel("Protected weekly minimum in minutes (0–10080)").fill("120");
   await trackSettingsForm
@@ -1278,10 +1408,13 @@ try {
     null,
     "Learning Track settings must reload after apply",
   );
-  assert.equal(currentTracksAfterSettings.data?.learningTracks?.[0]?.priority, 80);
-  assert.equal(currentTracksAfterSettings.data?.learningTracks?.[0]?.protectedMinimumMinutes, 120);
+  const trackAfterSettings = currentTracksAfterSettings.data?.learningTracks?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.equal(trackAfterSettings?.priority, 80);
+  assert.equal(trackAfterSettings?.protectedMinimumMinutes, 120);
   assert.equal(
-    BigInt(currentTracksAfterSettings.data.learningTracks[0].aggregateVersion),
+    BigInt(trackAfterSettings.aggregateVersion),
     BigInt(trackBeforeSettings.aggregateVersion) + 1n,
     "priority/minimum apply must advance only the selected Track version once",
   );

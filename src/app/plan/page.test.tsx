@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   loadSetup: vi.fn(),
   loadCreation: vi.fn(),
   loadAdmission: vi.fn(),
+  loadAdmissionV2: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -34,6 +35,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadGrowthPlanSetupSourceV1: mocks.loadSetup,
   loadLearningTrackCreationSourceV1: mocks.loadCreation,
   loadLearningTrackActivityAdmissionSourceV1: mocks.loadAdmission,
+  loadLearningTrackActivityAdmissionSourceV2: mocks.loadAdmissionV2,
 }));
 
 import PlanPage from "./page";
@@ -127,6 +129,50 @@ const learningTrackCreationSource = {
     },
   ],
 } as const;
+const multiTrackWorkspace = {
+  ...tracksWorkspace,
+  learningTracks: [
+    tracksWorkspace.learningTracks[0],
+    {
+      learningTrackId: "31000000-0000-4000-8000-000000000002",
+      trackKey: "track:algorithms",
+      title: "Algorithms",
+      lifecycle: "PAUSED",
+      priority: 8,
+      protectedMinimumMinutes: 80,
+      aggregateVersion: "3",
+      capabilities: ["resume_track"],
+    },
+  ],
+} as const;
+const selectedTrackAdmissionSource = {
+  contract: { name: "LearningTrackActivityAdmissionSourceV2", version: "2.0.0" },
+  state: "READY",
+  capabilities: ["admit_activity_to_learning_track"],
+  growthPlan: {
+    title: workspace.currentPlan.title,
+    lifecycle: workspace.currentPlan.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan.aggregateVersion,
+  },
+  selectedTrack: {
+    trackKey: multiTrackWorkspace.learningTracks[1].trackKey,
+    title: multiTrackWorkspace.learningTracks[1].title,
+    lifecycle: multiTrackWorkspace.learningTracks[1].lifecycle,
+    priority: multiTrackWorkspace.learningTracks[1].priority,
+    protectedMinimumMinutes: multiTrackWorkspace.learningTracks[1].protectedMinimumMinutes,
+    defaultSessionMinutes: 30,
+    aggregateVersion: multiTrackWorkspace.learningTracks[1].aggregateVersion,
+  },
+  activities: [
+    {
+      activityKey: "activity:algorithms-drills",
+      title: "Algorithms drills",
+      activityType: "MANUAL_CODING",
+      targetCompetencyRef: "competency:algorithms",
+    },
+  ],
+} as const;
 const setupWorkspace = {
   contract: { name: "CurrentGrowthPlanV1", version: "1.0.0" },
   currentPlan: null,
@@ -179,6 +225,7 @@ describe("PlanPage", () => {
     mocks.loadSetup.mockResolvedValue(currentPlanSetupSource);
     mocks.loadCreation.mockResolvedValue(learningTrackCreationSource);
     mocks.loadAdmission.mockResolvedValue(activityAdmissionSource);
+    mocks.loadAdmissionV2.mockResolvedValue(selectedTrackAdmissionSource);
   });
 
   it("authenticates and loads the actor-scoped current Growth Plan", async () => {
@@ -212,7 +259,8 @@ describe("PlanPage", () => {
     expect(mocks.loadTracks).toHaveBeenCalledTimes(1);
     expect(mocks.loadSetup).toHaveBeenCalledTimes(1);
     expect(mocks.loadCreation).toHaveBeenCalledTimes(1);
-    expect(mocks.loadAdmission).toHaveBeenCalledTimes(1);
+    expect(mocks.loadAdmission).not.toHaveBeenCalled();
+    expect(mocks.loadAdmissionV2).not.toHaveBeenCalled();
   });
 
   it("redirects an unauthenticated request before loading Planning", async () => {
@@ -311,6 +359,47 @@ describe("PlanPage", () => {
     render(await PlanPage());
     expect(mocks.loadAdmission).toHaveBeenCalledTimes(2);
     expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByText(/Activity choices are temporarily unavailable/iu)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Preview activity" })).not.toBeInTheDocument();
+  });
+
+  it("does not preload activity choices for every Track when several current Tracks exist", async () => {
+    mocks.loadTracks.mockResolvedValue(multiTrackWorkspace);
+    render(await PlanPage({ searchParams: Promise.resolve({}) }));
+    expect(mocks.loadAdmission).not.toHaveBeenCalled();
+    expect(mocks.loadAdmissionV2).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Choose destination Track" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Load activity choices" })).toBeEnabled();
+  });
+
+  it("loads only the selected Track admission source when a destination Track is chosen", async () => {
+    mocks.loadTracks.mockResolvedValue(multiTrackWorkspace);
+    render(
+      await PlanPage({ searchParams: Promise.resolve({ activityTrack: "track:algorithms" }) }),
+    );
+    expect(mocks.loadAdmission).not.toHaveBeenCalled();
+    expect(mocks.loadAdmissionV2).toHaveBeenCalledWith({ authorized: true }, "track:algorithms");
+    expect(screen.getByText(/Add one accepted personal activity to Algorithms/iu)).toBeVisible();
+  });
+
+  it("retries and isolates a V2 source that resolves a different current Track", async () => {
+    mocks.loadTracks.mockResolvedValue(multiTrackWorkspace);
+    mocks.loadAdmissionV2.mockResolvedValue({
+      ...selectedTrackAdmissionSource,
+      selectedTrack: {
+        ...selectedTrackAdmissionSource.selectedTrack,
+        trackKey: "track:system-design",
+        title: "System design",
+        lifecycle: "ACTIVE",
+        priority: 9,
+        protectedMinimumMinutes: 100,
+        aggregateVersion: "2",
+      },
+    });
+    render(
+      await PlanPage({ searchParams: Promise.resolve({ activityTrack: "track:algorithms" }) }),
+    );
+    expect(mocks.loadAdmissionV2).toHaveBeenCalledTimes(2);
     expect(screen.getByText(/Activity choices are temporarily unavailable/iu)).toBeVisible();
     expect(screen.queryByRole("button", { name: "Preview activity" })).not.toBeInTheDocument();
   });
