@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1, D1b, D2a, and D2b1–D2b4 complete; cadence D2 and D3–D5 pending
+Status: D1, D1b, D2a, and D2b1–D2b4 complete; cadence D2c design accepted and implementation pending; D3–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-02
 
@@ -27,7 +27,9 @@ the released sole-Track admission meaning; see the
 [D2b3 implementation record](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md).
 D2b4 adds separate completion/archive contracts, bounded terminal history, and exact terminal
 confirmation without broadening the released pause/resume meaning; see the
-[D2b4 implementation record](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
+[D2b4 implementation record](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md). The
+remaining D2 concept now has an accepted design in
+[D2c Learning Track cadence](../design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
 
 ## Owner boundary and contracts
 
@@ -86,6 +88,7 @@ D1b, D2b1–D2b4, settings, and exact manual activity admission are complete. Th
 records cover [admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md),
 [D2b3](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md), and
 [D2b4](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md). The next bounded D2 outcome is
-cadence, which remains undefined and must be designed before it is persisted. Do not enter D3
+the accepted [cadence design](../design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md), which should be
+implemented before D3. Do not enter D3
 availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
 design are recorded.

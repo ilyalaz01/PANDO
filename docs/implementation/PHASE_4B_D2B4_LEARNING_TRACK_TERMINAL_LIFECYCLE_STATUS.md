@@ -81,7 +81,8 @@ input.
 
 ## Next bounded outcome
 
-Cadence is the remaining D2 concept and is not yet defined precisely enough to persist. Record its
-product semantics and owner contract before implementing it. Do not enter D3
+Cadence is the remaining D2 concept. Its semantics, version transition, and owner contract are now
+fixed in the accepted [D2c cadence design](../design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md); implement
+that bounded outcome next. Do not enter D3
 availability/replacement or D4–D5 Campaign work before the focused decisions required by the parent
 lifecycle design are accepted.

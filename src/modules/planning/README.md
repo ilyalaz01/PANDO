@@ -76,6 +76,12 @@ minimal event plus one snapshot delivery. Completion makes no Evidence, Mastery,
 claim. See
 [`PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
 
+The accepted next increment is
+[`PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md`](../../../docs/design/PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
+It defines cadence as a soft desired count of evidence-bearing completed Focus sessions per
+workspace week, separate from protected minutes, and requires versioned V2 Planning input/snapshot
+contracts plus engine, policy, and completed-work successors before the setting can affect Today.
+
 ## Phase 4A implementation route
 
 The accepted [Phase 4A design](../../../docs/design/PHASE_4A_PLANNING_TODAY.md) starts with a pure

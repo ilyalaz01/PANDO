@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command design
 
-Status: implementation design (D0); D1, D1b, D2a, D2b1–D2b3, and manual activity admission implemented; terminal D2b4 accepted; cadence D2 and D3–D5 pending
+Status: implementation design (D0); D1, D1b, D2a, D2b1–D2b4, and manual activity admission implemented; cadence D2c accepted; D3–D5 pending
 Date: 2026-08-29  
 Canonical basis: `docs/00_PRODUCT_CONSTITUTION.md` through `docs/06_PROMPT_LIBRARY_UX.md`
 
@@ -76,7 +76,7 @@ cannot be resumed or edited.
 | `resume_track` | `paused` | `active` | parent plan must be current, not archived |
 | `complete_track` | `active` or `paused` | `completed` | terminal Planning decision; history/evidence retained without asserting Mastery |
 | `archive_track` | `active`, `paused`, or `completed` | `archived` | terminal visibility/history decision |
-| `set_track_cadence` | `active` or `paused` | unchanged | cadence, protected minimum, and priority are validated together |
+| `set_track_cadence` | `active` or `paused` | unchanged | changes only the soft desired evidence-bearing sessions/week; priority and protected minimum retain their separate command |
 
 `completed` is not a synonym for `archived`. Completed records the user's Planning lifecycle
 decision; it does not establish evidence, Mastery, readiness, or that an outcome was reached.
@@ -175,8 +175,8 @@ returned after apply.
 
 The V1 operation catalog also needs reconciliation in that new contract: it has no
 `create_growth_plan`, models campaign target changes too loosely for immutable goal/profile
-identity, and exposes `cadence_per_week` while Planning currently persists only protected minutes
-and default session length.
+identity, and couples `cadence_per_week` with an optional protected minimum even though D2b2 and
+D2c expose separate Planning owner commands.
 
 ## 7. Events and projection behavior
 
@@ -227,6 +227,8 @@ idempotency key; clients cannot replace the previewed body at apply time.
    completed D2b3 outcome is [additional Learning Track creation and destination-track admission](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
    The accepted terminal increment is
    [D2b4 Learning Track completion and archive](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE.md).
+   The remaining accepted D2c increment is
+   [Learning Track cadence](PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
 3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
    plan archive/new-plan replacement, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
@@ -260,11 +262,9 @@ must settle the still-open cross-context rules:
 4. campaign target changes through immutable Readiness Goal/profile references;
 5. whether allocation minutes are reservations, caps, or preferences and their invariant against
    flexible capacity;
-6. the unit and meaning of cadence, which is named in Agent Control but not represented in current
-   Planning persistence;
-7. Availability Window identity, create/update cardinality sentinel, overlap resolution,
+6. Availability Window identity, create/update cardinality sentinel, overlap resolution,
    interval/time-zone semantics, and precedence in capacity composition;
-8. the exact Phase 4 purpose-specific coordinator boundary for campaign lifecycle plus Planning
+7. the exact Phase 4 purpose-specific coordinator boundary for campaign lifecycle plus Planning
    overrides, before the general multi-operation Agent Control coordinator ships.
 
 Changing the planner's campaign/paused-plan behavior also requires a versioned policy/engine
