@@ -61,11 +61,20 @@ longer executable by runtime roles. `/plan` renders the exact comparison and fai
 states; a failed additive source read does not disable unrelated Plan controls. See
 [`PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md`](../../../docs/implementation/PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md).
 
-The accepted next D2 increment is
+The completed D2b3 increment is
 [`PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md`](../../../docs/design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md).
 It keeps the current one-Track admission contract unchanged, adds a separate Targets-backed Track
 creation flow, and introduces a destination-aware admission contract once the current portfolio can
 contain more than one Track. Different Tracks may share or use different exact Goal/profile sources.
+
+D2b4 is implemented through a separate terminal source/preview/apply contract so the released
+pause/resume contract remains unchanged. Current Tracks can be completed or archived; completed
+history can be archived; archived rows are read-only. A bounded keyset page exposes retained
+terminal history while every apply re-locks the Plan and all child Tracks, verifies current-order
+and active-capacity fingerprints, increments only the target Track, and atomically commits one
+minimal event plus one snapshot delivery. Completion makes no Evidence, Mastery, readiness, or Goal
+claim. See
+[`PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
 
 ## Phase 4A implementation route
 

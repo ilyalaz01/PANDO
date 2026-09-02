@@ -9,6 +9,7 @@ vi.mock("../../app/plan/actions", () => ({
   applyGrowthPlanLifecycleAction: vi.fn(),
   applyLearningTrackCreationAction: vi.fn(),
   applyLearningTrackLifecycleAction: vi.fn(),
+  applyLearningTrackTerminalLifecycleAction: vi.fn(),
   applyLearningTrackPriorityMinimumAction: vi.fn(),
   applyGrowthPlanInitializationAction: vi.fn(),
   applyLearningTrackActivityAdmissionAction: vi.fn(),
@@ -16,6 +17,7 @@ vi.mock("../../app/plan/actions", () => ({
   previewGrowthPlanLifecycleAction: vi.fn(),
   previewLearningTrackCreationAction: vi.fn(),
   previewLearningTrackLifecycleAction: vi.fn(),
+  previewLearningTrackTerminalLifecycleAction: vi.fn(),
   previewLearningTrackPriorityMinimumAction: vi.fn(),
   previewGrowthPlanInitializationAction: vi.fn(),
   previewLearningTrackActivityAdmissionAction: vi.fn(),
@@ -31,6 +33,7 @@ import type {
   LearningTrackCreationSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
+  LearningTrackTerminalLifecycleSourceV1,
 } from "./plan-types";
 import {
   previewGrowthPlanLifecycleAction,
@@ -38,6 +41,7 @@ import {
 } from "../../app/plan/actions";
 import admissionPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import creationPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
+import terminalPreviewFixture from "../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.valid.json";
 import { PlanWorkspace } from "./plan-workspace";
 
 const workspace: CurrentGrowthPlanV1 = {
@@ -306,6 +310,30 @@ const learningTrackCreationPreviewed: PlanActionState = {
   status: "previewed",
   message: "Track creation preview ready.",
   preview: creationPreviewFixture as PlanActionState["preview"],
+};
+
+const terminalLifecycleSource: LearningTrackTerminalLifecycleSourceV1 = {
+  contract: { name: "LearningTrackTerminalLifecycleSourceV1", version: "1.0.0" },
+  state: "READY",
+  growthPlan: tracksWorkspace.growthPlan,
+  currentTracks: tracksWorkspace.learningTracks.map((track) => ({
+    learningTrackId: track.learningTrackId,
+    trackKey: track.trackKey,
+    title: track.title,
+    lifecycle: track.lifecycle,
+    priority: track.priority,
+    protectedMinimumMinutes: track.protectedMinimumMinutes,
+    aggregateVersion: track.aggregateVersion,
+    capabilities: ["complete_track", "archive_track"] as const,
+  })),
+  terminalHistory: [],
+  historyPage: { hasMore: false, nextCursor: null },
+};
+
+const terminalLifecyclePreviewed: PlanActionState = {
+  status: "previewed",
+  message: "Terminal Track preview ready.",
+  preview: terminalPreviewFixture as unknown as PlanActionState["preview"],
 };
 
 const setupWorkspace: CurrentGrowthPlanV1 = {
@@ -864,5 +892,41 @@ describe("PlanWorkspace", () => {
         screen.queryByRole("button", { name: "Confirm and create Learning Track" }),
       ).not.toBeInTheDocument();
     });
+  });
+
+  it("changing a terminal Track intent dismisses an older Plan confirmation", () => {
+    render(
+      <PlanWorkspace
+        initialPreviewState={previewed}
+        terminalLifecycleSource={terminalLifecycleSource}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Confirm and apply" })).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Why should this Track change now?"), {
+      target: { value: "This Track is no longer part of the current plan." },
+    });
+
+    expect(screen.queryByRole("button", { name: "Confirm and apply" })).not.toBeInTheDocument();
+  });
+
+  it("changing another Plan intent dismisses a terminal Track confirmation", () => {
+    render(
+      <PlanWorkspace
+        initialTerminalLifecyclePreviewState={terminalLifecyclePreviewed}
+        terminalLifecycleSource={terminalLifecycleSource}
+        tracksWorkspace={tracksWorkspace}
+        workspace={workspace}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Complete this Track" })).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Why is this changing?"), {
+      target: { value: "Pause the Plan while priorities change." },
+    });
+
+    expect(screen.queryByRole("button", { name: "Complete this Track" })).not.toBeInTheDocument();
   });
 });

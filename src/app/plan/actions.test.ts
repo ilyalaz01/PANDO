@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   applyCapacity: vi.fn(),
   applyCreation: vi.fn(),
   applyTrack: vi.fn(),
+  applyTerminalTrack: vi.fn(),
   applyTrackSettings: vi.fn(),
   applyInitialization: vi.fn(),
   createClient: vi.fn(),
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   previewCapacity: vi.fn(),
   previewCreation: vi.fn(),
   previewTrack: vi.fn(),
+  previewTerminalTrack: vi.fn(),
   previewTrackSettings: vi.fn(),
   previewInitialization: vi.fn(),
   revalidate: vi.fn(),
@@ -38,12 +40,14 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   applyLearningTrackCreationV1: mocks.applyCreation,
   applyGrowthPlanLifecycleV1: mocks.apply,
   applyLearningTrackLifecycleV1: mocks.applyTrack,
+  applyLearningTrackTerminalLifecycleV1: mocks.applyTerminalTrack,
   applyLearningTrackPriorityMinimumV1: mocks.applyTrackSettings,
   applyGrowthPlanInitializationV1: mocks.applyInitialization,
   previewGrowthPlanCapacityV1: mocks.previewCapacity,
   previewLearningTrackCreationV1: mocks.previewCreation,
   previewGrowthPlanLifecycleV1: mocks.preview,
   previewLearningTrackLifecycleV1: mocks.previewTrack,
+  previewLearningTrackTerminalLifecycleV1: mocks.previewTerminalTrack,
   previewLearningTrackActivityAdmissionV1: mocks.previewActivityAdmission,
   previewLearningTrackActivityAdmissionV2: mocks.previewActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1: mocks.previewTrackSettings,
@@ -58,6 +62,7 @@ import {
   applyGrowthPlanLifecycleAction,
   applyLearningTrackCreationAction,
   applyLearningTrackLifecycleAction,
+  applyLearningTrackTerminalLifecycleAction,
   applyLearningTrackActivityAdmissionAction,
   applyLearningTrackPriorityMinimumAction,
   applyGrowthPlanInitializationAction,
@@ -65,6 +70,7 @@ import {
   previewGrowthPlanLifecycleAction,
   previewLearningTrackCreationAction,
   previewLearningTrackLifecycleAction,
+  previewLearningTrackTerminalLifecycleAction,
   previewLearningTrackActivityAdmissionAction,
   previewLearningTrackPriorityMinimumAction,
   previewGrowthPlanInitializationAction,
@@ -73,6 +79,7 @@ import {
 import admissionPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import admissionPreviewV2 from "../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-v2.valid.json";
 import creationPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
+import terminalTrackPreview from "../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.valid.json";
 
 const client = { requestScoped: true };
 const requestId = "10000000-0000-4000-8000-000000000001";
@@ -322,6 +329,23 @@ function trackForm(): FormData {
   return data;
 }
 
+function terminalTrackForm(): FormData {
+  const data = new FormData();
+  data.set("trackKey", terminalTrackPreview.before.trackKey);
+  data.set("operation", terminalTrackPreview.operation);
+  data.set("expectedGrowthPlanVersion", terminalTrackPreview.expectedGrowthPlanVersion);
+  data.set("expectedLearningTrackVersion", terminalTrackPreview.expectedLearningTrackVersion);
+  data.set("reason", terminalTrackPreview.reason);
+  data.set("previewDigest", terminalTrackPreview.previewDigest);
+  data.set("requestId", requestId);
+  data.set("workspaceId", "attacker-selected-workspace");
+  data.set("growthPlanId", "attacker-selected-plan");
+  data.set("learningTrackId", "attacker-selected-track");
+  data.set("lifecycle", "ARCHIVED");
+  data.set("activeTrackFingerprint", "attacker-selected-fingerprint");
+  return data;
+}
+
 function trackSettingsForm(): FormData {
   const data = new FormData();
   data.set("trackKey", "track:algorithms");
@@ -420,6 +444,8 @@ describe("Plan Server Actions", () => {
     mocks.applyCreation.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrack.mockResolvedValue(trackPreview);
     mocks.applyTrack.mockResolvedValue({ projectionState: "PENDING" });
+    mocks.previewTerminalTrack.mockResolvedValue(terminalTrackPreview);
+    mocks.applyTerminalTrack.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewTrackSettings.mockResolvedValue(trackSettingsPreview);
     mocks.applyTrackSettings.mockResolvedValue({ projectionState: "PENDING" });
     mocks.previewInitialization.mockResolvedValue(initializationPreview);
@@ -670,6 +696,54 @@ describe("Plan Server Actions", () => {
       previewLearningTrackLifecycleAction(initialPlanActionState, malformed),
     ).resolves.toMatchObject({ status: "invalid" });
     expect(mocks.previewTrack).not.toHaveBeenCalled();
+  });
+
+  it("previews and applies terminal Track lifecycle without accepting browser authority", async () => {
+    await expect(
+      previewLearningTrackTerminalLifecycleAction(initialPlanActionState, terminalTrackForm()),
+    ).resolves.toMatchObject({ status: "previewed", preview: terminalTrackPreview });
+    expect(mocks.previewTerminalTrack).toHaveBeenCalledWith(client, {
+      trackKey: terminalTrackPreview.before.trackKey,
+      operation: "complete_track",
+      expectedGrowthPlanVersion: terminalTrackPreview.expectedGrowthPlanVersion,
+      expectedLearningTrackVersion: terminalTrackPreview.expectedLearningTrackVersion,
+      reason: terminalTrackPreview.reason,
+    });
+    expect(mocks.previewTerminalTrack.mock.calls[0]?.[1]).not.toHaveProperty("workspaceId");
+    expect(mocks.previewTerminalTrack.mock.calls[0]?.[1]).not.toHaveProperty("growthPlanId");
+    expect(mocks.previewTerminalTrack.mock.calls[0]?.[1]).not.toHaveProperty("learningTrackId");
+    expect(mocks.previewTerminalTrack.mock.calls[0]?.[1]).not.toHaveProperty("lifecycle");
+
+    await expect(
+      applyLearningTrackTerminalLifecycleAction(initialPlanActionState, terminalTrackForm()),
+    ).resolves.toMatchObject({ status: "applied", preview: null });
+    expect(mocks.applyTerminalTrack).toHaveBeenCalledWith(client, {
+      trackKey: terminalTrackPreview.before.trackKey,
+      operation: "complete_track",
+      expectedGrowthPlanVersion: terminalTrackPreview.expectedGrowthPlanVersion,
+      expectedLearningTrackVersion: terminalTrackPreview.expectedLearningTrackVersion,
+      reason: terminalTrackPreview.reason,
+      previewDigest: terminalTrackPreview.previewDigest,
+      idempotencyKey: requestId,
+    });
+    expect(mocks.revalidate).toHaveBeenCalledWith("/plan");
+    expect(mocks.revalidate).toHaveBeenCalledWith("/today");
+  });
+
+  it("rejects malformed terminal lifecycle input before creating a client", async () => {
+    const malformed = terminalTrackForm();
+    malformed.set("operation", "resume_track");
+    await expect(
+      previewLearningTrackTerminalLifecycleAction(initialPlanActionState, malformed),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.previewTerminalTrack).not.toHaveBeenCalled();
+
+    const badRequest = terminalTrackForm();
+    badRequest.set("requestId", "A0000000-0000-4000-8000-000000000001");
+    await expect(
+      applyLearningTrackTerminalLifecycleAction(initialPlanActionState, badRequest),
+    ).resolves.toMatchObject({ status: "invalid" });
+    expect(mocks.applyTerminalTrack).not.toHaveBeenCalled();
   });
 
   it("uses only bounded Track setting inputs and revalidates Plan plus Today", async () => {

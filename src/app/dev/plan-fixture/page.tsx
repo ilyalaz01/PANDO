@@ -9,6 +9,7 @@ import type {
   LearningTrackCreationSourceV1,
   LearningTrackActivityAdmissionSourceV1,
   LearningTrackActivityAdmissionSourceV2,
+  LearningTrackTerminalLifecycleSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
@@ -156,6 +157,137 @@ const readyCreationSource: LearningTrackCreationSourceV1 = {
       aggregateVersion: "2",
     },
   ],
+};
+
+const terminalLifecycleSource: LearningTrackTerminalLifecycleSourceV1 = {
+  contract: { name: "LearningTrackTerminalLifecycleSourceV1", version: "1.0.0" },
+  state: "READY",
+  growthPlan: tracksWorkspace.growthPlan,
+  currentTracks: tracksWorkspace.learningTracks.map((track) => ({
+    learningTrackId: track.learningTrackId,
+    trackKey: track.trackKey,
+    title: track.title,
+    lifecycle: track.lifecycle,
+    priority: track.priority,
+    protectedMinimumMinutes: track.protectedMinimumMinutes,
+    aggregateVersion: track.aggregateVersion,
+    capabilities: ["complete_track", "archive_track"],
+  })),
+  terminalHistory: [
+    {
+      learningTrackId: "31000000-0000-4000-8000-000000000011",
+      trackKey: "track:database-foundations",
+      title: "Database foundations",
+      lifecycle: "COMPLETED",
+      priority: 7,
+      protectedMinimumMinutes: 60,
+      aggregateVersion: "5",
+      updatedAt: "2026-09-01T10:00:00.000Z",
+      capabilities: ["archive_track"],
+    },
+    {
+      learningTrackId: "31000000-0000-4000-8000-000000000012",
+      trackKey: "track:legacy-cloud-course",
+      title: "Legacy cloud course",
+      lifecycle: "ARCHIVED",
+      priority: 6,
+      protectedMinimumMinutes: 30,
+      aggregateVersion: "4",
+      updatedAt: "2026-08-20T10:00:00.000Z",
+      capabilities: [],
+    },
+  ],
+  historyPage: { hasMore: true, nextCursor: "dGVybWluYWwtaGlzdG9yeS1wYWdlLTI=" },
+};
+
+const terminalLifecycleSourcePageTwo: LearningTrackTerminalLifecycleSourceV1 = {
+  ...terminalLifecycleSource,
+  terminalHistory: [
+    {
+      learningTrackId: "31000000-0000-4000-8000-000000000013",
+      trackKey: "track:retired-distributed-systems",
+      title: "Retired distributed systems course",
+      lifecycle: "ARCHIVED",
+      priority: 5,
+      protectedMinimumMinutes: 45,
+      aggregateVersion: "6",
+      updatedAt: "2026-07-10T10:00:00.000Z",
+      capabilities: [],
+    },
+  ],
+  historyPage: { hasMore: false, nextCursor: null },
+};
+
+const terminalLifecyclePreviewState: PlanActionState = {
+  status: "previewed",
+  message: "Terminal Track preview ready. Confirm only if these exact facts are correct.",
+  preview: {
+    contract: { name: "LearningTrackTerminalLifecyclePreviewV1", version: "1.0.0" },
+    operation: "complete_track",
+    reason: "The interview cycle ended, so this lane is no longer current work.",
+    expectedGrowthPlanVersion: plan.aggregateVersion,
+    expectedLearningTrackVersion: tracksWorkspace.learningTracks[0]!.aggregateVersion,
+    growthPlan: tracksWorkspace.growthPlan!,
+    before: {
+      learningTrackId: tracksWorkspace.learningTracks[0]!.learningTrackId,
+      trackKey: tracksWorkspace.learningTracks[0]!.trackKey,
+      title: tracksWorkspace.learningTracks[0]!.title,
+      lifecycle: tracksWorkspace.learningTracks[0]!.lifecycle,
+      priority: tracksWorkspace.learningTracks[0]!.priority,
+      protectedMinimumMinutes: tracksWorkspace.learningTracks[0]!.protectedMinimumMinutes,
+      aggregateVersion: tracksWorkspace.learningTracks[0]!.aggregateVersion,
+    },
+    after: {
+      learningTrackId: tracksWorkspace.learningTracks[0]!.learningTrackId,
+      trackKey: tracksWorkspace.learningTracks[0]!.trackKey,
+      title: tracksWorkspace.learningTracks[0]!.title,
+      lifecycle: "COMPLETED",
+      priority: tracksWorkspace.learningTracks[0]!.priority,
+      protectedMinimumMinutes: tracksWorkspace.learningTracks[0]!.protectedMinimumMinutes,
+      aggregateVersion: "3",
+    },
+    currentPortfolio: {
+      countBefore: 2,
+      countAfter: 1,
+      orderFingerprintBefore: "a".repeat(64),
+      orderFingerprintAfter: "b".repeat(64),
+    },
+    activeConstraint: {
+      activeTrackCountBefore: 1,
+      activeTrackCountAfter: 0,
+      activeProtectedMinimumMinutesBefore: 100,
+      activeProtectedMinimumMinutesAfter: 0,
+      flexibleMinutesBefore: 500,
+      flexibleMinutesAfter: 600,
+      activeTrackFingerprintBefore: "c".repeat(64),
+      activeTrackFingerprintAfter: "d".repeat(64),
+    },
+    visibilityBefore: "CURRENT_PLAN",
+    visibilityAfter: "TERMINAL_HISTORY",
+    canApply: true,
+    blockingReasons: [],
+    warnings: [{ code: "TRACK_COMPLETION_IS_TERMINAL_AND_NOT_MASTERY" }],
+    retained: {
+      learningTrackActivities: true,
+      focusSessions: true,
+      evidence: true,
+      masteryAndReadiness: true,
+      reviewItems: true,
+      planSnapshots: true,
+      trackHistory: true,
+    },
+    doesNotAssert: {
+      evidence: true,
+      mastery: true,
+      readiness: true,
+      goalCompletion: true,
+    },
+    recalculationAfterApply: {
+      projectionState: "PENDING",
+      consumerName: "planning.plan_snapshot_v1",
+    },
+    previewDigest: "e".repeat(64),
+  },
 };
 
 function creationSourceState(
@@ -697,6 +829,7 @@ export default async function PlanFixturePage({
   const showsCreation = previewKind.startsWith("track-create");
   const showsActivity = previewKind.startsWith("activity");
   const showsActivityV2 = previewKind.startsWith("activity-v2");
+  const showsTerminal = previewKind.startsWith("terminal");
   const creationSource =
     previewKind === "track-create-no-goals"
       ? creationSourceState("NO_ACTIVE_GOALS")
@@ -747,6 +880,9 @@ export default async function PlanFixturePage({
                 ? activityPreviewState(previewKind === "activity-blocked")
                 : initialPlanActionState
           }
+          initialTerminalLifecyclePreviewState={
+            previewKind === "terminal" ? terminalLifecyclePreviewState : initialPlanActionState
+          }
           initialInitializationPreviewState={
             showsInitialization ? initializationPreviewState : initialPlanActionState
           }
@@ -754,7 +890,12 @@ export default async function PlanFixturePage({
             showsCapacity ? capacityPreviewState(previewKind === "blocked") : initialPlanActionState
           }
           initialPreviewState={
-            showsCapacity || showsTrack || showsTrackSettings || showsCreation || showsActivity
+            showsCapacity ||
+            showsTrack ||
+            showsTrackSettings ||
+            showsCreation ||
+            showsActivity ||
+            showsTerminal
               ? initialPlanActionState
               : previewState
           }
@@ -777,6 +918,19 @@ export default async function PlanFixturePage({
                   previewKind === "activity-v2-stale"
                     ? "track:retired"
                     : tracksWorkspace.learningTracks[1]!.trackKey,
+              }
+            : {})}
+          {...(showsTerminal
+            ? {
+                terminalLifecycleSource:
+                  previewKind === "terminal-history-page-2"
+                    ? terminalLifecycleSourcePageTwo
+                    : terminalLifecycleSource,
+                ...(previewKind === "terminal"
+                  ? {
+                      terminalHistoryNextHref: "/dev/plan-fixture?preview=terminal-history-page-2",
+                    }
+                  : {}),
               }
             : {})}
           tracksWorkspace={

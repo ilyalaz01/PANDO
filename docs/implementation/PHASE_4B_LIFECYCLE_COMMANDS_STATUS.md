@@ -1,6 +1,6 @@
 # Phase 4B lifecycle and editing command status
 
-Status: D1, D1b, D2a, and D2b1–D2b3 complete; terminal/cadence D2 and D3–D5 pending
+Status: D1, D1b, D2a, and D2b1–D2b4 complete; cadence D2 and D3–D5 pending
 Design: [Phase 4B lifecycle and editing commands](../design/PHASE_4B_LIFECYCLE_COMMANDS.md)
 Completed: 2026-09-01
 
@@ -19,12 +19,15 @@ Learning Track pause/resume with a protected-capacity resume check and retained 
 [D2b1 implementation record](PHASE_4B_D2B1_LEARNING_TRACK_LIFECYCLE_STATUS.md). D2b2 adds one atomic
 priority/protected-minimum edit with active-capacity and current-order freshness; see the
 [D2b2 implementation record](PHASE_4B_D2B2_LEARNING_TRACK_PRIORITY_MINIMUM_STATUS.md). Growth Plan
-archive, remaining Track commands, availability, Campaigns, and Agent Control transport remain
-later work. D1b closes the fresh-user no-Plan gap through the exact setup flow recorded in the
+archive, cadence, availability, Campaigns, and Agent Control transport remain later work. D1b
+closes the fresh-user no-Plan gap through the exact setup flow recorded in the
 [D1b implementation record](PHASE_4B_D1B_FIRST_GROWTH_PLAN_SETUP_STATUS.md). D2b3 adds an exact
 additional-Track creation command and bounded destination-aware activity admission without changing
 the released sole-Track admission meaning; see the
 [D2b3 implementation record](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md).
+D2b4 adds separate completion/archive contracts, bounded terminal history, and exact terminal
+confirmation without broadening the released pause/resume meaning; see the
+[D2b4 implementation record](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
 
 ## Owner boundary and contracts
 
@@ -79,10 +82,10 @@ transactional outbox, and UI parity decisions.
 
 ## Next bounded outcome
 
-D1b, D2b1–D2b3, settings, and exact manual activity admission are complete. The admission and D2b3
-records are [here](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md) and
-[here](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md). The next bounded D2 outcome is terminal
-Learning Track lifecycle (`complete_track` and `archive_track`) with retained history and no false
-Mastery claim. Cadence remains undefined and must be designed before it is persisted. Do not enter
-D3 availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
+D1b, D2b1–D2b4, settings, and exact manual activity admission are complete. The implementation
+records cover [admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md),
+[D2b3](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md), and
+[D2b4](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md). The next bounded D2 outcome is
+cadence, which remains undefined and must be designed before it is persisted. Do not enter D3
+availability/replacement or D4–D5 Campaign work before the focused decisions required by the D0
 design are recorded.

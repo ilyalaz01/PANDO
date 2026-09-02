@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   loadCreation: vi.fn(),
   loadAdmission: vi.fn(),
   loadAdmissionV2: vi.fn(),
+  loadTerminal: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -36,6 +37,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadLearningTrackCreationSourceV1: mocks.loadCreation,
   loadLearningTrackActivityAdmissionSourceV1: mocks.loadAdmission,
   loadLearningTrackActivityAdmissionSourceV2: mocks.loadAdmissionV2,
+  loadLearningTrackTerminalLifecycleSourceV1: mocks.loadTerminal,
 }));
 
 import PlanPage from "./page";
@@ -129,6 +131,42 @@ const learningTrackCreationSource = {
     },
   ],
 } as const;
+const terminalLifecycleSource = {
+  contract: { name: "LearningTrackTerminalLifecycleSourceV1", version: "1.0.0" },
+  state: "READY",
+  growthPlan: {
+    growthPlanId: workspace.currentPlan.growthPlanId,
+    lifecycle: workspace.currentPlan.lifecycle,
+    weeklyCapacityMinutes: workspace.currentPlan.weeklyCapacityMinutes,
+    aggregateVersion: workspace.currentPlan.aggregateVersion,
+  },
+  currentTracks: [
+    {
+      learningTrackId: tracksWorkspace.learningTracks[0].learningTrackId,
+      trackKey: tracksWorkspace.learningTracks[0].trackKey,
+      title: tracksWorkspace.learningTracks[0].title,
+      lifecycle: tracksWorkspace.learningTracks[0].lifecycle,
+      priority: tracksWorkspace.learningTracks[0].priority,
+      protectedMinimumMinutes: tracksWorkspace.learningTracks[0].protectedMinimumMinutes,
+      aggregateVersion: tracksWorkspace.learningTracks[0].aggregateVersion,
+      capabilities: ["complete_track", "archive_track"],
+    },
+  ],
+  terminalHistory: [
+    {
+      learningTrackId: "31000000-0000-4000-8000-000000000003",
+      trackKey: "track:completed-foundations",
+      title: "Completed foundations",
+      lifecycle: "COMPLETED",
+      priority: 7,
+      protectedMinimumMinutes: 60,
+      aggregateVersion: "5",
+      updatedAt: "2026-09-01T12:00:00.000Z",
+      capabilities: ["archive_track"],
+    },
+  ],
+  historyPage: { hasMore: true, nextCursor: "Ab+/==" },
+} as const;
 const multiTrackWorkspace = {
   ...tracksWorkspace,
   learningTracks: [
@@ -215,6 +253,14 @@ const noPlanLearningTrackCreationSource = {
   trackPortfolio: null,
   goals: [],
 } as const;
+const noPlanTerminalLifecycleSource = {
+  contract: { name: "LearningTrackTerminalLifecycleSourceV1", version: "1.0.0" },
+  state: "NO_CURRENT_PLAN",
+  growthPlan: null,
+  currentTracks: [],
+  terminalHistory: [],
+  historyPage: { hasMore: false, nextCursor: null },
+} as const;
 
 describe("PlanPage", () => {
   beforeEach(() => {
@@ -226,6 +272,7 @@ describe("PlanPage", () => {
     mocks.loadCreation.mockResolvedValue(learningTrackCreationSource);
     mocks.loadAdmission.mockResolvedValue(activityAdmissionSource);
     mocks.loadAdmissionV2.mockResolvedValue(selectedTrackAdmissionSource);
+    mocks.loadTerminal.mockResolvedValue(terminalLifecycleSource);
   });
 
   it("authenticates and loads the actor-scoped current Growth Plan", async () => {
@@ -234,6 +281,7 @@ describe("PlanPage", () => {
     expect(mocks.loadTracks).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadSetup).toHaveBeenCalledWith({ authorized: true });
     expect(mocks.loadCreation).toHaveBeenCalledWith({ authorized: true });
+    expect(mocks.loadTerminal).toHaveBeenCalledWith({ authorized: true }, undefined);
     expect(mocks.loadAdmission).toHaveBeenCalledWith({ authorized: true });
     expect(screen.getByRole("link", { name: "Skip to Plan" })).toHaveAttribute(
       "href",
@@ -244,13 +292,61 @@ describe("PlanPage", () => {
     ).toBeVisible();
     expect(screen.getByText("Backend interview readiness")).toBeVisible();
     expect(screen.getByRole("button", { name: "Preview change" })).toBeEnabled();
+    expect(
+      screen.getByRole("heading", { name: "Complete or archive a Learning Track" }),
+    ).toBeVisible();
   });
 
-  it("renders the first-Plan setup when all four actor-scoped reads agree no Plan exists", async () => {
+  it("retries and then isolates a persistently incoherent terminal Track source", async () => {
+    mocks.loadTerminal.mockResolvedValue({
+      ...terminalLifecycleSource,
+      currentTracks: [{ ...terminalLifecycleSource.currentTracks[0], aggregateVersion: "99" }],
+    });
+
+    render(await PlanPage());
+
+    expect(mocks.loadTerminal).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByText(/Terminal Track history is temporarily unavailable/iu)).toBeVisible();
+    expect(screen.queryByLabelText("Why should this Track change now?")).not.toBeInTheDocument();
+  });
+
+  it("fails a malformed terminal-history cursor closed without loading page one", async () => {
+    render(
+      await PlanPage({
+        searchParams: Promise.resolve({ trackHistoryCursor: "not a valid cursor!" }),
+      }),
+    );
+
+    expect(mocks.loadTerminal).not.toHaveBeenCalled();
+    expect(screen.getByText("Backend interview readiness")).toBeVisible();
+    expect(screen.getByText(/Terminal Track history is temporarily unavailable/iu)).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Next history page" })).not.toBeInTheDocument();
+  });
+
+  it("URL-encodes a Base64 continuation and preserves only the validated activity Track", async () => {
+    render(
+      await PlanPage({
+        searchParams: Promise.resolve({
+          activityTrack: "track:system-design",
+          trackHistoryCursor: "Q3VycmVudA==",
+        }),
+      }),
+    );
+
+    expect(mocks.loadTerminal).toHaveBeenCalledWith({ authorized: true }, "Q3VycmVudA==");
+    expect(screen.getByRole("link", { name: "Next history page" })).toHaveAttribute(
+      "href",
+      "/plan?activityTrack=track%3Asystem-design&trackHistoryCursor=Ab%2B%2F%3D%3D",
+    );
+  });
+
+  it("renders the first-Plan setup when all actor-scoped reads agree no Plan exists", async () => {
     mocks.load.mockResolvedValue(setupWorkspace);
     mocks.loadTracks.mockResolvedValue(setupTracksWorkspace);
     mocks.loadSetup.mockResolvedValue(availableSetupSource);
     mocks.loadCreation.mockResolvedValue(noPlanLearningTrackCreationSource);
+    mocks.loadTerminal.mockResolvedValue(noPlanTerminalLifecycleSource);
     mocks.loadAdmission.mockResolvedValue(noPlanActivityAdmissionSource);
     render(await PlanPage());
     expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();
@@ -259,6 +355,7 @@ describe("PlanPage", () => {
     expect(mocks.loadTracks).toHaveBeenCalledTimes(1);
     expect(mocks.loadSetup).toHaveBeenCalledTimes(1);
     expect(mocks.loadCreation).toHaveBeenCalledTimes(1);
+    expect(mocks.loadTerminal).toHaveBeenCalledTimes(1);
     expect(mocks.loadAdmission).not.toHaveBeenCalled();
     expect(mocks.loadAdmissionV2).not.toHaveBeenCalled();
   });
@@ -271,6 +368,7 @@ describe("PlanPage", () => {
     expect(mocks.loadTracks).not.toHaveBeenCalled();
     expect(mocks.loadSetup).not.toHaveBeenCalled();
     expect(mocks.loadCreation).not.toHaveBeenCalled();
+    expect(mocks.loadTerminal).not.toHaveBeenCalled();
     expect(mocks.loadAdmission).not.toHaveBeenCalled();
   });
 

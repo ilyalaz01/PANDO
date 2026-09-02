@@ -17,6 +17,10 @@ import trackLifecycleBoundaryFixture from "./fixtures/events/v1/planning-track-l
 import trackLifecycleInvalidFixture from "./fixtures/events/v1/planning-track-lifecycle.invalid.json";
 import trackLifecycleMaliciousFixture from "./fixtures/events/v1/planning-track-lifecycle.malicious.json";
 import trackLifecycleValidFixture from "./fixtures/events/v1/planning-track-lifecycle.valid.json";
+import trackTerminalLifecycleBoundaryFixture from "./fixtures/events/v1/planning-track-terminal-lifecycle.boundary.json";
+import trackTerminalLifecycleInvalidFixture from "./fixtures/events/v1/planning-track-terminal-lifecycle.invalid.json";
+import trackTerminalLifecycleMaliciousFixture from "./fixtures/events/v1/planning-track-terminal-lifecycle.malicious.json";
+import trackTerminalLifecycleValidFixture from "./fixtures/events/v1/planning-track-terminal-lifecycle.valid.json";
 import trackPriorityMinimumBoundaryFixture from "./fixtures/events/v1/planning-track-priority-minimum.boundary.json";
 import trackPriorityMinimumInvalidFixture from "./fixtures/events/v1/planning-track-priority-minimum.invalid.json";
 import trackPriorityMinimumMaliciousFixture from "./fixtures/events/v1/planning-track-priority-minimum.malicious.json";
@@ -44,6 +48,18 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", trackLifecycleBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", trackLifecycleInvalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", trackLifecycleMaliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", trackTerminalLifecycleValidFixture).valid).toBe(
+      true,
+    );
+    expect(validateSchema("planning-event-v1", trackTerminalLifecycleBoundaryFixture).valid).toBe(
+      true,
+    );
+    expect(validateSchema("planning-event-v1", trackTerminalLifecycleInvalidFixture).valid).toBe(
+      false,
+    );
+    expect(validateSchema("planning-event-v1", trackTerminalLifecycleMaliciousFixture).valid).toBe(
+      false,
+    );
     expect(validateSchema("planning-event-v1", trackPriorityMinimumValidFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", trackPriorityMinimumBoundaryFixture).valid).toBe(
       true,
@@ -83,6 +99,22 @@ describe("Planning Input Event V1", () => {
       validateSchema("planning-event-v1", {
         ...trackLifecycleValidFixture,
         payload: { ...trackLifecycleValidFixture.payload, learning_track_version: 8 },
+      }).valid,
+    ).toBe(false);
+  });
+
+  it("keeps terminal Track wake-ups separate, minimal, and bigint-safe", () => {
+    expect(trackTerminalLifecycleValidFixture.payload).toEqual({
+      change_kind: "TRACK_TERMINAL_LIFECYCLE_CHANGED",
+      growth_plan_id: "40000000-0000-4000-8000-000000000020",
+      learning_track_id: "40000000-0000-4000-8000-000000000021",
+      learning_track_version: "6",
+      lifecycle: "COMPLETED",
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...trackTerminalLifecycleValidFixture,
+        payload: { ...trackTerminalLifecycleValidFixture.payload, learning_track_version: 6 },
       }).valid,
     ).toBe(false);
   });

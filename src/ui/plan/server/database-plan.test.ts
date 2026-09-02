@@ -10,6 +10,8 @@ import initializationPreview from "../../../../tests/contract/fixtures/planning/
 import admissionPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-control.valid.json";
 import admissionPreviewV2 from "../../../../tests/contract/fixtures/planning/v1/learning-track-activity-admission-v2.valid.json";
 import creationPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-creation-control.valid.json";
+import terminalPreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.valid.json";
+import terminalSource from "../../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.boundary.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
@@ -22,6 +24,7 @@ import {
   applyGrowthPlanLifecycleV1,
   applyGrowthPlanInitializationV1,
   applyLearningTrackLifecycleV1,
+  applyLearningTrackTerminalLifecycleV1,
   applyLearningTrackActivityAdmissionV1,
   applyLearningTrackActivityAdmissionV2,
   applyLearningTrackPriorityMinimumV1,
@@ -31,12 +34,14 @@ import {
   GET_LEARNING_TRACK_CREATION_SOURCE_RPC_V1,
   GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V1,
   GET_LEARNING_TRACK_ACTIVITY_ADMISSION_SOURCE_RPC_V2,
+  GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1,
   loadCurrentGrowthPlanV1,
   loadCurrentLearningTracksV1,
   loadGrowthPlanSetupSourceV1,
   loadLearningTrackCreationSourceV1,
   loadLearningTrackActivityAdmissionSourceV1,
   loadLearningTrackActivityAdmissionSourceV2,
+  loadLearningTrackTerminalLifecycleSourceV1,
   PlanConflictError,
   PlanInputError,
   PlanUnavailableError,
@@ -45,6 +50,7 @@ import {
   PREVIEW_GROWTH_PLAN_LIFECYCLE_RPC_V1,
   PREVIEW_LEARNING_TRACK_CREATION_RPC_V1,
   PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1,
+  PREVIEW_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1,
   PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1,
   PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2,
   PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
@@ -53,15 +59,18 @@ import {
   previewGrowthPlanInitializationV1,
   previewLearningTrackCreationV1,
   previewLearningTrackLifecycleV1,
+  previewLearningTrackTerminalLifecycleV1,
   previewLearningTrackActivityAdmissionV1,
   previewLearningTrackActivityAdmissionV2,
   previewLearningTrackPriorityMinimumV1,
   APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1,
+  APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
   applyLearningTrackCreationV1,
 } from "./database-plan";
 
 const commandId = "30000000-0000-4000-8000-000000000001";
+const requestId = "10000000-0000-4000-8000-000000000001";
 
 function client(rpc: ReturnType<typeof vi.fn>): PandoSupabaseClient {
   return { rpc } as unknown as PandoSupabaseClient;
@@ -117,6 +126,14 @@ const trackCommand = {
   expectedGrowthPlanVersion: "4",
   expectedLearningTrackVersion: "7",
   reason: "Pause the track while priorities change.",
+};
+
+const terminalTrackCommand = {
+  trackKey: terminalPreview.before.trackKey,
+  operation: terminalPreview.operation as "complete_track",
+  expectedGrowthPlanVersion: terminalPreview.expectedGrowthPlanVersion,
+  expectedLearningTrackVersion: terminalPreview.expectedLearningTrackVersion,
+  reason: terminalPreview.reason,
 };
 
 const trackSettingsCommand = {
@@ -801,6 +818,109 @@ describe("Growth Plan database boundary", () => {
       }),
     ).rejects.toThrow(PlanInputError);
     expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("loads bounded terminal history and preserves an opaque Base64 cursor exactly", async () => {
+    const firstRpc = vi.fn().mockResolvedValue({ data: terminalSource, error: null });
+    await expect(loadLearningTrackTerminalLifecycleSourceV1(client(firstRpc))).resolves.toEqual(
+      terminalSource,
+    );
+    expect(firstRpc).toHaveBeenCalledWith(GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1);
+
+    const cursor = "YWJjKysvPQ==";
+    const nextRpc = vi.fn().mockResolvedValue({ data: terminalSource, error: null });
+    await expect(
+      loadLearningTrackTerminalLifecycleSourceV1(client(nextRpc), cursor),
+    ).resolves.toEqual(terminalSource);
+    expect(nextRpc).toHaveBeenCalledWith(GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1, {
+      p_history_cursor: cursor,
+    });
+
+    const invalidRpc = vi.fn();
+    await expect(
+      loadLearningTrackTerminalLifecycleSourceV1(client(invalidRpc), "cursor with spaces"),
+    ).rejects.toThrow(PlanInputError);
+    expect(invalidRpc).not.toHaveBeenCalled();
+  });
+
+  it("previews and applies terminal Track lifecycle through exact scalar parameters", async () => {
+    const previewRpc = vi.fn().mockResolvedValue({ data: terminalPreview, error: null });
+    await expect(
+      previewLearningTrackTerminalLifecycleV1(client(previewRpc), terminalTrackCommand),
+    ).resolves.toEqual(terminalPreview);
+    expect(previewRpc).toHaveBeenCalledWith(PREVIEW_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1, {
+      p_track_key: terminalTrackCommand.trackKey,
+      p_operation: "complete_track",
+      p_expected_growth_plan_version: terminalTrackCommand.expectedGrowthPlanVersion,
+      p_expected_learning_track_version: terminalTrackCommand.expectedLearningTrackVersion,
+      p_reason: terminalTrackCommand.reason,
+    });
+
+    const result = {
+      contract: { name: "LearningTrackTerminalLifecycleApplyResultV1", version: "1.0.0" },
+      commandId,
+      changedTrack: terminalPreview.after,
+      projectionState: "PENDING",
+      planningDeliveryId: "30000000-0000-4000-8000-000000000002",
+      emittedEventIds: ["30000000-0000-4000-8000-000000000003"],
+    };
+    const applyRpc = vi.fn().mockResolvedValue({ data: result, error: null });
+    await expect(
+      applyLearningTrackTerminalLifecycleV1(client(applyRpc), {
+        ...terminalTrackCommand,
+        previewDigest: terminalPreview.previewDigest,
+        idempotencyKey: requestId,
+      }),
+    ).resolves.toEqual(result);
+    expect(applyRpc).toHaveBeenCalledWith(APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1, {
+      p_track_key: terminalTrackCommand.trackKey,
+      p_operation: "complete_track",
+      p_expected_growth_plan_version: terminalTrackCommand.expectedGrowthPlanVersion,
+      p_expected_learning_track_version: terminalTrackCommand.expectedLearningTrackVersion,
+      p_preview_digest: terminalPreview.previewDigest,
+      p_reason: terminalTrackCommand.reason,
+      p_idempotency_key: requestId,
+    });
+  });
+
+  it("fails closed on malformed terminal input, response, and stale apply", async () => {
+    const inputRpc = vi.fn();
+    await expect(
+      previewLearningTrackTerminalLifecycleV1(client(inputRpc), {
+        ...terminalTrackCommand,
+        operation: "pause_track" as never,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    expect(inputRpc).not.toHaveBeenCalled();
+
+    const malformed = structuredClone(terminalSource);
+    malformed.currentTracks[0]!.capabilities = ["archive_track"];
+    await expect(
+      loadLearningTrackTerminalLifecycleSourceV1(
+        client(vi.fn().mockResolvedValue({ data: malformed, error: null })),
+      ),
+    ).rejects.toThrow(PlanUnavailableError);
+
+    const invalidApplyRpc = vi.fn();
+    await expect(
+      applyLearningTrackTerminalLifecycleV1(client(invalidApplyRpc), {
+        ...terminalTrackCommand,
+        previewDigest: terminalPreview.previewDigest,
+        idempotencyKey: `learning-track-terminal-lifecycle:v1:${requestId}`,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    expect(invalidApplyRpc).not.toHaveBeenCalled();
+
+    await expect(
+      applyLearningTrackTerminalLifecycleV1(
+        client(vi.fn().mockResolvedValue({ data: null, error: { code: "40001" } })),
+        {
+          ...terminalTrackCommand,
+          previewDigest: terminalPreview.previewDigest,
+          idempotencyKey: requestId,
+        },
+      ),
+    ).rejects.toThrow(PlanConflictError);
   });
 
   it("previews and applies Track settings with only bounded scalar parameters", async () => {

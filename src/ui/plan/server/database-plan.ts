@@ -22,6 +22,9 @@ import {
   decodeCurrentLearningTracksV1,
   decodeLearningTrackLifecycleApplyResultV1,
   decodeLearningTrackLifecyclePreviewV1,
+  decodeLearningTrackTerminalLifecycleApplyResultV1,
+  decodeLearningTrackTerminalLifecyclePreviewV1,
+  decodeLearningTrackTerminalLifecycleSourceV1,
   decodeLearningTrackPriorityMinimumApplyResultV1,
   decodeLearningTrackPriorityMinimumPreviewV1,
   type CurrentLearningTracksV1,
@@ -46,6 +49,10 @@ import {
   type LearningTrackLifecycleApplyResultV1,
   type LearningTrackLifecycleOperationV1,
   type LearningTrackLifecyclePreviewV1,
+  type LearningTrackTerminalLifecycleApplyResultV1,
+  type LearningTrackTerminalLifecycleOperationV1,
+  type LearningTrackTerminalLifecyclePreviewV1,
+  type LearningTrackTerminalLifecycleSourceV1,
   type LearningTrackPriorityMinimumApplyResultV1,
   type LearningTrackPriorityMinimumPreviewV1,
 } from "./plan-workspace-v1";
@@ -59,6 +66,12 @@ export const GET_CURRENT_LEARNING_TRACKS_RPC_V1 = "get_current_learning_tracks_v
 export const PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1 =
   "preview_learning_track_lifecycle_v1" as const;
 export const APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1 = "apply_learning_track_lifecycle_v1" as const;
+export const GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1 =
+  "get_learning_track_terminal_lifecycle_source_v1" as const;
+export const PREVIEW_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1 =
+  "preview_learning_track_terminal_lifecycle_v1" as const;
+export const APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1 =
+  "apply_learning_track_terminal_lifecycle_v1" as const;
 export const PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
   "preview_learning_track_priority_minimum_v1" as const;
 export const APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1 =
@@ -92,6 +105,7 @@ const MAX_POSTGRES_BIGINT = BigInt("9223372036854775807");
 const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
 const ACTIVITY_KEY = /^activity:[a-z0-9][a-z0-9-]{1,100}$/u;
 const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
+const HISTORY_CURSOR = /^[A-Za-z0-9+/=]{1,512}$/u;
 const LOWERCASE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 
 export class PlanInputError extends Error {
@@ -146,6 +160,19 @@ export interface LearningTrackLifecyclePreviewCommandV1 {
 }
 
 export interface LearningTrackLifecycleApplyCommandV1 extends LearningTrackLifecyclePreviewCommandV1 {
+  readonly previewDigest: string;
+  readonly idempotencyKey: string;
+}
+
+export interface LearningTrackTerminalLifecyclePreviewCommandV1 {
+  readonly trackKey: string;
+  readonly operation: LearningTrackTerminalLifecycleOperationV1;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedLearningTrackVersion: string;
+  readonly reason: string;
+}
+
+export interface LearningTrackTerminalLifecycleApplyCommandV1 extends LearningTrackTerminalLifecyclePreviewCommandV1 {
   readonly previewDigest: string;
   readonly idempotencyKey: string;
 }
@@ -290,6 +317,18 @@ function validTrackPreview(command: LearningTrackLifecyclePreviewCommandV1): boo
   );
 }
 
+function validTerminalTrackPreview(
+  command: LearningTrackTerminalLifecyclePreviewCommandV1,
+): boolean {
+  return (
+    TRACK_KEY.test(command.trackKey) &&
+    (command.operation === "complete_track" || command.operation === "archive_track") &&
+    validVersion(command.expectedGrowthPlanVersion) &&
+    validVersion(command.expectedLearningTrackVersion) &&
+    validReason(command.reason)
+  );
+}
+
 function validTrackPriorityMinimumPreview(
   command: LearningTrackPriorityMinimumPreviewCommandV1,
 ): boolean {
@@ -386,6 +425,9 @@ async function rpc(
     | typeof GET_CURRENT_LEARNING_TRACKS_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_LIFECYCLE_RPC_V1
     | typeof APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1
+    | typeof GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1
+    | typeof PREVIEW_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1
+    | typeof APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
     | typeof APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1
     | typeof GET_GROWTH_PLAN_SETUP_SOURCE_RPC_V1
@@ -618,6 +660,98 @@ export async function applyLearningTrackLifecycleV1(
   try {
     return decodeLearningTrackLifecycleApplyResultV1(
       await rpc(client, APPLY_LEARNING_TRACK_LIFECYCLE_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_operation: command.operation,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_preview_digest: command.previewDigest,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads all current Tracks and one bounded terminal-history page for the current Plan. */
+export async function loadLearningTrackTerminalLifecycleSourceV1(
+  client: PandoSupabaseClient,
+  historyCursor?: string,
+): Promise<LearningTrackTerminalLifecycleSourceV1> {
+  if (historyCursor !== undefined && !HISTORY_CURSOR.test(historyCursor)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackTerminalLifecycleSourceV1(
+      await rpc(
+        client,
+        GET_LEARNING_TRACK_TERMINAL_LIFECYCLE_SOURCE_RPC_V1,
+        historyCursor === undefined ? undefined : { p_history_cursor: historyCursor },
+      ),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Builds an exact, side-effect-free terminal Track lifecycle preview. */
+export async function previewLearningTrackTerminalLifecycleV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackTerminalLifecyclePreviewCommandV1,
+): Promise<LearningTrackTerminalLifecyclePreviewV1> {
+  if (!validTerminalTrackPreview(command)) throw new PlanInputError();
+  try {
+    return decodeLearningTrackTerminalLifecyclePreviewV1(
+      await rpc(client, PREVIEW_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1, {
+        p_track_key: command.trackKey,
+        p_operation: command.operation,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_learning_track_version: command.expectedLearningTrackVersion,
+        p_reason: command.reason,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the confirmed, still-current terminal Track lifecycle preview. */
+export async function applyLearningTrackTerminalLifecycleV1(
+  client: PandoSupabaseClient,
+  command: LearningTrackTerminalLifecycleApplyCommandV1,
+): Promise<LearningTrackTerminalLifecycleApplyResultV1> {
+  if (
+    !validTerminalTrackPreview(command) ||
+    !SHA_256_HEX.test(command.previewDigest) ||
+    !LOWERCASE_UUID.test(command.idempotencyKey)
+  ) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeLearningTrackTerminalLifecycleApplyResultV1(
+      await rpc(client, APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1, {
         p_track_key: command.trackKey,
         p_operation: command.operation,
         p_expected_growth_plan_version: command.expectedGrowthPlanVersion,

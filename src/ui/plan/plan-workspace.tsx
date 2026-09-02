@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type {
@@ -10,6 +11,7 @@ import type {
   GrowthPlanCapacityPreviewV1,
   GrowthPlanLifecyclePreviewV1,
   LearningTrackCreationSourceV1,
+  LearningTrackTerminalLifecycleSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
@@ -21,6 +23,7 @@ import styles from "./plan.module.css";
 import { GrowthPlanSetup } from "./growth-plan-setup";
 import { ActivityAdmission } from "./activity-admission";
 import { LearningTrackCreation } from "./learning-track-creation";
+import { LearningTrackTerminalLifecycle } from "./learning-track-terminal-lifecycle";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -304,6 +307,11 @@ export function PlanWorkspace({
   activityAdmissionSource,
   activityAdmissionUnavailable = false,
   selectedActivityAdmissionTrackKey,
+  terminalLifecycleSource,
+  terminalLifecycleUnavailable = false,
+  terminalHistoryCursor,
+  terminalHistoryNextHref,
+  terminalHistoryRecoveryHref = "/plan",
   initialPreviewState = initialPlanActionState,
   initialApplyState = initialPlanActionState,
   initialCapacityPreviewState = initialPlanActionState,
@@ -318,6 +326,8 @@ export function PlanWorkspace({
   initialLearningTrackCreationApplyState = initialPlanActionState,
   initialActivityAdmissionPreviewState = initialPlanActionState,
   initialActivityAdmissionApplyState = initialPlanActionState,
+  initialTerminalLifecyclePreviewState = initialPlanActionState,
+  initialTerminalLifecycleApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
@@ -327,6 +337,11 @@ export function PlanWorkspace({
   readonly activityAdmissionSource?: LearningTrackActivityAdmissionSource;
   readonly activityAdmissionUnavailable?: boolean;
   readonly selectedActivityAdmissionTrackKey?: string;
+  readonly terminalLifecycleSource?: LearningTrackTerminalLifecycleSourceV1;
+  readonly terminalLifecycleUnavailable?: boolean;
+  readonly terminalHistoryCursor?: string;
+  readonly terminalHistoryNextHref?: string;
+  readonly terminalHistoryRecoveryHref?: string;
   readonly initialPreviewState?: PlanActionState;
   readonly initialApplyState?: PlanActionState;
   readonly initialCapacityPreviewState?: PlanActionState;
@@ -341,6 +356,8 @@ export function PlanWorkspace({
   readonly initialLearningTrackCreationApplyState?: PlanActionState;
   readonly initialActivityAdmissionPreviewState?: PlanActionState;
   readonly initialActivityAdmissionApplyState?: PlanActionState;
+  readonly initialTerminalLifecyclePreviewState?: PlanActionState;
+  readonly initialTerminalLifecycleApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -378,6 +395,7 @@ export function PlanWorkspace({
   const [learningTrackCreationDismissalVersion, setLearningTrackCreationDismissalVersion] =
     useState(0);
   const [activityAdmissionDismissalVersion, setActivityAdmissionDismissalVersion] = useState(0);
+  const [terminalLifecycleDismissalVersion, setTerminalLifecycleDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -539,9 +557,14 @@ export function PlanWorkspace({
     setActivityAdmissionDismissalVersion((version) => version + 1);
   }
 
+  function dismissTerminalLifecycleIntent() {
+    setTerminalLifecycleDismissalVersion((version) => version + 1);
+  }
+
   function dismissAdditiveIntents() {
     dismissLearningTrackCreationIntent();
     dismissActivityAdmissionIntent();
+    dismissTerminalLifecycleIntent();
   }
 
   if (!plan)
@@ -594,6 +617,7 @@ export function PlanWorkspace({
             name="reason"
             maxLength={500}
             onChange={(event) => {
+              dismissAdditiveIntents();
               setReason(event.target.value);
               setTrackSettingsDismissed(true);
             }}
@@ -706,6 +730,7 @@ export function PlanWorkspace({
                 id="learning-track"
                 name="trackKey"
                 onChange={(event) => {
+                  dismissAdditiveIntents();
                   setSelectedTrackKey(event.target.value);
                   setTrackDismissed(true);
                   setTrackSettingsDismissed(true);
@@ -740,6 +765,7 @@ export function PlanWorkspace({
                 maxLength={500}
                 name="reason"
                 onChange={(event) => {
+                  dismissAdditiveIntents();
                   setTrackReason(event.target.value);
                   setTrackSettingsDismissed(true);
                 }}
@@ -765,6 +791,7 @@ export function PlanWorkspace({
           initialPreviewState={initialLearningTrackCreationPreviewState}
           onIntentStart={() => {
             dismissActivityAdmissionIntent();
+            dismissTerminalLifecycleIntent();
             dismissOtherPlanIntents();
           }}
           source={learningTrackCreationSource}
@@ -788,6 +815,7 @@ export function PlanWorkspace({
           initialPreviewState={initialActivityAdmissionPreviewState}
           onIntentStart={() => {
             dismissLearningTrackCreationIntent();
+            dismissTerminalLifecycleIntent();
             dismissOtherPlanIntents();
           }}
           sourceUnavailable={activityAdmissionUnavailable}
@@ -801,6 +829,38 @@ export function PlanWorkspace({
                   selectedActivityAdmissionTrack?.trackKey ?? selectedActivityAdmissionTrackKey,
               })}
         />
+      ) : null}
+      {terminalLifecycleSource !== undefined ? (
+        <LearningTrackTerminalLifecycle
+          key={terminalHistoryCursor ?? "terminal-history-first-page"}
+          dismissalVersion={terminalLifecycleDismissalVersion}
+          initialApplyState={initialTerminalLifecycleApplyState}
+          initialPreviewState={initialTerminalLifecyclePreviewState}
+          onIntentStart={() => {
+            dismissLearningTrackCreationIntent();
+            dismissActivityAdmissionIntent();
+            dismissOtherPlanIntents();
+          }}
+          source={terminalLifecycleSource}
+          {...(terminalHistoryNextHref === undefined
+            ? {}
+            : { nextHistoryHref: terminalHistoryNextHref })}
+        />
+      ) : terminalLifecycleUnavailable ? (
+        <section className={styles.panel} aria-labelledby="terminal-track-heading">
+          <h2 id="terminal-track-heading">Complete or archive a Learning Track</h2>
+          <p>
+            Terminal Track history is temporarily unavailable. Other Plan controls remain available;
+            nothing changed.
+          </p>
+          <Link
+            className={styles.secondaryButton}
+            href={terminalHistoryRecoveryHref}
+            scroll={false}
+          >
+            Load first history page
+          </Link>
+        </section>
       ) : null}
       {effectiveTrackPreview ? (
         <section className={styles.panel} aria-labelledby="track-preview-heading">
@@ -936,6 +996,7 @@ export function PlanWorkspace({
               id="track-settings-track"
               name="trackKey"
               onChange={(event) => {
+                dismissAdditiveIntents();
                 const selected = tracksWorkspace.learningTracks.find(
                   (track) => track.trackKey === event.target.value,
                 );
@@ -975,6 +1036,7 @@ export function PlanWorkspace({
               min={0}
               name="priority"
               onChange={(event) => {
+                dismissAdditiveIntents();
                 setTrackPriority(event.target.value);
                 setTrackSettingsDismissed(true);
                 setDismissed(true);
@@ -997,6 +1059,7 @@ export function PlanWorkspace({
               min={0}
               name="protectedMinimumMinutes"
               onChange={(event) => {
+                dismissAdditiveIntents();
                 setTrackProtectedMinimum(event.target.value);
                 setTrackSettingsDismissed(true);
                 setDismissed(true);
@@ -1014,6 +1077,7 @@ export function PlanWorkspace({
               maxLength={500}
               name="reason"
               onChange={(event) => {
+                dismissAdditiveIntents();
                 setTrackSettingsReason(event.target.value);
                 setTrackSettingsDismissed(true);
                 setDismissed(true);
@@ -1192,6 +1256,7 @@ export function PlanWorkspace({
             min={0}
             name="proposedWeeklyCapacityMinutes"
             onChange={(event) => {
+              dismissAdditiveIntents();
               setProposedCapacity(event.target.value);
               setTrackSettingsDismissed(true);
             }}
@@ -1206,6 +1271,7 @@ export function PlanWorkspace({
             name="reason"
             maxLength={500}
             onChange={(event) => {
+              dismissAdditiveIntents();
               setCapacityReason(event.target.value);
               setTrackSettingsDismissed(true);
             }}

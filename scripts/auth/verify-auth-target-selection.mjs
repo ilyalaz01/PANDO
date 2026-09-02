@@ -199,6 +199,36 @@ async function loadCurrentToday({ client, baseUrl, dispatchSecret, label }) {
   return result.data;
 }
 
+async function waitForTerminalTrackLifecycle(client, trackKey, lifecycle) {
+  let lastSource = null;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const result = await client.rpc("get_learning_track_terminal_lifecycle_source_v1");
+    assert.equal(
+      result.error,
+      null,
+      `terminal Track source must load while waiting for ${lifecycle}`,
+    );
+    lastSource = result.data;
+    const track = [
+      ...(result.data?.currentTracks ?? []),
+      ...(result.data?.terminalHistory ?? []),
+    ].find((candidate) => candidate.trackKey === trackKey);
+    if (track?.lifecycle === lifecycle) return result.data;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 250));
+  }
+  throw new Error(
+    `Track ${trackKey} did not become ${lifecycle}; last source=${JSON.stringify(lastSource)}`,
+  );
+}
+
+async function waitForTerminalApply({ client, confirmationRegion, trackKey, lifecycle }) {
+  const failureAlert = confirmationRegion.getByRole("alert");
+  const failure = failureAlert.waitFor().then(async () => {
+    throw new Error(`Terminal Track apply failed: ${await failureAlert.innerText()}`);
+  });
+  return Promise.race([waitForTerminalTrackLifecycle(client, trackKey, lifecycle), failure]);
+}
+
 function requireStatusValue(status, key) {
   const value = status[key];
   if (typeof value !== "string" || value.length < 1) {
@@ -1419,6 +1449,151 @@ try {
     "priority/minimum apply must advance only the selected Track version once",
   );
 
+  const terminalTrackRegion = page.getByRole("region", {
+    name: "Complete or archive a Learning Track",
+  });
+  let terminalTrackForm = terminalTrackRegion.locator("form");
+  const terminalSourceBeforeCompletion = await readinessVerifier.rpc(
+    "get_learning_track_terminal_lifecycle_source_v1",
+  );
+  assert.equal(
+    terminalSourceBeforeCompletion.error,
+    null,
+    "terminal Track source must load before authenticated completion",
+  );
+  assert.equal(terminalSourceBeforeCompletion.data?.state, "READY");
+  assert.equal(terminalSourceBeforeCompletion.data?.currentTracks?.length, 2);
+  await terminalTrackForm.getByLabel("Track", { exact: true }).selectOption(initializedTrackKey);
+  await terminalTrackForm.getByLabel("Complete Track", { exact: true }).check();
+  await terminalTrackForm
+    .getByLabel("Why should this Track change now?")
+    .fill("Complete the verified Track without claiming Mastery, readiness, or Goal completion.");
+  await terminalTrackForm.getByRole("button", { name: "Preview terminal change" }).click();
+  const completionPreview = page.getByLabel("Exact terminal Learning Track preview");
+  await completionPreview.getByText("ACTIVE", { exact: true }).waitFor();
+  await completionPreview.getByText("COMPLETED", { exact: true }).waitFor();
+  const completionConfirmationRegion = page.getByRole("region", {
+    name: "Review terminal Track change",
+  });
+  const completionApplyForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Complete this Track" }),
+  });
+  const completionApplyData = await completionApplyForm.evaluate((form) =>
+    Object.fromEntries(new FormData(form)),
+  );
+  assert.equal(completionApplyData.trackKey, initializedTrackKey);
+  assert.equal(completionApplyData.operation, "complete_track");
+  assert.equal(completionApplyData.expectedGrowthPlanVersion, "4");
+  assert.equal(
+    completionApplyData.expectedLearningTrackVersion,
+    trackAfterSettings.aggregateVersion,
+  );
+  assert.match(completionApplyData.previewDigest ?? "", /^[a-f0-9]{64}$/u);
+  assert.match(completionApplyData.requestId ?? "", /^[0-9a-f-]{36}$/u);
+  await completionApplyForm.getByRole("button", { name: "Complete this Track" }).click();
+  await waitForTerminalApply({
+    client: readinessVerifier,
+    confirmationRegion: completionConfirmationRegion,
+    trackKey: initializedTrackKey,
+    lifecycle: "COMPLETED",
+  });
+  await page.reload();
+
+  const terminalSourceAfterCompletion = await readinessVerifier.rpc(
+    "get_learning_track_terminal_lifecycle_source_v1",
+  );
+  assert.equal(
+    terminalSourceAfterCompletion.error,
+    null,
+    "terminal Track source must reload after completion",
+  );
+  assert.equal(
+    terminalSourceAfterCompletion.data?.currentTracks?.some(
+      (track) => track.trackKey === initializedTrackKey,
+    ),
+    false,
+    "completed Track must leave the current planning portfolio",
+  );
+  const completedTrack = terminalSourceAfterCompletion.data?.terminalHistory?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.equal(completedTrack?.lifecycle, "COMPLETED");
+  assert.deepEqual(completedTrack?.capabilities, ["archive_track"]);
+  assert.equal(
+    BigInt(completedTrack.aggregateVersion),
+    BigInt(trackAfterSettings.aggregateVersion) + 1n,
+    "completion must advance only the selected Track version once",
+  );
+  const currentPlanAfterCompletion = await readinessVerifier.rpc("get_current_growth_plan_v1");
+  assert.equal(currentPlanAfterCompletion.error, null, "Growth Plan must load after completion");
+  assert.equal(
+    currentPlanAfterCompletion.data?.currentPlan?.aggregateVersion,
+    "4",
+    "terminal completion must not change the parent Growth Plan version",
+  );
+
+  terminalTrackForm = page
+    .getByRole("region", { name: "Complete or archive a Learning Track" })
+    .locator("form");
+  await terminalTrackForm.getByLabel("Track", { exact: true }).selectOption(initializedTrackKey);
+  await terminalTrackForm
+    .getByLabel("Why should this Track change now?")
+    .fill("Archive the completed Track as retained read-only history, never as deletion.");
+  await terminalTrackForm.getByRole("button", { name: "Preview terminal change" }).click();
+  const archivePreview = page.getByLabel("Exact terminal Learning Track preview");
+  await archivePreview.getByText("COMPLETED", { exact: true }).waitFor();
+  await archivePreview.getByText("ARCHIVED", { exact: true }).waitFor();
+  const archiveConfirmationRegion = page.getByRole("region", {
+    name: "Review terminal Track change",
+  });
+  const archiveApplyForm = page.locator("form").filter({
+    has: page.getByRole("button", { name: "Archive this Track" }),
+  });
+  await archiveApplyForm.getByRole("button", { name: "Archive this Track" }).click();
+  await waitForTerminalApply({
+    client: readinessVerifier,
+    confirmationRegion: archiveConfirmationRegion,
+    trackKey: initializedTrackKey,
+    lifecycle: "ARCHIVED",
+  });
+  await page.reload();
+
+  const terminalSourceAfterArchive = await readinessVerifier.rpc(
+    "get_learning_track_terminal_lifecycle_source_v1",
+  );
+  assert.equal(
+    terminalSourceAfterArchive.error,
+    null,
+    "terminal Track source must reload after archive",
+  );
+  const archivedTrack = terminalSourceAfterArchive.data?.terminalHistory?.find(
+    (track) => track.trackKey === initializedTrackKey,
+  );
+  assert.equal(archivedTrack?.lifecycle, "ARCHIVED");
+  assert.deepEqual(archivedTrack?.capabilities, []);
+  assert.equal(
+    BigInt(archivedTrack.aggregateVersion),
+    BigInt(completedTrack.aggregateVersion) + 1n,
+    "archive must advance only the selected Track version once",
+  );
+  assert.equal(
+    terminalSourceAfterArchive.data?.currentTracks?.length,
+    1,
+    "archived Track must remain outside the current planning portfolio",
+  );
+  terminalTrackForm = page
+    .getByRole("region", { name: "Complete or archive a Learning Track" })
+    .locator("form");
+  await terminalTrackForm.getByLabel("Track", { exact: true }).selectOption(initializedTrackKey);
+  await terminalTrackRegion
+    .getByText("This archived Track is read-only.", { exact: false })
+    .waitFor();
+  assert.equal(
+    await terminalTrackForm.getByRole("button", { name: "Preview terminal change" }).count(),
+    0,
+    "archived Track must expose no mutation preview",
+  );
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   const planDimensions = await page.evaluate(() => ({
@@ -1568,6 +1743,6 @@ if (receivedSignal) {
   throw finalError;
 } else {
   process.stdout.write(
-    "isolated auth, target selection, Plan lifecycle/activity admission, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
+    "isolated auth, target selection, Plan lifecycle/activity admission, terminal Track lifecycle, Today/Focus planning journey, overlay persistence, reload, refresh, and sign-out gate passed\n",
   );
 }

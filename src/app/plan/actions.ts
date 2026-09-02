@@ -6,8 +6,10 @@ import { verifyPandoSession } from "../../shared/supabase/session";
 import type { PlanActionState } from "../../ui/plan/plan-action-state";
 import { initialPlanActionState } from "../../ui/plan/plan-action-state";
 import type { PlanOperation, TrackOperation } from "../../ui/plan/plan-types";
+import type { LearningTrackTerminalLifecycleOperationV1 } from "../../shared/contracts/learning-track-terminal-lifecycle-control";
 import {
   applyLearningTrackLifecycleV1,
+  applyLearningTrackTerminalLifecycleV1,
   applyLearningTrackCreationV1,
   applyLearningTrackActivityAdmissionV1,
   applyLearningTrackActivityAdmissionV2,
@@ -18,6 +20,7 @@ import {
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
+  previewLearningTrackTerminalLifecycleV1,
   previewLearningTrackCreationV1,
   previewLearningTrackActivityAdmissionV1,
   previewLearningTrackActivityAdmissionV2,
@@ -35,6 +38,7 @@ const TRACK_KEY = /^track:[a-z0-9][a-z0-9-]{1,100}$/u;
 const ACTIVITY_KEY = /^activity:[a-z0-9][a-z0-9-]{1,100}$/u;
 const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
 const TRACK_OPERATIONS = ["pause_track", "resume_track"] as const;
+const TERMINAL_TRACK_OPERATIONS = ["complete_track", "archive_track"] as const;
 const PRIORITY = /^(?:0|[1-9][0-9]{0,2})$/u;
 const CONTROL_CHARACTER = /[\p{Cc}]/u;
 
@@ -105,6 +109,35 @@ function trackInput(formData: FormData): {
   return {
     trackKey,
     operation: operation as TrackOperation,
+    growthPlanVersion,
+    learningTrackVersion,
+    reason,
+  };
+}
+function terminalTrackInput(formData: FormData): {
+  trackKey: string;
+  operation: LearningTrackTerminalLifecycleOperationV1;
+  growthPlanVersion: string;
+  learningTrackVersion: string;
+  reason: string;
+} {
+  const trackKey = field(formData, "trackKey");
+  const operation = field(formData, "operation");
+  const growthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const learningTrackVersion = field(formData, "expectedLearningTrackVersion");
+  const reason = field(formData, "reason");
+  if (
+    !TRACK_KEY.test(trackKey) ||
+    !TERMINAL_TRACK_OPERATIONS.includes(operation as LearningTrackTerminalLifecycleOperationV1) ||
+    !VERSION.test(growthPlanVersion) ||
+    !VERSION.test(learningTrackVersion) ||
+    !validReason(reason)
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    trackKey,
+    operation: operation as LearningTrackTerminalLifecycleOperationV1,
     growthPlanVersion,
     learningTrackVersion,
     reason,
@@ -609,6 +642,76 @@ export async function applyLearningTrackLifecycleAction(
     };
   } catch (error) {
     return failure(error, "Choose a current Track and enter a reason. Nothing changed.");
+  }
+}
+
+export async function previewLearningTrackTerminalLifecycleAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = terminalTrackInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewLearningTrackTerminalLifecycleV1(client, {
+      trackKey: value.trackKey,
+      operation: value.operation,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+    });
+    return {
+      status: "previewed",
+      message: "Terminal Track preview ready. Confirm only if these exact facts are correct.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose an available Track operation and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyLearningTrackTerminalLifecycleAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = terminalTrackInput(formData);
+    const digest = field(formData, "previewDigest");
+    const requestIdValue = field(formData, "requestId");
+    if (
+      !/^[a-f0-9]{64}$/u.test(digest) ||
+      !UUID.test(requestIdValue) ||
+      requestIdValue !== requestIdValue.toLowerCase()
+    ) {
+      throw new PlanInputError();
+    }
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyLearningTrackTerminalLifecycleV1(client, {
+      trackKey: value.trackKey,
+      operation: value.operation,
+      expectedGrowthPlanVersion: value.growthPlanVersion,
+      expectedLearningTrackVersion: value.learningTrackVersion,
+      reason: value.reason,
+      previewDigest: digest,
+      idempotencyKey: requestIdValue,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Track moved to terminal history. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose an available Track operation and enter a reason. Nothing changed.",
+    );
   }
 }
 

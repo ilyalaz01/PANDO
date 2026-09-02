@@ -40,6 +40,13 @@ async function openTrackCreationFixture(
   ).toBeVisible();
 }
 
+async function openTerminalFixture(page: import("@playwright/test").Page) {
+  await page.goto("/dev/plan-fixture?preview=terminal");
+  await expect(
+    page.getByRole("heading", { name: "Complete or archive a Learning Track", level: 2 }),
+  ).toBeVisible();
+}
+
 test("shows an exact lifecycle preview and keeps confirmation keyboard-operable", async ({
   page,
 }) => {
@@ -144,6 +151,28 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   await expect(
     creationReview.getByRole("button", { name: "Confirm and create Learning Track" }),
   ).toBeFocused();
+
+  await openTerminalFixture(page);
+  const terminalRegion = page.getByRole("region", {
+    name: "Complete or archive a Learning Track",
+  });
+  await terminalRegion.getByLabel("Track", { exact: true }).focus();
+  await page.keyboard.press("Tab");
+  await expect(terminalRegion.getByLabel("Complete Track")).toBeFocused();
+  await page.keyboard.press("ArrowRight");
+  await expect(terminalRegion.getByLabel("Archive Track")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(terminalRegion.getByLabel("Why should this Track change now?")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    terminalRegion.getByRole("button", { name: "Preview terminal change" }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(terminalRegion.getByRole("link", { name: "Next history page" })).toBeFocused();
+
+  await openTerminalFixture(page);
+  await page.getByRole("button", { name: "Complete this Track" }).focus();
+  await expect(page.getByRole("button", { name: "Complete this Track" })).toBeFocused();
 });
 
 test("fits 320px with touch-sized Plan controls", async ({ page }) => {
@@ -238,6 +267,27 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     const controlBox = await control.boundingBox();
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
+
+  await openTerminalFixture(page);
+  const terminalDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(terminalDimensions.scrollWidth).toBeLessThanOrEqual(terminalDimensions.clientWidth);
+  const terminalRegion = page.getByRole("region", {
+    name: "Complete or archive a Learning Track",
+  });
+  for (const control of [
+    terminalRegion.getByLabel("Track", { exact: true }),
+    terminalRegion.locator('label:has(input[value="complete_track"])'),
+    terminalRegion.locator('label:has(input[value="archive_track"])'),
+    terminalRegion.getByRole("button", { name: "Preview terminal change" }),
+    terminalRegion.getByRole("link", { name: "Next history page" }),
+    page.getByRole("button", { name: "Complete this Track" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test("honors reduced motion and forced-colors focus visibility", async ({ page }) => {
@@ -317,6 +367,24 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   }));
   expect(creationStyles.outlineStyle).not.toBe("none");
   expect(creationStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
+  await openTerminalFixture(page);
+  const terminalControl = page.getByRole("button", { name: "Complete this Track" });
+  await terminalControl.focus();
+  const terminalStyles = await terminalControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(terminalStyles.outlineStyle).not.toBe("none");
+  expect(terminalStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+  const terminalRadio = page.getByLabel("Complete Track");
+  await terminalRadio.focus();
+  const terminalRadioStyles = await terminalRadio.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(terminalRadioStyles.outlineStyle).not.toBe("none");
+  expect(terminalRadioStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 });
 
 test("has no automatically detectable WCAG A/AA violations", async ({ page }) => {
@@ -355,6 +423,12 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(creationResults.violations).toEqual([]);
+
+  await openTerminalFixture(page);
+  const terminalResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(terminalResults.violations).toEqual([]);
 });
 
 test("shows exact activity admission consequences and all fail-closed source states", async ({
@@ -533,4 +607,51 @@ test("shows exact Track settings consequences and blocks active minima over capa
     page.getByRole("region", { name: "Review Learning Track settings" }).getByRole("alert"),
   ).toContainText("need at least 560 weekly minutes");
   await expect(page.getByRole("button", { name: "Confirm Track settings" })).toHaveCount(0);
+});
+
+test("shows exact terminal Track consequences and keeps archived history read-only", async ({
+  page,
+}) => {
+  await openTerminalFixture(page);
+  const comparison = page.getByLabel("Exact terminal Learning Track preview");
+  await expect(comparison).toContainText("System design");
+  await expect(comparison).toContainText("ACTIVE");
+  await expect(comparison).toContainText("COMPLETED");
+  await expect(comparison).toContainText("Terminal history");
+  await expect(page.getByText(/proves no Mastery or readiness/iu)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Complete this Track" })).toBeEnabled();
+
+  const terminalRegion = page.getByRole("region", {
+    name: "Complete or archive a Learning Track",
+  });
+  const nextPage = terminalRegion.getByRole("link", { name: "Next history page" });
+  await expect(nextPage).toHaveAttribute(
+    "href",
+    "/dev/plan-fixture?preview=terminal-history-page-2",
+  );
+  await nextPage.click();
+  await expect(page).toHaveURL(/preview=terminal-history-page-2$/u);
+  await expect(
+    page.getByRole("option", { name: /Retired distributed systems course/iu }),
+  ).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Complete this Track" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Next history page" })).toHaveCount(0);
+
+  await openTerminalFixture(page);
+  const firstPageRegion = page.getByRole("region", {
+    name: "Complete or archive a Learning Track",
+  });
+  await firstPageRegion
+    .getByLabel("Track", { exact: true })
+    .selectOption("track:database-foundations");
+  await expect(firstPageRegion.getByLabel("Archive Track")).toBeChecked();
+  await expect(firstPageRegion.getByLabel("Complete Track")).toHaveCount(0);
+
+  await firstPageRegion
+    .getByLabel("Track", { exact: true })
+    .selectOption("track:legacy-cloud-course");
+  await expect(firstPageRegion.getByText(/archived Track is read-only/iu)).toBeVisible();
+  await expect(
+    firstPageRegion.getByRole("button", { name: "Preview terminal change" }),
+  ).toHaveCount(0);
 });

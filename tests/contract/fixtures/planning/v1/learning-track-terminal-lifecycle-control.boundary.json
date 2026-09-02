@@ -1,0 +1,57 @@
+{
+  "contract": { "name": "LearningTrackTerminalLifecycleSourceV1", "version": "1.0.0" },
+  "state": "READY",
+  "growthPlan": {
+    "growthPlanId": "40000000-0000-4000-8000-000000000020",
+    "lifecycle": "PAUSED",
+    "weeklyCapacityMinutes": 10080,
+    "aggregateVersion": "9223372036854775807"
+  },
+  "currentTracks": [
+    {
+      "learningTrackId": "40000000-0000-4000-8000-000000000021",
+      "trackKey": "track:algorithms",
+      "title": "Algorithms",
+      "lifecycle": "ACTIVE",
+      "priority": 100,
+      "protectedMinimumMinutes": 10080,
+      "aggregateVersion": "9223372036854775807",
+      "capabilities": ["complete_track", "archive_track"]
+    },
+    {
+      "learningTrackId": "40000000-0000-4000-8000-000000000022",
+      "trackKey": "track:python",
+      "title": "Python",
+      "lifecycle": "PAUSED",
+      "priority": 0,
+      "protectedMinimumMinutes": 0,
+      "aggregateVersion": "1",
+      "capabilities": ["complete_track", "archive_track"]
+    }
+  ],
+  "terminalHistory": [
+    {
+      "learningTrackId": "40000000-0000-4000-8000-000000000023",
+      "trackKey": "track:systems",
+      "title": "Systems",
+      "lifecycle": "COMPLETED",
+      "priority": 50,
+      "protectedMinimumMinutes": 60,
+      "aggregateVersion": "8",
+      "updatedAt": "2026-09-02T10:00:00.000Z",
+      "capabilities": ["archive_track"]
+    },
+    {
+      "learningTrackId": "40000000-0000-4000-8000-000000000024",
+      "trackKey": "track:testing",
+      "title": "Testing",
+      "lifecycle": "ARCHIVED",
+      "priority": 40,
+      "protectedMinimumMinutes": 30,
+      "aggregateVersion": "9",
+      "updatedAt": "2026-09-01T10:00:00.000Z",
+      "capabilities": []
+    }
+  ],
+  "historyPage": { "hasMore": true, "nextCursor": "eyJ2IjoxfQ==" }
+}

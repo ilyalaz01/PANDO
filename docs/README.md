@@ -66,6 +66,8 @@ and recorded in the completed
 [D2b3 implementation status](implementation/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md).
 Terminal Track lifecycle is defined by the accepted
 [Phase 4B D2b4 Learning Track completion and archive design](design/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE.md).
+Its delivered command, bounded history, UI, and verification evidence are recorded in the
+[D2b4 implementation status](implementation/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md).
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 

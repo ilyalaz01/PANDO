@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v1/learning-track-terminal-lifecycle-control.schema.json",
+  "title": "PANDO Learning Track Terminal Lifecycle Control V1",
+  "oneOf": [
+    { "$ref": "#/$defs/source" },
+    { "$ref": "#/$defs/preview" },
+    { "$ref": "#/$defs/applyResult" }
+  ],
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "positiveBigint": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7])$"
+    },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "cursor": { "type": "string", "minLength": 1, "maxLength": 512, "pattern": "^[A-Za-z0-9+/=]+$" },
+    "trackKey": { "type": "string", "pattern": "^track:[a-z0-9][a-z0-9-]{1,100}$" },
+    "trimmed": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,158}\\S)$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,498}\\S)$"
+    },
+    "growthPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["growthPlanId", "lifecycle", "weeklyCapacityMinutes", "aggregateVersion"],
+      "properties": {
+        "growthPlanId": { "$ref": "#/$defs/uuid" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED"] },
+        "weeklyCapacityMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "trackFields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learningTrackId",
+        "trackKey",
+        "title",
+        "lifecycle",
+        "priority",
+        "protectedMinimumMinutes",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "learningTrackId": { "$ref": "#/$defs/uuid" },
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/trimmed" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"] },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "protectedMinimumMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "trackSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learningTrackId",
+        "trackKey",
+        "title",
+        "lifecycle",
+        "priority",
+        "protectedMinimumMinutes",
+        "aggregateVersion",
+        "capabilities"
+      ],
+      "properties": {
+        "learningTrackId": { "$ref": "#/$defs/uuid" },
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/trimmed" },
+        "lifecycle": { "enum": ["ACTIVE", "PAUSED", "COMPLETED", "ARCHIVED"] },
+        "priority": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "protectedMinimumMinutes": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["complete_track", "archive_track"] }
+        }
+      }
+    },
+    "currentPortfolio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["countBefore", "countAfter", "orderFingerprintBefore", "orderFingerprintAfter"],
+      "properties": {
+        "countBefore": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "countAfter": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "orderFingerprintBefore": { "$ref": "#/$defs/digest" },
+        "orderFingerprintAfter": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "activeConstraint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activeTrackCountBefore",
+        "activeTrackCountAfter",
+        "activeProtectedMinimumMinutesBefore",
+        "activeProtectedMinimumMinutesAfter",
+        "flexibleMinutesBefore",
+        "flexibleMinutesAfter",
+        "activeTrackFingerprintBefore",
+        "activeTrackFingerprintAfter"
+      ],
+      "properties": {
+        "activeTrackCountBefore": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "activeTrackCountAfter": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "activeProtectedMinimumMinutesBefore": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "activeProtectedMinimumMinutesAfter": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10080
+        },
+        "flexibleMinutesBefore": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "flexibleMinutesAfter": { "type": "integer", "minimum": 0, "maximum": 10080 },
+        "activeTrackFingerprintBefore": { "$ref": "#/$defs/digest" },
+        "activeTrackFingerprintAfter": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "retained": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "learningTrackActivities",
+        "focusSessions",
+        "evidence",
+        "masteryAndReadiness",
+        "reviewItems",
+        "planSnapshots",
+        "trackHistory"
+      ],
+      "properties": {
+        "learningTrackActivities": { "const": true },
+        "focusSessions": { "const": true },
+        "evidence": { "const": true },
+        "masteryAndReadiness": { "const": true },
+        "reviewItems": { "const": true },
+        "planSnapshots": { "const": true },
+        "trackHistory": { "const": true }
+      }
+    },
+    "nonClaims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence", "mastery", "readiness", "goalCompletion"],
+      "properties": {
+        "evidence": { "const": true },
+        "mastery": { "const": true },
+        "readiness": { "const": true },
+        "goalCompletion": { "const": true }
+      }
+    },
+    "recalculation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectionState", "consumerName"],
+      "properties": {
+        "projectionState": { "const": "PENDING" },
+        "consumerName": { "const": "planning.plan_snapshot_v1" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "state",
+        "growthPlan",
+        "currentTracks",
+        "terminalHistory",
+        "historyPage"
+      ],
+      "properties": {
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "LearningTrackTerminalLifecycleSourceV1" },
+            "version": { "const": "1.0.0" }
+          }
+        },
+        "state": { "enum": ["READY", "NO_CURRENT_PLAN"] },
+        "growthPlan": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/growthPlan" }] },
+        "currentTracks": {
+          "type": "array",
+          "maxItems": 30,
+          "items": { "$ref": "#/$defs/trackSummary" }
+        },
+        "terminalHistory": {
+          "type": "array",
+          "maxItems": 20,
+          "items": { "$ref": "#/$defs/trackSummary" }
+        },
+        "historyPage": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["hasMore", "nextCursor"],
+          "properties": {
+            "hasMore": { "type": "boolean" },
+            "nextCursor": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/cursor" }] }
+          }
+        }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "operation",
+        "reason",
+        "expectedGrowthPlanVersion",
+        "expectedLearningTrackVersion",
+        "growthPlan",
+        "before",
+        "after",
+        "currentPortfolio",
+        "activeConstraint",
+        "visibilityBefore",
+        "visibilityAfter",
+        "canApply",
+        "blockingReasons",
+        "warnings",
+        "retained",
+        "doesNotAssert",
+        "recalculationAfterApply",
+        "previewDigest"
+      ],
+      "properties": {
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "LearningTrackTerminalLifecyclePreviewV1" },
+            "version": { "const": "1.0.0" }
+          }
+        },
+        "operation": { "enum": ["complete_track", "archive_track"] },
+        "reason": { "$ref": "#/$defs/reason" },
+        "expectedGrowthPlanVersion": { "$ref": "#/$defs/positiveBigint" },
+        "expectedLearningTrackVersion": { "$ref": "#/$defs/positiveBigint" },
+        "growthPlan": { "$ref": "#/$defs/growthPlan" },
+        "before": { "$ref": "#/$defs/trackFields" },
+        "after": { "$ref": "#/$defs/trackFields" },
+        "currentPortfolio": { "$ref": "#/$defs/currentPortfolio" },
+        "activeConstraint": { "$ref": "#/$defs/activeConstraint" },
+        "visibilityBefore": { "enum": ["CURRENT_PLAN", "TERMINAL_HISTORY"] },
+        "visibilityAfter": { "const": "TERMINAL_HISTORY" },
+        "canApply": { "const": true },
+        "blockingReasons": { "type": "array", "maxItems": 0 },
+        "warnings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code"],
+            "properties": {
+              "code": {
+                "enum": [
+                  "TRACK_COMPLETION_IS_TERMINAL_AND_NOT_MASTERY",
+                  "TRACK_ARCHIVE_IS_TERMINAL_NOT_DELETION"
+                ]
+              }
+            }
+          }
+        },
+        "retained": { "$ref": "#/$defs/retained" },
+        "doesNotAssert": { "$ref": "#/$defs/nonClaims" },
+        "recalculationAfterApply": { "$ref": "#/$defs/recalculation" },
+        "previewDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "applyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "commandId",
+        "changedTrack",
+        "projectionState",
+        "planningDeliveryId",
+        "emittedEventIds"
+      ],
+      "properties": {
+        "contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version"],
+          "properties": {
+            "name": { "const": "LearningTrackTerminalLifecycleApplyResultV1" },
+            "version": { "const": "1.0.0" }
+          }
+        },
+        "commandId": { "$ref": "#/$defs/uuid" },
+        "changedTrack": { "$ref": "#/$defs/trackFields" },
+        "projectionState": { "const": "PENDING" },
+        "planningDeliveryId": { "$ref": "#/$defs/uuid" },
+        "emittedEventIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/uuid" }
+        }
+      }
+    }
+  }
+}

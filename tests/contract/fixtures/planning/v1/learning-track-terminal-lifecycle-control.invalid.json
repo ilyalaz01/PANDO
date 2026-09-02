@@ -1,0 +1,72 @@
+{
+  "contract": { "name": "LearningTrackTerminalLifecyclePreviewV1", "version": "1.0.0" },
+  "operation": "delete_track",
+  "reason": "Delete it.",
+  "expectedGrowthPlanVersion": "7",
+  "expectedLearningTrackVersion": "5",
+  "growthPlan": {
+    "growthPlanId": "40000000-0000-4000-8000-000000000020",
+    "lifecycle": "ACTIVE",
+    "weeklyCapacityMinutes": 480,
+    "aggregateVersion": "7"
+  },
+  "before": {
+    "learningTrackId": "40000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ACTIVE",
+    "priority": 90,
+    "protectedMinimumMinutes": 90,
+    "aggregateVersion": "5"
+  },
+  "after": {
+    "learningTrackId": "40000000-0000-4000-8000-000000000021",
+    "trackKey": "track:algorithms",
+    "title": "Algorithms",
+    "lifecycle": "ARCHIVED",
+    "priority": 90,
+    "protectedMinimumMinutes": 90,
+    "aggregateVersion": "6"
+  },
+  "currentPortfolio": {
+    "countBefore": 3,
+    "countAfter": 2,
+    "orderFingerprintBefore": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "orderFingerprintAfter": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "activeConstraint": {
+    "activeTrackCountBefore": 2,
+    "activeTrackCountAfter": 1,
+    "activeProtectedMinimumMinutesBefore": 150,
+    "activeProtectedMinimumMinutesAfter": 60,
+    "flexibleMinutesBefore": 330,
+    "flexibleMinutesAfter": 420,
+    "activeTrackFingerprintBefore": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "activeTrackFingerprintAfter": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+  },
+  "visibilityBefore": "CURRENT_PLAN",
+  "visibilityAfter": "TERMINAL_HISTORY",
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [{ "code": "TRACK_ARCHIVE_IS_TERMINAL_NOT_DELETION" }],
+  "retained": {
+    "learningTrackActivities": true,
+    "focusSessions": true,
+    "evidence": true,
+    "masteryAndReadiness": true,
+    "reviewItems": true,
+    "planSnapshots": true,
+    "trackHistory": true
+  },
+  "doesNotAssert": {
+    "evidence": true,
+    "mastery": true,
+    "readiness": true,
+    "goalCompletion": true
+  },
+  "recalculationAfterApply": {
+    "projectionState": "PENDING",
+    "consumerName": "planning.plan_snapshot_v1"
+  },
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

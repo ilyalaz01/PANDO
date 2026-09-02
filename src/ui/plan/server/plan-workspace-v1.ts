@@ -20,6 +20,13 @@ import {
 } from "../../../shared/contracts/learning-track-creation-control";
 import { learningTrackLifecycleControlSemanticViolations } from "../../../shared/contracts/learning-track-lifecycle-control";
 import {
+  learningTrackTerminalLifecycleControlSemanticViolations,
+  type LearningTrackTerminalLifecycleApplyResultV1,
+  type LearningTrackTerminalLifecycleOperationV1,
+  type LearningTrackTerminalLifecyclePreviewV1,
+  type LearningTrackTerminalLifecycleSourceV1,
+} from "../../../shared/contracts/learning-track-terminal-lifecycle-control";
+import {
   decodeLearningTrackActivityAdmissionApplyResultV1 as decodeLearningTrackActivityAdmissionApplyResult,
   decodeLearningTrackActivityAdmissionApplyResultV2 as decodeLearningTrackActivityAdmissionApplyResultV2Contract,
   decodeLearningTrackActivityAdmissionPreviewV1 as decodeLearningTrackActivityAdmissionPreview,
@@ -49,6 +56,10 @@ export type {
   LearningTrackActivityAdmissionPreviewV2,
   LearningTrackActivityAdmissionSourceV1,
   LearningTrackActivityAdmissionSourceV2,
+  LearningTrackTerminalLifecycleApplyResultV1,
+  LearningTrackTerminalLifecycleOperationV1,
+  LearningTrackTerminalLifecyclePreviewV1,
+  LearningTrackTerminalLifecycleSourceV1,
 };
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -362,6 +373,26 @@ function decodeTrack(value: unknown, expectedName: string): unknown {
   return value;
 }
 
+function decodeTerminalTrack(value: unknown, expectedName: string): unknown {
+  const structural = validateSchema("learning-track-terminal-lifecycle-control-v1", value);
+  if (
+    !structural.valid ||
+    learningTrackTerminalLifecycleControlSemanticViolations(value).length > 0
+  ) {
+    throw new GrowthPlanControlContractError();
+  }
+  const contract = (value as { readonly contract?: unknown }).contract;
+  if (
+    typeof contract !== "object" ||
+    contract === null ||
+    !Object.hasOwn(contract, "name") ||
+    (contract as { readonly name?: unknown }).name !== expectedName
+  ) {
+    throw new GrowthPlanControlContractError();
+  }
+  return value;
+}
+
 function decodeTrackPriorityMinimum(value: unknown, expectedName: string): unknown {
   const structural = validateSchema("learning-track-priority-minimum-control-v1", value);
   if (
@@ -434,6 +465,36 @@ export function decodeLearningTrackLifecycleApplyResultV1(
     value,
     "LearningTrackLifecycleApplyResultV1",
   ) as LearningTrackLifecycleApplyResultV1;
+}
+
+/** Decodes the current Track portfolio and one bounded terminal-history page. */
+export function decodeLearningTrackTerminalLifecycleSourceV1(
+  value: unknown,
+): LearningTrackTerminalLifecycleSourceV1 {
+  return decodeTerminalTrack(
+    value,
+    "LearningTrackTerminalLifecycleSourceV1",
+  ) as LearningTrackTerminalLifecycleSourceV1;
+}
+
+/** Decodes the exact irreversible Track lifecycle consequence preview. */
+export function decodeLearningTrackTerminalLifecyclePreviewV1(
+  value: unknown,
+): LearningTrackTerminalLifecyclePreviewV1 {
+  return decodeTerminalTrack(
+    value,
+    "LearningTrackTerminalLifecyclePreviewV1",
+  ) as LearningTrackTerminalLifecyclePreviewV1;
+}
+
+/** Decodes the atomic terminal Track lifecycle receipt response. */
+export function decodeLearningTrackTerminalLifecycleApplyResultV1(
+  value: unknown,
+): LearningTrackTerminalLifecycleApplyResultV1 {
+  return decodeTerminalTrack(
+    value,
+    "LearningTrackTerminalLifecycleApplyResultV1",
+  ) as LearningTrackTerminalLifecycleApplyResultV1;
 }
 
 /** Decodes the exact Track settings and ordering consequence preview. */

@@ -1,0 +1,9 @@
+{
+  "contract": { "name": "LearningTrackTerminalLifecycleSourceV1", "version": "1.0.0" },
+  "state": "NO_CURRENT_PLAN",
+  "growthPlan": null,
+  "currentTracks": [],
+  "terminalHistory": [],
+  "historyPage": { "hasMore": false, "nextCursor": null },
+  "workspaceId": "40000000-0000-4000-8000-000000000001"
+}

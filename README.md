@@ -27,7 +27,10 @@ Track resumes, and active-Track minimum edits are checked against
 the aggregate protected minimum of active Learning Tracks; an infeasible proposal is explained and
 cannot be applied. Each accepted change is version-fenced, idempotent, atomic with its
 receipt/event/delivery, preserves learning and evidence history, and reports Today recalculation as
-pending until the ordinary Planning worker publishes a current snapshot.
+pending until the ordinary Planning worker publishes a current snapshot. The same surface can now
+complete or archive a Track through a separate exact preview: terminal Tracks leave current
+planning while all linked work and history remain, and completion explicitly makes no Evidence,
+Mastery, readiness, or Goal claim.
 The repository contains the executable Next.js modular monolith, strict contract/runtime
 validators, deterministic mastery/readiness/review engines, the Identity/RLS/outbox database
 boundary, an encrypted
@@ -48,8 +51,8 @@ immutable snapshots behind its current-pointer boundary. The live server boundar
 current recommendation and safely run the authenticated Today-to-Focus journey. First Growth Plan
 setup, Plan pause/resume, default weekly-capacity control, Learning Track pause/resume, Track
 priority/protected-minimum editing, additional Track creation, and destination-aware manual activity
-admission are complete Phase 4B command slices. Terminal Track transitions are next; cadence,
-availability, Campaign, and live Agent Control increments remain later work.
+admission, completion, and archive are complete Phase 4B command slices. Cadence, availability,
+Campaign, and live Agent Control increments remain later work.
 
 ## Prerequisites
 
@@ -78,7 +81,8 @@ Open <http://localhost:3000>, sign in, select or reuse a Readiness Goal on `/sta
 activity from Explore, open Plan to preview and confirm the first Growth Plan, then use Today after
 useful work is admitted to start or resume the ranked Focus action. Open Plan again to preview and
 confirm a pause, resume, realistic weekly-capacity change, or Track priority/protected-minimum edit
-without losing history. Inspect the resulting readiness
+without losing history. Complete a finished Track or archive an obsolete one only after inspecting
+the exact terminal consequence; neither action deletes its history. Inspect the resulting readiness
 changes and open Review from the
 authenticated header. The live
 `/explore?goal=...` route requires the configured authenticated Supabase boundary; it never
