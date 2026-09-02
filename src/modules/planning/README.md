@@ -89,8 +89,13 @@ V1 inputs and snapshots remain on their unchanged historical schemas and exact v
 The persisted control, authenticated `/plan` flow, dual-contract worker, and V2 rollout are recorded
 in
 [`PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md`](../../../docs/implementation/PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md).
-The next Planning outcome is the focused D3–D5 lifecycle ADR required before availability or Growth
-Plan replacement implementation.
+The D3–D5 lifecycle decisions are settled by
+[`ADR-0010`](../../../docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md):
+exactly one current Growth Plan with archive only inside atomic replacement, plan-scoped
+whole-local-day availability windows that cap but never raise weekly capacity, campaign deadlines
+as a workspace-local date with a derived exclusive instant, allocation overrides that temporarily
+replace a Track's own priority, protected minimum, and cadence, and one purpose-specific
+campaign-lifecycle coordinator. The next Planning outcome is D3a, Growth Plan replacement only.
 
 ## Phase 4A implementation route
 

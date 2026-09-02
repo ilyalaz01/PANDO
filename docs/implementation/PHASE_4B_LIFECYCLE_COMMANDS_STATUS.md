@@ -88,6 +88,10 @@ D1b, D2a–D2c, settings, and exact manual activity admission are complete. The 
 records cover [admission](PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md),
 [D2b3](PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md), and
 [D2b4](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE_STATUS.md), and
-[D2c](PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md). The next bounded outcome is the focused D3–D5
-lifecycle ADR. Do not implement availability/replacement or Campaign work before the decisions
-required by the D0 design are recorded.
+[D2c](PHASE_4B_D2C_LEARNING_TRACK_CADENCE_STATUS.md). The focused D3–D5 lifecycle ADR is accepted as
+[ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md); it settles
+current-plan replacement, availability windows, Campaign deadline and allocation meaning, the
+paused-plan campaign rule, the coordinator boundary, and the calculation versions each remaining
+slice introduces. The next bounded outcome is D3a, the Growth Plan replacement slice defined in
+ADR-0010 §9. Do not start availability, Campaign, or coordinator work before D3a is complete,
+verified, documented, and committed.

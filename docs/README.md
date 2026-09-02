@@ -38,7 +38,10 @@ and the [module topology](design/MODULE_TOPOLOGY.md). Agent Control is detailed 
 implementation mechanisms but may not change product semantics. The remaining Phase 4 lifecycle
 transitions, owner-command protocol, preview boundary, and ordered implementation slices are
 recorded in the supporting
-[Phase 4B lifecycle command design](design/PHASE_4B_LIFECYCLE_COMMANDS.md).
+[Phase 4B lifecycle command design](design/PHASE_4B_LIFECYCLE_COMMANDS.md). The cross-context
+decisions that design left open for D3–D5 — current-plan replacement, availability windows,
+Campaign deadlines, allocation meaning, and the coordinator boundary — are settled in
+[ADR-0010](adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md).
 
 [Phase 4B D2a Growth Plan weekly-capacity design](design/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
 Its delivered slices and verification evidence are tracked in the

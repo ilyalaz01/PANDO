@@ -1,6 +1,9 @@
 # Phase 4B lifecycle and editing command design
 
-Status: implementation design (D0); D1, D1b, D2a, D2b1–D2c, and manual activity admission implemented; D3–D5 pending
+Status: implementation design (D0); D1, D1b, D2a, D2b1–D2c, and manual activity admission
+implemented; the D3–D5 decisions in §10 are settled by
+[ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md); D3–D5
+implementation pending
 Date: 2026-08-29  
 Canonical basis: `docs/00_PRODUCT_CONSTITUTION.md` through `docs/06_PROMPT_LIBRARY_UX.md`
 
@@ -29,10 +32,11 @@ Therefore a Growth Plan is **archived**, never completed. The generic Phase 4 de
 non-canonical and must not become a database state or command.
 
 MVP has one current Growth Plan, meaning one row in `active` or `paused`, and at most one active
-Interview Campaign. An archived plan remains queryable history. The canonical documents do not
-settle whether an initialized workspace may return to zero current plans. Standalone archive is
-therefore deferred until an ADR chooses replacement-only or an explicit no-current-plan outcome; it
-is never disguised as pause.
+Interview Campaign. An archived plan remains queryable history.
+[ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md) §1 settles the
+open question: an initialized workspace must always have exactly one current plan, so there is no
+standalone archive command and archive is reachable only as one effect of atomic replacement. It is
+never disguised as pause.
 
 ## 3. Ownership and authoritative aggregates
 
@@ -57,10 +61,11 @@ versioned events.
 
 | Command | From | To | Rule |
 |---|---|---|---|
-| initialize/replace | none | `active` | creates the one current plan; replacement semantics remain ADR-gated |
+| initialize | none | `active` | creates the one current plan for an uninitialized workspace |
+| `replace_growth_plan` | `active` or `paused` | `active` | atomically archives the outgoing plan and creates the incoming current plan; never copies Tracks ([ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md) §1) |
 | `pause_growth_plan` | `active` | `paused` | reversible; retains tracks, snapshots, sessions, and evidence |
 | `resume_growth_plan` | `paused` | `active` | fails if another current plan exists |
-| `archive_growth_plan` | `active` or `paused` | `archived` | terminal; deferred until the current-plan cardinality ADR |
+| archive | `active` or `paused` | `archived` | terminal; reachable only inside `replace_growth_plan`, never as a standalone command |
 | `set_default_capacity` | `active` or `paused` | unchanged | `0..10080`; the sum of protected minima across active child Tracks above the new capacity is a blocking validation error |
 
 A new idempotency key that requests the already-current lifecycle is rejected as an invalid
@@ -229,8 +234,11 @@ idempotency key; clients cannot replace the previewed body at apply time.
    [D2b4 Learning Track completion and archive](PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE.md).
    The completed D2c increment is
    [Learning Track cadence](PHASE_4B_D2C_LEARNING_TRACK_CADENCE.md).
-3. **D3 — availability and plan replacement.** After the lifecycle ADR, add dated availability,
-   plan archive/new-plan replacement, and deterministic capacity composition.
+3. **D3 — availability and plan replacement.** The decisions are recorded in
+   [ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md). D3a is the
+   smallest reversible slice: Growth Plan replacement only, clock-free, with no new calculation
+   contract. D3b then adds dated availability windows, their non-overlap invariant, the persisted
+   clock-bound proposal, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
    and Interview Campaigns; add draft/start/deadline/target/end/cancel commands and owner events.
 5. **D5 — campaign overlays and atomic lifecycle coordination.** Add Planning allocation overrides,
@@ -249,26 +257,34 @@ before an agent can invoke it.
 
 ## 10. Decisions required before later slices
 
-D1 pause/resume implements accepted semantics and requires no ADR. Before D3–D5, one focused ADR
-must settle the still-open cross-context rules:
+D1 pause/resume implements accepted semantics and requires no ADR. The still-open cross-context
+rules for D3–D5 are now settled by
+[ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md). Its sections
+map one-to-one onto the questions this design left open:
 
-1. whether an initialized workspace must always have one current `active|paused` Growth Plan and
-   whether archive therefore requires atomic replacement;
-2. whether a campaign continues to affect ranking while the Growth Plan is explicitly paused (the
-   canonical model permits an independently active campaign, while planner policy 0.1 currently
-   refuses every campaign unless the plan is active);
-3. campaign deadline representation (`date` versus an instant), workspace-time-zone conversion,
-   and behavior after the deadline passes;
-4. campaign target changes through immutable Readiness Goal/profile references;
-5. whether allocation minutes are reservations, caps, or preferences and their invariant against
-   flexible capacity;
-6. Availability Window identity, create/update cardinality sentinel, overlap resolution,
-   interval/time-zone semantics, and precedence in capacity composition;
-7. the exact Phase 4 purpose-specific coordinator boundary for campaign lifecycle plus Planning
-   overrides, before the general multi-operation Agent Control coordinator ships.
+1. current-plan cardinality and archive-through-replacement — ADR-0010 §1: an initialized workspace
+   always has exactly one current plan, and archive exists only inside atomic replacement, which
+   preserves the outgoing plan and its Tracks without copying them;
+2. campaign ranking while the Growth Plan is paused — ADR-0010 §2: an active campaign keeps
+   ranking, base track sources and protected minima contribute nothing, and the change lands with a
+   new engine/policy version in D5;
+3. campaign deadline representation, time zone, and post-deadline behavior — ADR-0010 §3: a
+   workspace-local date plus a recorded time zone and a derived exclusive instant; no auto-end, a
+   clamped day count, and an explicit prompt after the deadline passes;
+4. campaign target changes — ADR-0010 §4: repoint to an exact existing active Readiness Goal under
+   both expected versions, never mutate a goal or profile version, retain the previous identity;
+5. allocation meaning — ADR-0010 §5: overrides temporarily replace the Track's own priority,
+   protected minimum, and cadence; minima are reservations that can only be raised, the other two
+   are preferences, and nothing is a cap;
+6. availability windows — ADR-0010 §6: plan-scoped identity with opaque keys, whole-local-day
+   inclusive ranges, per-day minute caps, database-enforced non-overlap, bounded cardinality
+   sentinels, and a capacity composition that can only cap the plan default;
+7. the Phase 4 coordinator boundary — ADR-0010 §7: one purpose-specific `campaign_lifecycle_v1`
+   coordinator for start/end/cancel only, with a fixed lock order, used first by the manual UI.
 
 Changing the planner's campaign/paused-plan behavior also requires a versioned policy/engine
-revision. No later implementation may silently choose one of these meanings.
+revision; ADR-0010 §8 records the exact contract, engine, and policy versions each remaining slice
+introduces. No later implementation may silently choose a different meaning.
 
 ## 11. First implementation outcome: D1 Growth Plan pause/resume
 
