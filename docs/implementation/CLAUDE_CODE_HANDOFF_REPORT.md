@@ -1,333 +1,195 @@
 # Claude Code handoff report
 
-Session date: 2026-08-28
-Agent: Claude Code (Opus 5)
-Branch: `claude/c4-meaningful-work`
+Session date: 2026-09-02
+Agent: Claude Code (Opus 5), working from `CODEX_D2C_TO_CLAUDE_HANDOFF.md`
+Branches: `claude/d3-d5-lifecycle-adr`, then `claude/d3a-growth-plan-replacement`
 
-Current note (2026-08-29): this is the historical C4 report. Codex completed the independent
-hardening below, fast-forwarded C4 to `main` at `9c76f5f`, and pushed it to `origin/main`. C5 and C6
-were implemented afterward and are documented separately in
-[`CODEX_C5_HANDOFF_REPORT.md`](CODEX_C5_HANDOFF_REPORT.md) and
-[`CODEX_C6_HANDOFF_REPORT.md`](CODEX_C6_HANDOFF_REPORT.md). Statements below that C5 or the live
-Today boundary had not started describe the original Claude handoff, not the current repository.
+This file replaces the historical C4 report, which remains in Git history.
 
 ## 1. Outcome attempted
 
-Phase 4A **C4 — meaningful completed work**, as defined in `CLAUDE.md` under "Current bounded
-outcome". Status: **complete and verified** — every gate proportionate to the change was run and
-passed (§6).
+Two ordered outcomes from the Codex D2c handoff:
 
-The bounded outcome was to replace the blanket `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` safety gate with
-a reviewed, versioned policy for completed meaningful minutes and recent candidate repetition, fed by
-bounded Sessions/Evidence owner queries, without fabricating any value.
+1. **D3–D5 lifecycle ADR** — settle every open decision in
+   `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md` §10 with no production-code or schema change.
+   Status: **complete and committed** (`60e793e`).
+2. **D3a Growth Plan replacement** — the smallest reversible D3 slice named by the accepted ADR.
+   Status: **complete and committed** (`44c3f3b`), verified by every gate this environment can run
+   (§6), with two owner-run gates outstanding.
 
-At this original C4 handoff, C5 (Mastery prerequisite satisfaction) and C6 (live Today read
-boundary) were **not** started.
+D3b availability, D4 Campaign persistence, and D5 overlays/coordinator are **not** started.
 
 ## 2. User-visible result
 
-No UI changed; `/today` still does not exist. The production Planning pipeline no longer refuses a
-snapshot solely because the workspace has completed Focus history in the current week. When its
-owner bundle is otherwise valid, a finished Focus activity is normalized into a snapshot whose
-`capacity.consumedMinutesThisWeek` reflects actual completed work, whose per-track cadence credit
-reflects evidence-bearing work only, and whose ranking applies a real recent-repetition penalty.
+The ADR changes nothing a person can see.
 
-Before this change, any workspace with a terminal Focus session in the current local week was
-permanently dead-lettered. That was the single blocker preventing a real user's plan from ever
-recalculating after their first completed session.
+D3a adds one control to `/plan`: **Replace this Growth Plan**. A signed-in person with a current
+Plan chooses a target, initial weekly capacity, default session length, and first-Track priority,
+reads an exact preview, and confirms. On confirmation the current Plan becomes archived, readable
+history and a new current Plan with one initial Track takes its place in the same transaction.
+Nothing is deleted and nothing is copied: the archived Plan keeps its Learning Tracks exactly as the
+person left them, and every Focus session, Evidence record, Mastery state, Review, and plan snapshot
+is retained. Today reports honest `PENDING` recalculation afterwards.
 
 ## 3. Architecture and policy decisions
 
-### 3.1 A separate versioned input-normalization policy
+`docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md` is the authority for
+all of them. In brief:
 
-`docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md` defines `planning-completed-work/0.1`. It is
-deliberately *not* part of `planning-policy/0.1`: no ranking coefficient or eligibility rule moved,
-so `planner-engine/0.1.0` and `planning-policy/0.1` are unchanged and the existing
-`plan_snapshots` check constraints still hold.
+1. **Exactly one current Growth Plan after initialization.** No standalone archive command; archive
+   is reachable only inside atomic replacement, which never copies Tracks.
+2. **A paused Growth Plan no longer silences an active Campaign** (implemented in D5, with a new
+   engine/policy version).
+3. **Campaign deadlines are a workspace-local date** plus the recorded time zone and a derived
+   exclusive instant; no auto-end after the deadline, a clamped day count, and an explicit prompt.
+4. **Campaign retarget repoints to an exact existing active Readiness Goal**; goals and profile
+   versions are never mutated, and requirement overrides are superseded rather than carried over.
+5. **Allocation overrides temporarily replace a Track's own priority, protected minimum, and
+   cadence.** Minima are reservations that may only be raised; nothing is a cap; base rows are never
+   mutated, so cancellation restores base allocation by construction.
+6. **Availability windows are plan-scoped, whole-local-day, non-overlapping caps** with per-day
+   minute values; effective weekly capacity is `min(default, sum of the week's day caps)`, so a
+   window can only reduce capacity. Protected minima are rationed deterministically when
+   availability drops below their sum.
+7. **One purpose-specific `campaign_lifecycle_v1` coordinator** in the Agent Control boundary for
+   start/end/cancel only, with the fixed lock order agent-control → targets → planning.
+8. **Calculation versions per slice**: D3a none; D3b `planner-engine/0.3.0`,
+   `planning-policy/0.3`, and `planning-calculation/3`; D4 none; D5 `0.4.0`, `0.4`, and `4`, each
+   with the reviewed D2c expand-then-activate rollout.
+9. **Ordered slices**: D3a, D3b, D4, D5, each finished, verified, documented, and committed alone.
 
-The version travels in the calculation input as `completedWorkPolicyVersion`, so it enters the
-canonical SHA-256 fingerprint. A future rule change therefore always produces a new fingerprint and a
-new snapshot instead of silently reinterpreting an existing one. It is persisted in
-`planning.plan_snapshot_attempts.normalized_input`, which is the audit record.
-
-Authority: `docs/adr/0006-calculation-and-review-engines.md` (versioned policy, explicit clock,
-stored snapshots); `docs/design/PHASE_4A_PLANNING_TODAY.md` §4 and §6.
-
-### 3.2 Counted duration
-
-```text
-countedMinutes = min( floor((endedAt - max(startedAt, weekStart)) / 60s), plannedMinutes )
-```
-
-Three properties, each required by `CLAUDE.md`:
-
-- planned duration is only ever an **upper bound**, never a substitute for completed work;
-- unbounded wall-clock/page-open time cannot be credited — an abandoned open session is capped at the
-  minutes the user themselves planned for that activity;
-- only the part of a session inside the current plan week consumes this week's capacity.
-
-Because a workspace has at most one active Focus Session at a time
-(`one_active_focus_session_per_workspace`), counted durations cannot overlap, so
-`consumedMinutesThisWeek <= 10080` is provable rather than asserted. The adapter still checks it and
-fails closed.
-
-### 3.3 Three session tiers, one duration rule
-
-| Tier | Condition | Consumes capacity | Earns track cadence credit | Counts as repetition |
-|---|---|---|---|---|
-| `EVIDENCE_BEARING` | completed + non-invalidated normalized observation | yes | yes | yes |
-| `COMPLETED` | completed, terminal attempt, any `result_kind` | yes | no | yes |
-| stopped | session state `stopped` | no | no | no |
-
-The `COMPLETED` vs `EVIDENCE_BEARING` split is the substantive product decision. A `COMPLETION_ONLY`
-result (finished a reading, recorded no result) is completed work in the plain sense and consumes the
-week's capacity, but it does not satisfy a protected track minimum, because protected cadence exists
-to guarantee evidenced progress. Authority: `docs/01_DOMAIN_MODEL.md` §4 ("An activity may become
-operationally complete without producing competency evidence"), `docs/00_PRODUCT_CONSTITUTION.md` P1,
-and `docs/02_PRODUCT_AND_UX_SPEC.md` §13 (do not reward clicking complete without evidence).
-
-A stopped session is abandonment, not work, so it earns nothing.
-
-### 3.4 Repetition window and its clock transition
-
-`repetitionsInLast7Days` counts `COMPLETED` sessions for the candidate's exact activity in the
-half-open window `(claimAsOf − 168 hours, claimAsOf]`. It is expressed as **168 elapsed hours**, never
-"seven calendar days", for the same reason `docs/design/PHASE_4A_PLANNING_TODAY.md` §6 forbids adding
-seven days to a UTC instant: a daylight-saving transition would otherwise resize the window.
-
-A repetition leaving that window is a clock-derived ranking change, which Planning Policy v0.1 §4
-forbids a snapshot from outliving. The adapter therefore caps `validUntil` at
-`oldestCountedRepetitionEndedAt + 168h − 1ms`, and each candidate carries that oldest end plus the
-exclusive `repetitionWindowEndsAt`. The **pure engine verifies the exact 168-hour relationship and
-the cap** rather than trusting the adapter. Both instants are null exactly when no repetition is
-counted.
-
-### 3.5 Ownership boundary
-
-Planning gained **no** Sessions or Evidence table grant. Two bounded owner queries were added, both
-receiving the attempt's single persisted `claimAsOf`:
-
-- `sessions.read_planning_completed_work_source_v1` — terminal Focus duration facts inside
-  `[least(weekStart, claimAsOf − 168h), claimAsOf]`, owned by `pando_phase2_planning_source`;
-- `evidence.read_planning_completed_work_source_v2` — **two booleans per session** (`attemptTerminal`,
-  `evidenceBearing`) plus the ledger fence, owned by a new least-privilege
-  `pando_evidence_planning_source` role. No observation body, competency reference, outcome,
-  engagement, hint, or correction reason reaches Planning.
-
-Per-track attribution joins Planning's own `learning_track_activities` against the session's
-`customActivityId` inside the Planning bundle loader. Work on an activity no longer admitted to a
-track still consumes capacity but earns no cadence credit — this is the "per-track consumption where
-supported" boundary, and it never fabricates an attribution.
-
-Authority: `docs/design/MODULE_TOPOLOGY.md` §2 (query is one of the four permitted interaction
-forms), `docs/design/PHASE_4A_PLANNING_TODAY.md` §3 ("completed meaningful minutes and repetition |
-Sessions/Evidence | bounded aggregate query").
-
-### 3.6 Fences
-
-Two new source revisions enter the canonical fingerprint:
-
-- `FOCUS`/`completed-work` — SHA-256 of the exact returned session payload;
-- `EVIDENCE`/`completed-work` — SHA-256 of the exact claim-scoped classification answer, so a
-  correction changes the fence without pairing pre-claim facts with a post-claim ledger watermark.
-
-`EVIDENCE` was added to the `sourceRevision.owner` enum and the engine now requires it
-unconditionally alongside `FOCUS` and `REVIEW`.
-
-`sessions.read_planning_focus_source_v1` temporarily preserves its legacy `terminalCount` field for
-rolling-deploy compatibility. New workers ignore it: the completed-work source is their
-authoritative terminal-session boundary and is bounded by the same claim clock.
+D3a's own decisions are recorded in
+`docs/design/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md` and
+`docs/implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md`. The two that matter most for
+future work: Track lifecycle values under an archived Plan are never rewritten, and historical Focus
+sessions keep their immutable Track attribution, so a mid-week replacement neither fabricates nor
+erases completed work.
 
 ## 4. Files and migrations changed
 
-### New
+**ADR outcome (`60e793e`)** — documentation only:
+`docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md` (new),
+`docs/README.md`, `docs/design/PHASE_4B_LIFECYCLE_COMMANDS.md`,
+`docs/implementation/PHASE_4B_LIFECYCLE_COMMANDS_STATUS.md`, `src/modules/planning/README.md`.
 
-- `docs/policies/PLANNING_COMPLETED_WORK_POLICY_V0.1.md` — the versioned policy.
-- `supabase/migrations/20260828000425_phase4a_planning_completed_work_sources.sql` — additive: new
-  `pando_evidence_planning_source` role, initial read-only grants and RLS policies on four Evidence
-  tables, two new owner queries, `create or replace` of `sessions.read_planning_focus_source_v1`
-  and `planning.load_plan_snapshot_source_bundle_v1` (adds `completedWork`
-  and `evidence`, computes the 168-hour window).
-- `supabase/migrations/20260829000100_phase4a_planning_completed_work_hardening.sql` — forward-only
-  post-review hardening for bounded pre-aggregation reads, column-minimal grants, explicit Evidence
-  claim clock, source-fence recomputation, and rolling-worker compatibility. The already committed
-  `20260828000425` migration remains byte-for-byte unchanged.
-- `supabase/tests/database/023_phase4a_planning_completed_work.test.sql` — pgTAP.
+**D3a outcome (`44c3f3b`)**:
 
-### Contract
+- migration: `supabase/migrations/20260904000100_phase4b_growth_plan_replacement.sql`;
+- schemas: `schemas/planning/v1/growth-plan-replacement-control.schema.json` (new),
+  `schemas/events/v1/planning-event.schema.json` (additive `PLAN_REPLACED` variant);
+- domain and contracts: `src/modules/planning/domain/growth-plan-replacement-preview.ts`,
+  `src/shared/contracts/growth-plan-replacement-control.ts`,
+  `src/shared/contracts/schema-registry.ts`;
+- boundary and UI: `src/ui/plan/server/plan-workspace-v1.ts`, `src/ui/plan/server/database-plan.ts`,
+  `src/app/plan/actions.ts`, `src/app/plan/page.tsx`, `src/ui/plan/plan-types.ts`,
+  `src/ui/plan/plan-workspace.tsx`, `src/ui/plan/growth-plan-replacement.tsx`,
+  `src/app/dev/plan-fixture/page.tsx`;
+- tests: `supabase/tests/database/048_…replacement.test.sql`,
+  `supabase/tests/database/049_…replacement_concurrency.test.sql`,
+  `tests/contract/growth-plan-replacement-control.test.ts` and five fixtures, four
+  `planning-plan-replaced.*.json` event fixtures, `tests/contract/planning-event.test.ts`,
+  `src/ui/plan/growth-plan-replacement.test.tsx`, `src/app/plan/page.test.tsx`,
+  `tests/e2e/plan.spec.ts`, `tests/database/verify-database.test.mjs`,
+  `supabase/tests/database/001_phase0_schema_security.test.sql`,
+  `supabase/tests/database/034_phase4b_first_growth_plan_setup.test.sql`;
+- documentation: the D3a design and status records plus the index updates listed above.
 
-- `schemas/planning/v1/planning-input.schema.json` — `completedWorkPolicyVersion`, `EVIDENCE` owner,
-  `oldestRepetitionEndedAt`, and `repetitionWindowEndsAt`.
-- `schemas/planning/v1/README.md`.
-
-### Implementation
-
-- `src/modules/planning/application/assemble-plan-snapshot-input.ts` — the policy.
-- `src/modules/planning/domain/planning-types.ts`, `src/modules/planning/domain/calculate-plan.ts` —
-  contract types and engine verification.
-
-### Tests and fixtures
-
-- `src/modules/planning/application/assemble-plan-snapshot-input.test.ts` — tiers, duration bounds,
-  week clipping, window boundary, untracked attribution, seven fail-closed cases, property test.
-- `src/modules/planning/domain/calculate-plan.test.ts` — policy-version and repetition-window
-  verification.
-- `src/modules/planning/application/dispatch-plan-snapshot-projection.test.ts`,
-  `tests/contract/planning.test.ts`, `tests/database/verify-database.test.mjs`.
-- `tests/fixtures/calculation-engines/v0.1/planning.golden.json` and the four
-  `tests/contract/fixtures/planning/v1/` fixtures (fingerprints recomputed).
-
-### Documentation
-
-- `docs/implementation/PHASE_4A_PLANNING_TODAY_STATUS.md`, `src/modules/planning/README.md`,
-  `docs/policies/PLANNING_POLICY_V0.1.md`, `docs/design/PHASE_4A_PLANNING_TODAY.md`,
-  `docs/runbooks/database/phase-4a-planning-snapshot-projection.md`, `README.md`.
-
-`README.md` carried the stale sentence `CLAUDE.md` flagged ("Planning persistence, its worker, and
-the live Today route remain in progress"); it was corrected alongside this accurate status update, as
-that file permits.
+No production dependency, lockfile, calculation contract, or database extension changed. One
+released database test (034) was updated because ADR-0010 §1 deliberately changes the rule it
+asserted: archived history beside one current Plan is legitimate, not corruption.
 
 ## 5. Contracts and invariants
 
-- **Versions.** `planner-engine/0.1.0` and `planning-policy/0.1` unchanged.
-  `planning-completed-work/0.1` is new and carried in the input.
-- **Ownership.** Planning holds no Sessions/Evidence table grant; both new functions are
-  `security definer`, owned by their bounded context's source role, executable only by
-  `pando_planning_worker`, and revoked from `public`, `anon`, `authenticated`, and `service_role`.
-- **Security.** `pando_evidence_planning_source` is `NOLOGIN NOINHERIT NOBYPASSRLS` and holds only
-  `SELECT`. The migration revokes every temporary `CREATE` grant and its own role memberships.
-- **Idempotency / atomicity.** No command changed; no new outbox path. Read-only additions.
-- **Determinism.** All three derived numbers enter the canonical fingerprint, so replay of an
-  unchanged normalized input is a no-op and a policy change is not.
-- **Failure behavior.** `UNSUPPORTED_MEANINGFUL_WORK_HISTORY` narrowed from "any terminal session in
-  the week" to genuinely unclassifiable history; `COMPLETED_WORK_SOURCE_BOUND` (>500 sessions) and
-  `MISSING_SESSION_SOURCE` added. Everything unsupported still fails closed, preserving the previous
-  snapshot and leaving Today visibly pending.
+- Command `planning.replace_growth_plan_v1`, operation `replace_growth_plan`, contracts
+  `GrowthPlanReplacementSourceV1`, `GrowthPlanReplacementPreviewV1`,
+  `GrowthPlanReplacementApplyResultV1`, all at `1.0.0`.
+- Digest version `growth-plan-replacement-preview-digest/1.0.0`, request hash
+  `growth-plan-replacement-request-hash/1.0.0`, identity version `planning-create-identity/1.0.0`,
+  child-Track fingerprint `growth-plan-child-track-fingerprint/1.0.0`. The digest is clock-free and
+  has one TypeScript/PostgreSQL oracle proven in both suites.
+- Planning owns every write. Targets is read only through the released bounded owner query;
+  `pando_planning_api` still has no Targets table privilege.
+- Apply requires the authenticated session, both expected versions, the exact recomputed digest, a
+  printable reason, and a lowercase request UUID. The outgoing Plan advances exactly one version;
+  the incoming Plan and Track start at version `1`; the snapshot sentinel is untouched.
+- Same-key replay returns the stored response. A changed request with the same key, a stale Plan or
+  Goal version, a changed digest, an unknown goal, an archived parent, and an out-of-range value all
+  fail closed with no partial state.
+- Forced RLS is unchanged; the new `api` functions are pinned `SECURITY DEFINER` owned by
+  `pando_planning_api`, granted only to `authenticated`, with every helper ungranted.
+- The `PLAN_REPLACED` event payload carries seven identifier/version fields and no private body; its
+  validator also refuses archiving and creating the same aggregate.
 
 ## 6. Verification
 
-Claude executed the following gates on the original C4 handoff tree using Node 24.20.0, pnpm
-11.19.0, and WSL2 Linux. The authoritative post-review Windows results follow this historical table.
+Every command below was executed in this session and its result observed.
 
-| Command | Result |
-| --- | --- |
-| `pnpm verify:db` | **PASS** — migrations rebuilt from empty through `20260828000425`; pgTAP `Files=23, Tests=1858`, `Result: PASS`; `db lint` returned `{"results":[]}` |
-| `pnpm format:check` | PASS |
-| `pnpm lint` | PASS (`--max-warnings=0`) |
-| `pnpm typecheck` | PASS |
-| `pnpm test:database-runner` | PASS — 15 pass, 0 fail |
-| `pnpm test:backup-archive` | PASS — 3 pass, 0 fail |
-| `pnpm test:contracts` | PASS — 15 files, 306 tests |
-| `pnpm test:performance` | PASS — 1 file, 3 tests |
-| `pnpm test:unit:coverage` | PASS — 69 files, 674 tests; statements 87.91%, branches 80.41%, functions 93.46%, lines 89.72% |
-| `pnpm test:e2e` | PASS — 21 Chromium specs passed, including the axe WCAG A/AA checks |
-| `pnpm verify` | **PASS end to end**, all nine stages including `test:e2e` |
-| `pnpm verify:auth` | PASS — "isolated auth, target selection, overlay note/activity persistence, reload, refresh, and sign-out gate passed" |
-| `pnpm verify:backup` | **NOT RUN** — deliberately skipped; no backup or storage behavior changed. `test:backup-archive` did run |
-| `pnpm verify:phase0` | **NOT RUN** as one command; it aggregates `verify`, `verify:db`, `verify:backup`, and `verify:auth`, and all except `verify:backup` were run individually above |
+| Gate | Result |
+|---|---|
+| `prettier --check .` | PASS |
+| `eslint . --max-warnings=0` | PASS |
+| `next typegen && tsc --noEmit` | PASS |
+| `node --test tests/database/*.test.mjs` | PASS — 15 checks |
+| `node --test tests/backup/*.test.mjs` | PASS — 3 checks |
+| contract tests | PASS — 403 tests / 25 files (392 before D3a) |
+| performance tests | PASS — 3 tests |
+| unit tests with coverage | PASS — 961 tests / 96 files; 86.77% statements, 80.83% branches, 91.11% functions, 88.15% lines against 85/80/85/85 |
+| `next build` | PASS |
+| Chromium E2E | PASS — 37 tests (36 before D3a) |
+| pgTAP suite | PASS — 49 files, 3070 assertions, 0 failures (47 files / 2972 before D3a) |
 
-The two browser gates were initially blocked: Chromium could not start in this WSL2 distribution
-(`chrome-headless-shell: error while loading shared libraries: libnspr4.so`), with `libnspr4.so`,
-`libnss3.so`, `libnssutil3.so`, and `libasound.so.2` unresolved. The owner installed those system
-packages, after which both gates were re-run and passed on this branch's final tree.
+**How the database gate was run, exactly.** This session has no Docker daemon and no container
+registry access, so `supabase db start` cannot run. The pgTAP suite was executed against a local
+PostgreSQL 16 cluster with `pgtap`, `pg_cron`, `pgcrypto`, and `dblink`, plus small shims for the
+Supabase platform objects the migration chain expects: `auth.users` with the columns the fixtures
+use, `auth.uid`/`auth.role`/`auth.jwt`, `vault.decrypted_secrets`, `net.http_post`, the `anon`,
+`authenticated`, and `service_role` roles, and `grant usage on schema extensions` to those roles.
+Every PANDO migration, the scratch fixture migration, and `seed.sql` applied unchanged; the two
+`create extension` statements for `pg_net` were the only lines adjusted at load time, because that
+extension does not exist outside the Supabase image. Concurrency tests ran over a real non-loopback
+`dblink` connection with password authentication, exactly as the tests require.
 
-### Codex post-handoff audit and Windows verification
+**Not run here:** `pnpm verify:db` through the Supabase CLI (image and lint), `pnpm verify:auth`,
+and `pnpm verify:backup`. They need Docker and the full Supabase stack on the owner's Windows host.
 
-Codex then reviewed the TypeScript contract, database boundary, tests, and this report independently.
-That audit found and corrected seven issues before integration:
+## 7. Git state
 
-- the public schema and pure engine accepted physically impossible weekly totals;
-- the engine trusted a supplied repetition cutoff without proving its relationship to the oldest
-  counted repetition;
-- the 500-session refusal happened after an unbounded aggregate;
-- the Evidence source role had table-wide rather than column-minimal read grants;
-- replacing the v1 Focus source removed `terminalCount` and would break an older worker during a
-  rolling deployment.
-- the initial correction rewrote an already committed migration instead of applying a forward-only
-  upgrade;
-- the first claim-scoped Evidence query paired old-claim facts with a current ledger revision rather
-  than an exact claim-scoped content fence.
-
-The Evidence query now also receives the persisted `claimAsOf` and applies it to observation and
-correction records. The central security suite covers the new role and both owner functions. The
-reviewed tree was verified on Windows with Node 24.19.0 and pnpm 11.19.0:
-
-| Command | Final reviewed result |
-| --- | --- |
-| `pnpm verify` | **PASS** — format, lint, typecheck, database-runner 13 pass/2 platform skips, backup-archive 3/3, contracts 306/306, performance 3/3, unit 674/674, build, Chromium E2E 21/21 |
-| `pnpm verify:db` | **PASS** — clean rebuild through `20260829000100`; 23 pgTAP files / 1869 tests; db lint `{"results":[]}` |
-| `pnpm verify:auth` | **PASS** — isolated auth, target selection, overlay persistence, reload, refresh, and sign-out |
-| focused C4 suite | **PASS** — 4 files / 70 tests |
-| `pnpm verify:backup` | **NOT RUN** — backup/storage behavior did not change; both archive tests in `pnpm verify` and the database rebuild did run |
-
-This post-handoff audit supersedes the original verification counts for the reviewed C4 tree.
-
-Verification is compositional at the process boundary: pgTAP exercises the real Sessions/Evidence
-owner queries and bundle loader, while TypeScript tests exercise that source shape through the real
-normalizer, pure engine, and dispatcher. The existing SQL worker test still constructs its
-normalized input explicitly; there is not yet one test process that crosses PostgreSQL → TypeScript
-→ PostgreSQL with completed history. The report does not treat that missing cross-runtime harness as
-executed coverage.
-
-### Environment changes made during the session
-
-These were needed to run any gate at all and are outside the repository:
-
-- the repo-root `node_modules` was a symlink into
-  `.codex-worktrees/phase1-auth-target-selection/node_modules` holding a **Windows** pnpm install
-  (`@rolldown/binding-win32-x64-msvc`, `@next/swc-win32-x64-msvc`). Only the symlink was removed —
-  the Codex worktree's directory is intact — and `pnpm install --frozen-lockfile` produced a Linux
-  install. **Windows Codex sessions must re-run `pnpm install` before using this checkout.**
-- Node 24.14.1 was below `jsdom@30.0.1`'s `^24.15.0` engine floor; Node 24.20.0 was installed under
-  `~/.n` via `n`. Add `~/.n/bin` to `PATH`.
-- Playwright's cached browser was build 1228 while `@playwright/test` 1.62.1 requires 1234;
-  `pnpm test:e2e:install` downloaded 1234. The required system libraries were then installed and
-  both browser gates passed.
-
-## 7. Git state at handoff and review
-
-- Branch: `claude/c4-meaningful-work`, created from `main` at `85c07db`.
-- Implementation commit: `72def41` — "feat: derive meaningful completed work from owner sources".
-- This report: committed separately on the same branch.
-- Push status at Claude handoff: **not pushed.** The feature branch was left for explicit review
-  and integration.
-- Codex integration decision: approved only after the corrective audit and all final Windows gates
-  above passed. The corrective review was committed as `9c76f5f`, fast-forwarded to `main`, and
-  pushed to `origin/main`.
+- `main` is still `9949dd9` and equals `origin/main`. Nothing was pushed; this shell has no GitHub
+  credentials.
+- `claude/d3-d5-lifecycle-adr` — `60e793e` `docs(planning): accept d3-d5 lifecycle adr`.
+- `claude/d3a-growth-plan-replacement` — `44c3f3b` `feat(planning): add atomic growth plan
+  replacement`, branched from `60e793e`, so it contains both outcomes.
+- Working tree at the end of D3a: clean except the owner's untracked
+  `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md`, which was never staged, committed, or edited.
+- `git checkout main && git merge --ff-only claude/d3a-growth-plan-replacement` fast-forwards both
+  outcomes onto `main` once the owner-run gates in §6 pass.
 
 ## 8. Remaining work
 
-C5 was subsequently implemented as a pure, versioned Mastery classifier over privacy-minimized
-Mastery source state and exact direct blocking Catalog edges. Its current implementation,
-verification, and limits are recorded in
-[`CODEX_C5_HANDOFF_REPORT.md`](CODEX_C5_HANDOFF_REPORT.md).
-
-The next bounded outcome is **C6** — the live `TodayWorkspaceV1` read boundary and opaque
-action-selection resolver — before any `/today` UI.
-
-Known risks and limits, all recorded in the policy document §9:
-
-- counted duration is bounded by the user's self-reported planned minutes, not a measured attention
-  signal;
-- `EVIDENCE_BEARING` does not yet weigh outcome, engagement, independence, or source reliability;
-- repetition counts sessions, not distinct calendar days;
-- the 500-session window bound needs a continuation contract before it can be raised.
+1. **Owner verification before merge.** Run `pnpm verify`, `pnpm verify:db`, `pnpm verify:auth`, and
+   `pnpm verify:backup` on Windows with Docker Desktop, then fast-forward and push.
+2. **D3b availability windows** — ADR-0010 §6 and §9. Plan-scoped whole-local-day windows with
+   per-day caps, the `btree_gist` non-overlap exclusion constraint, bounded cardinality sentinels,
+   the first persisted clock-bound Planning proposal, the V3 calculation rollout, `/plan` control,
+   and gates.
+3. **D4 Targets Campaign foundation**, then **D5 overlays and the coordinator**, in that order.
+4. **Known risks.** `src/shared/supabase/database.generated.ts` was not regenerated (the Planning
+   boundary casts RPC names, so this does not break typecheck or runtime). The local pgTAP rehearsal
+   is close to but not identical to the Supabase image. `/plan` grows one more control per slice and
+   will need a layout review before Phase 7.
 
 ## 9. Codex resume prompt
 
 ```text
-Continue PANDO Phase 4A from current main after C5.
-
-C4 and C5 are done. Read, in order:
-  docs/README.md
-  docs/implementation/PHASE_4A_PLANNING_TODAY_STATUS.md
-  docs/design/PHASE_4A_PLANNING_TODAY.md
-  src/modules/planning/README.md
-  docs/implementation/CODEX_C5_HANDOFF_REPORT.md
-
-Resume at C6: implement the live Today query boundary and opaque selection resolver/coordinator.
-Expose only schema-valid Today data and opaque action tokens; the browser must not receive internal
-candidate authority or write Planning tables. Preserve last-known-safe/pending/error semantics,
-workspace isolation, inclusive validity, and the ordinary command boundary. Do not start the
-`/today` UI until the read contract and database security tests are complete.
+Прочитай docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md,
+docs/design/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md,
+docs/implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md и
+docs/implementation/CLAUDE_CODE_HANDOFF_REPORT.md.
+Ветки claude/d3-d5-lifecycle-adr (ADR) и claude/d3a-growth-plan-replacement (D3a) готовы; main
+остаётся на 9949dd9. Сначала прогони на Windows pnpm verify, pnpm verify:db, pnpm verify:auth и
+pnpm verify:backup на ветке claude/d3a-growth-plan-replacement. Если всё зелёное — сделай
+git checkout main && git merge --ff-only claude/d3a-growth-plan-replacement и запушь в origin/main.
+Затем продолжай строго по ADR-0010 §9: следующий bounded outcome — D3b availability windows
+(§6: plan-scoped дни целиком, per-day cap, btree_gist exclusion, persisted clock-bound proposal,
+V3 calculation rollout). D4 и D5 — только после D3b.
 ```
