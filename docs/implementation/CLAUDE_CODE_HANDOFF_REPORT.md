@@ -16,8 +16,11 @@ Two ordered outcomes from the Codex D2c handoff:
 2. **D3a Growth Plan replacement** — the smallest reversible D3 slice named by the accepted ADR.
    Status: **complete and committed** (`44c3f3b`), verified by every gate this environment can run
    (§6), with two owner-run gates outstanding.
+3. **D3b availability windows design** — the accepted design for the next slice.
+   Status: **design complete and committed** (`5851b84`); implementation **not** committed.
 
-D3b availability, D4 Campaign persistence, and D5 overlays/coordinator are **not** started.
+D3b implementation, D4 Campaign persistence, and D5 overlays/coordinator are **not** delivered. A
+partial, unverified D3b1 draft exists outside the repository; see §8.
 
 ## 2. User-visible result
 
@@ -158,7 +161,9 @@ and `pnpm verify:backup`. They need Docker and the full Supabase stack on the ow
   credentials.
 - `claude/d3-d5-lifecycle-adr` — `60e793e` `docs(planning): accept d3-d5 lifecycle adr`.
 - `claude/d3a-growth-plan-replacement` — `44c3f3b` `feat(planning): add atomic growth plan
-  replacement`, branched from `60e793e`, so it contains both outcomes.
+  replacement`, `2c90e48` `docs(planning): record adr and d3a handoff state`, and `5851b84`
+  `docs(planning): define d3b availability windows`, branched from `60e793e`, so it contains every
+  outcome of this session.
 - Working tree at the end of D3a: clean except the owner's untracked
   `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md`, which was never staged, committed, or edited.
 - `git checkout main && git merge --ff-only claude/d3a-growth-plan-replacement` fast-forwards both
@@ -168,10 +173,18 @@ and `pnpm verify:backup`. They need Docker and the full Supabase stack on the ow
 
 1. **Owner verification before merge.** Run `pnpm verify`, `pnpm verify:db`, `pnpm verify:auth`, and
    `pnpm verify:backup` on Windows with Docker Desktop, then fast-forward and push.
-2. **D3b availability windows** — ADR-0010 §6 and §9. Plan-scoped whole-local-day windows with
-   per-day caps, the `btree_gist` non-overlap exclusion constraint, bounded cardinality sentinels,
-   the first persisted clock-bound Planning proposal, the V3 calculation rollout, `/plan` control,
-   and gates.
+2. **D3b availability windows** — the design is accepted and committed as
+   `docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md`. It splits into D3b1 (persistence, the
+   three-operation owner command, the `btree_gist` non-overlap constraint, the actor-scoped source,
+   and the `/plan` control, with no calculation change) and D3b2 (the V3 capacity composition,
+   protected-minimum rationing, the persisted clock-bound proposal, and the rollout).
+
+   A partial D3b1 draft was written in this session and deliberately **not** committed, because the
+   command sandbox that runs the verification lane became unavailable partway through and the draft
+   could not be type-checked, applied, or tested. The draft covers the migration
+   (`20260905000100_phase4b_availability_windows.sql`), the control JSON schema, the pure domain
+   digest/identity/fingerprint module, and the TypeScript contract; it was delivered to the owner as
+   chat attachments only. Treat it as a starting point to verify, not as reviewed work.
 3. **D4 Targets Campaign foundation**, then **D5 overlays and the coordinator**, in that order.
 4. **Known risks.** `src/shared/supabase/database.generated.ts` was not regenerated (the Planning
    boundary casts RPC names, so this does not break typecheck or runtime). The local pgTAP rehearsal
