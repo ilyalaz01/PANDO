@@ -64,6 +64,8 @@ Additional Track creation is defined by the accepted
 [Phase 4B D2b3 additional Learning Track creation and destination-track admission design](design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md)
 and recorded in the completed
 [D2b3 implementation status](implementation/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md).
+Terminal Track lifecycle is defined by the accepted
+[Phase 4B D2b4 Learning Track completion and archive design](design/PHASE_4B_D2B4_LEARNING_TRACK_TERMINAL_LIFECYCLE.md).
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 
