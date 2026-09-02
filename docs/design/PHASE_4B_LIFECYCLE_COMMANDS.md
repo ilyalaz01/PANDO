@@ -238,8 +238,9 @@ idempotency key; clients cannot replace the previewed body at apply time.
    [ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md). The
    completed D3a slice is
    [Growth Plan replacement](PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md): clock-free, with no new
-   calculation contract. D3b then adds dated availability windows, their non-overlap invariant, the
-   persisted clock-bound proposal, and deterministic capacity composition.
+   calculation contract. The accepted, not yet implemented D3b slice is
+   [dated availability windows](PHASE_4B_D3B_AVAILABILITY_WINDOWS.md); it adds the non-overlap
+   invariant, the persisted clock-bound proposal, and deterministic capacity composition.
 4. **D4 — Targets campaign foundation.** After the campaign-semantics ADR, persist Outcome Goals
    and Interview Campaigns; add draft/start/deadline/target/end/cancel commands and owner events.
 5. **D5 — campaign overlays and atomic lifecycle coordination.** Add Planning allocation overrides,

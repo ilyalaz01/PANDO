@@ -45,7 +45,9 @@ Campaign deadlines, allocation meaning, and the coordinator boundary — are set
 that ADR ordered is defined by
 [Phase 4B D3a Growth Plan replacement](design/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT.md) and recorded
 in the
-[D3a implementation status](implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md).
+[D3a implementation status](implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md). The
+next accepted, not yet implemented slice is
+[Phase 4B D3b dated availability windows](design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md).
 
 [Phase 4B D2a Growth Plan weekly-capacity design](design/PHASE_4B_D2A_GROWTH_PLAN_CAPACITY.md).
 Its delivered slices and verification evidence are tracked in the
