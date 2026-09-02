@@ -1,12 +1,14 @@
 import Link from "next/link";
 
+import type { ExpectedBenefitCode } from "../../modules/planning/domain/planning-types";
 import type {
-  ExpectedBenefitCode,
-  PlannedAction,
-  PlanSnapshot,
-} from "../../modules/planning/domain/planning-types";
-import type { TodayActionSelectionV1, TodayWorkspaceV1 } from "./server/today-workspace-v1";
+  ReadablePlanSnapshot,
+  TodayActionSelectionV1,
+  TodayWorkspaceV1,
+} from "./server/today-workspace-v1";
 import styles from "./today.module.css";
+
+type ReadablePlannedAction = ReadablePlanSnapshot["actions"][number];
 
 const benefitLabels: Record<ExpectedBenefitCode, string> = {
   RESUME_ACTIVE_FOCUS: "Continue work already in progress",
@@ -22,7 +24,7 @@ const benefitLabels: Record<ExpectedBenefitCode, string> = {
 };
 
 const emptyStateCopy: Record<
-  Exclude<PlanSnapshot["recommendationState"], "CURRENT">,
+  Exclude<ReadablePlanSnapshot["recommendationState"], "CURRENT">,
   {
     readonly title: string;
     readonly detail: string;
@@ -58,7 +60,7 @@ const emptyStateCopy: Record<
 };
 
 export interface TodayActionViewV1 {
-  readonly action: PlannedAction;
+  readonly action: ReadablePlannedAction;
   readonly selection: TodayActionSelectionV1;
 }
 
@@ -87,7 +89,7 @@ export function correlateTodayActions(
   return result;
 }
 
-function formatEnergy(energy: PlannedAction["energy"]): string {
+function formatEnergy(energy: ReadablePlannedAction["energy"]): string {
   return energy === null ? "Any energy" : `${energy.toLowerCase()} energy`;
 }
 
@@ -123,7 +125,7 @@ function ActionCard({
   );
 }
 
-function ReadOnlyAction({ action }: { readonly action: PlannedAction }) {
+function ReadOnlyAction({ action }: { readonly action: ReadablePlannedAction }) {
   return (
     <article className={styles.readOnlyCard}>
       <div className={styles.actionHeading}>
@@ -136,7 +138,7 @@ function ReadOnlyAction({ action }: { readonly action: PlannedAction }) {
   );
 }
 
-function PlanContext({ plan }: { readonly plan: PlanSnapshot }) {
+function PlanContext({ plan }: { readonly plan: ReadablePlanSnapshot }) {
   const deadline = plan.nearestDeadline;
   const criticalGap = plan.readiness.find((item) => item.criticalGap !== null)?.criticalGap ?? null;
   return (
@@ -233,7 +235,7 @@ function CurrentWorkspace({ workspace }: { readonly workspace: TodayWorkspaceV1 
     const copy =
       emptyStateCopy[
         workspace.snapshot.plan.recommendationState as Exclude<
-          PlanSnapshot["recommendationState"],
+          ReadablePlanSnapshot["recommendationState"],
           "CURRENT"
         >
       ];

@@ -80,7 +80,14 @@
         "calculatedAsOf": { "$ref": "#/$defs/instant" },
         "validUntil": { "$ref": "#/$defs/instant" },
         "plan": {
-          "$ref": "https://pando.local/schemas/planning/v1/plan-snapshot.schema.json"
+          "oneOf": [
+            {
+              "$ref": "https://pando.local/schemas/planning/v1/plan-snapshot.schema.json"
+            },
+            {
+              "$ref": "https://pando.local/schemas/planning/v2/plan-snapshot.schema.json"
+            }
+          ]
         }
       }
     },

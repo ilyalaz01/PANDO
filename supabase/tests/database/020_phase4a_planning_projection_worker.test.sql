@@ -182,6 +182,23 @@ select is(
   'the bounded owner bundle contains the admitted active candidate'
 );
 select is(
+  (select response->>'calculationContractVersion'
+   from worker_results where result_name = 'load'),
+  'planning-calculation/1',
+  'expand-only claims retain the historical V1 calculation contract'
+);
+select ok(
+  not exists (
+    select 1
+    from pg_catalog.jsonb_array_elements(
+      (select response#>'{sourceBundle,plan,tracks}'
+       from worker_results where result_name = 'load')
+    ) as track(value)
+    where track.value ? 'cadencePerWeek'
+  ),
+  'the historical V1 source bundle and source fence are not relabeled with cadence'
+);
+select is(
   (select pg_catalog.jsonb_array_length(response#>'{sourceBundle,visibleDeliveryIds}')
    from worker_results where result_name = 'load'),
   3,
@@ -220,6 +237,7 @@ select 'record', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from worker_results where result_name = 'load'),
   (select response->>'sourceFence' from worker_results where result_name = 'load'),
   pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
     'inputFingerprint',
       'planning-input:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -469,6 +487,7 @@ select 'stale_record', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from worker_results where result_name = 'stale_load'),
   (select response->>'sourceFence' from worker_results where result_name = 'stale_load'),
   pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
     'inputFingerprint',
       'planning-input:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -540,6 +559,314 @@ select ok(
       and attempt.error_code = 'STALE_PLANNING_INPUT_AFTER_MAX_ATTEMPTS'
   ),
   'stale exhaustion atomically terminalizes the delivery and attempt'
+);
+
+select throws_ok(
+  pg_catalog.format(
+    'update planning.plan_snapshot_attempts set calculation_contract_version = %L where attempt_id = %L::uuid',
+    'planning-calculation/2',
+    (select response->>'attemptId' from worker_results where result_name = 'load')
+  ),
+  '55000',
+  'plan snapshot attempt provenance is immutable',
+  'an attempt calculation contract cannot be relabeled after claim'
+);
+
+select ok(
+  not pg_catalog.has_function_privilege(
+    'service_role',
+    'planning.load_plan_snapshot_source_bundle_v2(uuid,timestamptz)',
+    'EXECUTE'
+  )
+  and not pg_catalog.has_function_privilege(
+    'authenticated',
+    'planning.load_plan_snapshot_source_bundle_v2(uuid,timestamptz)',
+    'EXECUTE'
+  ),
+  'the V2 owner source remains private behind the worker boundary'
+);
+
+update planning.learning_tracks
+set cadence_per_week = 3, updated_at = clock_timestamp()
+where workspace_id = (
+  select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+);
+
+insert into outbox.events (
+  event_id, event_name, event_schema_version, workspace_id, aggregate_type,
+  aggregate_id, aggregate_version, actor_type, actor_user_id, command_id,
+  correlation_id, causation_id, occurred_at, source, payload, metadata
+)
+select '2a000000-0000-4000-8000-000000000080', event.event_name,
+  event.event_schema_version, event.workspace_id, event.aggregate_type,
+  event.aggregate_id, event.aggregate_version, event.actor_type, event.actor_user_id,
+  event.command_id, event.correlation_id, event.causation_id, clock_timestamp(),
+  event.source, event.payload, event.metadata
+from outbox.events as event
+where event.workspace_id = (
+  select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+)
+  and event.event_name = 'planning.input_changed'
+order by event.event_position
+limit 1;
+
+insert into outbox.deliveries (
+  delivery_id, event_id, workspace_id, consumer_name, handler_contract_version,
+  delivery_state, attempt_count, lease_token, lease_expires_at, available_at
+)
+select '2a000000-0000-4000-8000-000000000081', event.event_id, event.workspace_id,
+  'planning.plan_snapshot_v1', 1, 'leased', 1,
+  '2a000000-0000-4000-8000-000000000083', clock_timestamp() + interval '2 minutes',
+  clock_timestamp()
+from outbox.events as event
+where event.event_id = '2a000000-0000-4000-8000-000000000080';
+
+insert into planning.plan_snapshot_attempts (
+  attempt_id, workspace_id, delivery_id, event_id, event_position, generation,
+  claim_as_of, base_pointer_version, calculation_contract_version
+)
+select '2a000000-0000-4000-8000-000000000082', event.workspace_id,
+  delivery.delivery_id, event.event_id, event.event_position, 1,
+  clock_timestamp(), pointer.pointer_version, 'planning-calculation/2'
+from outbox.deliveries as delivery
+join outbox.events as event on event.event_id = delivery.event_id
+join planning.current_plan_snapshots as pointer on pointer.workspace_id = event.workspace_id
+where delivery.delivery_id = '2a000000-0000-4000-8000-000000000081';
+
+set local role service_role;
+insert into worker_results values (
+  'v2-load',
+  api.load_plan_snapshot_projection_v1(
+    '2a000000-0000-4000-8000-000000000081',
+    '2a000000-0000-4000-8000-000000000083',
+    '2a000000-0000-4000-8000-000000000082'
+  )
+);
+reset role;
+
+select is(
+  (select response->>'calculationContractVersion'
+   from worker_results where result_name = 'v2-load'),
+  'planning-calculation/2',
+  'the load boundary dispatches from the attempt-stamped V2 contract'
+);
+select is(
+  (select response#>>'{sourceBundle,plan,tracks,0,cadencePerWeek}'
+   from worker_results where result_name = 'v2-load'),
+  '3',
+  'the private V2 source includes the persisted Track cadence'
+);
+
+set local role service_role;
+insert into worker_results values (
+  'v2-record',
+  pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
+    '2a000000-0000-4000-8000-000000000081',
+    '2a000000-0000-4000-8000-000000000083',
+    '2a000000-0000-4000-8000-000000000082',
+    (select response->>'sourceFence' from worker_results where result_name = 'v2-load'),
+    pg_catalog.jsonb_build_object(
+      'completedWorkPolicyVersion', 'planning-completed-work/0.2',
+      'inputFingerprint',
+        'planning-input:2222222222222222222222222222222222222222222222222222222222222222',
+      'evaluationHorizon', pg_catalog.jsonb_build_object(
+        'asOf', (select response->'claimAsOf' from worker_results where result_name = 'v2-load'),
+        'validUntil', (select response#>'{sourceBundle,calendar,validUntil}'
+          from worker_results where result_name = 'v2-load'),
+        'timeZone', (select response#>'{sourceBundle,calendar,timeZone}'
+          from worker_results where result_name = 'v2-load'),
+        'weekStart', (select response#>'{sourceBundle,calendar,weekStart}'
+          from worker_results where result_name = 'v2-load'),
+        'weekEnd', (select response#>'{sourceBundle,calendar,weekEnd}'
+          from worker_results where result_name = 'v2-load')
+      ),
+      'growthPlan', pg_catalog.jsonb_build_object(
+        'growthPlanId', (select response->>'growthPlanId'
+          from worker_results where result_name = 'plan'),
+        'tracks', pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object(
+          'cadencePerWeek', 3,
+          'completedCadenceSessionsThisWeek', 0
+        ))
+      )
+    )
+  ))
+);
+insert into worker_results values (
+  'v2-complete',
+  pg_catalog.to_jsonb(api.complete_plan_snapshot_projection_v1(
+    '2a000000-0000-4000-8000-000000000081',
+    '2a000000-0000-4000-8000-000000000083',
+    '2a000000-0000-4000-8000-000000000082',
+    pg_catalog.jsonb_build_object(
+      'engineVersion', 'planner-engine/0.2.0',
+      'policyVersion', 'planning-policy/0.2',
+      'inputFingerprint',
+        'planning-input:2222222222222222222222222222222222222222222222222222222222222222',
+      'calculatedAsOf', (select response->'claimAsOf'
+        from worker_results where result_name = 'v2-load'),
+      'validUntil', (select response#>'{sourceBundle,calendar,validUntil}'
+        from worker_results where result_name = 'v2-load'),
+      'timeZone', (select response#>'{sourceBundle,calendar,timeZone}'
+        from worker_results where result_name = 'v2-load'),
+      'weekStart', (select response#>'{sourceBundle,calendar,weekStart}'
+        from worker_results where result_name = 'v2-load'),
+      'weekEnd', (select response#>'{sourceBundle,calendar,weekEnd}'
+        from worker_results where result_name = 'v2-load'),
+      'recommendationState', 'NO_CANDIDATES',
+      'actions', '[]'::jsonb
+    )
+  ))
+);
+reset role;
+
+select is(
+  (select response#>>'{}' from worker_results where result_name = 'v2-complete'),
+  'APPLIED',
+  'an exact V2 attempt/input/result tuple applies through the stable V1 delivery protocol'
+);
+select ok(
+  exists (
+    select 1
+    from planning.current_plan_snapshots as pointer
+    join planning.plan_snapshots as snapshot
+      on snapshot.workspace_id = pointer.workspace_id
+     and snapshot.snapshot_id = pointer.snapshot_id
+    join planning.plan_snapshot_attempts as attempt
+      on attempt.workspace_id = pointer.workspace_id
+     and attempt.attempt_id = pointer.applied_attempt_id
+    where pointer.workspace_id = (
+      select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+    )
+      and attempt.calculation_contract_version = 'planning-calculation/2'
+      and snapshot.engine_version = 'planner-engine/0.2.0'
+      and snapshot.policy_version = 'planning-policy/0.2'
+  ),
+  'the current pointer exposes only the exact joined V2 activation tuple'
+);
+
+select set_config(
+  'request.jwt.claims',
+  pg_catalog.jsonb_build_object(
+    'sub', '2a000000-0000-4000-8000-000000000001',
+    'role', 'authenticated', 'aud', 'authenticated',
+    'exp', extract(epoch from clock_timestamp() + interval '1 hour')::bigint
+  )::text,
+  true
+);
+set local role authenticated;
+insert into worker_results values ('v2-today', api.get_today_workspace_v1());
+reset role;
+
+select ok(
+  (select response->>'projectionState' = 'CURRENT'
+     and response#>>'{snapshot,plan,engineVersion}' = 'planner-engine/0.2.0'
+     and response#>>'{snapshot,plan,policyVersion}' = 'planning-policy/0.2'
+   from worker_results where result_name = 'v2-today'),
+  'Today exposes an exact joined V2 pointer through its stable read envelope'
+);
+
+select throws_like(
+  pg_catalog.format(
+    'insert into planning.plan_snapshots (
+       snapshot_id, workspace_id, input_fingerprint, engine_version, policy_version,
+       calculated_as_of, valid_until, time_zone, week_start, week_end,
+       recommendation_state, result
+     ) values (
+       %L::uuid, %L::uuid, %L, %L, %L,
+       %L::timestamptz, %L::timestamptz, %L, %L::timestamptz, %L::timestamptz,
+       %L, %L::jsonb
+     )',
+    '2a000000-0000-4000-8000-000000000084',
+    (select response->>'workspaceId' from worker_results where result_name = 'plan'),
+    'planning-input:3333333333333333333333333333333333333333333333333333333333333333',
+    'planner-engine/0.1.0', 'planning-policy/0.2',
+    '2026-09-01T00:00:00.000Z', '2026-09-01T01:00:00.000Z', 'UTC',
+    '2026-09-01T00:00:00.000Z', '2026-09-08T00:00:00.000Z', 'NO_PLAN',
+    pg_catalog.jsonb_build_object(
+      'engineVersion', 'planner-engine/0.1.0',
+      'policyVersion', 'planning-policy/0.2',
+      'inputFingerprint',
+        'planning-input:3333333333333333333333333333333333333333333333333333333333333333',
+      'calculatedAsOf', '2026-09-01T00:00:00.000Z',
+      'validUntil', '2026-09-01T01:00:00.000Z',
+      'timeZone', 'UTC',
+      'weekStart', '2026-09-01T00:00:00.000Z',
+      'weekEnd', '2026-09-08T00:00:00.000Z',
+      'recommendationState', 'NO_PLAN',
+      'actions', '[]'::jsonb
+    )::text
+  ),
+  '%plan_snapshots_calculation_tuple_check%',
+  'snapshot persistence rejects a mixed V1 engine and V2 policy tuple'
+);
+
+insert into outbox.events (
+  event_id, event_name, event_schema_version, workspace_id, aggregate_type,
+  aggregate_id, aggregate_version, actor_type, actor_user_id, command_id,
+  correlation_id, causation_id, occurred_at, source, payload, metadata
+)
+select '2a000000-0000-4000-8000-000000000085', event.event_name,
+  event.event_schema_version, event.workspace_id, event.aggregate_type,
+  event.aggregate_id, event.aggregate_version, event.actor_type, event.actor_user_id,
+  event.command_id, event.correlation_id, event.causation_id, clock_timestamp(),
+  event.source, event.payload, event.metadata
+from outbox.events as event
+where event.event_id = '2a000000-0000-4000-8000-000000000080';
+
+insert into outbox.deliveries (
+  delivery_id, event_id, workspace_id, consumer_name, handler_contract_version,
+  delivery_state, attempt_count, available_at, completed_at
+)
+select '2a000000-0000-4000-8000-000000000086', event.event_id, event.workspace_id,
+  'planning.plan_snapshot_v1', 1, 'succeeded', 1, clock_timestamp(), clock_timestamp()
+from outbox.events as event
+where event.event_id = '2a000000-0000-4000-8000-000000000085';
+
+insert into planning.plan_snapshot_attempts (
+  attempt_id, workspace_id, delivery_id, event_id, event_position, generation,
+  attempt_state, claim_as_of, base_pointer_version, calculation_contract_version,
+  source_fence, normalized_input, input_fingerprint, valid_until,
+  covered_delivery_ids, applied_pointer_version
+)
+select '2a000000-0000-4000-8000-000000000087', pointer.workspace_id,
+  delivery.delivery_id, event.event_id, event.event_position, 1, 'APPLIED',
+  snapshot.calculated_as_of, pointer.pointer_version, 'planning-calculation/1',
+  'planning-source:' || repeat('4', 64),
+  pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
+    'inputFingerprint', snapshot.input_fingerprint
+  ),
+  snapshot.input_fingerprint, snapshot.valid_until,
+  array[delivery.delivery_id], pointer.pointer_version + 1
+from planning.current_plan_snapshots as pointer
+join planning.plan_snapshots as snapshot
+  on snapshot.workspace_id = pointer.workspace_id and snapshot.snapshot_id = pointer.snapshot_id
+join outbox.deliveries as delivery
+  on delivery.delivery_id = '2a000000-0000-4000-8000-000000000086'
+join outbox.events as event on event.event_id = delivery.event_id
+where pointer.workspace_id = (
+  select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+);
+
+update planning.current_plan_snapshots as pointer
+set pointer_version = pointer.pointer_version + 1,
+  applied_attempt_id = '2a000000-0000-4000-8000-000000000087',
+  updated_at = clock_timestamp()
+where pointer.workspace_id = (
+  select (response->>'workspaceId')::uuid from worker_results where result_name = 'plan'
+);
+
+set local role authenticated;
+insert into worker_results values ('mixed-today', api.get_today_workspace_v1());
+reset role;
+
+select ok(
+  (select response->>'projectionState' = 'ERROR'
+     and response->>'reason' = 'CALCULATION_FAILED'
+     and response->'snapshot' = 'null'::jsonb
+     and response->'actionSelections' = '[]'::jsonb
+   from worker_results where result_name = 'mixed-today'),
+  'Today fails closed when the pointer attempt contract disagrees with its V2 snapshot'
 );
 
 select * from finish();

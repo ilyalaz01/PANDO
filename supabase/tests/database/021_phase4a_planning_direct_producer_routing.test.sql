@@ -679,6 +679,7 @@ begin
       (v_load->>'attemptId')::uuid,
       v_load->>'sourceFence',
       pg_catalog.jsonb_build_object(
+        'completedWorkPolicyVersion', 'planning-completed-work/0.1',
         'inputFingerprint', v_fingerprint,
         'evaluationHorizon', pg_catalog.jsonb_build_object(
           'asOf', v_load->'claimAsOf',

@@ -297,6 +297,7 @@ select 'record-one', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-one'),
   (select response->>'sourceFence' from today_results where result_name = 'load-one'),
   pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
     'inputFingerprint',
       'planning-input:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -720,6 +721,7 @@ select 'record-resume', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-resume'),
   (select response->>'sourceFence' from today_results where result_name = 'load-resume'),
   pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
     'inputFingerprint',
       'planning-input:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -862,6 +864,7 @@ select 'record-error', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select (response->>'attemptId')::uuid from today_results where result_name = 'load-error'),
   (select response->>'sourceFence' from today_results where result_name = 'load-error'),
   pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
     'inputFingerprint',
       'planning-input:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
     'evaluationHorizon', pg_catalog.jsonb_build_object(
@@ -1009,6 +1012,7 @@ select 'record-recovery', pg_catalog.to_jsonb(api.record_plan_snapshot_input_v1(
   (select response->>'sourceFence'
    from today_results where result_name = 'load-recovery'),
   pg_catalog.jsonb_build_object(
+    'completedWorkPolicyVersion', 'planning-completed-work/0.1',
     'inputFingerprint',
       'planning-input:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
     'evaluationHorizon', pg_catalog.jsonb_build_object(

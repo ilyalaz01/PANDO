@@ -118,6 +118,7 @@ describe("Planning snapshot dispatcher", () => {
         return {
           data: {
             attemptId,
+            calculationContractVersion: "planning-calculation/1",
             generation: 1,
             claimAsOf: "2026-09-01T12:00:00.000Z",
             sourceFence: `planning-source:${"a".repeat(64)}`,
@@ -170,6 +171,7 @@ describe("Planning snapshot dispatcher", () => {
         return {
           data: {
             attemptId,
+            calculationContractVersion: "planning-calculation/1",
             sourceFence: `planning-source:${"a".repeat(64)}`,
             sourceBundle: sourceBundle(false, true),
             storedInput: null,
@@ -225,6 +227,7 @@ describe("Planning snapshot dispatcher", () => {
         return {
           data: {
             attemptId,
+            calculationContractVersion: "planning-calculation/1",
             sourceFence: `planning-source:${"a".repeat(64)}`,
             sourceBundle: sourceBundle(true),
             storedInput: null,
@@ -288,6 +291,7 @@ describe("Planning snapshot dispatcher", () => {
         return {
           data: {
             attemptId: replacementAttemptId,
+            calculationContractVersion: "planning-calculation/1",
             sourceFence: `planning-source:${"a".repeat(64)}`,
             sourceBundle: sourceBundle(),
             storedInput,
@@ -354,6 +358,7 @@ describe("Planning snapshot dispatcher", () => {
         return {
           data: {
             attemptId,
+            calculationContractVersion: "planning-calculation/1",
             sourceFence: `planning-source:${"a".repeat(64)}`,
             sourceBundle: sourceBundle(),
             storedInput: null,
@@ -380,6 +385,80 @@ describe("Planning snapshot dispatcher", () => {
     );
     expect(rpc.mock.calls.some(([name]) => name === "complete_plan_snapshot_projection_v1")).toBe(
       false,
+    );
+  });
+
+  it("routes a V2-stamped attempt through V2 assembly and calculation", async () => {
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };
+      if (name === "load_plan_snapshot_projection_v1") {
+        return {
+          data: {
+            attemptId,
+            calculationContractVersion: "planning-calculation/2",
+            sourceFence: `planning-source:${"a".repeat(64)}`,
+            sourceBundle: sourceBundle(),
+            storedInput: null,
+          },
+          error: null,
+        };
+      }
+      if (name === "record_plan_snapshot_input_v1") return { data: true, error: null };
+      if (name === "complete_plan_snapshot_projection_v1") return { data: "APPLIED", error: null };
+      throw new Error(`unexpected ${name}`);
+    });
+
+    await expect(dispatchPlanSnapshotProjection(client(rpc))).resolves.toMatchObject({
+      completed: 1,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "record_plan_snapshot_input_v1",
+      expect.objectContaining({
+        p_input: expect.objectContaining({
+          completedWorkPolicyVersion: "planning-completed-work/0.2",
+        }),
+      }),
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "complete_plan_snapshot_projection_v1",
+      expect.objectContaining({
+        p_result: expect.objectContaining({
+          engineVersion: "planner-engine/0.2.0",
+          policyVersion: "planning-policy/0.2",
+        }),
+      }),
+    );
+  });
+
+  it("fails closed when the attempt calculation contract is unknown", async () => {
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };
+      if (name === "load_plan_snapshot_projection_v1") {
+        return {
+          data: {
+            attemptId,
+            calculationContractVersion: "planning-calculation/999",
+            sourceFence: `planning-source:${"a".repeat(64)}`,
+            sourceBundle: sourceBundle(),
+            storedInput: null,
+          },
+          error: null,
+        };
+      }
+      if (name === "fail_plan_snapshot_projection_v1") return { data: "dead_letter", error: null };
+      throw new Error(`unexpected ${name}`);
+    });
+
+    await expect(dispatchPlanSnapshotProjection(client(rpc))).resolves.toMatchObject({
+      completed: 0,
+      deadLettered: 1,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "fail_plan_snapshot_projection_v1",
+      expect.objectContaining({
+        p_failure_class: "INVALID_CONTRACT",
+        p_error_code: "INVALID_PLANNING_PROJECTION",
+      }),
     );
   });
 });

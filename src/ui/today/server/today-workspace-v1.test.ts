@@ -1,5 +1,6 @@
 import fixture from "../../../../tests/contract/fixtures/planning/v1/today-workspace.boundary.json";
 import golden from "../../../../tests/fixtures/calculation-engines/v0.1/planning.golden.json";
+import goldenV2 from "../../../../tests/fixtures/calculation-engines/v0.2/planning.golden.json";
 import { describe, expect, it } from "vitest";
 
 import { decodeTodayWorkspaceV1, TodayWorkspaceContractError } from "./today-workspace-v1";
@@ -74,6 +75,47 @@ describe("TodayWorkspaceV1", () => {
         snapshot: {
           ...current.snapshot,
           calculatedAsOf: "2026-09-01T12:00:00.000001Z",
+        },
+      }),
+    ).toThrow(TodayWorkspaceContractError);
+  });
+
+  it("accepts an exact V2 plan and rejects a mixed engine-policy tuple", () => {
+    const plan = goldenV2.expected;
+    const current = {
+      contract: { name: "TodayWorkspaceV1", version: "1.0.0" },
+      projectionState: "CURRENT",
+      reason: null,
+      lastKnownSafe: true,
+      calculationClock: {
+        asOf: plan.calculatedAsOf,
+        timeZone: plan.timeZone,
+        weekStart: plan.weekStart,
+        weekEnd: plan.weekEnd,
+      },
+      currentInputFingerprint: plan.inputFingerprint,
+      snapshot: {
+        snapshotId: "50000000-0000-4000-8000-000000000002",
+        inputFingerprint: plan.inputFingerprint,
+        calculatedAsOf: plan.calculatedAsOf,
+        validUntil: plan.validUntil,
+        plan,
+      },
+      actionSelections: plan.actions.map((action, index) => ({
+        selectionRef: `plan-action:40000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+        rank: action.rank,
+        candidateKey: action.candidateKey,
+      })),
+      context: { nearestDeadline: plan.nearestDeadline },
+    };
+
+    expect(decodeTodayWorkspaceV1(current)).toEqual(current);
+    expect(() =>
+      decodeTodayWorkspaceV1({
+        ...current,
+        snapshot: {
+          ...current.snapshot,
+          plan: { ...plan, policyVersion: "planning-policy/0.1" },
         },
       }),
     ).toThrow(TodayWorkspaceContractError);
