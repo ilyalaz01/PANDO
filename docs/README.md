@@ -62,7 +62,8 @@ recorded in the
 [manual activity admission implementation status](implementation/PHASE_4B_MANUAL_ACTIVITY_ADMISSION_STATUS.md).
 Additional Track creation is defined by the accepted
 [Phase 4B D2b3 additional Learning Track creation and destination-track admission design](design/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS.md)
-and is the next implementation outcome now that the initial Track can receive useful work.
+and recorded in the completed
+[D2b3 implementation status](implementation/PHASE_4B_D2B3_ADDITIONAL_LEARNING_TRACKS_STATUS.md).
 The adjacent activity-admission permission cleanup is recorded in the
 [Phase 4B owner-boundary hardening status](implementation/PHASE_4B_ACTIVITY_ADMISSION_OWNER_BOUNDARY_HARDENING_STATUS.md).
 
