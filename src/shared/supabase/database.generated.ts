@@ -38,6 +38,23 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_availability_window_v1: {
+        Args: {
+          p_available_minutes: number
+          p_ends_on: string
+          p_energy: string
+          p_expected_growth_plan_version: string
+          p_expected_window_version: string
+          p_idempotency_key: string
+          p_label: string
+          p_operation: string
+          p_preview_digest: string
+          p_reason: string
+          p_starts_on: string
+          p_window_key: string
+        }
+        Returns: Json
+      }
       apply_growth_plan_capacity_v1: {
         Args: {
           p_expected_growth_plan_version: string
@@ -68,6 +85,20 @@ export type Database = {
           p_operation: string
           p_preview_digest: string
           p_reason: string
+        }
+        Returns: Json
+      }
+      apply_growth_plan_replacement_v1: {
+        Args: {
+          p_default_session_minutes: number
+          p_expected_growth_plan_version: string
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_readiness_goal_key: string
+          p_reason: string
+          p_track_priority: number
+          p_weekly_capacity_minutes: number
         }
         Returns: Json
       }
@@ -363,6 +394,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_availability_window_source_v1: { Args: never; Returns: Json }
       get_available_target_profiles: {
         Args: { p_workspace_id: string }
         Returns: Json
@@ -393,6 +425,7 @@ export type Database = {
         Args: { p_activity_key?: string; p_readiness_goal_key: string }
         Returns: Json
       }
+      get_growth_plan_replacement_source_v1: { Args: never; Returns: Json }
       get_growth_plan_setup_source_v1: { Args: never; Returns: Json }
       get_learning_track_activity_admission_source_v1: {
         Args: never
@@ -467,6 +500,22 @@ export type Database = {
         Args: { p_delivery_id: string; p_lease_token: string }
         Returns: Json
       }
+      preview_availability_window_v1: {
+        Args: {
+          p_available_minutes: number
+          p_ends_on: string
+          p_energy: string
+          p_expected_growth_plan_version: string
+          p_expected_window_version: string
+          p_idempotency_key: string
+          p_label: string
+          p_operation: string
+          p_reason: string
+          p_starts_on: string
+          p_window_key: string
+        }
+        Returns: Json
+      }
       preview_growth_plan_capacity_v1: {
         Args: {
           p_expected_growth_plan_version: string
@@ -492,6 +541,19 @@ export type Database = {
           p_expected_growth_plan_version: string
           p_operation: string
           p_reason: string
+        }
+        Returns: Json
+      }
+      preview_growth_plan_replacement_v1: {
+        Args: {
+          p_default_session_minutes: number
+          p_expected_growth_plan_version: string
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_readiness_goal_key: string
+          p_reason: string
+          p_track_priority: number
+          p_weekly_capacity_minutes: number
         }
         Returns: Json
       }
@@ -802,3 +864,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
