@@ -15,6 +15,7 @@ import type {
   LearningTrackCadenceSourceV1,
   GrowthPlanReplacementSourceV1,
   AvailabilityWindowSourceV1,
+  CapacityEffectPreviewV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
@@ -30,6 +31,7 @@ import { LearningTrackCreation } from "./learning-track-creation";
 import { LearningTrackTerminalLifecycle } from "./learning-track-terminal-lifecycle";
 import { LearningTrackCadence } from "./learning-track-cadence";
 import { AvailabilityWindows } from "./availability-windows";
+import { CapacityEffectPreview } from "./capacity-effect-preview";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -321,6 +323,7 @@ export function PlanWorkspace({
   replacementUnavailable = false,
   availabilityWindowSource,
   availabilityWindowUnavailable = false,
+  capacityEffectPreview,
   terminalHistoryCursor,
   terminalHistoryNextHref,
   terminalHistoryRecoveryHref = "/plan",
@@ -363,6 +366,7 @@ export function PlanWorkspace({
   readonly replacementUnavailable?: boolean;
   readonly availabilityWindowSource?: AvailabilityWindowSourceV1;
   readonly availabilityWindowUnavailable?: boolean;
+  readonly capacityEffectPreview?: CapacityEffectPreviewV1;
   readonly terminalHistoryCursor?: string;
   readonly terminalHistoryNextHref?: string;
   readonly terminalHistoryRecoveryHref?: string;
@@ -986,6 +990,9 @@ export function PlanWorkspace({
             nothing changed.
           </p>
         </section>
+      ) : null}
+      {capacityEffectPreview !== undefined ? (
+        <CapacityEffectPreview preview={capacityEffectPreview} />
       ) : null}
       {effectiveTrackPreview ? (
         <section className={styles.panel} aria-labelledby="track-preview-heading">

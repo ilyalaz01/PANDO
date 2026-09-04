@@ -38,6 +38,7 @@ import type {
   AvailabilityWindowSourceV1,
   AvailabilityWindowStateV1,
 } from "../../shared/contracts/availability-window-control";
+import type { CapacityEffectPreviewV1 } from "./server/capacity-effect-preview";
 
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
@@ -280,6 +281,7 @@ export type {
   AvailabilityWindowPreviewV1,
   AvailabilityWindowSourceV1,
   AvailabilityWindowStateV1,
+  CapacityEffectPreviewV1,
 };
 
 export type LearningTrackActivityAdmissionSource =

@@ -1,14 +1,16 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { calculatePlan, calculatePlanV2 } from "./calculate-plan";
+import { calculatePlan, calculatePlanV2, calculatePlanV3 } from "./calculate-plan";
 import {
   assemblePlanSnapshotInput,
   assemblePlanSnapshotInputV2,
+  assemblePlanSnapshotInputV3,
   PlanningProjectionSourceError,
 } from "./assemble-plan-snapshot-input";
 import { PLANNING_POLICY_V0_1 } from "../domain/planning-policy-v0.1";
 import { PLANNING_POLICY_V0_2 } from "../domain/planning-policy-v0.2";
+import { PLANNING_POLICY_V0_3 } from "../domain/planning-policy-v0.3";
 
 const trackedActivityId = "26000000-0000-4000-8000-000000000105";
 
@@ -247,6 +249,28 @@ function sourceBundle() {
     },
     visibleDeliveryIds: ["26000000-0000-4000-8000-000000000107"],
   };
+}
+
+const WEEK_DATES = [
+  "2026-08-31",
+  "2026-09-01",
+  "2026-09-02",
+  "2026-09-03",
+  "2026-09-04",
+  "2026-09-05",
+  "2026-09-06",
+] as const;
+
+/** Seven consecutive plan-week day caps, one entry per `WEEK_DATES`, matching `sourceBundle()`. */
+function dailyCaps(capMinutes: number | readonly number[]) {
+  const caps = Array.isArray(capMinutes)
+    ? (capMinutes as readonly number[])
+    : (Array(7).fill(capMinutes) as readonly number[]);
+  return WEEK_DATES.map((date, index) => ({
+    date,
+    capMinutes: caps[index],
+    sourceWindowKey: null as string | null,
+  }));
 }
 
 describe("assemblePlanSnapshotInput", () => {
@@ -940,5 +964,60 @@ describe("assemblePlanSnapshotInput", () => {
         code: "MISSING_OVERLAY_SOURCE",
       }),
     );
+  });
+
+  describe("assemblePlanSnapshotInputV3", () => {
+    it("matches V2's shape and derives effective capacity equal to the default when unlimited", () => {
+      const source = { ...sourceBundle(), availability: { dailyCaps: dailyCaps(1_440) } };
+
+      const v2 = assemblePlanSnapshotInputV2(sourceBundle());
+      const v3 = assemblePlanSnapshotInputV3(source);
+
+      expect(v3.growthPlan).not.toHaveProperty("weeklyCapacityMinutes");
+      expect(v3).toMatchObject({
+        completedWorkPolicyVersion: "planning-completed-work/0.2",
+        growthPlan: {
+          defaultWeeklyCapacityMinutes: 300,
+          effectiveWeeklyCapacityMinutes: 300,
+          tracks: [{ cadencePerWeek: 3 }],
+        },
+      });
+      const v2Result = calculatePlanV2(v2, PLANNING_POLICY_V0_2);
+      const v3Result = calculatePlanV3(v3, PLANNING_POLICY_V0_3);
+      expect(v3Result.warningCodes).not.toContain("PROTECTED_MINIMUM_LIMITED_BY_AVAILABILITY");
+      expect(v3Result).toMatchObject({
+        engineVersion: "planner-engine/0.3.0",
+        policyVersion: "planning-policy/0.3",
+        recommendationState: v2Result.recommendationState,
+      });
+    });
+
+    it("derives a below-default effective capacity from real day caps and rations protected minutes", () => {
+      // The Track's protectedMinimumMinutes is 60; 7 x 5 = 35 forces it below that minimum.
+      const source = { ...sourceBundle(), availability: { dailyCaps: dailyCaps(5) } };
+
+      const v3 = assemblePlanSnapshotInputV3(source);
+
+      expect(v3.growthPlan?.effectiveWeeklyCapacityMinutes).toBe(35);
+      const result = calculatePlanV3(v3, PLANNING_POLICY_V0_3);
+      expect(result.capacity).toMatchObject({
+        defaultWeeklyCapacityMinutes: 300,
+        effectiveWeeklyCapacityMinutes: 35,
+      });
+      expect(result.warningCodes).toContain("PROTECTED_MINIMUM_LIMITED_BY_AVAILABILITY");
+    });
+
+    it("fails closed when the source bundle supplies other than exactly seven day caps", () => {
+      const source = {
+        ...sourceBundle(),
+        availability: { dailyCaps: dailyCaps(1_440).slice(0, 6) },
+      };
+
+      expect(() => assemblePlanSnapshotInputV3(source)).toThrowError(
+        expect.objectContaining<Partial<PlanningProjectionSourceError>>({
+          code: "INVALID_OWNER_SOURCE",
+        }),
+      );
+    });
   });
 });

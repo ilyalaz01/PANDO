@@ -15,6 +15,7 @@ import type {
   AvailabilityWindowSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
+import { buildCapacityEffectPreview } from "../../../ui/plan/server/capacity-effect-preview";
 import styles from "../../../ui/plan/plan.module.css";
 import { SkipLink } from "../../../ui/primitives/skip-link";
 
@@ -531,6 +532,36 @@ const availabilityWindowSource: AvailabilityWindowSourceV1 = {
   ],
   removedAvailabilityWindows: [],
 };
+
+/**
+ * A separate, dedicated source for the `?preview=capacity-effect` fixture: its window covers the
+ * rolling seven-day estimate window starting at `currentLocalDate` (unlike `availabilityWindowSource`
+ * above, whose window is two months out and so never limits that fixture's estimate), so the D3b2
+ * capacity-effect preview actually demonstrates rationing. Built through the real
+ * `buildCapacityEffectPreview` adapter below, not hand-authored, so this fixture also exercises the
+ * production composition path end to end.
+ */
+const capacityEffectAvailabilitySource: AvailabilityWindowSourceV1 = {
+  ...availabilityWindowSource,
+  availabilityWindows: [
+    {
+      windowKey: "window:60000010-0000-8000-8000-000000000010",
+      startsOn: "2026-09-04",
+      endsOn: "2026-09-10",
+      timeZone: "America/New_York",
+      availableMinutes: 10,
+      energy: "LOW",
+      label: "Interview travel",
+      lifecycle: "ACTIVE",
+      aggregateVersion: "1",
+    },
+  ],
+};
+
+const capacityEffectPreview = buildCapacityEffectPreview(
+  capacityEffectAvailabilitySource,
+  tracksWorkspace,
+);
 
 const availabilityWindowPreviewState: PlanActionState = {
   status: "previewed",
@@ -1134,6 +1165,7 @@ export default async function PlanFixturePage({
   const showsCadence = previewKind.startsWith("track-cadence");
   const showsReplacement = previewKind.startsWith("plan-replacement");
   const showsAvailability = previewKind === "availability";
+  const showsCapacityEffect = previewKind === "capacity-effect";
   const creationSource =
     previewKind === "track-create-no-goals"
       ? creationSourceState("NO_ACTIVE_GOALS")
@@ -1211,7 +1243,8 @@ export default async function PlanFixturePage({
             showsTerminal ||
             showsCadence ||
             showsReplacement ||
-            showsAvailability
+            showsAvailability ||
+            showsCapacityEffect
               ? initialPlanActionState
               : previewState
           }
@@ -1252,6 +1285,12 @@ export default async function PlanFixturePage({
           {...(showsCadence ? { cadenceSource } : {})}
           {...(showsReplacement ? { replacementSource } : {})}
           {...(showsAvailability ? { availabilityWindowSource } : {})}
+          {...(showsCapacityEffect
+            ? { availabilityWindowSource: capacityEffectAvailabilitySource }
+            : {})}
+          {...(showsCapacityEffect && capacityEffectPreview !== null
+            ? { capacityEffectPreview }
+            : {})}
           tracksWorkspace={
             showsInitialization
               ? setupTracksWorkspace

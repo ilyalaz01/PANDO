@@ -125,10 +125,30 @@ without ever rewriting a Track's configured minimum. When availability never lim
 output is arithmetically identical to V2's. See
 [`PHASE_4B_D3B2_ENGINE_STATUS.md`](../../../docs/implementation/PHASE_4B_D3B2_ENGINE_STATUS.md).
 
-D3b2-engine is calculation-only: no persisted clock-bound capacity-effect preview, no
-application-layer input assembly from real `AvailabilityWindow` rows, no worker/dispatcher V3
-routing, and no `/plan` capacity display exist yet. The next Planning outcome is D3b2-rollout
-(expand-then-activate V3 wiring per ADR-0010 §8, plus the persisted preview design §6 requires).
+D3b2-rollout adds `assemblePlanSnapshotInputV3` (the dispatcher's V3 counterpart to
+`assemblePlanSnapshotInputV2`, additive, exercised only by synthetic fixtures this session since no
+SQL migration yet extends the worker's source-bundle RPC to emit `bundle.availability`) and
+dispatcher recognition of `planning-calculation/3` — the "expand" half of ADR-0010 §8/§9's
+expand-then-activate sequence. It also adds a stateless, request-time capacity-effect preview
+(`src/modules/planning/application/loaders/capacity-effect-preview.ts`,
+`src/ui/plan/capacity-effect-preview.tsx`) that composes real `AvailabilityWindow` and Learning
+Track rows — the same `AvailabilityWindowSourceV1`/`CurrentLearningTracksV1` reads `/plan` already
+loads, no new query — into a live estimate of `planner-engine/0.3.0`'s effect over the next seven
+local days, with a `previewDigest` proving reproducibility. This deliberately deviates from
+ADR-0010 §6's persisted, server-issued proposal: it is recomputed in full on every read and never
+persisted, because the persisted-proposal table, the CHECK-constraint widening that would admit
+`planning-calculation/3`, and the SQL-side pointer-move the dispatcher's own V1→V2 precedent
+required (`20260903000400_phase4b_planning_cadence_v2_activation.sql`) all need a SQL migration
+outside this session's scope. See
+[`PHASE_4B_D3B2_ROLLOUT_STATUS.md`](../../../docs/implementation/PHASE_4B_D3B2_ROLLOUT_STATUS.md).
+
+D3b as a whole remains **partial** after D3b2-rollout: the live async snapshot worker still computes
+only V1/V2 for every real workspace, `capacityUsesAvailability` stays `false`, and `/plan`'s
+"Recorded availability does not change weekly capacity yet" text remains literally true. The
+concrete remaining SQL-permitted slice — the activation migration and the persisted ADR-0010 §6
+proposal — is recorded in
+[`PHASE_4B_D3B_STATUS.md`](../../../docs/implementation/PHASE_4B_D3B_STATUS.md), D3b's closure
+summary.
 
 ## Phase 4A implementation route
 

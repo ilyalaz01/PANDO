@@ -1411,14 +1411,28 @@ function requireDailyCaps(dailyCaps: readonly DailyCapacityCapInput[]): void {
   });
 }
 
-interface ProtectedMinuteRation {
+export interface ProtectedMinuteRation {
   readonly reservedMinutes: number;
   readonly limited: boolean;
 }
 
+/**
+ * The exact fields `rationProtectedMinutes` reads, structurally satisfied by
+ * `PlanningTrackInputV2` (every internal V3 caller) and by any narrower live-read projection
+ * (e.g. a stateless capacity-effect preview built from `CurrentLearningTrackV1` rows) — one
+ * rationing implementation, reusable outside the engine without duplicating ADR-0010 §6 math.
+ */
+export interface RationableTrackInput {
+  readonly trackId: string;
+  readonly trackKey: string;
+  readonly priority: number;
+  readonly protectedMinimumMinutes: number;
+  readonly lifecycle: "ACTIVE" | "PAUSED" | "COMPLETED";
+}
+
 /** ADR-0010 §6: deterministic priority-ordered rationing against effective weekly capacity. */
-function rationProtectedMinutes(
-  tracks: readonly PlanningTrackInputV2[],
+export function rationProtectedMinutes(
+  tracks: readonly RationableTrackInput[],
   effectiveWeeklyCapacityMinutesValue: number,
 ): ReadonlyMap<string, ProtectedMinuteRation> {
   const ordered = tracks

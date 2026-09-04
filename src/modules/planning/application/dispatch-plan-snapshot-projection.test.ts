@@ -430,6 +430,51 @@ describe("Planning snapshot dispatcher", () => {
     );
   });
 
+  it("routes a V3-stamped attempt through V3 assembly and calculation (expand-half plumbing)", async () => {
+    // D3b2-rollout's dispatcher "expand" half: no real delivery can carry this contract yet — the
+    // database CHECK constraint still admits only .../1 and .../2 — so this proves the dispatcher's
+    // own routing logic is ready, using a synthetic claim rather than a real one.
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };
+      if (name === "load_plan_snapshot_projection_v1") {
+        return {
+          data: {
+            attemptId,
+            calculationContractVersion: "planning-calculation/3",
+            sourceFence: `planning-source:${"a".repeat(64)}`,
+            sourceBundle: sourceBundle(),
+            storedInput: null,
+          },
+          error: null,
+        };
+      }
+      if (name === "record_plan_snapshot_input_v1") return { data: true, error: null };
+      if (name === "complete_plan_snapshot_projection_v1") return { data: "APPLIED", error: null };
+      throw new Error(`unexpected ${name}`);
+    });
+
+    await expect(dispatchPlanSnapshotProjection(client(rpc))).resolves.toMatchObject({
+      completed: 1,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "record_plan_snapshot_input_v1",
+      expect.objectContaining({
+        p_input: expect.objectContaining({
+          completedWorkPolicyVersion: "planning-completed-work/0.2",
+        }),
+      }),
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "complete_plan_snapshot_projection_v1",
+      expect.objectContaining({
+        p_result: expect.objectContaining({
+          engineVersion: "planner-engine/0.3.0",
+          policyVersion: "planning-policy/0.3",
+        }),
+      }),
+    );
+  });
+
   it("fails closed when the attempt calculation contract is unknown", async () => {
     const rpc = vi.fn(async (name: string) => {
       if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };

@@ -21,6 +21,10 @@ import {
   loadGrowthPlanReplacementSourceV1,
   loadAvailabilityWindowSourceV1,
 } from "../../ui/plan/server/database-plan";
+import {
+  buildCapacityEffectPreview,
+  type CapacityEffectPreviewV1,
+} from "../../ui/plan/server/capacity-effect-preview";
 import type {
   CurrentGrowthPlanV1,
   CurrentLearningTracksV1,
@@ -318,6 +322,7 @@ export default async function PlanPage({
   let replacementUnavailable = false;
   let availabilityWindowSource: AvailabilityWindowSourceV1 | undefined;
   let availabilityWindowUnavailable = false;
+  let capacityEffectPreview: CapacityEffectPreviewV1 | undefined;
   try {
     const client = await createPandoServerComponentClient();
     const authorizedClient = (await verifyPandoSession(client)).client;
@@ -462,6 +467,10 @@ export default async function PlanPage({
     replacementUnavailable = workspace.currentPlan !== null && replacementSource === undefined;
     availabilityWindowUnavailable =
       workspace.currentPlan !== null && availabilityWindowSource === undefined;
+    capacityEffectPreview =
+      availabilityWindowSource === undefined
+        ? undefined
+        : (buildCapacityEffectPreview(availabilityWindowSource, tracksWorkspace) ?? undefined);
     activityAdmissionUnavailable =
       (tracksWorkspace.learningTracks.length === 1 || selectedActivityTrackKey !== undefined) &&
       activityAdmissionSource === undefined;
@@ -506,6 +515,7 @@ export default async function PlanPage({
           {...(cadenceSource === undefined ? {} : { cadenceSource })}
           {...(replacementSource === undefined ? {} : { replacementSource })}
           {...(availabilityWindowSource === undefined ? {} : { availabilityWindowSource })}
+          {...(capacityEffectPreview === undefined ? {} : { capacityEffectPreview })}
           {...(terminalHistoryCursor === undefined ? {} : { terminalHistoryCursor })}
           {...(terminalHistoryNextPageHref === undefined
             ? {}

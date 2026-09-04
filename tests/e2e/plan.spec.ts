@@ -843,6 +843,25 @@ test("shows exact availability window consequences and keeps stale confirmations
   );
 });
 
+test("shows the stateless D3b2 capacity-effect estimate and its Track rationing", async ({
+  page,
+}) => {
+  await openFixture(page, "?preview=capacity-effect");
+  const region = page.getByRole("region", { name: "Estimated capacity effect" });
+  await expect(region).toContainText("This is only an estimate");
+  await expect(region).toContainText("70 of 600");
+  await expect(region).toContainText("limited by recorded availability");
+
+  const dailyList = page.getByLabel("Estimated daily capacity");
+  await expect(dailyList.getByRole("listitem")).toHaveCount(7);
+  await expect(dailyList).toContainText("2026-09-04");
+  await expect(dailyList).toContainText("10 minutes");
+
+  const rationingList = page.getByLabel("Estimated Track rationing");
+  await expect(rationingList).toContainText("track:system-design");
+  await expect(rationingList).toContainText("70 of 100 protected minutes");
+});
+
 test("shows exact terminal Track consequences and keeps archived history read-only", async ({
   page,
 }) => {

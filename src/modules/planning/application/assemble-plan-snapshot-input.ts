@@ -13,9 +13,12 @@ import {
   MASTERY_PREREQUISITE_ENGINE_VERSION,
   PREREQUISITE_SATISFACTION_POLICY_V0_1,
 } from "../../mastery/application/prerequisite-satisfaction-v1";
+import { effectiveWeeklyCapacityMinutes } from "../domain/availability-window-preview";
 import type {
   CalculatePlanInput,
   CalculatePlanInputV2,
+  CalculatePlanInputV3,
+  DailyCapacityCapInput,
   PlanningCandidateInput,
   PlanningReadinessInput,
   PlanningSourceRevision,
@@ -388,8 +391,8 @@ function uniqueBy<T>(items: readonly T[], key: (item: T) => string, label: strin
 
 function assemblePlanSnapshotInputInternal(
   source: unknown,
-  calculationContract: "V1" | "V2",
-): CalculatePlanInput | CalculatePlanInputV2 {
+  calculationContract: "V1" | "V2" | "V3",
+): CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3 {
   const bundle = asJsonObject(source, "Planning source bundle");
   const claimAsOf = provenanceInstant(bundle.claimAsOf, "claimAsOf");
   const calendar = asJsonObject(bundle.calendar, "calendar");
@@ -499,7 +502,10 @@ function assemblePlanSnapshotInputInternal(
 
   const repetitionCutoffInstants: string[] = [];
   const rawPlan = bundle.plan === null ? null : asJsonObject(bundle.plan, "plan");
-  let growthPlan: CalculatePlanInput["growthPlan"] | CalculatePlanInputV2["growthPlan"] = null;
+  let growthPlan:
+    | CalculatePlanInput["growthPlan"]
+    | CalculatePlanInputV2["growthPlan"]
+    | CalculatePlanInputV3["growthPlan"] = null;
   let candidates: PlanningCandidateInput[] = [];
   if (rawPlan !== null) {
     const rawTracks = objectArray(rawPlan.tracks, "plan.tracks");
@@ -559,7 +565,7 @@ function assemblePlanSnapshotInputInternal(
         meaningfulMinutesThisWeek: meaningfulMinutesByTrack.get(trackId) ?? 0,
         defaultSessionMinutes: integer(track, "defaultSessionMinutes"),
       };
-      return calculationContract === "V2"
+      return calculationContract === "V2" || calculationContract === "V3"
         ? {
             ...base,
             cadencePerWeek: integer(track, "cadencePerWeek"),
@@ -737,9 +743,41 @@ function assemblePlanSnapshotInputInternal(
       consumedMinutesThisWeek,
     };
     growthPlan =
-      calculationContract === "V2"
-        ? { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInputV2[] }
-        : { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInput[] };
+      calculationContract === "V3"
+        ? (() => {
+            const availability = asJsonObject(bundle.availability, "availability");
+            const dailyCaps: DailyCapacityCapInput[] = objectArray(
+              availability.dailyCaps,
+              "availability.dailyCaps",
+            ).map((cap) => ({
+              date: requiredString(cap, "date"),
+              capMinutes: integer(cap, "capMinutes"),
+              sourceWindowKey:
+                cap.sourceWindowKey === null ? null : requiredString(cap, "sourceWindowKey"),
+            }));
+            if (dailyCaps.length !== 7) {
+              fail(
+                "INVALID_OWNER_SOURCE",
+                "availability.dailyCaps must contain exactly seven days",
+              );
+            }
+            return {
+              growthPlanId: growthPlanBase.growthPlanId,
+              version: growthPlanBase.version,
+              lifecycle: growthPlanBase.lifecycle,
+              consumedMinutesThisWeek: growthPlanBase.consumedMinutesThisWeek,
+              defaultWeeklyCapacityMinutes: growthPlanBase.weeklyCapacityMinutes,
+              effectiveWeeklyCapacityMinutes: effectiveWeeklyCapacityMinutes(
+                growthPlanBase.weeklyCapacityMinutes,
+                dailyCaps.map((cap) => cap.capMinutes),
+              ),
+              dailyCaps,
+              tracks: tracks as readonly PlanningTrackInputV2[],
+            };
+          })()
+        : calculationContract === "V2"
+          ? { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInputV2[] }
+          : { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInput[] };
   }
 
   if (
@@ -776,10 +814,10 @@ function assemblePlanSnapshotInputInternal(
     ...prerequisiteValidityInstants,
     ...readiness.map((item) => (item.availability === "CURRENT" ? item.validUntil : null)),
   ]);
-  const unsigned: CalculatePlanInput | CalculatePlanInputV2 = {
+  const unsigned = {
     inputFingerprint: "planning-input:" + "0".repeat(64),
     completedWorkPolicyVersion:
-      calculationContract === "V2"
+      calculationContract === "V2" || calculationContract === "V3"
         ? COMPLETED_WORK_POLICY_VERSION_V2
         : COMPLETED_WORK_POLICY_VERSION,
     prerequisiteEngineVersion: MASTERY_PREREQUISITE_ENGINE_VERSION,
@@ -822,7 +860,7 @@ function assemblePlanSnapshotInputInternal(
       validUntil: reviewValidUntil,
     },
     candidates,
-  };
+  } as CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3;
   return { ...unsigned, inputFingerprint: planningInputFingerprint(unsigned) };
 }
 
@@ -832,4 +870,17 @@ export function assemblePlanSnapshotInput(source: unknown): CalculatePlanInput {
 
 export function assemblePlanSnapshotInputV2(source: unknown): CalculatePlanInputV2 {
   return assemblePlanSnapshotInputInternal(source, "V2") as CalculatePlanInputV2;
+}
+
+/**
+ * D3b2-rollout's "expand" half: ready to assemble a real `CalculatePlanInputV3` from a source
+ * bundle carrying `bundle.availability.dailyCaps`, exactly like `assemblePlanSnapshotInputV2` does
+ * today for `bundle.plan`. No SQL migration this session extends
+ * `planning.load_plan_snapshot_source_bundle_v1/v2` to actually produce `bundle.availability`, so
+ * this function is exercised only by synthetic fixtures in this session's tests — it is dispatcher
+ * plumbing ready for a future SQL-permitted "activate" session, never yet reachable from a real
+ * delivery. See the D3b2-rollout status report.
+ */
+export function assemblePlanSnapshotInputV3(source: unknown): CalculatePlanInputV3 {
+  return assemblePlanSnapshotInputInternal(source, "V3") as CalculatePlanInputV3;
 }
