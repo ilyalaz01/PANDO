@@ -1,0 +1,41 @@
+{
+  "contract": { "name": "InterviewCampaignsV1", "version": "1.0.0" },
+  "campaigns": [
+    {
+      "campaignKey": "campaign:70000000-0000-8000-8000-000000000005",
+      "title": "Ended loop",
+      "lifecycle": "ENDED",
+      "readinessGoal": {
+        "readinessGoalKey": "goal:backend-readiness",
+        "title": "Backend readiness"
+      },
+      "deadline": {
+        "localDate": "2026-01-01",
+        "timeZone": "UTC",
+        "at": "2026-01-02T00:00:00.000Z",
+        "passed": true,
+        "daysUntil": 0
+      },
+      "aggregateVersion": "3",
+      "capabilities": []
+    },
+    {
+      "campaignKey": "campaign:70000000-0000-8000-8000-000000000006",
+      "title": "Cancelled loop",
+      "lifecycle": "CANCELLED",
+      "readinessGoal": {
+        "readinessGoalKey": "goal:backend-readiness",
+        "title": "Backend readiness"
+      },
+      "deadline": {
+        "localDate": "2026-06-01",
+        "timeZone": "UTC",
+        "at": "2026-06-02T00:00:00.000Z",
+        "passed": true,
+        "daysUntil": 0
+      },
+      "aggregateVersion": "2",
+      "capabilities": []
+    }
+  ]
+}

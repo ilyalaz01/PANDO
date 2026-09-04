@@ -1,0 +1,17 @@
+{
+  "contract": { "name": "InterviewCampaignDeadlineChangeApplyResultV1", "version": "1.0.0" },
+  "commandId": "80000000-0000-4000-8000-000000000002",
+  "campaign": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme backend loop",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "3",
+    "deadline": {
+      "localDate": "2026-12-29",
+      "timeZone": "America/New_York",
+      "at": "2026-12-30T05:00:00.000Z"
+    }
+  },
+  "emittedEventIds": ["90000000-0000-4000-8000-000000000002"]
+}

@@ -20,6 +20,7 @@ const server = spawn(
     stdio: "inherit",
     env: {
       ...process.env,
+      PANDO_ENABLE_CAMPAIGNS_FIXTURE: "true",
       PANDO_ENABLE_EXPLORE_FIXTURE: "true",
       PANDO_ENABLE_FOCUS_FIXTURE: "true",
       PANDO_ENABLE_PLAN_FIXTURE: "true",

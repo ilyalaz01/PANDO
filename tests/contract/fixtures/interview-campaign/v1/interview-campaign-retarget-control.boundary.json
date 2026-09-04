@@ -1,0 +1,38 @@
+{
+  "contract": { "name": "InterviewCampaignRetargetPreviewV1", "version": "1.0.0" },
+  "operation": "change_campaign_target",
+  "commandType": "targets.retarget_interview_campaign_v1",
+  "reason": "Still deciding which target this draft loop prepares for.",
+  "before": {
+    "campaignId": "70000000-0000-8000-8000-000000000004",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000004",
+    "title": "Draft loop",
+    "lifecycle": "DRAFT",
+    "aggregateVersion": "6",
+    "readinessGoal": {
+      "readinessGoalId": "20000000-0000-4000-8000-000000000003",
+      "readinessGoalKey": "goal:frontend-readiness",
+      "title": "Frontend readiness"
+    }
+  },
+  "after": {
+    "campaignId": "70000000-0000-8000-8000-000000000004",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000004",
+    "title": "Draft loop",
+    "lifecycle": "DRAFT",
+    "aggregateVersion": "7",
+    "readinessGoal": {
+      "readinessGoalId": "20000000-0000-4000-8000-000000000004",
+      "readinessGoalKey": "goal:mobile-readiness",
+      "title": "Mobile readiness",
+      "lifecycle": "ACTIVE",
+      "aggregateVersion": "1"
+    },
+    "revisionNumber": 3
+  },
+  "retained": { "previousReadinessGoal": true, "newReadinessGoal": true },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

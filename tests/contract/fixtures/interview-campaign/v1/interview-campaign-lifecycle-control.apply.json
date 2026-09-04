@@ -1,0 +1,12 @@
+{
+  "contract": { "name": "InterviewCampaignLifecycleApplyResultV1", "version": "1.0.0" },
+  "commandId": "80000000-0000-4000-8000-000000000004",
+  "campaign": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme loop",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "2"
+  },
+  "emittedEventIds": ["90000000-0000-4000-8000-000000000004"]
+}

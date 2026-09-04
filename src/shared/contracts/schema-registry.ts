@@ -38,6 +38,11 @@ import targetProfileSchema from "../../../schemas/preparation-pack/v1/target-pro
 import targetSelectionSourceSchema from "../../../schemas/target-selection/v1/target-selection-source.schema.json";
 import planningReadinessInputSchema from "../../../schemas/target-readiness/v1/planning-readiness-input.schema.json";
 import targetReadinessSchema from "../../../schemas/target-readiness/v1/target-readiness.schema.json";
+import interviewCampaignCreationControlSchema from "../../../schemas/interview-campaign/v1/interview-campaign-creation-control.schema.json";
+import interviewCampaignDeadlineControlSchema from "../../../schemas/interview-campaign/v1/interview-campaign-deadline-control.schema.json";
+import interviewCampaignRetargetControlSchema from "../../../schemas/interview-campaign/v1/interview-campaign-retarget-control.schema.json";
+import interviewCampaignLifecycleControlSchema from "../../../schemas/interview-campaign/v1/interview-campaign-lifecycle-control.schema.json";
+import interviewCampaignsSchema from "../../../schemas/interview-campaign/v1/interview-campaigns.schema.json";
 
 import { type ContractViolation, type ValidationResult, validationResult } from "./result";
 
@@ -78,6 +83,11 @@ export const schemaNames = [
   "target-readiness-v1",
   "planning-readiness-input-v1",
   "graph-projection",
+  "interview-campaign-creation-control-v1",
+  "interview-campaign-deadline-control-v1",
+  "interview-campaign-retarget-control-v1",
+  "interview-campaign-lifecycle-control-v1",
+  "interview-campaigns-v1",
 ] as const;
 
 export type SchemaName = (typeof schemaNames)[number];
@@ -121,6 +131,11 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "target-readiness-v1": targetReadinessSchema,
   "planning-readiness-input-v1": planningReadinessInputSchema,
   "graph-projection": graphProjectionSchema,
+  "interview-campaign-creation-control-v1": interviewCampaignCreationControlSchema,
+  "interview-campaign-deadline-control-v1": interviewCampaignDeadlineControlSchema,
+  "interview-campaign-retarget-control-v1": interviewCampaignRetargetControlSchema,
+  "interview-campaign-lifecycle-control-v1": interviewCampaignLifecycleControlSchema,
+  "interview-campaigns-v1": interviewCampaignsSchema,
 };
 
 function createRegistry(): Readonly<Record<SchemaName, ValidateFunction>> {

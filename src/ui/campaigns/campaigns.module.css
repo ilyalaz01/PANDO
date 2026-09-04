@@ -1,0 +1,257 @@
+.page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--color-canvas);
+}
+.header {
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+.header > div,
+.main {
+  width: min(100% - 2rem, 72rem);
+  margin-inline: auto;
+}
+.header > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4rem;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+.brand {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.headerNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+.headerNav a {
+  min-height: 2.75rem;
+  padding-block: 0.8rem;
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration: underline;
+}
+.main {
+  padding-block: 2rem 5rem;
+  outline: none;
+}
+.workspace {
+  display: grid;
+  gap: 1rem;
+}
+.intro,
+.panel,
+.fallback {
+  min-width: 0;
+  padding: clamp(1.15rem, 3vw, 2rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-panel);
+}
+.intro h1,
+.fallback h1 {
+  max-width: 18ch;
+  margin: 0.35rem 0 1rem;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.intro > p,
+.panel p,
+.status {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+.status {
+  min-height: 1.4rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+.notice {
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-soft);
+}
+.form {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 42rem;
+}
+.form label {
+  font-weight: 750;
+}
+.form textarea,
+.numberInput,
+.selectInput,
+.textInput,
+.dateInput {
+  padding: 0.7rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+.form textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+.numberInput,
+.dateInput {
+  width: min(100%, 14rem);
+  min-height: var(--size-control-min);
+}
+.selectInput,
+.textInput {
+  width: min(100%, 32rem);
+  min-height: var(--size-control-min);
+}
+.campaignList {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0;
+  list-style: none;
+}
+.campaignCard {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+.campaignCard strong,
+.campaignCard span {
+  overflow-wrap: anywhere;
+}
+.campaignCard span {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-strong);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.button,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: var(--size-control-min);
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--radius-control);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.button {
+  border: 1px solid var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-accent, white);
+}
+.secondaryButton {
+  border: 1px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-accent-strong);
+}
+.button:disabled,
+.secondaryButton:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+.comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+.comparison > div {
+  padding: 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+.comparison h3 {
+  margin: 0 0 0.5rem;
+}
+.comparison dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+}
+.comparison dt {
+  color: var(--color-text-muted);
+}
+.comparison dd {
+  margin: 0;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+@media (max-width: 48rem) {
+  .header > div,
+  .main {
+    width: min(100% - 1rem, 72rem);
+  }
+  .comparison {
+    grid-template-columns: 1fr;
+  }
+  .header > div {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding-block: 0.5rem;
+  }
+  .headerNav {
+    justify-content: flex-start;
+    gap: 0.55rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .page *,
+  .page *::before,
+  .page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+@media (forced-colors: active) {
+  .intro,
+  .panel,
+  .fallback,
+  .campaignCard,
+  .comparison > div,
+  .button,
+  .secondaryButton,
+  .statusBadge {
+    border-color: CanvasText;
+  }
+}

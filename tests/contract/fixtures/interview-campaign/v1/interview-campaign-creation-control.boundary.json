@@ -1,0 +1,30 @@
+{
+  "contract": { "name": "InterviewCampaignCreationPreviewV1", "version": "1.0.0" },
+  "operation": "create_interview_campaign",
+  "commandType": "targets.create_interview_campaign_v1",
+  "idempotencyKey": "10000000-0000-4000-8000-000000000002",
+  "reason": "Retrying a create after a dropped response.",
+  "readinessGoal": {
+    "readinessGoalId": "20000000-0000-4000-8000-000000000001",
+    "readinessGoalKey": "goal:backend-readiness",
+    "title": "Backend readiness",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "7"
+  },
+  "after": {
+    "campaignId": "70000000-0000-8000-8000-000000000002",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000002",
+    "title": "Acme backend loop",
+    "lifecycle": "DRAFT",
+    "aggregateVersion": "1",
+    "deadline": {
+      "localDate": "2026-12-15",
+      "timeZone": "America/New_York",
+      "at": "2026-12-16T05:00:00.000Z"
+    }
+  },
+  "canApply": false,
+  "blockingReasons": [{ "code": "TARGETS_CREATE_IDENTITY_COLLISION" }],
+  "warnings": [],
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

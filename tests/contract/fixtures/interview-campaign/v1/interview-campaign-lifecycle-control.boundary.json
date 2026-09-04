@@ -1,0 +1,24 @@
+{
+  "contract": { "name": "InterviewCampaignLifecyclePreviewV1", "version": "1.0.0" },
+  "operation": "cancel_campaign",
+  "commandType": "targets.change_interview_campaign_lifecycle_v1",
+  "reason": "The interview loop was called off after it started.",
+  "before": {
+    "campaignId": "70000000-0000-8000-8000-000000000005",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000005",
+    "title": "Cancelled loop",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "4"
+  },
+  "after": {
+    "campaignId": "70000000-0000-8000-8000-000000000005",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000005",
+    "title": "Cancelled loop",
+    "lifecycle": "CANCELLED",
+    "aggregateVersion": "5"
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

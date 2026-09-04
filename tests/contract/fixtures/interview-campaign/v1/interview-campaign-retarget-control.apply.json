@@ -1,0 +1,20 @@
+{
+  "contract": { "name": "InterviewCampaignRetargetApplyResultV1", "version": "1.0.0" },
+  "commandId": "80000000-0000-4000-8000-000000000003",
+  "campaign": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme loop",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "4",
+    "readinessGoal": {
+      "readinessGoalId": "20000000-0000-4000-8000-000000000002",
+      "readinessGoalKey": "goal:platform-readiness",
+      "title": "Platform readiness",
+      "lifecycle": "ACTIVE",
+      "aggregateVersion": "2"
+    },
+    "revisionNumber": 1
+  },
+  "emittedEventIds": ["90000000-0000-4000-8000-000000000003"]
+}

@@ -1,0 +1,26 @@
+{
+  "contract": { "name": "InterviewCampaignDeadlineChangePreviewV1", "version": "1.0.0" },
+  "operation": "change_campaign_deadline",
+  "commandType": "targets.change_interview_campaign_deadline_v1",
+  "reason": "Still drafting; picking a placeholder deadline far in the future.",
+  "before": {
+    "campaignId": "70000000-0000-8000-8000-000000000003",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000003",
+    "title": "Draft loop",
+    "lifecycle": "DRAFT",
+    "aggregateVersion": "9223372036854775806",
+    "deadline": { "localDate": "2026-09-04", "timeZone": "UTC" }
+  },
+  "after": {
+    "campaignId": "70000000-0000-8000-8000-000000000003",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000003",
+    "title": "Draft loop",
+    "lifecycle": "DRAFT",
+    "aggregateVersion": "9223372036854775807",
+    "deadline": { "localDate": "2126-09-04", "timeZone": "UTC", "at": "2126-09-05T00:00:00.000Z" }
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "previewDigest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+}

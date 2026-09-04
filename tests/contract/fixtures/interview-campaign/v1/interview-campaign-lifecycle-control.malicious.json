@@ -1,0 +1,24 @@
+{
+  "contract": { "name": "InterviewCampaignLifecyclePreviewV1", "version": "1.0.0" },
+  "operation": "delete_campaign",
+  "commandType": "targets.change_interview_campaign_lifecycle_v1",
+  "reason": "The onsite is scheduled; starting active preparation.",
+  "before": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme loop",
+    "lifecycle": "DRAFT",
+    "aggregateVersion": "1"
+  },
+  "after": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme loop",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "2"
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "previewDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}

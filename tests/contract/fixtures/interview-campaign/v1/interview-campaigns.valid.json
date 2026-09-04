@@ -1,0 +1,51 @@
+{
+  "contract": { "name": "InterviewCampaignsV1", "version": "1.0.0" },
+  "campaigns": [
+    {
+      "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+      "title": "Acme backend loop",
+      "lifecycle": "ACTIVE",
+      "readinessGoal": {
+        "readinessGoalKey": "goal:backend-readiness",
+        "title": "Backend readiness"
+      },
+      "deadline": {
+        "localDate": "2026-12-15",
+        "timeZone": "America/New_York",
+        "at": "2026-12-16T05:00:00.000Z",
+        "passed": false,
+        "daysUntil": 102
+      },
+      "aggregateVersion": "2",
+      "capabilities": [
+        "cancel_campaign",
+        "change_campaign_deadline",
+        "change_campaign_target",
+        "end_campaign"
+      ]
+    },
+    {
+      "campaignKey": "campaign:70000000-0000-8000-8000-000000000003",
+      "title": "Draft loop",
+      "lifecycle": "DRAFT",
+      "readinessGoal": {
+        "readinessGoalKey": "goal:frontend-readiness",
+        "title": "Frontend readiness"
+      },
+      "deadline": {
+        "localDate": "2126-09-04",
+        "timeZone": "UTC",
+        "at": "2126-09-05T00:00:00.000Z",
+        "passed": false,
+        "daysUntil": 36500
+      },
+      "aggregateVersion": "1",
+      "capabilities": [
+        "cancel_campaign",
+        "change_campaign_deadline",
+        "change_campaign_target",
+        "start_campaign"
+      ]
+    }
+  ]
+}

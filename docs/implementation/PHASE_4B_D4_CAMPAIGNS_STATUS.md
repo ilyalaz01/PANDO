@@ -1,12 +1,13 @@
-# Phase 4B D4 — Interview Campaign database layer implementation status
+# Phase 4B D4 — Interview Campaign database and application layer implementation status
 
-Status: database layer complete and verified; the browser/controller layer (D4-app) is explicitly
-out of scope for this session and remains to be built
+Status: **complete and verified**. The database layer (Исход 5 / D4-db) and the application/browser
+layer (Исход 6 / D4-app) are both implemented, tested, and green. D5 (allocation overrides, the
+`campaign_lifecycle_v1` coordinator, `planning-calculation/4`) remains untouched and out of scope.
 
 Decision record:
 [ADR-0010](../adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md) §3, §4, and §9
 
-Completed: 2026-09-04
+D4-db completed: 2026-09-04. D4-app completed: 2026-09-04.
 
 ## Delivered outcome
 
@@ -22,9 +23,11 @@ capabilities.
 D4 adds no Planning input and no calculation version, exactly as ADR-0010 §8 requires: no campaign
 row is read by the planner, and no `outbox.deliveries` row is scheduled for any campaign event today.
 
-No UI, Server Action, or React component was touched this session. The next session (D4-app) builds
-the `/plan` (or a new `/campaigns`) browser surface on top of the nine `api.*` RPCs and the contracts
-they imply.
+D4-app (this session) built a dedicated `/campaigns` browser surface — a new route, not an addition
+to the already-large `/plan` page — on top of the nine `api.*` RPCs: JSON Schema + TypeScript
+application contracts for all four command families plus the read, Server Actions, a
+database-RPC wrapper module, and a full UI controller with component, contract, and Playwright E2E
+coverage. See "D4-app: application layer" below for the complete account.
 
 ## Owner commands, contracts, and boundary
 
@@ -151,34 +154,145 @@ they imply.
   `pnpm verify:auth` compares this file byte-for-byte against a fresh generation, and it was stale
   before this regeneration.
 
-No production dependency, lockfile, application/UI file, or calculation contract changed. No database
-extension was added (the migration reuses `btree_gist`/`pgcrypto`/etc. already enabled by earlier
-migrations; it adds none of its own).
+No production dependency, lockfile change, or calculation contract change was made by D4-db. No
+database extension was added (the migration reuses `btree_gist`/`pgcrypto`/etc. already enabled by
+earlier migrations; it adds none of its own).
+
+## D4-app: application layer
+
+This session (2026-09-04, branch `claude/d4-app`) built the complete authenticated browser journey
+on top of the nine `api.*` RPCs D4-db delivered. It made **no SQL, migration, or schema change** —
+every constraint the session was given ("Database must NOT be touched") held throughout.
+
+### Route and UI
+
+- **New route `/campaigns`**, deliberately not folded into the already-very-large `/plan` page
+  (`src/app/plan/actions.ts` alone is 1235 lines; `/plan`'s server component composes ten different
+  read sources with cross-read consistency checks). Interview Campaigns have exactly one read source
+  (`get_interview_campaigns_v1`), so `/campaigns` needs none of that consistency-check machinery —
+  a dedicated route keeps Targets' own surface architecturally separate from Planning's, matching the
+  released one-route-per-bounded-context-feature pattern (`/plan`, `/explore`, `/review`, `/today`).
+- `src/app/campaigns/page.tsx` loads the campaign list and the workspace's currently `active`
+  Readiness Goals (reusing the already-released, Targets-owned `get_target_selection_source_v1` /
+  `loadTargetSelectionSourceV1`, the same read `/start` already uses — not a new cross-context
+  coupling), and renders `CampaignWorkspace` inside the same page-chrome shape (`SkipLink`, header,
+  nav) every other route uses. `loading.tsx` and `error.tsx` mirror `/plan`'s exactly.
+- `src/ui/campaigns/` holds the UI: `campaign-workspace.tsx` (top-level, owns one shared
+  `dismissalVersion` counter so only one open confirmation exists across the whole page, exactly the
+  released `/plan` pattern), `campaign-list.tsx` (renders every campaign's status badge, target, and
+  an exact deadline phrase — "N days until the deadline" / "is today" / "is tomorrow" / "passed
+  (date)" — plus an explicit prompt when an `ACTIVE` campaign's deadline has passed), and one
+  component per command family: `campaign-creation.tsx`, `campaign-deadline.tsx`,
+  `campaign-retarget.tsx`, `campaign-lifecycle.tsx` (one panel offering exactly the campaign's own
+  `capabilities`-gated buttons: `start_campaign` / `end_campaign` / `cancel_campaign`). Every
+  component follows the released preview→exact-comparison→confirm shape verbatim (`useActionState`,
+  a rotating client-generated idempotency key threaded through a hidden field, dismissal on any
+  sibling intent or input edit), copied from `growth-plan-replacement.tsx` and
+  `availability-windows.tsx` rather than reinvented.
+- **Retargeting history is not surfaced with real data.** ADR-0010 §4 requires append-only revision
+  history (`targets.interview_campaign_target_revisions`, delivered by D4-db), but D4-db's read
+  boundary is exactly `api.get_interview_campaigns_v1` — no RPC reads the revisions table. Since this
+  session may not add one (explicit "no SQL" constraint), each campaign card shows an honest
+  "Retargeting history" panel stating plainly that PANDO records every retarget but does not yet
+  expose a read for it to the browser, rather than fabricating a list or omitting the feature
+  silently. This is a real, named gap — see "Remaining work".
+- `src/app/dev/campaigns-fixture/page.tsx`, gated by `PANDO_ENABLE_CAMPAIGNS_FIXTURE` (wired into
+  `scripts/e2e-server.mjs` alongside the three existing fixture flags), mirrors `/dev/plan-fixture`:
+  static representative campaigns (`ACTIVE`, `DRAFT`, `ENDED`, and a deadline-passed variant) and
+  `?preview=` dispatch (`creation`, `creation-blocked`, `deadline`, `retarget`, `lifecycle`, `empty`,
+  `no-goals`, `deadline-passed`) driving deterministic Playwright coverage with no live database.
+
+### Contracts
+
+Five new self-contained JSON Schema / TypeScript contract pairs under `schemas/interview-campaign/v1/`
+and `src/shared/contracts/`, registered in `schema-registry.ts`
+(`interview-campaign-creation-control-v1`, `-deadline-control-v1`, `-retarget-control-v1`,
+`-lifecycle-control-v1`, `interview-campaigns-v1`), each derived **field-for-field from the actual
+`jsonb_build_object` calls in `20260906000100_phase4b_d4_interview_campaigns.sql`**, not assumed from
+convention — for example, the deadline-change preview's `before.deadline` intentionally has no `at`
+field (only `after.deadline` does), and only the creation preview carries `idempotencyKey` and can
+have a non-empty `blockingReasons`/non-`true` `canApply` (the other three field-changing commands
+always return `canApply: true` since any invalid transition raises a database exception before a
+JSON response is ever built). `campaignId`/`campaignKey` use a `uuidV8`-pattern definition (not
+`format: "uuid"`, which only accepts RFC4122 versions 1–5) because `derive_campaign_identity_v1` uses
+the same SHA-256-derived-UUIDv8 construction as Planning's replacement-identity helper. Each contract
+file has a schema-validation layer plus a semantic-violations layer (UUID-lowercase-case checks,
+`campaignKey`-binds-`campaignId` checks, before→after version-delta-of-exactly-one checks, and, for
+the lifecycle contract, an exact transition table). 24 fixtures (valid/boundary/apply/invalid/
+malicious per command family, valid/boundary/invalid/malicious for the read) exercise both layers;
+`invalid` fixtures pass schema validation but fail a semantic check, `malicious` fixtures fail schema
+validation outright (an injected `workspaceId` field, an out-of-enum operation, a negative
+`daysUntil`, a wrong lifecycle enum value). All 5 new contract test files pass (100 assertions).
+
+### Application layer
+
+- `src/ui/campaigns/server/database-campaigns.ts` — the RPC wrapper, one function per `api.*` entry
+  point (`loadInterviewCampaignsV1` plus 4 preview/apply pairs), following `database-plan.ts`'s exact
+  shape: client-side input validation before any network call, a shared `rpc()` helper, Postgres
+  error-code-to-typed-error mapping (`40001`/`23505` → `CampaignConflictError`,
+  `22023`/`22003`/`22P02` → `CampaignInputError`, everything else → `CampaignUnavailableError`), and a
+  decode step that throws the same typed unavailable error on a contract violation rather than
+  leaking a raw schema error to the browser.
+- `src/app/campaigns/actions.ts` — 8 Server Actions (`"use server"`), one preview/apply pair per
+  command family, parsing `FormData` with the same purpose-specific regex validators used everywhere
+  else in the codebase (`CAMPAIGN_KEY`, `GOAL_KEY`, `VERSION`, `LOCAL_DATE`, bounded `reason`/`title`),
+  calling `verifyPandoSession` before every read or write, and calling `revalidatePath("/campaigns")`
+  after every successful apply.
+
+### Tests
+
+- 5 contract test files (`tests/contract/interview-campaign*.test.ts`), 100 assertions.
+- `database-campaigns.test.ts` (11 tests): every RPC call's exact `p_*` parameter names, malformed-
+  input-before-any-RPC-call proofs, and Postgres error-code-to-typed-error mapping.
+- `actions.test.ts` (10 tests): every Server Action's exact command shape passed to the (mocked)
+  database layer, `revalidatePath("/campaigns")` firing on apply, and conflict/invalid/unavailable
+  status mapping.
+- `page.test.tsx` (3 tests): happy path, sign-in redirect on an unauthenticated session, and the
+  fail-closed fallback UI on any other read failure.
+- 7 component test files (`campaign-creation/deadline/retarget/lifecycle/list/workspace.test.tsx`,
+  36 tests): exact preview comparisons, capability-gated rendering (a component renders nothing when
+  its command isn't in the campaign's `capabilities`), dismissal on sibling intent and on input edit,
+  and the honest retarget-history gap notice.
+- `tests/e2e/campaigns.spec.ts` (12 Playwright tests against `/dev/campaigns-fixture`): list
+  rendering, empty/no-active-goals states, exact draft/deadline/retarget/lifecycle preview
+  consequences, the blocked-draft blocker text, the passed-deadline prompt, full keyboard operability
+  from the skip link forward, 320px touch-target sizing, reduced-motion/forced-colors focus
+  visibility, and an axe WCAG 2.1/2.2 A/AA scan across every fixture state (zero violations).
 
 ## Verification evidence
 
 Every command below was run in this session on Node 24 with Docker available, against the actual
-Supabase CLI local stack (not a rehearsal harness).
+Supabase CLI local stack (not a rehearsal harness). D4-db's gates (recorded 2026-09-04) are repeated
+here because D4-app re-ran every one of them after adding the application layer, on the same branch
+lineage.
 
 | Gate | Result |
 |---|---|
-| `pnpm verify:db` | PASS — 51 pgTAP files, 3273 assertions, zero failures (49 files/3070 assertions before D4); `supabase db lint --level warning --fail-on warning` clean |
-| `pnpm verify:auth` | PASS, after regenerating `database.generated.ts` (the gate diffs the checked-in file against a fresh generation and failed before the regeneration) |
-| `pnpm verify` (`format:check`, `lint`, `typecheck`, `test:database-runner`, `test:backup-archive`, `test:contracts`, `test:performance`, `test:unit:coverage`, `test:e2e`) | PASS — `test:database-runner` 15/15 after fixing its hardcoded pgTAP-file-list fixture; unit coverage 86.30%/80.47%/91.20%/87.68% (stmts/branch/funcs/lines), numerically unchanged from the prior session because no TypeScript/domain/application file was touched; `next build` succeeded; full Chromium E2E **39/39** (proves zero cross-feature regression, since D4 added no browser surface of its own) |
+| `pnpm verify:db` | PASS — 51 pgTAP files, 3273 assertions, zero failures; `supabase db lint --level warning --fail-on warning` clean. Unchanged from D4-db: D4-app touched no SQL. |
+| `pnpm verify:auth` | PASS |
+| `pnpm verify` (`format:check`, `lint`, `typecheck`, `test:database-runner`, `test:backup-archive`, `test:contracts`, `test:performance`, `test:unit:coverage`, `test:e2e`) | PASS — `test:database-runner` 15/15; `test:contracts` 446/446 (32 files, up from D4-db's session); unit coverage **86.36%/80.23%/91.02%/87.67%** (stmts/branch/funcs/lines) against the 85/80/85/85 threshold; `next build` succeeded; full Chromium E2E **51/51** (39 previously released + 12 new `campaigns.spec.ts`, proving zero cross-feature regression) |
 | `pnpm verify:backup` | PASS — "encrypted backup clean-restore gate passed" |
+
+One E2E authoring mistake, caught and fixed in this session: `page.getByLabel("Readiness Goal")` and
+`page.getByLabel("Deadline (local date)")` without `{ exact: true }` matched multiple elements once
+the fixture page rendered several campaign cards' own "New Readiness Goal" / "New deadline (local
+date)" labels alongside the creation form's shorter labels (Playwright's default label matching is a
+case-insensitive substring match). Fixed by adding `{ exact: true }`, matching the same pattern
+`plan.spec.ts` already uses for `"Learning Track"` for the identical reason.
 
 ## Remaining work
 
-1. **D4-app**: the `/plan` (or new `/campaigns`) authenticated browser journey — Server Actions
-   calling the nine `api.*` RPCs, a domain/application contract layer mirroring
-   `growth-plan-replacement-control.schema.json`'s shape for each of the four command families,
-   contract fixtures (valid/invalid/boundary/malicious), UI components with keyboard/responsive/
-   reduced-motion/automated-WCAG coverage, and Playwright E2E coverage. This is the next bounded
-   outcome named by the user's own session scope, not started here.
+1. **A read boundary for retarget history.** `targets.interview_campaign_target_revisions` exists and
+   is written correctly (D4-db, pgTAP-proven), but no `api.*` function reads it, so `/campaigns`
+   cannot show real retarget history — it says so honestly instead of fabricating one. Adding
+   `api.get_interview_campaign_target_history_v1` (or folding a bounded, capped history array into
+   `get_interview_campaigns_v1`) is a small, additive, D4-app-shaped follow-up; it needs its own
+   session since this one may not touch SQL.
 2. **D5** (allocation overlays, the `campaign_lifecycle_v1` coordinator, `planning-calculation/4`) is
-   untouched, per this session's explicit constraint. No Planning file, table, or function was edited.
+   untouched. No Planning file, table, or function was edited by either D4-db or D4-app.
 3. **The single-active-campaign cardinality question** (see "Decided behavior worth remembering")
-   is open for the product owner or a future ADR revision if D5 needs it resolved.
+   is still open for the product owner or a future ADR revision if D5 needs it resolved. D4-app's UI
+   makes no assumption about it either — the list renders any number of campaigns in any lifecycle.
 4. **D3b1-db's inherited missing pgTAP proof** remains unfixed, unrelated to this session's scope.
 5. `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md` was not read, edited, or staged, per explicit
    instruction.
@@ -189,21 +303,21 @@ Supabase CLI local stack (not a rehearsal harness).
 Прочитай docs/implementation/CLAUDE_CODE_HANDOFF_REPORT.md,
 docs/implementation/PHASE_4B_D4_CAMPAIGNS_STATUS.md, ADR-0010 (0010-lifecycle-replacement-
 availability-and-campaign-semantics.md) §3/§4/§9, и supabase/migrations/
-20260906000100_phase4b_d4_interview_campaigns.sql. Ветка claude/d4-db поверх main содержит
-ЗАВЕРШЁННЫЙ и проверенный слой базы данных для D4 (Interview Campaign): таблицы
-targets.interview_campaigns и targets.interview_campaign_target_revisions, девять api.*
-RPC (draft/start/change_campaign_deadline/change_campaign_target/end/cancel как
-preview+apply пары плюс один read), forced RLS, кросс-контекстное bounded-query чтение
-identity.read_target_calendar_source_v1 для Targets, и исчерпывающие pgTAP-тесты
-(050_phase4b_d4_interview_campaigns.test.sql — функциональность/RLS/изоляция,
-051_..._concurrency.test.sql — реальная гонка через dblink и atomicity-тест через
-injected trigger failure). Все гейты зелёные на коммите этой сессии: pnpm verify:db
-(3273 assertions/51 files, db lint clean), pnpm verify:auth (потребовал регенерации
-src/shared/supabase/database.generated.ts — это уже сделано и закоммичено), pnpm verify
-(включая полный E2E 39/39, coverage не изменился, т.к. TS-код не трогали), pnpm verify:backup.
-Следующий bounded outcome — D4-app: слой приложения (Server Actions, domain/application
-contracts, UI, contract-тесты, Playwright E2E) поверх уже готовых девяти api.* RPC. НЕ начинай
-D5 (allocation overrides, coordinator, planning-calculation/4) в этой же сессии — Planning не
-тронут. Открытый вопрос для владельца продукта записан в статусном файле: нет ограничения на
-количество одновременно активных Campaign на воркспейс, т.к. ADR-0010 явно такого не требует.
+20260906000100_phase4b_d4_interview_campaigns.sql. Ветка claude/d4-app поверх claude/d4-db содержит
+ЗАВЕРШЁННЫЙ и полностью проверенный D4: слой базы данных (девять api.* RPC, forced RLS,
+pgTAP 050/051) и слой приложения — новый маршрут /campaigns (не встроен в уже очень большой /plan),
+пять пар JSON Schema/TS-контрактов, зарегистрированных в schema-registry.ts и выведенных построчно
+из реального jsonb_build_object в миграции, обёртка database-campaigns.ts, восемь Server Actions в
+app/campaigns/actions.ts, UI-контроллер в src/ui/campaigns/ (campaign-workspace/list/creation/
+deadline/retarget/lifecycle.tsx), dev-фикстура /dev/campaigns-fixture, и полное тестовое покрытие
+(5 contract-тестов, unit-тесты для database/actions/page, 7 компонентных тестов, 12 Playwright
+e2e-тестов включая axe WCAG-скан). Все четыре гейта зелёные: pnpm verify:db (3273/51, lint clean),
+pnpm verify:auth, pnpm verify (coverage 86.36/80.23/91.02/87.67% выше порога 85/80/85/85, E2E 51/51),
+pnpm verify:backup. Известный и осознанный пробел: история ретаргетинга не читается с бэкенда (нет
+api.* RPC для targets.interview_campaign_target_revisions) — UI честно об этом сообщает вместо того,
+чтобы выдумывать данные; добавление такого RPC — следующий маленький D4-shaped follow-up, требующий
+отдельной сессии (эта не имела права трогать SQL). НЕ начинай D5 (allocation overrides, coordinator,
+planning-calculation/4) — Planning не тронут ни одним файлом ни в D4-db, ни в D4-app. Открытый вопрос
+для владельца продукта остаётся записанным в этом файле: нет ограничения на количество одновременно
+активных Campaign на воркспейс, т.к. ADR-0010 явно такого не требует.
 ```

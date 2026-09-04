@@ -1,0 +1,30 @@
+{
+  "contract": { "name": "InterviewCampaignDeadlineChangePreviewV1", "version": "1.0.0" },
+  "operation": "change_campaign_deadline",
+  "commandType": "targets.change_interview_campaign_deadline_v1",
+  "reason": "The recruiter moved the onsite by two weeks.",
+  "before": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme backend loop",
+    "lifecycle": "ENDED",
+    "aggregateVersion": "2",
+    "deadline": { "localDate": "2026-12-15", "timeZone": "America/New_York" }
+  },
+  "after": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme backend loop",
+    "lifecycle": "ENDED",
+    "aggregateVersion": "3",
+    "deadline": {
+      "localDate": "2026-12-29",
+      "timeZone": "America/New_York",
+      "at": "2026-12-30T05:00:00.000Z"
+    }
+  },
+  "canApply": true,
+  "blockingReasons": [],
+  "warnings": [],
+  "previewDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+}
