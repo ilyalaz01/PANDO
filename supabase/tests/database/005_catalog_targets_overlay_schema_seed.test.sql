@@ -27,6 +27,8 @@ select is(
     'overlay.positions',
     'overlay.workspace_overlays',
     'targets.current_readiness_snapshots',
+    'targets.interview_campaign_target_revisions',
+    'targets.interview_campaigns',
     'targets.readiness_goals',
     'targets.readiness_snapshot_inputs',
     'targets.readiness_snapshots',

@@ -102,6 +102,52 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_interview_campaign_creation_v1: {
+        Args: {
+          p_deadline_local_date: string
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_readiness_goal_key: string
+          p_reason: string
+          p_title: string
+        }
+        Returns: Json
+      }
+      apply_interview_campaign_deadline_change_v1: {
+        Args: {
+          p_campaign_key: string
+          p_deadline_local_date: string
+          p_expected_campaign_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      apply_interview_campaign_lifecycle_v1: {
+        Args: {
+          p_campaign_key: string
+          p_expected_campaign_version: string
+          p_idempotency_key: string
+          p_operation: string
+          p_preview_digest: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      apply_interview_campaign_retarget_v1: {
+        Args: {
+          p_campaign_key: string
+          p_expected_campaign_version: string
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_preview_digest: string
+          p_readiness_goal_key: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       apply_learning_track_activity_admission_v1: {
         Args: {
           p_activity_key: string
@@ -427,6 +473,7 @@ export type Database = {
       }
       get_growth_plan_replacement_source_v1: { Args: never; Returns: Json }
       get_growth_plan_setup_source_v1: { Args: never; Returns: Json }
+      get_interview_campaigns_v1: { Args: never; Returns: Json }
       get_learning_track_activity_admission_source_v1: {
         Args: never
         Returns: Json
@@ -554,6 +601,45 @@ export type Database = {
           p_reason: string
           p_track_priority: number
           p_weekly_capacity_minutes: number
+        }
+        Returns: Json
+      }
+      preview_interview_campaign_creation_v1: {
+        Args: {
+          p_deadline_local_date: string
+          p_expected_readiness_goal_version: string
+          p_idempotency_key: string
+          p_readiness_goal_key: string
+          p_reason: string
+          p_title: string
+        }
+        Returns: Json
+      }
+      preview_interview_campaign_deadline_change_v1: {
+        Args: {
+          p_campaign_key: string
+          p_deadline_local_date: string
+          p_expected_campaign_version: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      preview_interview_campaign_lifecycle_v1: {
+        Args: {
+          p_campaign_key: string
+          p_expected_campaign_version: string
+          p_operation: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      preview_interview_campaign_retarget_v1: {
+        Args: {
+          p_campaign_key: string
+          p_expected_campaign_version: string
+          p_expected_readiness_goal_version: string
+          p_readiness_goal_key: string
+          p_reason: string
         }
         Returns: Json
       }

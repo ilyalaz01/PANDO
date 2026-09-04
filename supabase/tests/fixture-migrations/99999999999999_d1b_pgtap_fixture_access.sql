@@ -81,3 +81,34 @@ begin
   );
 end
 $fixture_role_membership$;
+
+-- D4 Interview Campaign pgTAP proofs call these private Targets helpers directly to verify
+-- deterministic identity derivation and event-payload validation, exactly as the accepted D3a
+-- fixture above does for Planning's replacement identity helper.
+do $fixture_role_membership$
+begin
+  execute pg_catalog.format(
+    'grant pando_phase1_api to %I with set true', current_user
+  );
+end
+$fixture_role_membership$;
+
+set role pando_phase1_api;
+grant execute on function
+  targets.frame_named_fields_v1(text[], text[]),
+  targets.derive_campaign_identity_v1(uuid, text, text, text),
+  targets.local_timestamp_to_instant_v1(timestamp, text),
+  targets.campaign_created_event_payload_v1_is_valid(jsonb),
+  targets.campaign_lifecycle_event_payload_v1_is_valid(jsonb),
+  targets.campaign_deadline_changed_event_payload_v1_is_valid(jsonb),
+  targets.campaign_retargeted_event_payload_v1_is_valid(jsonb)
+  to postgres;
+reset role;
+
+do $fixture_role_membership$
+begin
+  execute pg_catalog.format(
+    'revoke pando_phase1_api from %I', current_user
+  );
+end
+$fixture_role_membership$;

@@ -320,7 +320,16 @@ where namespace.nspname = 'api'
     'skip_review_reason_once_v1',
     'suppress_review_reason_v1',
     'restore_review_reason_v1',
-    'get_review_workspace_v1'
+    'get_review_workspace_v1',
+    'preview_interview_campaign_creation_v1',
+    'apply_interview_campaign_creation_v1',
+    'preview_interview_campaign_deadline_change_v1',
+    'apply_interview_campaign_deadline_change_v1',
+    'preview_interview_campaign_retarget_v1',
+    'apply_interview_campaign_retarget_v1',
+    'preview_interview_campaign_lifecycle_v1',
+    'apply_interview_campaign_lifecycle_v1',
+    'get_interview_campaigns_v1'
   )
 order by procedure.proname;
 
@@ -367,7 +376,16 @@ where namespace.nspname = 'api'
   and procedure.proname in (
     'get_current_competency_overlay_v1',
     'save_current_overlay_note_v1',
-    'add_current_custom_activity_v1'
+    'add_current_custom_activity_v1',
+    'preview_interview_campaign_creation_v1',
+    'apply_interview_campaign_creation_v1',
+    'preview_interview_campaign_deadline_change_v1',
+    'apply_interview_campaign_deadline_change_v1',
+    'preview_interview_campaign_retarget_v1',
+    'apply_interview_campaign_retarget_v1',
+    'preview_interview_campaign_lifecycle_v1',
+    'apply_interview_campaign_lifecycle_v1',
+    'get_interview_campaigns_v1'
   )
 order by procedure.proname;
 
@@ -454,7 +472,8 @@ select ok(
     'pando_planning_worker', 'pando_planning_scheduler', 'pando_planning_router',
     'pando_identity_planning_source', 'pando_phase1_planning_source',
     'pando_phase2_planning_source', 'pando_evidence_planning_source',
-    'pando_review_planning_source', 'pando_mastery_planning_source'
+    'pando_review_planning_source', 'pando_mastery_planning_source',
+    'pando_identity_phase1_source'
   )
   and not owner.rolcanlogin,
   format('private definer %s is pinned and owned by a NOLOGIN role', procedure.proname)
@@ -490,7 +509,7 @@ where role.rolname in (
   'pando_identity_planning_source', 'pando_phase1_planning_source',
   'pando_phase2_planning_source', 'pando_evidence_planning_source',
   'pando_review_planning_source', 'pando_mastery_planning_source',
-  'pando_today_reader'
+  'pando_today_reader', 'pando_identity_phase1_source'
 )
 order by role.rolname;
 
@@ -507,7 +526,8 @@ cross join (values
   ('pando_mastery_planning_source'),
   ('pando_review_planning_source'),
   ('pando_planning_router'),
-  ('pando_today_reader')
+  ('pando_today_reader'),
+  ('pando_identity_phase1_source')
 ) as source_role(role_name)
 order by runtime_role.role_name, source_role.role_name;
 
@@ -520,6 +540,7 @@ select ok(
 )
 from (values
   ('identity', 'read_planning_calendar_source_v1', 'pando_identity_planning_source'),
+  ('identity', 'read_target_calendar_source_v1', 'pando_identity_phase1_source'),
   ('overlay', 'assert_planning_candidate_origins_v1', 'pando_phase1_planning_source'),
   ('overlay', 'read_planning_candidate_source_v1', 'pando_phase1_planning_source'),
   ('targets', 'read_planning_readiness_source_v1', 'pando_phase1_planning_source'),
