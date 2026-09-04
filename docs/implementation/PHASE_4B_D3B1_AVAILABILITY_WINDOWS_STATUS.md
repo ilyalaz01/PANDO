@@ -1,8 +1,15 @@
 # Phase 4B D3b1 — availability window persistence, control, and app layer status
 
-Status: D3b1 complete (persistence, owner command, and app layer). Per design §4, full D3b remains
-**partial** until D3b2 ships the V3 capacity composition and rollout — recorded availability does
-not yet change effective weekly capacity.
+Status: **partial**. The persistence, owner command, and full app layer described below are
+complete and verified. One item from D3b1-db's own original scope is confirmed still missing: no
+`supabase/tests/database/050_phase4b_availability_windows.test.sql` or `051_..._concurrency.test.sql`
+pgTAP file exists in this repository (verified this session — `pnpm verify:db` still runs the same
+49 files / 3070 assertions as before D3b1 started, and no file in `supabase/tests/database/`
+mentions availability windows as its subject). The prior D3b1-db session's own handoff report
+recorded this honestly as deferred, not delivered, despite the split plan's row 1 originally scoping
+"pgTAP + concurrency tests" into D3b1-db. See "Remaining work" below. Per design §4, full D3b also
+remains partial until D3b2 ships the V3 capacity composition and rollout — recorded availability
+does not yet change effective weekly capacity.
 
 Design: [Phase 4B D3b — dated availability windows](../design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md)
 
@@ -193,11 +200,22 @@ post-apply `router.refresh()` effect, and dirtying every remaining field) and th
 patterns every sibling Plan control already uses in both test files. No test was weakened or
 deleted to reach the threshold; only new coverage was added.
 
-## Next bounded outcome
+## Remaining work
 
-D3b2 — V3 capacity composition and rollout: `PlanningCalculationInputV3`, `PlanSnapshotV3`,
-calculation contract `planning-calculation/3`, `planner-engine/0.3.0`, `planning-policy/0.3`, the
-composition and protected-minimum rationing rules in design §3, the persisted clock-bound
-capacity-effect preview design §6 requires, and the same expand-then-activate rollout D2c used.
-Historical V1 and V2 rows stay immutable and readable under their own version tuples. D3b2 has not
-started; per design §4, D3b as a whole is not complete until it ships.
+1. **D3b1's own pgTAP database proof** (confirmed missing this session, not merely undocumented):
+   `supabase/tests/database/050_phase4b_availability_windows.test.sql` and a
+   `051_..._concurrency.test.sql`, covering design §7's full list — create/change/remove against
+   active and paused Plans, every blocking reason, the database-level exclusion-constraint proof,
+   replay/conflict/rollback/serialization, and two-workspace RLS isolation. The prior D3b1-db
+   session's own handoff report says a verified draft of both files exists in a scratch project at
+   `/home/ilya/pando-d3b1-dev` (outside this repository) and was never copied in. This app-layer
+   outcome did not touch the database layer (explicitly out of scope) and did not add these files.
+   Whoever picks this up next should treat it as the fastest path to closing D3b1-db's original scope
+   before starting D3b2, since a verified draft already exists elsewhere.
+2. **D3b2 — V3 capacity composition and rollout**: `PlanningCalculationInputV3`, `PlanSnapshotV3`,
+   calculation contract `planning-calculation/3`, `planner-engine/0.3.0`, `planning-policy/0.3`, the
+   composition and protected-minimum rationing rules in design §3, the persisted clock-bound
+   capacity-effect preview design §6 requires, and the same expand-then-activate rollout D2c used.
+   Historical V1 and V2 rows stay immutable and readable under their own version tuples. D3b2 has not
+   started; per design §4, D3b as a whole is not complete until it ships, and it should not start
+   before item 1 above closes.
