@@ -118,7 +118,10 @@ after reformatting.
 ## 7. Git state
 
 - Branch `claude/d3b2-engine`, based on `main` at `8f6c1ca` (D3b1-app).
-- GIT_COMMIT_PLACEHOLDER
+- Commit `4b56c4e`: `feat(planning): D3b2 availability-composed capacity engine` — 15 files changed,
+  all four verify gates (`verify:db`, `verify:auth`, `verify`, `verify:backup`) passing at commit
+  time.
+- Not pushed. `main` is unaffected.
 - `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md` was not read, edited, or staged.
 - Working tree is clean except a pre-existing, unrelated, already-modified `.gitignore` (adds
   `.aider*`) that predates this session and was left untouched, per "preserve unrelated user
