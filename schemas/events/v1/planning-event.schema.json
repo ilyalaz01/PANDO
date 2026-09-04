@@ -32,6 +32,9 @@
     },
     {
       "$ref": "#/$defs/planReplaced"
+    },
+    {
+      "$ref": "#/$defs/availabilityChanged"
     }
   ],
   "$defs": {
@@ -558,6 +561,59 @@
             },
             "profile_version_id": {
               "$ref": "#/$defs/uuid"
+            }
+          }
+        }
+      }
+    },
+    "availabilityChanged": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_name",
+        "event_schema_version",
+        "workspace_id",
+        "payload"
+      ],
+      "properties": {
+        "event_name": {
+          "const": "planning.input_changed"
+        },
+        "event_schema_version": {
+          "const": 1
+        },
+        "workspace_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change_kind",
+            "operation",
+            "growth_plan_id",
+            "availability_window_id",
+            "availability_window_version"
+          ],
+          "properties": {
+            "change_kind": {
+              "const": "AVAILABILITY_CHANGED"
+            },
+            "operation": {
+              "enum": [
+                "create_availability_window",
+                "change_availability_window",
+                "remove_availability_window"
+              ]
+            },
+            "growth_plan_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "availability_window_id": {
+              "$ref": "#/$defs/uuid"
+            },
+            "availability_window_version": {
+              "$ref": "#/$defs/positiveBigint"
             }
           }
         }

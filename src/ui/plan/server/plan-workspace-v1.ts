@@ -55,6 +55,15 @@ import {
   type LearningTrackCadencePreviewV1,
   type LearningTrackCadenceSourceV1,
 } from "../../../shared/contracts/learning-track-cadence-control";
+import {
+  decodeAvailabilityWindowApplyResultV1 as decodeAvailabilityWindowApplyResult,
+  decodeAvailabilityWindowPreviewV1 as decodeAvailabilityWindowPreview,
+  decodeAvailabilityWindowSourceV1 as decodeAvailabilityWindowSource,
+  type AvailabilityWindowApplyResultV1,
+  type AvailabilityWindowOperationV1,
+  type AvailabilityWindowPreviewV1,
+  type AvailabilityWindowSourceV1,
+} from "../../../shared/contracts/availability-window-control";
 import { validateSchema } from "../../../shared/contracts/schema-registry";
 
 export type {
@@ -80,6 +89,10 @@ export type {
   LearningTrackCadenceApplyResultV1,
   LearningTrackCadencePreviewV1,
   LearningTrackCadenceSourceV1,
+  AvailabilityWindowApplyResultV1,
+  AvailabilityWindowOperationV1,
+  AvailabilityWindowPreviewV1,
+  AvailabilityWindowSourceV1,
 };
 
 export type GrowthPlanLifecycleOperationV1 = "pause_growth_plan" | "resume_growth_plan";
@@ -674,4 +687,21 @@ export function decodeLearningTrackActivityAdmissionApplyResultV2(
   value: unknown,
 ): LearningTrackActivityAdmissionApplyResultV2 {
   return decodeLearningTrackActivityAdmissionApplyResultV2Contract(value);
+}
+
+/** Decodes the bounded actor-scoped availability window selector. */
+export function decodeAvailabilityWindowSourceV1(value: unknown): AvailabilityWindowSourceV1 {
+  return decodeAvailabilityWindowSource(value);
+}
+
+/** Decodes an exact, clock-free availability window preview. */
+export function decodeAvailabilityWindowPreviewV1(value: unknown): AvailabilityWindowPreviewV1 {
+  return decodeAvailabilityWindowPreview(value);
+}
+
+/** Decodes the atomic availability window command response. */
+export function decodeAvailabilityWindowApplyResultV1(
+  value: unknown,
+): AvailabilityWindowApplyResultV1 {
+  return decodeAvailabilityWindowApplyResult(value);
 }

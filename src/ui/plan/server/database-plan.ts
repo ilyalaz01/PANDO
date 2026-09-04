@@ -33,6 +33,13 @@ import {
   decodeLearningTrackCadenceApplyResultV1,
   decodeLearningTrackCadencePreviewV1,
   decodeLearningTrackCadenceSourceV1,
+  decodeAvailabilityWindowApplyResultV1,
+  decodeAvailabilityWindowPreviewV1,
+  decodeAvailabilityWindowSourceV1,
+  type AvailabilityWindowApplyResultV1,
+  type AvailabilityWindowOperationV1,
+  type AvailabilityWindowPreviewV1,
+  type AvailabilityWindowSourceV1,
   type CurrentLearningTracksV1,
   type CurrentGrowthPlanV1,
   type GrowthPlanCapacityApplyResultV1,
@@ -117,6 +124,9 @@ export const APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1 =
   "apply_learning_track_activity_admission_v1" as const;
 export const APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2 =
   "apply_learning_track_activity_admission_v2" as const;
+export const GET_AVAILABILITY_WINDOW_SOURCE_RPC_V1 = "get_availability_window_source_v1" as const;
+export const PREVIEW_AVAILABILITY_WINDOW_RPC_V1 = "preview_availability_window_v1" as const;
+export const APPLY_AVAILABILITY_WINDOW_RPC_V1 = "apply_availability_window_v1" as const;
 
 const POSITIVE_BIGINT = /^(?:[1-9][0-9]{0,18})$/u;
 const SHA_256_HEX = /^[a-f0-9]{64}$/u;
@@ -127,6 +137,8 @@ const ACTIVITY_KEY = /^activity:[a-z0-9][a-z0-9-]{1,100}$/u;
 const GOAL_KEY = /^goal:[a-z0-9][a-z0-9-]{1,100}$/u;
 const HISTORY_CURSOR = /^[A-Za-z0-9+/=]{1,512}$/u;
 const LOWERCASE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const WINDOW_KEY = /^window:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const LOCAL_DATE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/u;
 
 export class PlanInputError extends Error {
   constructor() {
@@ -285,6 +297,24 @@ export interface LearningTrackActivityAdmissionPreviewCommandV2 extends Learning
 }
 
 export interface LearningTrackActivityAdmissionApplyCommandV2 extends LearningTrackActivityAdmissionPreviewCommandV2 {
+  readonly previewDigest: string;
+}
+
+export interface AvailabilityWindowPreviewCommandV1 {
+  readonly operation: AvailabilityWindowOperationV1;
+  readonly windowKey: string | null;
+  readonly startsOn: string | null;
+  readonly endsOn: string | null;
+  readonly availableMinutes: number | null;
+  readonly energy: "LOW" | "MEDIUM" | "HIGH" | null;
+  readonly label: string | null;
+  readonly expectedGrowthPlanVersion: string;
+  readonly expectedWindowVersion: string | null;
+  readonly reason: string;
+  readonly idempotencyKey: string;
+}
+
+export interface AvailabilityWindowApplyCommandV1 extends AvailabilityWindowPreviewCommandV1 {
   readonly previewDigest: string;
 }
 
@@ -491,6 +521,77 @@ function validActivityAdmissionPreviewV2(
   return TRACK_KEY.test(command.trackKey) && validActivityAdmissionPreview(command);
 }
 
+function validAvailabilityWindowRange(startsOn: string, endsOn: string): boolean {
+  if (!LOCAL_DATE.test(startsOn) || !LOCAL_DATE.test(endsOn)) return false;
+  const start = Date.parse(`${startsOn}T00:00:00.000Z`);
+  const end = Date.parse(`${endsOn}T00:00:00.000Z`);
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return false;
+  const days = (end - start) / 86_400_000;
+  return days >= 0 && days <= 365;
+}
+
+function validAvailabilityWindowLabel(value: string): boolean {
+  return (
+    Array.from(value).length >= 1 &&
+    Array.from(value).length <= 120 &&
+    value.trim() === value &&
+    !CONTROL_CHARACTER.test(value)
+  );
+}
+
+function validEnergy(value: string | null): value is "LOW" | "MEDIUM" | "HIGH" | null {
+  return value === null || value === "LOW" || value === "MEDIUM" || value === "HIGH";
+}
+
+function validAvailabilityWindowOperation(value: string): value is AvailabilityWindowOperationV1 {
+  return (
+    value === "create_availability_window" ||
+    value === "change_availability_window" ||
+    value === "remove_availability_window"
+  );
+}
+
+function validAvailabilityWindowPreview(command: AvailabilityWindowPreviewCommandV1): boolean {
+  if (
+    !validAvailabilityWindowOperation(command.operation) ||
+    !validVersion(command.expectedGrowthPlanVersion) ||
+    !validReason(command.reason) ||
+    !LOWERCASE_UUID.test(command.idempotencyKey)
+  ) {
+    return false;
+  }
+  if (command.operation === "create_availability_window") {
+    if (command.windowKey !== null || command.expectedWindowVersion !== null) return false;
+  } else if (
+    command.windowKey === null ||
+    !WINDOW_KEY.test(command.windowKey) ||
+    command.expectedWindowVersion === null ||
+    !validVersion(command.expectedWindowVersion)
+  ) {
+    return false;
+  }
+  if (command.operation === "remove_availability_window") {
+    return (
+      command.startsOn === null &&
+      command.endsOn === null &&
+      command.availableMinutes === null &&
+      command.energy === null &&
+      command.label === null
+    );
+  }
+  return (
+    command.startsOn !== null &&
+    command.endsOn !== null &&
+    validAvailabilityWindowRange(command.startsOn, command.endsOn) &&
+    command.availableMinutes !== null &&
+    Number.isInteger(command.availableMinutes) &&
+    command.availableMinutes >= 0 &&
+    command.availableMinutes <= 1440 &&
+    validEnergy(command.energy) &&
+    (command.label === null || validAvailabilityWindowLabel(command.label))
+  );
+}
+
 async function rpc(
   client: PandoSupabaseClient,
   name:
@@ -524,7 +625,10 @@ async function rpc(
     | typeof PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1
     | typeof PREVIEW_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2
     | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V1
-    | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2,
+    | typeof APPLY_LEARNING_TRACK_ACTIVITY_ADMISSION_RPC_V2
+    | typeof GET_AVAILABILITY_WINDOW_SOURCE_RPC_V1
+    | typeof PREVIEW_AVAILABILITY_WINDOW_RPC_V1
+    | typeof APPLY_AVAILABILITY_WINDOW_RPC_V1,
   parameters?: Record<string, string | number | null>,
 ): Promise<unknown> {
   let result: { data: unknown; error: unknown | null };
@@ -1414,6 +1518,97 @@ export async function applyLearningTrackActivityAdmissionV2(
         p_expected_learning_track_version: command.expectedLearningTrackVersion,
         p_reason: command.reason,
         p_request_id: command.requestId,
+        p_preview_digest: command.previewDigest,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Loads the session-resolved, bounded availability window selector for the current Plan. */
+export async function loadAvailabilityWindowSourceV1(
+  client: PandoSupabaseClient,
+): Promise<AvailabilityWindowSourceV1> {
+  try {
+    return decodeAvailabilityWindowSourceV1(
+      await rpc(client, GET_AVAILABILITY_WINDOW_SOURCE_RPC_V1),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Previews the exact create, change, or remove effect of one availability window. */
+export async function previewAvailabilityWindowV1(
+  client: PandoSupabaseClient,
+  command: AvailabilityWindowPreviewCommandV1,
+): Promise<AvailabilityWindowPreviewV1> {
+  if (!validAvailabilityWindowPreview(command)) throw new PlanInputError();
+  try {
+    return decodeAvailabilityWindowPreviewV1(
+      await rpc(client, PREVIEW_AVAILABILITY_WINDOW_RPC_V1, {
+        p_operation: command.operation,
+        p_window_key: command.windowKey,
+        p_starts_on: command.startsOn,
+        p_ends_on: command.endsOn,
+        p_available_minutes: command.availableMinutes,
+        p_energy: command.energy,
+        p_label: command.label,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_window_version: command.expectedWindowVersion,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
+      }),
+    );
+  } catch (error) {
+    if (
+      error instanceof PlanInputError ||
+      error instanceof PlanConflictError ||
+      error instanceof PlanUnavailableError
+    ) {
+      throw error;
+    }
+    throw new PlanUnavailableError();
+  }
+}
+
+/** Applies only the confirmed availability window preview, matched by its exact digest. */
+export async function applyAvailabilityWindowV1(
+  client: PandoSupabaseClient,
+  command: AvailabilityWindowApplyCommandV1,
+): Promise<AvailabilityWindowApplyResultV1> {
+  if (!validAvailabilityWindowPreview(command) || !SHA_256_HEX.test(command.previewDigest)) {
+    throw new PlanInputError();
+  }
+  try {
+    return decodeAvailabilityWindowApplyResultV1(
+      await rpc(client, APPLY_AVAILABILITY_WINDOW_RPC_V1, {
+        p_operation: command.operation,
+        p_window_key: command.windowKey,
+        p_starts_on: command.startsOn,
+        p_ends_on: command.endsOn,
+        p_available_minutes: command.availableMinutes,
+        p_energy: command.energy,
+        p_label: command.label,
+        p_expected_growth_plan_version: command.expectedGrowthPlanVersion,
+        p_expected_window_version: command.expectedWindowVersion,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotencyKey,
         p_preview_digest: command.previewDigest,
       }),
     );

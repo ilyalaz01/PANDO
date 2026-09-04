@@ -31,6 +31,13 @@ import type {
   GrowthPlanReplacementPreviewV1,
   GrowthPlanReplacementSourceV1,
 } from "../../shared/contracts/growth-plan-replacement-control";
+import type {
+  AvailabilityWindowApplyResultV1,
+  AvailabilityWindowOperationV1,
+  AvailabilityWindowPreviewV1,
+  AvailabilityWindowSourceV1,
+  AvailabilityWindowStateV1,
+} from "../../shared/contracts/availability-window-control";
 
 export type Lifecycle = "ACTIVE" | "PAUSED";
 export type PlanOperation = "pause_growth_plan" | "resume_growth_plan";
@@ -232,7 +239,8 @@ export type PlanPreviewV1 =
   | GrowthPlanReplacementPreviewV1
   | LearningTrackCreationPreviewV1
   | LearningTrackActivityAdmissionPreviewV1
-  | LearningTrackActivityAdmissionPreviewV2;
+  | LearningTrackActivityAdmissionPreviewV2
+  | AvailabilityWindowPreviewV1;
 
 export interface CurrentGrowthPlanV1 {
   readonly contract: { readonly name: "CurrentGrowthPlanV1"; readonly version: "1.0.0" };
@@ -267,6 +275,11 @@ export type {
   GrowthPlanReplacementApplyResultV1,
   GrowthPlanReplacementPreviewV1,
   GrowthPlanReplacementSourceV1,
+  AvailabilityWindowApplyResultV1,
+  AvailabilityWindowOperationV1,
+  AvailabilityWindowPreviewV1,
+  AvailabilityWindowSourceV1,
+  AvailabilityWindowStateV1,
 };
 
 export type LearningTrackActivityAdmissionSource =

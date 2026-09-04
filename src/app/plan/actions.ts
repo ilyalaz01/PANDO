@@ -19,6 +19,7 @@ import {
   applyGrowthPlanReplacementV1,
   applyGrowthPlanCapacityV1,
   applyGrowthPlanLifecycleV1,
+  applyAvailabilityWindowV1,
   previewGrowthPlanCapacityV1,
   previewGrowthPlanLifecycleV1,
   previewLearningTrackLifecycleV1,
@@ -30,9 +31,11 @@ import {
   previewLearningTrackCadenceV1,
   previewGrowthPlanInitializationV1,
   previewGrowthPlanReplacementV1,
+  previewAvailabilityWindowV1,
   PlanConflictError,
   PlanInputError,
 } from "../../ui/plan/server/database-plan";
+import type { AvailabilityWindowOperationV1 } from "../../ui/plan/plan-types";
 
 const VERSION = /^[1-9][0-9]{0,18}$/u;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -45,6 +48,13 @@ const TRACK_OPERATIONS = ["pause_track", "resume_track"] as const;
 const TERMINAL_TRACK_OPERATIONS = ["complete_track", "archive_track"] as const;
 const PRIORITY = /^(?:0|[1-9][0-9]{0,2})$/u;
 const CONTROL_CHARACTER = /[\p{Cc}]/u;
+const WINDOW_KEY = /^window:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const LOCAL_DATE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/u;
+const AVAILABILITY_OPERATIONS = [
+  "create_availability_window",
+  "change_availability_window",
+  "remove_availability_window",
+] as const;
 
 function validReason(value: string): boolean {
   return (
@@ -363,6 +373,95 @@ function activityAdmissionInput(formData: FormData): {
     requestId,
   };
 }
+function availabilityWindowInput(formData: FormData): {
+  operation: AvailabilityWindowOperationV1;
+  windowKey: string | null;
+  startsOn: string | null;
+  endsOn: string | null;
+  availableMinutes: number | null;
+  energy: "LOW" | "MEDIUM" | "HIGH" | null;
+  label: string | null;
+  expectedGrowthPlanVersion: string;
+  expectedWindowVersion: string | null;
+  reason: string;
+  requestId: string;
+} {
+  const operation = field(formData, "operation");
+  const windowKeyInput = field(formData, "windowKey");
+  const startsOnInput = field(formData, "startsOn");
+  const endsOnInput = field(formData, "endsOn");
+  const availableMinutesInput = field(formData, "availableMinutes");
+  const energyInput = field(formData, "energy");
+  const labelInput = field(formData, "label");
+  const expectedGrowthPlanVersion = field(formData, "expectedGrowthPlanVersion");
+  const expectedWindowVersionInput = field(formData, "expectedWindowVersion");
+  const reason = field(formData, "reason");
+  const requestId = field(formData, "requestId");
+  const windowKey = windowKeyInput === "" ? null : windowKeyInput;
+  const expectedWindowVersion =
+    expectedWindowVersionInput === "" ? null : expectedWindowVersionInput;
+  const energy = energyInput === "" ? null : energyInput;
+  const label = labelInput === "" ? null : labelInput;
+
+  if (
+    !AVAILABILITY_OPERATIONS.includes(operation as AvailabilityWindowOperationV1) ||
+    !VERSION.test(expectedGrowthPlanVersion) ||
+    !validReason(reason) ||
+    !UUID.test(requestId) ||
+    requestId !== requestId.toLowerCase()
+  ) {
+    throw new PlanInputError();
+  }
+  if (operation === "create_availability_window") {
+    if (windowKey !== null || expectedWindowVersion !== null) throw new PlanInputError();
+  } else if (
+    windowKey === null ||
+    !WINDOW_KEY.test(windowKey) ||
+    expectedWindowVersion === null ||
+    !VERSION.test(expectedWindowVersion)
+  ) {
+    throw new PlanInputError();
+  }
+  if (operation === "remove_availability_window") {
+    return {
+      operation,
+      windowKey,
+      startsOn: null,
+      endsOn: null,
+      availableMinutes: null,
+      energy: null,
+      label: null,
+      expectedGrowthPlanVersion,
+      expectedWindowVersion,
+      reason,
+      requestId,
+    };
+  }
+  if (
+    !LOCAL_DATE.test(startsOnInput) ||
+    !LOCAL_DATE.test(endsOnInput) ||
+    !CAPACITY.test(availableMinutesInput) ||
+    Number(availableMinutesInput) > 1440 ||
+    (energy !== null && !["LOW", "MEDIUM", "HIGH"].includes(energy)) ||
+    (label !== null && (!validReason(label) || Array.from(label).length > 120))
+  ) {
+    throw new PlanInputError();
+  }
+  return {
+    operation: operation as AvailabilityWindowOperationV1,
+    windowKey,
+    startsOn: startsOnInput,
+    endsOn: endsOnInput,
+    availableMinutes: Number(availableMinutesInput),
+    energy: energy as "LOW" | "MEDIUM" | "HIGH" | null,
+    label,
+    expectedGrowthPlanVersion,
+    expectedWindowVersion,
+    reason,
+    requestId,
+  };
+}
+
 function failure(error: unknown, invalidMessage?: string): PlanActionState {
   if (error instanceof PlanConflictError)
     return {
@@ -1055,6 +1154,82 @@ export async function applyLearningTrackActivityAdmissionAction(
     return failure(
       error,
       "Choose an available activity, use 1 to 480 whole minutes, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function previewAvailabilityWindowAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = availabilityWindowInput(formData);
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    const preview = await previewAvailabilityWindowV1(client, {
+      operation: value.operation,
+      windowKey: value.windowKey,
+      startsOn: value.startsOn,
+      endsOn: value.endsOn,
+      availableMinutes: value.availableMinutes,
+      energy: value.energy,
+      label: value.label,
+      expectedGrowthPlanVersion: value.expectedGrowthPlanVersion,
+      expectedWindowVersion: value.expectedWindowVersion,
+      reason: value.reason,
+      idempotencyKey: value.requestId,
+    });
+    return {
+      status: "previewed",
+      message: preview.canApply
+        ? "Availability preview ready. Confirm only if these exact facts are correct."
+        : "This availability change is no longer applicable. Reload and start again.",
+      preview,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose valid local dates, whole minutes from 0 to 1440, and enter a reason. Nothing changed.",
+    );
+  }
+}
+
+export async function applyAvailabilityWindowAction(
+  _previous: PlanActionState,
+  formData: FormData,
+): Promise<PlanActionState> {
+  try {
+    const value = availabilityWindowInput(formData);
+    const previewDigest = field(formData, "previewDigest");
+    if (!/^[a-f0-9]{64}$/u.test(previewDigest)) throw new PlanInputError();
+    const client = await createPandoServerActionClient();
+    await verifyPandoSession(client);
+    await applyAvailabilityWindowV1(client, {
+      operation: value.operation,
+      windowKey: value.windowKey,
+      startsOn: value.startsOn,
+      endsOn: value.endsOn,
+      availableMinutes: value.availableMinutes,
+      energy: value.energy,
+      label: value.label,
+      expectedGrowthPlanVersion: value.expectedGrowthPlanVersion,
+      expectedWindowVersion: value.expectedWindowVersion,
+      reason: value.reason,
+      idempotencyKey: value.requestId,
+      previewDigest,
+    });
+    revalidatePath("/plan");
+    revalidatePath("/today");
+    return {
+      status: "applied",
+      message:
+        "Availability changed. Planning recalculation is pending; Today will update when it completes.",
+      preview: null,
+    };
+  } catch (error) {
+    return failure(
+      error,
+      "Choose valid local dates, whole minutes from 0 to 1440, and enter a reason. Nothing changed.",
     );
   }
 }

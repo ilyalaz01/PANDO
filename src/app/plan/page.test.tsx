@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   loadTerminal: vi.fn(),
   loadCadence: vi.fn(),
   loadReplacement: vi.fn(),
+  loadAvailability: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -42,6 +43,7 @@ vi.mock("../../ui/plan/server/database-plan", () => ({
   loadLearningTrackTerminalLifecycleSourceV1: mocks.loadTerminal,
   loadLearningTrackCadenceSourceV1: mocks.loadCadence,
   loadGrowthPlanReplacementSourceV1: mocks.loadReplacement,
+  loadAvailabilityWindowSourceV1: mocks.loadAvailability,
 }));
 
 import PlanPage from "./page";
@@ -331,6 +333,36 @@ const noPlanReplacementSource = {
   currentPlan: null,
   goals: [],
 } as const;
+const availabilityWindowSource = {
+  contract: { name: "AvailabilityWindowSourceV1", version: "1.0.0" },
+  state: "AVAILABILITY_AVAILABLE",
+  capabilities: [
+    "create_availability_window",
+    "change_availability_window",
+    "remove_availability_window",
+  ],
+  growthPlan: {
+    lifecycle: "ACTIVE",
+    weeklyCapacityMinutes: 600,
+    aggregateVersion: "4",
+    timeZone: "UTC",
+    currentLocalDate: "2026-09-04",
+    activeWindowCount: 0,
+    activeWindowLimit: 60,
+    removedWindowCount: 0,
+    capacityUsesAvailability: false,
+  },
+  availabilityWindows: [],
+  removedAvailabilityWindows: [],
+} as const;
+const noPlanAvailabilityWindowSource = {
+  contract: { name: "AvailabilityWindowSourceV1", version: "1.0.0" },
+  state: "NO_CURRENT_PLAN",
+  capabilities: [],
+  growthPlan: null,
+  availabilityWindows: [],
+  removedAvailabilityWindows: [],
+} as const;
 
 describe("PlanPage", () => {
   beforeEach(() => {
@@ -345,6 +377,7 @@ describe("PlanPage", () => {
     mocks.loadTerminal.mockResolvedValue(terminalLifecycleSource);
     mocks.loadCadence.mockResolvedValue(cadenceSource);
     mocks.loadReplacement.mockResolvedValue(replacementSource);
+    mocks.loadAvailability.mockResolvedValue(availabilityWindowSource);
   });
 
   it("authenticates and loads the actor-scoped current Growth Plan", async () => {
@@ -422,6 +455,7 @@ describe("PlanPage", () => {
     mocks.loadTerminal.mockResolvedValue(noPlanTerminalLifecycleSource);
     mocks.loadCadence.mockResolvedValue(noPlanCadenceSource);
     mocks.loadReplacement.mockResolvedValue(noPlanReplacementSource);
+    mocks.loadAvailability.mockResolvedValue(noPlanAvailabilityWindowSource);
     mocks.loadAdmission.mockResolvedValue(noPlanActivityAdmissionSource);
     render(await PlanPage());
     expect(screen.getByRole("heading", { name: "Set up your first Growth Plan." })).toBeVisible();

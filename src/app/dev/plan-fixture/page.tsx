@@ -12,6 +12,7 @@ import type {
   LearningTrackTerminalLifecycleSourceV1,
   LearningTrackCadenceSourceV1,
   GrowthPlanReplacementSourceV1,
+  AvailabilityWindowSourceV1,
 } from "../../../ui/plan/plan-types";
 import { PlanWorkspace } from "../../../ui/plan/plan-workspace";
 import styles from "../../../ui/plan/plan.module.css";
@@ -493,6 +494,100 @@ const terminalLifecyclePreviewState: PlanActionState = {
       consumerName: "planning.plan_snapshot_v1",
     },
     previewDigest: "e".repeat(64),
+  },
+};
+
+const availabilityWindowSource: AvailabilityWindowSourceV1 = {
+  contract: { name: "AvailabilityWindowSourceV1", version: "1.0.0" },
+  state: "AVAILABILITY_AVAILABLE",
+  capabilities: [
+    "create_availability_window",
+    "change_availability_window",
+    "remove_availability_window",
+  ],
+  growthPlan: {
+    lifecycle: plan.lifecycle,
+    weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+    aggregateVersion: plan.aggregateVersion,
+    timeZone: "America/New_York",
+    currentLocalDate: "2026-09-04",
+    activeWindowCount: 1,
+    activeWindowLimit: 60,
+    removedWindowCount: 1,
+    capacityUsesAvailability: false,
+  },
+  availabilityWindows: [
+    {
+      windowKey: "window:60000001-0000-8000-8000-000000000001",
+      startsOn: "2026-11-01",
+      endsOn: "2026-11-05",
+      timeZone: "America/New_York",
+      availableMinutes: 240,
+      energy: "MEDIUM",
+      label: "Conference travel",
+      lifecycle: "ACTIVE",
+      aggregateVersion: "2",
+    },
+  ],
+  removedAvailabilityWindows: [],
+};
+
+const availabilityWindowPreviewState: PlanActionState = {
+  status: "previewed",
+  message: "Availability preview ready. Confirm only if these exact facts are correct.",
+  preview: {
+    contract: { name: "AvailabilityWindowPreviewV1", version: "1.0.0" },
+    digestVersion: "availability-window-preview-digest/1.0.0",
+    identityVersion: "planning-create-identity/1.0.0",
+    operation: "create_availability_window",
+    commandType: "planning.change_availability_window_v1",
+    idempotencyKey: "60000000-0000-4000-8000-000000000002",
+    reason: "Block off finals week",
+    expectedGrowthPlanVersion: plan.aggregateVersion,
+    growthPlan: {
+      growthPlanId: plan.growthPlanId,
+      lifecycle: plan.lifecycle,
+      weeklyCapacityMinutes: plan.weeklyCapacityMinutes,
+      aggregateVersion: plan.aggregateVersion,
+    },
+    before: {
+      activeWindowCount: 1,
+      removedWindowCount: 1,
+      activeWindowFingerprint: "a".repeat(64),
+      window: null,
+    },
+    after: {
+      activeWindowCount: 2,
+      window: {
+        windowKey: "window:60000002-0000-8000-8000-000000000002",
+        availabilityWindowId: "60000002-0000-8000-8000-000000000002",
+        startsOn: "2026-12-15",
+        endsOn: "2026-12-19",
+        timeZone: "America/New_York",
+        availableMinutes: 120,
+        energy: "LOW",
+        label: "Finals week",
+        lifecycle: "ACTIVE",
+        aggregateVersion: "1",
+      },
+    },
+    canApply: true,
+    blockingReasons: [],
+    warnings: [{ code: "AVAILABILITY_NOT_YET_APPLIED_TO_CAPACITY" }],
+    retained: {
+      growthPlan: true,
+      learningTracks: true,
+      activitiesAndEvidence: true,
+      mastery: true,
+      reviews: true,
+      planSnapshots: true,
+    },
+    recalculationAfterApply: {
+      projectionState: "PENDING",
+      eventChangeKind: "AVAILABILITY_CHANGED",
+      consumerName: "planning.plan_snapshot_v1",
+    },
+    previewDigest: "b".repeat(64),
   },
 };
 
@@ -1038,6 +1133,7 @@ export default async function PlanFixturePage({
   const showsTerminal = previewKind.startsWith("terminal");
   const showsCadence = previewKind.startsWith("track-cadence");
   const showsReplacement = previewKind.startsWith("plan-replacement");
+  const showsAvailability = previewKind === "availability";
   const creationSource =
     previewKind === "track-create-no-goals"
       ? creationSourceState("NO_ACTIVE_GOALS")
@@ -1097,6 +1193,9 @@ export default async function PlanFixturePage({
           initialReplacementPreviewState={
             previewKind === "plan-replacement" ? replacementPreviewState : initialPlanActionState
           }
+          initialAvailabilityWindowPreviewState={
+            showsAvailability ? availabilityWindowPreviewState : initialPlanActionState
+          }
           initialInitializationPreviewState={
             showsInitialization ? initializationPreviewState : initialPlanActionState
           }
@@ -1111,7 +1210,8 @@ export default async function PlanFixturePage({
             showsActivity ||
             showsTerminal ||
             showsCadence ||
-            showsReplacement
+            showsReplacement ||
+            showsAvailability
               ? initialPlanActionState
               : previewState
           }
@@ -1151,6 +1251,7 @@ export default async function PlanFixturePage({
             : {})}
           {...(showsCadence ? { cadenceSource } : {})}
           {...(showsReplacement ? { replacementSource } : {})}
+          {...(showsAvailability ? { availabilityWindowSource } : {})}
           tracksWorkspace={
             showsInitialization
               ? setupTracksWorkspace

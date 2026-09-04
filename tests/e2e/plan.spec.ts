@@ -40,6 +40,21 @@ async function openTrackCreationFixture(
   ).toBeVisible();
 }
 
+/**
+ * A native empty `<input type="date">` exposes month/day/year as separate internal tab stops in
+ * Chromium, so leaving it can take more than one physical Tab press. This presses Tab until focus
+ * actually moves off `current`, bounded well above the three internal segments.
+ */
+async function tabPastDateField(
+  page: import("@playwright/test").Page,
+  current: import("@playwright/test").Locator,
+) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await page.keyboard.press("Tab");
+    if (!(await current.evaluate((element) => element === document.activeElement))) return;
+  }
+}
+
 async function openTerminalFixture(page: import("@playwright/test").Page) {
   await page.goto("/dev/plan-fixture?preview=terminal");
   await expect(
@@ -128,6 +143,34 @@ test("shows an exact lifecycle preview and keeps confirmation keyboard-operable"
   ).toBeFocused();
   await page.getByRole("button", { name: "Confirm and replace Growth Plan" }).focus();
   await expect(page.getByRole("button", { name: "Confirm and replace Growth Plan" })).toBeFocused();
+
+  await openFixture(page, "?preview=availability");
+  const availabilityCreateRegion = page.getByRole("region", {
+    name: "Add an availability window",
+  });
+  const availabilityStartsOn = availabilityCreateRegion.getByLabel("Starts on");
+  await availabilityStartsOn.focus();
+  await tabPastDateField(page, availabilityStartsOn);
+  const availabilityEndsOn = availabilityCreateRegion.getByLabel("Ends on");
+  await expect(availabilityEndsOn).toBeFocused();
+  await tabPastDateField(page, availabilityEndsOn);
+  await expect(
+    availabilityCreateRegion.getByLabel("Available minutes per day (0–1440)"),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(availabilityCreateRegion.getByLabel("Energy (optional)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(availabilityCreateRegion.getByLabel("Label (optional)")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    availabilityCreateRegion.getByLabel("Why does this window belong now?"),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(
+    availabilityCreateRegion.getByRole("button", { name: "Preview new window" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Confirm availability change" }).focus();
+  await expect(page.getByRole("button", { name: "Confirm availability change" })).toBeFocused();
 
   await openActivityFixture(page);
   await page.getByLabel("Personal activity").focus();
@@ -274,6 +317,27 @@ test("fits 320px with touch-sized Plan controls", async ({ page }) => {
     expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
   }
 
+  await openFixture(page, "?preview=availability");
+  const availabilityDimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+  expect(availabilityDimensions.scrollWidth).toBeLessThanOrEqual(
+    availabilityDimensions.clientWidth,
+  );
+  const availabilityCreateRegion = page.getByRole("region", {
+    name: "Add an availability window",
+  });
+  for (const control of [
+    availabilityCreateRegion.getByLabel("Starts on"),
+    availabilityCreateRegion.getByLabel("Available minutes per day (0–1440)"),
+    availabilityCreateRegion.getByRole("button", { name: "Preview new window" }),
+    page.getByRole("button", { name: "Confirm availability change" }),
+  ]) {
+    const controlBox = await control.boundingBox();
+    expect(controlBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+  }
+
   await openSetupFixture(page);
   const setupDimensions = await page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
@@ -404,6 +468,16 @@ test("honors reduced motion and forced-colors focus visibility", async ({ page }
   expect(replacementStyles.outlineStyle).not.toBe("none");
   expect(replacementStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
 
+  await openFixture(page, "?preview=availability");
+  const availabilityControl = page.getByRole("button", { name: "Confirm availability change" });
+  await availabilityControl.focus();
+  const availabilityStyles = await availabilityControl.evaluate((element) => ({
+    outlineStyle: getComputedStyle(element).outlineStyle,
+    transitionDuration: getComputedStyle(element).transitionDuration,
+  }));
+  expect(availabilityStyles.outlineStyle).not.toBe("none");
+  expect(availabilityStyles.transitionDuration).toMatch(/^(0s|0\.00001s|1e-05s)$/u);
+
   await openSetupFixture(page);
   const setupControl = page.getByRole("button", { name: "Confirm and create Growth Plan" });
   await setupControl.focus();
@@ -493,6 +567,12 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
   expect(replacementResults.violations).toEqual([]);
+
+  await openFixture(page, "?preview=availability");
+  const availabilityResults = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(availabilityResults.violations).toEqual([]);
 
   await openSetupFixture(page);
   const setupResults = await new AxeBuilder({ page })
@@ -736,6 +816,30 @@ test("shows exact Growth Plan replacement consequences and retained history", as
   await page.getByLabel("New weekly capacity (minutes)").fill("300");
   await expect(page.getByRole("button", { name: "Confirm and replace Growth Plan" })).toHaveCount(
     0,
+  );
+});
+
+test("shows exact availability window consequences and keeps stale confirmations dismissed", async ({
+  page,
+}) => {
+  await openFixture(page, "?preview=availability");
+  const region = page.getByRole("region", { name: "Add an availability window" });
+  await expect(region).toContainText("Block off or limit a range of whole local days.");
+  const comparison = page.getByLabel("Exact availability window preview");
+  await expect(comparison).toContainText("2026-12-15 – 2026-12-19");
+  await expect(comparison).toContainText("120 minutes/day");
+  await expect(comparison).toContainText("1 → 2");
+  await expect(
+    page.getByText(/Recorded availability does not change weekly capacity yet/iu),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Confirm availability change" })).toBeEnabled();
+
+  await region.getByLabel("Available minutes per day (0–1440)").fill("300");
+  await expect(page.getByRole("button", { name: "Confirm availability change" })).toHaveCount(0);
+
+  const manageRegion = page.getByRole("region", { name: "Edit or remove a window" });
+  await expect(manageRegion.getByRole("option", { name: /2026-11-01 – 2026-11-05/iu })).toHaveCount(
+    1,
   );
 });
 

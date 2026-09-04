@@ -14,6 +14,10 @@ import terminalPreview from "../../../../tests/contract/fixtures/planning/v1/lea
 import terminalSource from "../../../../tests/contract/fixtures/planning/v1/learning-track-terminal-lifecycle-control.boundary.json";
 import cadencePreview from "../../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.valid.json";
 import cadenceSource from "../../../../tests/contract/fixtures/planning/v1/learning-track-cadence-control.boundary.json";
+import availabilitySource from "../../../../tests/contract/fixtures/planning/v1/availability-window-control.boundary.json";
+import availabilityPreview from "../../../../tests/contract/fixtures/planning/v1/availability-window-control.valid.json";
+import availabilityRemovePreview from "../../../../tests/contract/fixtures/planning/v1/availability-window-control.remove.json";
+import availabilityApplyResult from "../../../../tests/contract/fixtures/planning/v1/availability-window-control.apply.json";
 import type { PandoSupabaseClient } from "../../../shared/supabase/database";
 import {
   APPLY_GROWTH_PLAN_CAPACITY_RPC_V1,
@@ -75,6 +79,12 @@ import {
   APPLY_LEARNING_TRACK_TERMINAL_LIFECYCLE_RPC_V1,
   APPLY_LEARNING_TRACK_PRIORITY_MINIMUM_RPC_V1,
   applyLearningTrackCreationV1,
+  GET_AVAILABILITY_WINDOW_SOURCE_RPC_V1,
+  PREVIEW_AVAILABILITY_WINDOW_RPC_V1,
+  APPLY_AVAILABILITY_WINDOW_RPC_V1,
+  loadAvailabilityWindowSourceV1,
+  previewAvailabilityWindowV1,
+  applyAvailabilityWindowV1,
 } from "./database-plan";
 
 const commandId = "30000000-0000-4000-8000-000000000001";
@@ -158,6 +168,34 @@ const cadenceCommand = {
   expectedGrowthPlanVersion: "4",
   expectedLearningTrackVersion: "7",
   reason: cadencePreview.reason,
+};
+
+const availabilityCreateCommand = {
+  operation: "create_availability_window" as const,
+  windowKey: null,
+  startsOn: availabilityPreview.after.window.startsOn,
+  endsOn: availabilityPreview.after.window.endsOn,
+  availableMinutes: availabilityPreview.after.window.availableMinutes,
+  energy: availabilityPreview.after.window.energy as "LOW" | "MEDIUM" | "HIGH" | null,
+  label: availabilityPreview.after.window.label,
+  expectedGrowthPlanVersion: availabilityPreview.expectedGrowthPlanVersion,
+  expectedWindowVersion: null,
+  reason: availabilityPreview.reason,
+  idempotencyKey: availabilityPreview.idempotencyKey,
+};
+
+const availabilityRemoveCommand = {
+  operation: "remove_availability_window" as const,
+  windowKey: availabilityRemovePreview.before.window!.windowKey,
+  startsOn: null,
+  endsOn: null,
+  availableMinutes: null,
+  energy: null,
+  label: null,
+  expectedGrowthPlanVersion: availabilityRemovePreview.expectedGrowthPlanVersion,
+  expectedWindowVersion: availabilityRemovePreview.before.window!.aggregateVersion,
+  reason: availabilityRemovePreview.reason,
+  idempotencyKey: availabilityRemovePreview.idempotencyKey,
 };
 
 const initializationSource = {
@@ -1039,5 +1077,169 @@ describe("Growth Plan database boundary", () => {
         p_preview_digest: cadencePreview.previewDigest,
       }),
     );
+  });
+
+  it("loads, previews, and applies availability windows with only bounded RPC fields", async () => {
+    const sourceRpc = vi.fn().mockResolvedValue({ data: availabilitySource, error: null });
+    await expect(loadAvailabilityWindowSourceV1(client(sourceRpc))).resolves.toEqual(
+      availabilitySource,
+    );
+    expect(sourceRpc).toHaveBeenCalledWith(GET_AVAILABILITY_WINDOW_SOURCE_RPC_V1);
+
+    const createPreviewRpc = vi.fn().mockResolvedValue({ data: availabilityPreview, error: null });
+    await expect(
+      previewAvailabilityWindowV1(client(createPreviewRpc), availabilityCreateCommand),
+    ).resolves.toEqual(availabilityPreview);
+    expect(createPreviewRpc).toHaveBeenCalledWith(PREVIEW_AVAILABILITY_WINDOW_RPC_V1, {
+      p_operation: "create_availability_window",
+      p_window_key: null,
+      p_starts_on: availabilityCreateCommand.startsOn,
+      p_ends_on: availabilityCreateCommand.endsOn,
+      p_available_minutes: availabilityCreateCommand.availableMinutes,
+      p_energy: availabilityCreateCommand.energy,
+      p_label: availabilityCreateCommand.label,
+      p_expected_growth_plan_version: availabilityPreview.expectedGrowthPlanVersion,
+      p_expected_window_version: null,
+      p_reason: availabilityPreview.reason,
+      p_idempotency_key: availabilityPreview.idempotencyKey,
+    });
+
+    const removePreviewRpc = vi
+      .fn()
+      .mockResolvedValue({ data: availabilityRemovePreview, error: null });
+    await expect(
+      previewAvailabilityWindowV1(client(removePreviewRpc), availabilityRemoveCommand),
+    ).resolves.toEqual(availabilityRemovePreview);
+    expect(removePreviewRpc).toHaveBeenCalledWith(PREVIEW_AVAILABILITY_WINDOW_RPC_V1, {
+      p_operation: "remove_availability_window",
+      p_window_key: availabilityRemoveCommand.windowKey,
+      p_starts_on: null,
+      p_ends_on: null,
+      p_available_minutes: null,
+      p_energy: null,
+      p_label: null,
+      p_expected_growth_plan_version: availabilityRemovePreview.expectedGrowthPlanVersion,
+      p_expected_window_version: availabilityRemoveCommand.expectedWindowVersion,
+      p_reason: availabilityRemovePreview.reason,
+      p_idempotency_key: availabilityRemovePreview.idempotencyKey,
+    });
+
+    const applyRpc = vi.fn().mockResolvedValue({ data: availabilityApplyResult, error: null });
+    await expect(
+      applyAvailabilityWindowV1(client(applyRpc), {
+        ...availabilityCreateCommand,
+        previewDigest: availabilityPreview.previewDigest,
+      }),
+    ).resolves.toEqual(availabilityApplyResult);
+    expect(applyRpc).toHaveBeenCalledWith(
+      APPLY_AVAILABILITY_WINDOW_RPC_V1,
+      expect.objectContaining({
+        p_operation: "create_availability_window",
+        p_preview_digest: availabilityPreview.previewDigest,
+      }),
+    );
+  });
+
+  it("rejects malformed availability window inputs before RPC", async () => {
+    const rpc = vi.fn();
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        operation: "not_a_real_operation" as never,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        windowKey: "window:76000002-0000-8000-8000-000000000002",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityRemoveCommand,
+        windowKey: null,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityRemoveCommand,
+        windowKey: "not-an-opaque-key",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityRemoveCommand,
+        expectedWindowVersion: null,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityRemoveCommand,
+        startsOn: "2026-10-01",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        startsOn: null,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        endsOn: "2020-01-01",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        availableMinutes: 1441,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        energy: "URGENT" as never,
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        label: "x".repeat(121),
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      previewAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        idempotencyKey: "not-a-uuid",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      applyAvailabilityWindowV1(client(rpc), {
+        ...availabilityCreateCommand,
+        previewDigest: "not-a-digest",
+      }),
+    ).rejects.toThrow(PlanInputError);
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("maps availability window conflicts and private failures to safe errors", async () => {
+    await expect(
+      previewAvailabilityWindowV1(
+        client(vi.fn().mockResolvedValue({ data: null, error: { code: "40001" } })),
+        availabilityCreateCommand,
+      ),
+    ).rejects.toThrow(PlanConflictError);
+    await expect(
+      previewAvailabilityWindowV1(
+        client(vi.fn().mockResolvedValue({ data: null, error: { code: "22023" } })),
+        availabilityCreateCommand,
+      ),
+    ).rejects.toThrow(PlanInputError);
+    await expect(
+      loadAvailabilityWindowSourceV1(
+        client(vi.fn().mockRejectedValue(new Error("private database detail"))),
+      ),
+    ).rejects.toThrow(PlanUnavailableError);
   });
 });

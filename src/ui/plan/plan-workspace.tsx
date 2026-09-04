@@ -14,6 +14,7 @@ import type {
   LearningTrackTerminalLifecycleSourceV1,
   LearningTrackCadenceSourceV1,
   GrowthPlanReplacementSourceV1,
+  AvailabilityWindowSourceV1,
   LearningTrackLifecyclePreviewV1,
   LearningTrackPriorityMinimumPreviewV1,
   PlanOperation,
@@ -28,6 +29,7 @@ import { ActivityAdmission } from "./activity-admission";
 import { LearningTrackCreation } from "./learning-track-creation";
 import { LearningTrackTerminalLifecycle } from "./learning-track-terminal-lifecycle";
 import { LearningTrackCadence } from "./learning-track-cadence";
+import { AvailabilityWindows } from "./availability-windows";
 import {
   applyGrowthPlanCapacityAction,
   applyGrowthPlanLifecycleAction,
@@ -317,6 +319,8 @@ export function PlanWorkspace({
   cadenceUnavailable = false,
   replacementSource,
   replacementUnavailable = false,
+  availabilityWindowSource,
+  availabilityWindowUnavailable = false,
   terminalHistoryCursor,
   terminalHistoryNextHref,
   terminalHistoryRecoveryHref = "/plan",
@@ -340,6 +344,8 @@ export function PlanWorkspace({
   initialCadenceApplyState = initialPlanActionState,
   initialReplacementPreviewState = initialPlanActionState,
   initialReplacementApplyState = initialPlanActionState,
+  initialAvailabilityWindowPreviewState = initialPlanActionState,
+  initialAvailabilityWindowApplyState = initialPlanActionState,
 }: {
   readonly workspace: CurrentGrowthPlanV1;
   readonly tracksWorkspace: CurrentLearningTracksV1;
@@ -355,6 +361,8 @@ export function PlanWorkspace({
   readonly cadenceUnavailable?: boolean;
   readonly replacementSource?: GrowthPlanReplacementSourceV1;
   readonly replacementUnavailable?: boolean;
+  readonly availabilityWindowSource?: AvailabilityWindowSourceV1;
+  readonly availabilityWindowUnavailable?: boolean;
   readonly terminalHistoryCursor?: string;
   readonly terminalHistoryNextHref?: string;
   readonly terminalHistoryRecoveryHref?: string;
@@ -378,6 +386,8 @@ export function PlanWorkspace({
   readonly initialCadenceApplyState?: PlanActionState;
   readonly initialReplacementPreviewState?: PlanActionState;
   readonly initialReplacementApplyState?: PlanActionState;
+  readonly initialAvailabilityWindowPreviewState?: PlanActionState;
+  readonly initialAvailabilityWindowApplyState?: PlanActionState;
 }) {
   const router = useRouter();
   const [reason, setReason] = useState("");
@@ -418,6 +428,7 @@ export function PlanWorkspace({
   const [terminalLifecycleDismissalVersion, setTerminalLifecycleDismissalVersion] = useState(0);
   const [cadenceDismissalVersion, setCadenceDismissalVersion] = useState(0);
   const [replacementDismissalVersion, setReplacementDismissalVersion] = useState(0);
+  const [availabilityWindowDismissalVersion, setAvailabilityWindowDismissalVersion] = useState(0);
   const [submittedPreviewDigest, setSubmittedPreviewDigest] = useState<string | null>(() =>
     initialApplyState.status === "idle"
       ? null
@@ -591,12 +602,17 @@ export function PlanWorkspace({
     setReplacementDismissalVersion((version) => version + 1);
   }
 
+  function dismissAvailabilityWindowIntent() {
+    setAvailabilityWindowDismissalVersion((version) => version + 1);
+  }
+
   function dismissAdditiveIntents() {
     dismissLearningTrackCreationIntent();
     dismissActivityAdmissionIntent();
     dismissTerminalLifecycleIntent();
     dismissCadenceIntent();
     dismissReplacementIntent();
+    dismissAvailabilityWindowIntent();
   }
 
   if (!plan)
@@ -825,6 +841,7 @@ export function PlanWorkspace({
             dismissActivityAdmissionIntent();
             dismissTerminalLifecycleIntent();
             dismissCadenceIntent();
+            dismissAvailabilityWindowIntent();
             dismissOtherPlanIntents();
           }}
           source={learningTrackCreationSource}
@@ -850,6 +867,7 @@ export function PlanWorkspace({
             dismissLearningTrackCreationIntent();
             dismissTerminalLifecycleIntent();
             dismissCadenceIntent();
+            dismissAvailabilityWindowIntent();
             dismissOtherPlanIntents();
           }}
           sourceUnavailable={activityAdmissionUnavailable}
@@ -874,6 +892,7 @@ export function PlanWorkspace({
             dismissLearningTrackCreationIntent();
             dismissActivityAdmissionIntent();
             dismissCadenceIntent();
+            dismissAvailabilityWindowIntent();
             dismissOtherPlanIntents();
           }}
           source={terminalLifecycleSource}
@@ -907,6 +926,7 @@ export function PlanWorkspace({
             dismissActivityAdmissionIntent();
             dismissTerminalLifecycleIntent();
             dismissCadenceIntent();
+            dismissAvailabilityWindowIntent();
             dismissOtherPlanIntents();
           }}
           source={replacementSource}
@@ -929,6 +949,7 @@ export function PlanWorkspace({
             dismissLearningTrackCreationIntent();
             dismissActivityAdmissionIntent();
             dismissTerminalLifecycleIntent();
+            dismissAvailabilityWindowIntent();
             dismissOtherPlanIntents();
           }}
           source={cadenceSource}
@@ -939,6 +960,30 @@ export function PlanWorkspace({
           <p>
             Track cadence is temporarily unavailable. Other Plan controls remain available; nothing
             changed.
+          </p>
+        </section>
+      ) : null}
+      {availabilityWindowSource !== undefined ? (
+        <AvailabilityWindows
+          dismissalVersion={availabilityWindowDismissalVersion}
+          initialApplyState={initialAvailabilityWindowApplyState}
+          initialPreviewState={initialAvailabilityWindowPreviewState}
+          onIntentStart={() => {
+            dismissLearningTrackCreationIntent();
+            dismissActivityAdmissionIntent();
+            dismissTerminalLifecycleIntent();
+            dismissCadenceIntent();
+            dismissReplacementIntent();
+            dismissOtherPlanIntents();
+          }}
+          source={availabilityWindowSource}
+        />
+      ) : availabilityWindowUnavailable ? (
+        <section aria-labelledby="availability-windows-heading" className={styles.panel}>
+          <h2 id="availability-windows-heading">Availability windows</h2>
+          <p>
+            Availability windows are temporarily unavailable. Other Plan controls remain available;
+            nothing changed.
           </p>
         </section>
       ) : null}

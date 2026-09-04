@@ -37,6 +37,10 @@ import trackCreatedBoundaryFixture from "./fixtures/events/v1/planning-track-cre
 import trackCreatedInvalidFixture from "./fixtures/events/v1/planning-track-created.invalid.json";
 import trackCreatedMaliciousFixture from "./fixtures/events/v1/planning-track-created.malicious.json";
 import trackCreatedValidFixture from "./fixtures/events/v1/planning-track-created.valid.json";
+import availabilityChangedBoundaryFixture from "./fixtures/events/v1/planning-availability-changed.boundary.json";
+import availabilityChangedInvalidFixture from "./fixtures/events/v1/planning-availability-changed.invalid.json";
+import availabilityChangedMaliciousFixture from "./fixtures/events/v1/planning-availability-changed.malicious.json";
+import availabilityChangedValidFixture from "./fixtures/events/v1/planning-availability-changed.valid.json";
 
 describe("Planning Input Event V1", () => {
   it("keeps valid, boundary, invalid, and malicious fixtures executable", () => {
@@ -90,6 +94,47 @@ describe("Planning Input Event V1", () => {
     expect(validateSchema("planning-event-v1", planReplacedBoundaryFixture).valid).toBe(true);
     expect(validateSchema("planning-event-v1", planReplacedInvalidFixture).valid).toBe(false);
     expect(validateSchema("planning-event-v1", planReplacedMaliciousFixture).valid).toBe(false);
+    expect(validateSchema("planning-event-v1", availabilityChangedValidFixture).valid).toBe(true);
+    expect(validateSchema("planning-event-v1", availabilityChangedBoundaryFixture).valid).toBe(
+      true,
+    );
+    expect(validateSchema("planning-event-v1", availabilityChangedInvalidFixture).valid).toBe(
+      false,
+    );
+    expect(validateSchema("planning-event-v1", availabilityChangedMaliciousFixture).valid).toBe(
+      false,
+    );
+  });
+
+  it("keeps availability wake-ups minimal, operation-bound, and bigint-safe", () => {
+    expect(availabilityChangedValidFixture.payload).toEqual({
+      change_kind: "AVAILABILITY_CHANGED",
+      operation: "create_availability_window",
+      growth_plan_id: "81000000-0000-4000-8000-000000000002",
+      availability_window_id: "81000000-0000-8000-8000-000000000003",
+      availability_window_version: "1",
+    });
+    expect(
+      validateSchema("planning-event-v1", {
+        ...availabilityChangedValidFixture,
+        payload: { ...availabilityChangedValidFixture.payload, availability_window_version: 1 },
+      }).valid,
+    ).toBe(false);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...availabilityChangedValidFixture,
+        payload: { ...availabilityChangedValidFixture.payload, operation: "delete_everything" },
+      }).valid,
+    ).toBe(false);
+    expect(
+      validateSchema("planning-event-v1", {
+        ...availabilityChangedBoundaryFixture,
+        payload: {
+          ...availabilityChangedBoundaryFixture.payload,
+          operation: "change_availability_window",
+        },
+      }).valid,
+    ).toBe(true);
   });
 
   it("keeps the replacement wake-up minimal, bigint-safe, and free of copied Plan detail", () => {
