@@ -394,7 +394,22 @@ export function planSnapshotSemanticViolations(value: unknown): readonly string[
     }
   }
 
-  if (capacity) {
+  if (capacity && "effectiveWeeklyCapacityMinutes" in capacity) {
+    const defaultCapacity = capacity.defaultWeeklyCapacityMinutes;
+    const effective = capacity.effectiveWeeklyCapacityMinutes;
+    const consumed = integer(capacity.consumedMinutesThisWeek);
+    const remaining = capacity.remainingMinutesThisWeek;
+    if (
+      (effective === null && (defaultCapacity !== null || consumed !== 0 || remaining !== null)) ||
+      (typeof effective === "number" &&
+        (typeof defaultCapacity !== "number" ||
+          effective > defaultCapacity ||
+          consumed === null ||
+          remaining !== Math.max(0, effective - consumed)))
+    ) {
+      violations.push("PLAN_SNAPSHOT_CAPACITY_ARITHMETIC");
+    }
+  } else if (capacity) {
     const weekly = capacity.weeklyCapacityMinutes;
     const consumed = integer(capacity.consumedMinutesThisWeek);
     const remaining = capacity.remainingMinutesThisWeek;

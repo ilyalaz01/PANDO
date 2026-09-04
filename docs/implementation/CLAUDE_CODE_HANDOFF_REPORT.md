@@ -1,176 +1,163 @@
 # Claude Code handoff report
 
 Session date: 2026-09-04
-Agent: Claude Code (Sonnet 5), continuing from the verified D3b1-db persistence in `bd83745`
-Branch: `claude/d3b1-app`
-Scope: Outcome 2 (D3b1-app) of `docs/implementation/CLAUDE_SESSION_SPLIT_PLAN.md` (that file lives
-only on `claude/d3a-growth-plan-replacement`, commit `b482f08` — never merged to this branch's
-ancestry; read there this session before proceeding) — the application layer half of D3b1.
+Agent: Claude Code (Sonnet 5), continuing from the released D3b1 availability-window app layer
+(`main`/`claude/d3b1-app` at `8f6c1ca`)
+Branch: `claude/d3b2-engine`
+Scope: D3b2-engine — row 3 of `docs/implementation/CLAUDE_SESSION_SPLIT_PLAN.md` (on
+`claude/d3a-growth-plan-replacement`, commit `b482f08`; read there this session before proceeding),
+narrowed by explicit session instruction to the pure calculation engine and policy only: contracts,
+`planner-engine/0.3.0`, `planning-policy/0.3`, the availability-composed capacity/rationing math, and
+unit/contract tests. UI rollout, engine-version switching controllers, and application-layer input
+assembly from real `AvailabilityWindow` rows are explicitly out of scope for this session (they are
+D3b2-rollout, the next bounded outcome).
 
 ## 1. Outcome attempted
 
-D3b1-app: contracts and event variant, fixtures, the `/plan` availability-window controller,
-loaders, server actions, E2E and component tests, and the status document, exactly as row 2 of the
-split plan specifies. Status: **complete** — this session's own scoped outcome is fully done and
-verified.
-
-D3b1-db (persistence, the owner command, RLS, the exclusion constraint) was not touched this session
-and its migration, RLS, and TS contract test were already committed and verified before this
-session started. While reconciling status docs with actual files this session, one gap in D3b1-db's
-own original scope was found and confirmed still open: no pgTAP database-level proof file for
-availability windows exists in this repository (see §8). D3b2 (V3 capacity composition and rollout)
-is out of scope for this outcome and has not started. Per the design doc's own instruction (§4), D3b
-as a whole remains **partial** until D3b2 ships — this session completes D3b1-app but does not close
-D3b1's residual database-proof gap or D3b as a whole.
+D3b2-engine: `PlanningCalculationInputV3`/`PlanSnapshotV3` contracts, `planner-engine/0.3.0`,
+`planning-policy/0.3`, the capacity-composition and priority-ordered protected-minimum rationing math
+from ADR-0010 §6, and unit plus contract tests. Status: **complete** — this session's own scoped
+outcome is fully implemented and verified. D3b2 as a whole (engine + rollout) remains **partial**
+until D3b2-rollout ships; D3b (D3b1 + D3b2) remains partial for the same reason.
 
 ## 2. User-visible result
 
-A signed-in person with a current Growth Plan can now open `/plan` and see an "Availability windows"
-section: a list of active windows, an "Add an availability window" form, and an "Edit or remove a
-window" form. Each operation (create, change, remove) goes through an exact, digest-bound preview
-before confirmation, exactly like every other Plan control. The page states plainly that recorded
-availability does not yet change weekly capacity — that arrives with D3b2 — so nothing about
-capacity, Today, or scheduling changes for anyone yet.
+None yet. This outcome is calculation-only: a new pure engine function and policy exist and are
+fully tested, but nothing reads real availability-window rows into it, no worker computes a V3
+snapshot, and `/plan` shows nothing new. A signed-in person's experience is unchanged by this
+session; D3b1's already-released "Availability windows" section still states plainly that recorded
+availability does not yet change weekly capacity, which remains literally true until D3b2-rollout
+wires this engine into the live calculation pipeline.
 
 ## 3. Architecture and policy decisions
 
-Authority: `docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md` and
-`docs/adr/0010-lifecycle-replacement-availability-and-campaign-semantics.md` §6, §8, §9. No decision
-in either document was reinterpreted; this outcome only finishes implementing the app layer they
-already specify for D3b1, following the same preview/apply, digest-bound, dismiss-on-new-intent
-pattern every other `/plan` control (`growth-plan-replacement.tsx`, `learning-track-creation.tsx`,
-the base lifecycle/capacity/track sections in `plan-workspace.tsx`) already uses. No new pattern was
-invented.
-
-One implementation choice made this session, not dictated verbatim by the design doc: the `/plan`
-control uses **one shared preview/apply action pair** across all three operations (create, change,
-remove), with the `operation` hidden form field carrying the distinction, rather than three separate
-action pairs. This mirrors the owner command's own one-command/three-operation shape and the
-existing "Learning Tracks" pause/resume section's pattern (one action pair, an `operation` field
-resolved from the selected Track's capability).
-
-Full detail — contracts, decided behavior, and the real regression `verify:auth` caught (a duplicate
-accessible name between this component's create-form reason field and the base lifecycle section's
-reason field, only found because the auth gate exercises the real `/plan` page with every control
-rendered at once, unlike the isolated fixture harness) — is recorded in
-`docs/implementation/PHASE_4B_D3B1_AVAILABILITY_WINDOWS_STATUS.md`. Read that file for anything this
+Authority: `docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md` §3/§4.2 and ADR-0010 §6/§8/§9. No
+decision in either document was reinterpreted. Full detail — the composition/rationing formulas, the
+exact implementation approach (why V3 could not safely delegate wholesale to the V2 pipeline, and
+which V1/V2 helpers it reuses unchanged versus reimplements), and the complete test list — is
+recorded in `docs/implementation/PHASE_4B_D3B2_ENGINE_STATUS.md`. Read that file for anything this
 report only summarizes.
+
+One implementation choice made this session, not dictated verbatim by the design doc: V3's engine and
+validation functions are additive, appended to the existing `calculate-plan.ts`, following the exact
+precedent the codebase already set when V2 was added alongside V1 in the same file — not a separate
+module. Every existing V1/V2 function (`validateInput`, `protectedCapacityLimit`, `scoreCandidate`,
+`capacity`, `warningCodes`, `calculateVerifiedPlanInternal`, and both public V1/V2 entry points) is
+byte-for-byte unchanged; V3 could not safely reuse them wholesale because `GrowthPlanInputV3` drops
+`weeklyCapacityMinutes`, and the hard protected-minimum invariant (checked against default capacity)
+and the per-candidate admission pool (gated by effective capacity) need two different numbers that
+V1/V2's single field cannot represent at once. This was proven by direct analysis, not just asserted:
+an earlier "derive a V2-shaped view and delegate to `calculateVerifiedPlanV2`" design was rejected
+mid-session specifically because it would incorrectly re-run V2's protected-minimum invariant check
+against effective capacity, throwing exactly in the availability-limited scenario the feature exists
+to support.
 
 ## 4. Files and migrations changed
 
-No migration, schema-owning SQL, production dependency, or lockfile changed. Full file list is in
-the status document's "Files and migrations" section; summarized here by purpose:
+No migration, schema-owning SQL, production dependency, or lockfile changed. Grouped by purpose:
 
-- **Event contract**: `schemas/events/v1/planning-event.schema.json` (additive `AVAILABILITY_CHANGED`
-  variant), four new event fixtures, `tests/contract/planning-event.test.ts`.
-- **Server boundary**: `src/ui/plan/server/database-plan.ts` (+3 functions, +tests in
-  `database-plan.test.ts`), `src/ui/plan/server/plan-workspace-v1.ts` (re-exports),
-  `src/app/plan/actions.ts` (+2 server actions and one shared input parser).
-- **UI**: new `src/ui/plan/availability-windows.tsx` and its test; `src/ui/plan/plan-types.ts`,
-  `src/ui/plan/plan-workspace.tsx`, `src/app/plan/page.tsx` (+its test) wired to load, cross-check,
-  and render it alongside every other Plan control.
-- **Test harness**: `src/app/dev/plan-fixture/page.tsx` gained a `?preview=availability` state used
-  by both the E2E suite and manual inspection.
-- **E2E**: `tests/e2e/plan.spec.ts` — one dedicated journey test plus additions to the shared
-  keyboard, 320px/touch-target, reduced-motion/forced-colors, and WCAG A/AA tests.
-- **Docs**: new `docs/implementation/PHASE_4B_D3B1_AVAILABILITY_WINDOWS_STATUS.md` (the authoritative
-  outcome record), this report.
+- **Contracts**: new `schemas/planning/v3/planning-input.schema.json`,
+  `schemas/planning/v3/plan-snapshot.schema.json`; `src/shared/contracts/schema-registry.ts` (+2
+  registry entries); `src/shared/contracts/planning-semantics.ts` (+1 additive branch in
+  `planSnapshotSemanticViolations` for the V3 capacity shape; V1/V2 branch unchanged).
+- **Types**: `src/modules/planning/domain/planning-types.ts` (+`PLANNER_ENGINE_VERSION_V3`,
+  `PlanningPolicyV3`, `DailyCapacityCapInput`, `GrowthPlanInputV3`, `CalculatePlanInputV3`,
+  `VerifiedCalculatePlanInputV3`, `PlanSnapshotV3`; every V1/V2 type unchanged).
+- **Engine and policy**: `src/modules/planning/domain/calculate-plan.ts` (+V3 section, ~600 lines,
+  fully additive); new `src/modules/planning/domain/planning-policy-v0.3.ts`.
+- **Application boundary**: `src/modules/planning/application/calculate-plan.ts` (+`calculatePlanV3`).
+- **Fixtures**: new `tests/fixtures/calculation-engines/v0.3/planning.golden.json`.
+- **Tests**: new `src/modules/planning/domain/calculate-plan-v0.3.test.ts` (9 cases),
+  `tests/contract/planning-v3.test.ts` (6 cases).
+- **Docs**: new `docs/policies/PLANNING_POLICY_V0.3.md`,
+  `docs/implementation/PHASE_4B_D3B2_ENGINE_STATUS.md` (the authoritative outcome record);
+  `src/modules/planning/README.md` (+D3b1 completion note, +this outcome); this report.
 
 ## 5. Contracts and invariants
 
-- Command `planning.change_availability_window_v1`, operations `create_availability_window`,
-  `change_availability_window`, `remove_availability_window`; contracts
-  `AvailabilityWindowSourceV1`, `AvailabilityWindowPreviewV1`, `AvailabilityWindowApplyResultV1`, all
-  `1.0.0` — unchanged this session, already shipped by D3b1-db.
-- New this session: event `planning.input_changed` gained change kind `AVAILABILITY_CHANGED`
-  (`event_schema_version` unchanged at `1`), additive alongside the eight released variants.
-- Every new app-layer function fails closed through the existing `PlanInputError` /
-  `PlanConflictError` / `PlanUnavailableError` taxonomy; no new failure mode was introduced.
-- Idempotency: the browser generates one lowercase request UUID per preview intent, used directly as
-  `idempotencyKey` (unprefixed) — the `planning-create-identity/1.0.0` pattern Growth Plan
-  replacement and Learning Track creation already use.
-- No calculation contract changed. D3b1 stays clock-free for capacity.
+- `PlanningCalculationInputV3`/`PlanSnapshotV3`, `planner-engine/0.3.0`, `planning-policy/0.3` — all
+  new, additive alongside the unchanged V1/V2 tuples. `completedWorkPolicyVersion` stays
+  `planning-completed-work/0.2` (D3b adds no completed-work rule, per ADR-0010 §8).
+- New warning code `PROTECTED_MINIMUM_LIMITED_BY_AVAILABILITY`. No new score factor, reason-ref kind,
+  or `expectedBenefit` code — D3b2 changes capacity meaning, not scoring, matching ADR-0010's stated
+  consequence that "no existing coefficient changes value."
+- The engine never trusts a supplied `effectiveWeeklyCapacityMinutes`; it re-derives
+  `min(defaultWeeklyCapacityMinutes, sum(dailyCaps.capMinutes))` (reusing the exact pure helper the
+  D3b1 preview digest already uses) and fails closed on mismatch — verify, don't trust the adapter.
+- Rationing is deterministic: active tracks reserve in `(priority desc, trackKey asc)` order against
+  the effective pool; a track's configured `protectedMinimumMinutes` is never rewritten, only how much
+  of it a given week's effective capacity can reserve.
+- Domain code stays pure: no I/O, no Next.js/Supabase/browser dependency, no implicit clock read.
+- Fails closed (`PlanningInputError`) on a day-cap mismatch, a malformed/non-seven/non-consecutive
+  `dailyCaps` array, a protected-minimum sum exceeding default capacity, a wrong policy tuple, or a
+  wrong completed-work version — the same fail-closed contract V1/V2 already have.
 
 ## 6. Verification
 
-Every command below was executed in this session on Node 24.19.0 (`/home/ilya/.n/bin`; the
-environment's default `node` on `PATH` is one patch below what `jsdom@30.0.1` requires). Docker was
+Every command below was executed in this session on Node 24.15.0
+(`/home/ilya/.local/share/pnpm/bin/node`, the environment's default `node` on `PATH`). Docker was
 available and used for every database-backed gate.
 
 | Gate | Result |
 |---|---|
-| `pnpm format:check` | PASS |
+| `pnpm format:check` | PASS (after `prettier --write` on the 4 files it initially flagged) |
 | `pnpm lint` | PASS |
 | `pnpm typecheck` | PASS |
-| `pnpm verify:db` | PASS — 49 pgTAP files, 3070 assertions, `db lint` clean (unchanged from the prior D3b1-db session; confirms no DB drift from this app-only diff) |
-| `pnpm verify:auth` | PASS, after fixing one real regression it caught (see §3 and the status doc) |
-| `pnpm verify` (format, lint, typecheck, database-runner, backup-archive, contracts, performance, unit coverage, full E2E) | PASS — contracts 418/26 files, unit coverage 998 tests/98 files at 86.51%/80.77%/91.05%/87.82% (stmts/branch/funcs/lines) against the 85/80/85/85 thresholds, full E2E suite 38/38 |
-| `pnpm verify:backup` | PASS |
+| `pnpm verify:db` | PASS — 49 pgTAP files, 3070 assertions, `db lint` clean (unchanged from before this session; confirms zero DB drift from this engine-only diff) |
+| `pnpm verify:auth` | PASS, unaffected (this outcome touches no route, action, or UI file) |
+| `npx vitest run src/modules/planning tests/contract/planning` | PASS — 129/129 (114 pre-existing + 15 new V3 cases), confirming zero V1/V2 regression |
+| `pnpm test:contracts` | PASS — 27 files / 424 tests (was 26/418 before this session) |
+| `pnpm test:unit:coverage` (standalone, before the full `pnpm verify` run) | PASS — 100 files / 1013 tests; 86.17%/80.19%/91.07%/87.55% (stmts/branch/funcs/lines) against the 85/80/85/85 thresholds |
+| `pnpm verify` (format, lint, typecheck, database-runner, backup-archive, contracts, performance, unit coverage, full E2E) | PASS — format/lint/typecheck clean; `test:database-runner` and `test:backup-archive` (`node --test`) all green; `test:contracts` 27/424; `test:performance` green; `test:unit:coverage` 100 files/1013 tests at 86.17%/80.19%/91.07%/87.55% against 85/80/85/85; `next build` succeeded; full Playwright E2E 38/38, unchanged from before this session since this outcome touches no UI, route, or action file |
+| `pnpm verify:backup` | PASS — "encrypted backup clean-restore gate passed" |
 
-`pnpm verify` initially failed twice before passing: once on formatting (fixed with
-`prettier --write`), once on the global branch-coverage threshold (79.71%, then 79.97%, both just
-under 80% — fixed by adding ten more component tests and three more `database-plan.test.ts` cases,
-never by weakening or deleting a test; see the status doc for the exact list). `pnpm verify:auth`
-also failed once for the real label-collision regression described in §3, fixed and re-verified
-green before the final `pnpm verify` run above.
+`pnpm format:check` initially failed on 4 files (`calculate-plan.ts`, `planning-types.ts`, the two new
+V3 test files) — fixed with `prettier --write`, re-verified green, and both new tests still passed
+after reformatting.
 
 ## 7. Git state
 
-- Branch `claude/d3b1-app`, one new commit on top of `bd83745` (D3b1-db) → `7860feb` (generated
-  Supabase types sync).
-- Commit `f5f1a55`: `feat(planning): D3b1 availability window app layer` — 19 files changed, all
-  four verify gates passing at commit time.
-- Not pushed. `main` is unaffected.
-- `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md` and `AGENTS.md` were not read, edited, or staged.
+- Branch `claude/d3b2-engine`, based on `main` at `8f6c1ca` (D3b1-app).
+- GIT_COMMIT_PLACEHOLDER
+- `docs/DAILY_PACE_AUTOREPLAN_AGENT_PROMPT.md` was not read, edited, or staged.
 - Working tree is clean except a pre-existing, unrelated, already-modified `.gitignore` (adds
   `.aider*`) that predates this session and was left untouched, per "preserve unrelated user
-  changes."
+  changes" — same file the prior D3b1-app session also found and left alone.
 
 ## 8. Remaining work
 
-1. **D3b1's own pgTAP database proof is confirmed still missing** — checked this session, not just
-   inherited as an open question. Neither `supabase/tests/database/050_phase4b_availability_windows.test.sql`
-   nor a `051_..._concurrency.test.sql` exists in this repository; nothing under
-   `supabase/tests/database/` covers availability windows as its subject, and `verify:db` still runs
-   the same 49 files / 3070 assertions as before D3b1 started. The prior D3b1-db session's own
-   handoff report recorded this honestly as deferred (a verified draft exists in a scratch project at
-   `/home/ilya/pando-d3b1-dev`, outside this repository, never copied in), even though the split
-   plan's row 1 originally scoped "pgTAP + concurrency tests" into D3b1-db. This app-layer outcome
-   did not touch the database layer (explicitly out of scope for this session) and did not add these
-   files. Treat closing this as the fastest next step before D3b2, since a verified draft already
-   exists elsewhere.
-2. **D3b2 — V3 capacity composition and rollout**, per row 3 of
-   `docs/implementation/CLAUDE_SESSION_SPLIT_PLAN.md` (on `claude/d3a-growth-plan-replacement`,
-   `b482f08`): `PlanningCalculationInputV3`, `PlanSnapshotV3`, calculation contract
-   `planning-calculation/3`, `planner-engine/0.3.0`, `planning-policy/0.3`, the composition and
-   protected-minimum rationing rules (design doc §3), and the persisted clock-bound capacity-effect
-   preview design §6 requires. This has not started. Do not begin it in the same chat as any other
-   outcome, per the split plan's own rule 1.
-3. Known low-signal item, not a blocker: `src/shared/supabase/database.generated.ts` was not
-   regenerated this session (no schema change occurred, so nothing to regenerate); the Planning
-   boundary calls RPCs through a typed name union with an explicit `as never` cast, so this causes no
-   type or runtime gap.
+1. **D3b2-rollout** — the next bounded outcome, explicitly excluded from this session by its own
+   scope: assemble real `PlanningCalculationInputV3` from `AvailabilityWindow` rows and the current
+   Growth Plan (the application-layer input-assembly counterpart to
+   `assemble-plan-snapshot-input.ts`), the persisted clock-bound capacity-effect proposal the parent
+   design §6 requires, worker/dispatcher V3 routing following the exact D2c expand-then-activate
+   sequence, and the `/plan` capacity display. Do not begin it in the same chat as any other outcome.
+2. **D3b1-db's pgTAP proof remains missing** — inherited from the D3b1-app session, not touched or
+   fixed this session (out of scope; confirmed still true by this session's own `pnpm verify:db` run,
+   which still executes the same 49 files / 3070 assertions with none named for availability windows).
+   Treat closing this as the fastest next step whenever a session's scope allows database work; a
+   verified draft exists in a scratch project at `/home/ilya/pando-d3b1-dev`, outside this repository.
+3. No production dependency, migration, or schema changed this session. `database.generated.ts` was
+   not regenerated (no schema change occurred, so nothing to regenerate).
 
 ## 9. Codex resume prompt
 
 ```text
 Прочитай docs/implementation/CLAUDE_CODE_HANDOFF_REPORT.md,
-docs/implementation/PHASE_4B_D3B1_AVAILABILITY_WINDOWS_STATUS.md,
-docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md и ADR-0010 §6/§8/§9.
-Ветка claude/d3b1-app теперь содержит завершённый D3b1: DB-слой (из bd83745, без изменений в этой
-сессии) плюс полный app-слой — событие AVAILABILITY_CHANGED, loaders/actions в database-plan.ts,
-компонент src/ui/plan/availability-windows.tsx с формами create/change/remove, интеграцию в
-plan-workspace.tsx и page.tsx, фикстуру /dev/plan-fixture?preview=availability, component-тесты,
-unit-тесты database-plan.test.ts и E2E-покрытие в tests/e2e/plan.spec.ts. Все четыре гейта
-(pnpm verify:db, verify:auth, verify, verify:backup) прошли зелёными на момент коммита f5f1a55.
-D3b1-app полностью завершён и проверен. ОДНАКО: в этой сессии обнаружен и подтверждён пробел из
-исходного объёма D3b1-db — файлы supabase/tests/database/050_phase4b_availability_windows.test.sql
-и 051_..._concurrency.test.sql так и не были закоммичены (черновик существует в отдельном scratch
-проекте /home/ilya/pando-d3b1-dev, вне этого репозитория). D3b1 в целом (db+app) поэтому НЕ
-полностью завершён, а D3b (D3b1+D3b2) остаётся partial. Следующий bounded outcome — сначала
-закрыть этот pgTAP-пробел D3b1-db (самый быстрый путь: скопировать и проверить черновик из
-scratch-проекта), затем D3b2 (V3 capacity composition and rollout), пункт 3 из
-docs/implementation/CLAUDE_SESSION_SPLIT_PLAN.md (файл лежит на ветке
-claude/d3a-growth-plan-replacement, коммит b482f08 — не смёржен в эту ветку; прочитай его оттуда).
-Начинай каждый из них в отдельном новом чате, не в этом же.
+docs/implementation/PHASE_4B_D3B2_ENGINE_STATUS.md, docs/design/PHASE_4B_D3B_AVAILABILITY_WINDOWS.md
+§3/§4.2 и ADR-0010 §6/§8. Ветка claude/d3b2-engine содержит завершённый D3b2-engine: контракты
+PlanningCalculationInputV3/PlanSnapshotV3 (schemas/planning/v3/*.schema.json), planner-engine/0.3.0
+и planning-policy/0.3 (src/modules/planning/domain/calculate-plan.ts, planning-policy-v0.3.ts),
+математику композиции эффективной недельной емкости и приоритетного рационирования protected-minimum
+по (priority desc, trackKey asc), calculatePlanV3 в application-слое, полное юнит- и контрактное
+тестовое покрытие (15 новых тестов), и golden-фикстуру v0.3, доказывающую что V3 арифметически
+совпадает с V2 когда availability не ограничивает емкость. Все существующие V1/V2 функции не
+изменены — только добавлены новые. Все гейты (verify:db, verify:auth, verify, verify:backup) прошли
+зелёными на момент финального коммита. D3b2-engine полностью завершён и проверен, но это ЧИСТО
+calculation-only outcome: UI-роллаут, переключение версий движка, assemble-plan-snapshot-input для
+V3, персистентный clock-bound capacity-effect preview и worker/dispatcher роутинг НЕ реализованы —
+это следующий bounded outcome, D3b2-rollout (design doc §4.2, ADR-0010 §8's expand-then-activate
+sequence). Отдельно остаётся неисправленным унаследованный пробел: pgTAP-доказательство для D3b1-db
+(availability windows) так и не закоммичено (см. §8 этого отчёта). Начинай каждый из этих outcomes
+в отдельном новом чате, не в этом же.
 ```

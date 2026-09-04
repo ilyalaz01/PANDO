@@ -105,7 +105,30 @@ Evidence, Mastery, Reviews, and immutable snapshots are retained and never copie
 digest binds the outgoing Plan identity, its ordered child-Track fingerprint, and both expected
 versions. See
 [`PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md`](../../../docs/implementation/PHASE_4B_D3A_GROWTH_PLAN_REPLACEMENT_STATUS.md).
-The next Planning outcome is D3b availability windows.
+D3b1 is implemented as the availability-window persistence and app layer: a Planning-owned
+`change_availability_window_v1` command (`create_availability_window`, `change_availability_window`,
+`remove_availability_window`), a `btree_gist` non-overlap exclusion constraint, forced RLS, and the
+`/plan` "Availability windows" control described in
+[`PHASE_4B_D3B1_AVAILABILITY_WINDOWS_STATUS.md`](../../../docs/implementation/PHASE_4B_D3B1_AVAILABILITY_WINDOWS_STATUS.md).
+Recorded availability did not yet change weekly capacity until D3b2 shipped a versioned engine.
+
+D3b2-engine is implemented as the pure availability-composed capacity engine: `planner-engine/0.3.0`
+plus [Planning Policy v0.3](../../../docs/policies/PLANNING_POLICY_V0.3.md), the
+`PlanningCalculationInputV3` and `PlanSnapshotV3` contracts, and the calculation-only half of
+ADR-0010 §6/§8. `GrowthPlanInputV3` replaces the single `weeklyCapacityMinutes` with
+`defaultWeeklyCapacityMinutes`, `effectiveWeeklyCapacityMinutes`, and a bounded seven-entry
+`dailyCaps` composition; the engine never trusts the supplied effective number, always re-deriving
+`min(defaultWeeklyCapacityMinutes, sum(dayCaps))` and failing closed on any mismatch. When effective
+capacity falls below the sum of active protected minutes, the engine rations deterministically by
+`(priority desc, trackKey asc)` and reports warning code `PROTECTED_MINIMUM_LIMITED_BY_AVAILABILITY`
+without ever rewriting a Track's configured minimum. When availability never limits a plan, V3
+output is arithmetically identical to V2's. See
+[`PHASE_4B_D3B2_ENGINE_STATUS.md`](../../../docs/implementation/PHASE_4B_D3B2_ENGINE_STATUS.md).
+
+D3b2-engine is calculation-only: no persisted clock-bound capacity-effect preview, no
+application-layer input assembly from real `AvailabilityWindow` rows, no worker/dispatcher V3
+routing, and no `/plan` capacity display exist yet. The next Planning outcome is D3b2-rollout
+(expand-then-activate V3 wiring per ADR-0010 §8, plus the persisted preview design §6 requires).
 
 ## Phase 4A implementation route
 

@@ -1,5 +1,6 @@
 export const PLANNER_ENGINE_VERSION = "planner-engine/0.1.0" as const;
 export const PLANNER_ENGINE_VERSION_V2 = "planner-engine/0.2.0" as const;
+export const PLANNER_ENGINE_VERSION_V3 = "planner-engine/0.3.0" as const;
 
 export type EnergyMode = "LOW" | "MEDIUM" | "HIGH";
 export type EstimateConfidence = "LOW" | "MEDIUM" | "HIGH";
@@ -45,6 +46,14 @@ export interface PlanningPolicyV2 extends PlanningPolicy {
   readonly cadenceDeficitMultiplePoints: number;
 }
 
+/**
+ * ADR-0010 §8: D3b changes capacity composition and rationing, not scoring, so V3 adds no new
+ * coefficient beyond V2's cadence pair.
+ */
+export interface PlanningPolicyV3 extends Omit<PlanningPolicyV2, "version"> {
+  readonly version: "planning-policy/0.3";
+}
+
 export interface PlanningTrackInput {
   readonly trackId: string;
   readonly trackKey: string;
@@ -74,6 +83,32 @@ export interface GrowthPlanInput {
 }
 
 export interface GrowthPlanInputV2 extends Omit<GrowthPlanInput, "tracks"> {
+  readonly tracks: readonly PlanningTrackInputV2[];
+}
+
+/**
+ * ADR-0010 §6/§8: one covered local day of the evaluation week, ordered `d1..d7`. `capMinutes` is
+ * `available_minutes` of the active window covering the day, or `1440` when no window covers it.
+ * `sourceWindowKey` is null exactly when the day falls back to the uncovered default.
+ */
+export interface DailyCapacityCapInput {
+  readonly date: string;
+  readonly capMinutes: number;
+  readonly sourceWindowKey: string | null;
+}
+
+/**
+ * ADR-0010 §6/§8: availability caps, never grants, so V3 replaces the single
+ * `weeklyCapacityMinutes` with the sustained default plus the verified effective capacity and the
+ * ordered day-cap composition the engine re-derives it from.
+ */
+export interface GrowthPlanInputV3 extends Omit<
+  GrowthPlanInputV2,
+  "tracks" | "weeklyCapacityMinutes"
+> {
+  readonly defaultWeeklyCapacityMinutes: number;
+  readonly effectiveWeeklyCapacityMinutes: number;
+  readonly dailyCaps: readonly DailyCapacityCapInput[];
   readonly tracks: readonly PlanningTrackInputV2[];
 }
 
@@ -235,11 +270,19 @@ export interface CalculatePlanInputV2 extends Omit<CalculatePlanInput, "growthPl
   readonly growthPlan: GrowthPlanInputV2 | null;
 }
 
+/** ADR-0010 §8: D3b changes no completed-work policy, so V3 keeps the V2 completed-work version. */
+export interface CalculatePlanInputV3 extends Omit<CalculatePlanInputV2, "growthPlan"> {
+  readonly growthPlan: GrowthPlanInputV3 | null;
+}
+
 declare const verifiedPlanningInput: unique symbol;
 export type VerifiedCalculatePlanInput = CalculatePlanInput & {
   readonly [verifiedPlanningInput]: true;
 };
 export type VerifiedCalculatePlanInputV2 = CalculatePlanInputV2 & {
+  readonly [verifiedPlanningInput]: true;
+};
+export type VerifiedCalculatePlanInputV3 = CalculatePlanInputV3 & {
   readonly [verifiedPlanningInput]: true;
 };
 
@@ -414,6 +457,25 @@ export interface PlanSnapshotV2 extends Omit<PlanSnapshot, "engineVersion" | "ac
   readonly engineVersion: typeof PLANNER_ENGINE_VERSION_V2;
   readonly policyVersion: "planning-policy/0.2";
   readonly actions: readonly PlannedActionV2[];
+}
+
+/**
+ * ADR-0010 §6/§8: V3 changes only capacity meaning (default vs. availability-effective) and adds
+ * one rationing warning code; scoring, factors, and reasons are unchanged from V2.
+ */
+export interface PlanSnapshotV3 extends Omit<
+  PlanSnapshotV2,
+  "engineVersion" | "policyVersion" | "capacity"
+> {
+  readonly engineVersion: typeof PLANNER_ENGINE_VERSION_V3;
+  readonly policyVersion: "planning-policy/0.3";
+  readonly capacity: {
+    readonly defaultWeeklyCapacityMinutes: number | null;
+    readonly effectiveWeeklyCapacityMinutes: number | null;
+    readonly consumedMinutesThisWeek: number;
+    readonly remainingMinutesThisWeek: number | null;
+    readonly sessionLimitMinutes: number | null;
+  };
 }
 
 export class PlanningInputError extends Error {

@@ -1,11 +1,16 @@
 import { parseInstant, toCanonicalInstant } from "../../../shared/domain/utc-instant";
+import { effectiveWeeklyCapacityMinutes as verifyEffectiveWeeklyCapacityMinutes } from "./availability-window-preview";
 import {
   PLANNER_ENGINE_VERSION,
   PLANNER_ENGINE_VERSION_V2,
+  PLANNER_ENGINE_VERSION_V3,
   PlanningInputError,
   type CalculatePlanInput,
+  type CalculatePlanInputV3,
+  type DailyCapacityCapInput,
   type EnergyMode,
   type ExpectedBenefitCode,
+  type GrowthPlanInputV3,
   type PlanScoreFactor,
   type PlanScoreFactorCode,
   type PlanScoreFactorV2,
@@ -13,10 +18,12 @@ import {
   type PlanReasonRefV2,
   type PlanSnapshot,
   type PlanSnapshotV2,
+  type PlanSnapshotV3,
   type PlannedActionV2,
   type PlanningCandidateInput,
   type PlanningPolicy,
   type PlanningPolicyV2,
+  type PlanningPolicyV3,
   type PlanningReadinessInput,
   type PlanningSourceSignal,
   type PlanningTrackInput,
@@ -25,6 +32,7 @@ import {
   type ReadinessGapCode,
   type VerifiedCalculatePlanInput,
   type VerifiedCalculatePlanInputV2,
+  type VerifiedCalculatePlanInputV3,
 } from "./planning-types";
 
 const ENERGY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;
@@ -1367,4 +1375,753 @@ export function calculateVerifiedPlanV2(
     PLANNER_ENGINE_VERSION_V2,
     policy,
   ) as PlanSnapshotV2;
+}
+
+// -------------------------------------------------------------------------------------------
+// V3: availability-composed capacity (ADR-0010 §6, §8; Planning Policy v0.3).
+//
+// V3 reuses every version-agnostic V1/V2 helper above unchanged (never modified for this version:
+// `validateInput`, `protectedCapacityLimit`, `scoreCandidate`, `capacity`, `warningCodes`,
+// `calculateVerifiedPlanInternal`, and `validateCadencePolicy` keep their exact V1/V2 behavior).
+// It cannot reuse those five directly because `GrowthPlanInputV3` replaces the single
+// `weeklyCapacityMinutes` field with a default/effective pair plus a day-cap composition the
+// engine must independently verify, and because a track's protected minimum must be rationed
+// against effective (not default) capacity before it can gate candidate admission. Everywhere a
+// shared helper only reads fields that are identical across versions (readiness, campaign,
+// evaluation horizon, energy, review), it is called directly with a narrow, documented cast.
+// -------------------------------------------------------------------------------------------
+
+function requireDailyCaps(dailyCaps: readonly DailyCapacityCapInput[]): void {
+  if (dailyCaps.length !== 7) fail("growthPlan.dailyCaps must contain exactly seven local days");
+  let previousDayMs: number | null = null;
+  dailyCaps.forEach((cap, index) => {
+    if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/u.test(cap.date)) {
+      fail(`dailyCaps[${index}].date must be a calendar date`);
+    }
+    const dayMs = Date.parse(`${cap.date}T00:00:00.000Z`);
+    if (!Number.isFinite(dayMs)) fail(`dailyCaps[${index}].date is not a valid calendar date`);
+    if (previousDayMs !== null && dayMs - previousDayMs !== 86_400_000) {
+      fail("growthPlan.dailyCaps must be seven consecutive ascending local calendar days");
+    }
+    previousDayMs = dayMs;
+    requireInteger(cap.capMinutes, 0, 1440, `dailyCaps[${index}].capMinutes`);
+    if (cap.sourceWindowKey !== null) {
+      requireIdentifier(cap.sourceWindowKey, `dailyCaps[${index}].sourceWindowKey`);
+    }
+  });
+}
+
+interface ProtectedMinuteRation {
+  readonly reservedMinutes: number;
+  readonly limited: boolean;
+}
+
+/** ADR-0010 §6: deterministic priority-ordered rationing against effective weekly capacity. */
+function rationProtectedMinutes(
+  tracks: readonly PlanningTrackInputV2[],
+  effectiveWeeklyCapacityMinutesValue: number,
+): ReadonlyMap<string, ProtectedMinuteRation> {
+  const ordered = tracks
+    .filter(({ lifecycle }) => lifecycle === "ACTIVE")
+    .slice()
+    .sort(
+      (left, right) =>
+        right.priority - left.priority || compareCodePoints(left.trackKey, right.trackKey),
+    );
+  const rationed = new Map<string, ProtectedMinuteRation>();
+  let poolRemaining = effectiveWeeklyCapacityMinutesValue;
+  for (const track of ordered) {
+    const reservedMinutes = Math.min(track.protectedMinimumMinutes, poolRemaining);
+    poolRemaining -= reservedMinutes;
+    rationed.set(track.trackId, {
+      reservedMinutes,
+      limited: reservedMinutes < track.protectedMinimumMinutes,
+    });
+  }
+  return rationed;
+}
+
+/**
+ * Verifies the V3 day-cap composition (never trusting the supplied total), enforces the hard
+ * protected-minimum invariant against the plan's default capacity, and returns the deterministic
+ * priority-ordered rationing against effective capacity.
+ */
+function validateGrowthPlanCapacityV3(
+  growthPlan: GrowthPlanInputV3,
+): ReadonlyMap<string, ProtectedMinuteRation> {
+  requireInteger(
+    growthPlan.defaultWeeklyCapacityMinutes,
+    0,
+    10_080,
+    "growthPlan.defaultWeeklyCapacityMinutes",
+  );
+  requireDailyCaps(growthPlan.dailyCaps);
+  const verifiedEffective = verifyEffectiveWeeklyCapacityMinutes(
+    growthPlan.defaultWeeklyCapacityMinutes,
+    growthPlan.dailyCaps.map((cap) => cap.capMinutes),
+  );
+  if (growthPlan.effectiveWeeklyCapacityMinutes !== verifiedEffective) {
+    fail("growthPlan.effectiveWeeklyCapacityMinutes must equal the verified day-cap composition");
+  }
+  requireInteger(
+    growthPlan.consumedMinutesThisWeek,
+    0,
+    10_080,
+    "growthPlan.consumedMinutesThisWeek",
+  );
+  const protectedTotal = growthPlan.tracks
+    .filter(({ lifecycle }) => lifecycle === "ACTIVE")
+    .reduce((total, track) => total + track.protectedMinimumMinutes, 0);
+  if (protectedTotal > growthPlan.defaultWeeklyCapacityMinutes) {
+    fail("active protected track minimums exceed default weekly capacity");
+  }
+  return rationProtectedMinutes(growthPlan.tracks, growthPlan.effectiveWeeklyCapacityMinutes);
+}
+
+function validateCadencePolicyV3(policy: PlanningPolicyV3): void {
+  if (policy.version !== "planning-policy/0.3") {
+    fail("V3 capacity calculation requires planning-policy/0.3");
+  }
+  requireInteger(policy.cadenceDeficitOnePoints, 0, 100_000, "policy.cadenceDeficitOnePoints");
+  requireInteger(
+    policy.cadenceDeficitMultiplePoints,
+    0,
+    100_000,
+    "policy.cadenceDeficitMultiplePoints",
+  );
+  if (policy.cadenceDeficitMultiplePoints < policy.cadenceDeficitOnePoints) {
+    fail("cadence deficit points must not decrease for a larger deficit");
+  }
+}
+
+function validateInputV3(input: CalculatePlanInputV3, policy: PlanningPolicyV3) {
+  validatePolicy(policy);
+  validateCadencePolicyV3(policy);
+  if (!/^planning-input:[a-f0-9]{64}$/u.test(input.inputFingerprint)) {
+    fail("input.inputFingerprint must be a canonical SHA-256 fingerprint");
+  }
+  if (
+    !/^planning-completed-work\/[0-9]{1,3}\.[0-9]{1,3}$/u.test(input.completedWorkPolicyVersion)
+  ) {
+    fail("input.completedWorkPolicyVersion must name a versioned completed-work policy");
+  }
+  if (
+    !/^mastery-prerequisite-engine\/[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$/u.test(
+      input.prerequisiteEngineVersion,
+    )
+  ) {
+    fail("input.prerequisiteEngineVersion must name a versioned prerequisite engine");
+  }
+  if (
+    !/^mastery-prerequisite-satisfaction\/[0-9]{1,3}\.[0-9]{1,3}$/u.test(
+      input.prerequisitePolicyVersion,
+    )
+  ) {
+    fail("input.prerequisitePolicyVersion must name a versioned prerequisite policy");
+  }
+  const asOfMs = parsePlanningInstant(input.evaluationHorizon.asOf, "evaluationHorizon.asOf");
+  const validUntilMs = parsePlanningInstant(
+    input.evaluationHorizon.validUntil,
+    "evaluationHorizon.validUntil",
+  );
+  const weekStartMs = parsePlanningInstant(
+    input.evaluationHorizon.weekStart,
+    "evaluationHorizon.weekStart",
+  );
+  const weekEndMs = parsePlanningInstant(
+    input.evaluationHorizon.weekEnd,
+    "evaluationHorizon.weekEnd",
+  );
+  requireIdentifier(input.evaluationHorizon.timeZone, "evaluationHorizon.timeZone");
+  if (validUntilMs < asOfMs) fail("evaluation horizon must not expire before asOf");
+  if (weekStartMs > asOfMs || weekEndMs <= asOfMs || weekStartMs >= weekEndMs) {
+    fail("evaluation clock must fall inside its half-open week horizon");
+  }
+  if (validUntilMs >= weekEndMs) {
+    fail("evaluation validity must end before the exclusive week boundary");
+  }
+  if (input.sourceRevisions.length > 100) fail("input.sourceRevisions exceeds 100");
+  const revisionKeys = input.sourceRevisions.map(({ owner, key, revision }) => {
+    requireEnum(
+      owner,
+      ["CATALOG", "EVIDENCE", "FOCUS", "MASTERY", "OVERLAY", "REVIEW"] as const,
+      "sourceRevision.owner",
+    );
+    requireIdentifier(key, "sourceRevision.key");
+    requireIdentifier(revision, "sourceRevision.revision");
+    return `${owner}${key}`;
+  });
+  requireUnique(revisionKeys, "sourceRevisions");
+  if (
+    !revisionKeys.every(
+      (value, index) => index === 0 || compareCodePoints(revisionKeys[index - 1]!, value) < 0,
+    )
+  ) {
+    fail("sourceRevisions must be in canonical code-point order");
+  }
+  const revisionOwners = new Set(input.sourceRevisions.map(({ owner }) => owner));
+  if (
+    !revisionOwners.has("EVIDENCE") ||
+    !revisionOwners.has("FOCUS") ||
+    !revisionOwners.has("REVIEW")
+  ) {
+    fail("sourceRevisions must identify Evidence, Focus, and Review state");
+  }
+  if (
+    input.candidates.length > 0 &&
+    (!revisionOwners.has("CATALOG") ||
+      !revisionOwners.has("MASTERY") ||
+      !revisionOwners.has("OVERLAY"))
+  ) {
+    fail("candidate input must identify Catalog, Mastery, and Overlay revisions");
+  }
+
+  if (input.sessionLimitMinutes !== null) {
+    requireInteger(input.sessionLimitMinutes, 0, 1_440, "input.sessionLimitMinutes");
+  }
+  if (input.energyPreference !== null) {
+    requireEnum(input.energyPreference, ENERGY_VALUES, "input.energyPreference");
+  }
+  requireEnum(
+    input.reviewSummary.projectionState,
+    ["CURRENT", "PENDING", "NOT_STARTED"] as const,
+    "reviewSummary.projectionState",
+  );
+  requireInteger(input.reviewSummary.overdueCount, 0, 100, "reviewSummary.overdueCount");
+  requireInteger(input.reviewSummary.dueTodayCount, 0, 100, "reviewSummary.dueTodayCount");
+  if (input.reviewSummary.overdueCount + input.reviewSummary.dueTodayCount > 100) {
+    fail("reviewSummary exceeds the 100-item input bound");
+  }
+  if (input.reviewSummary.validUntil === null) {
+    if (
+      input.reviewSummary.projectionState === "CURRENT" &&
+      input.reviewSummary.dueTodayCount > 0
+    ) {
+      fail("a current due-today Review summary requires an owner validity cutoff");
+    }
+  } else {
+    if (input.reviewSummary.projectionState !== "CURRENT") {
+      fail("a non-current Review summary cannot declare current validity");
+    }
+    const reviewValidUntilMs = parsePlanningInstant(
+      input.reviewSummary.validUntil,
+      "reviewSummary.validUntil",
+    );
+    if (reviewValidUntilMs < asOfMs) fail("Review summary validity cannot precede clock.asOf");
+    if (validUntilMs > reviewValidUntilMs) {
+      fail("evaluation validity cannot exceed Review summary validity");
+    }
+  }
+
+  const trackById = new Map<string, PlanningTrackInputV2>();
+  let rationed: ReadonlyMap<string, ProtectedMinuteRation> = new Map();
+  if (input.growthPlan) {
+    requireIdentifier(input.growthPlan.growthPlanId, "growthPlan.growthPlanId");
+    requireIdentifier(input.growthPlan.version, "growthPlan.version");
+    requireEnum(input.growthPlan.lifecycle, ["ACTIVE", "PAUSED"] as const, "growthPlan.lifecycle");
+    if (input.growthPlan.tracks.length < 1 || input.growthPlan.tracks.length > 30) {
+      fail("growthPlan.tracks must contain 1 to 30 values");
+    }
+    for (const track of input.growthPlan.tracks) {
+      validateTrack(track);
+      requireInteger(track.cadencePerWeek, 0, 100, "track.cadencePerWeek");
+      requireInteger(
+        track.completedCadenceSessionsThisWeek,
+        0,
+        500,
+        "track.completedCadenceSessionsThisWeek",
+      );
+      if (trackById.has(track.trackId)) fail(`duplicate trackId ${track.trackId}`);
+      trackById.set(track.trackId, track);
+    }
+    rationed = validateGrowthPlanCapacityV3(input.growthPlan);
+    const meaningfulTotal = input.growthPlan.tracks.reduce(
+      (total, track) => total + track.meaningfulMinutesThisWeek,
+      0,
+    );
+    if (meaningfulTotal > input.growthPlan.consumedMinutesThisWeek) {
+      fail("track meaningful minutes exceed consumed weekly capacity");
+    }
+  }
+
+  if (input.campaign) {
+    requireIdentifier(input.campaign.campaignId, "campaign.campaignId");
+    requireIdentifier(input.campaign.version, "campaign.version");
+    requireIdentifier(input.campaign.title, "campaign.title");
+    requireIdentifier(input.campaign.readinessGoalKey, "campaign.readinessGoalKey");
+    requireIdentifier(input.campaign.targetProfileVersionKey, "campaign.targetProfileVersionKey");
+    const deadlineMs = parsePlanningInstant(input.campaign.deadlineAt, "campaign.deadlineAt");
+    if (deadlineMs < asOfMs) fail("active campaign deadline cannot precede evaluation asOf");
+    const daysUntilDeadline = Math.ceil((deadlineMs - asOfMs) / 86_400_000);
+    if (daysUntilDeadline > 36_500) fail("active Campaign deadline cannot exceed 36,500 days");
+    const nextDayCountChangeAt = deadlineMs - Math.max(0, daysUntilDeadline - 1) * 86_400_000;
+    const campaignValidUntilMs =
+      deadlineMs === asOfMs ? deadlineMs : Math.min(deadlineMs, nextDayCountChangeAt - 1);
+    if (validUntilMs > campaignValidUntilMs) {
+      fail("evaluation validity cannot exceed the next Campaign clock transition");
+    }
+    if (!input.growthPlan || input.growthPlan.lifecycle !== "ACTIVE") {
+      fail("a campaign must overlay an active Growth Plan");
+    }
+  }
+
+  if (input.readiness.length > 30) fail("input.readiness exceeds 30");
+  const readinessByGoal = new Map<string, PlanningReadinessInput>();
+  for (const readiness of input.readiness) {
+    validateReadiness(readiness, asOfMs);
+    if (
+      readiness.availability === "CURRENT" &&
+      readiness.validUntil !== null &&
+      validUntilMs > parsePlanningInstant(readiness.validUntil, "readiness.validUntil")
+    ) {
+      fail("evaluation validity cannot exceed current readiness validity");
+    }
+    if (readinessByGoal.has(readiness.readinessGoalKey)) {
+      fail(`duplicate readiness goal ${readiness.readinessGoalKey}`);
+    }
+    readinessByGoal.set(readiness.readinessGoalKey, readiness);
+  }
+  const readinessKeys = input.readiness.map(({ readinessGoalKey }) => readinessGoalKey);
+  if (
+    !readinessKeys.every(
+      (value, index) => index === 0 || compareCodePoints(readinessKeys[index - 1]!, value) < 0,
+    )
+  ) {
+    fail("readiness inputs must be in canonical goal-key order");
+  }
+  for (const track of trackById.values()) {
+    const readiness = readinessByGoal.get(track.readinessGoalKey);
+    if (!readiness || readiness.targetProfileVersionKey !== track.targetProfileVersionKey) {
+      fail("every track must reference one exact readiness goal/profile input");
+    }
+  }
+  if (input.campaign) {
+    const readiness = readinessByGoal.get(input.campaign.readinessGoalKey);
+    if (
+      !readiness ||
+      readiness.targetProfileVersionKey !== input.campaign.targetProfileVersionKey
+    ) {
+      fail("campaign must reference one exact readiness goal/profile input");
+    }
+  }
+
+  if (input.activeFocus) {
+    requireIdentifier(input.activeFocus.focusSessionId, "activeFocus.focusSessionId");
+    requireIdentifier(input.activeFocus.readinessGoalKey, "activeFocus.readinessGoalKey");
+    requireIdentifier(input.activeFocus.activityKey, "activeFocus.activityKey");
+    requireIdentifier(input.activeFocus.title, "activeFocus.title");
+    requireInteger(input.activeFocus.plannedMinutes, 1, 480, "activeFocus.plannedMinutes");
+    const startedAtMs = parsePlanningInstant(input.activeFocus.startedAt, "activeFocus.startedAt");
+    if (startedAtMs > asOfMs) fail("active Focus cannot start after clock.asOf");
+    if (input.activeFocus.planAttribution) {
+      requireIdentifier(
+        input.activeFocus.planAttribution.planSnapshotId,
+        "activeFocus.planAttribution.planSnapshotId",
+      );
+      requireIdentifier(
+        input.activeFocus.planAttribution.candidateKey,
+        "activeFocus.planAttribution.candidateKey",
+      );
+      if (input.activeFocus.planAttribution.trackId !== null) {
+        requireIdentifier(
+          input.activeFocus.planAttribution.trackId,
+          "activeFocus.planAttribution.trackId",
+        );
+      }
+    }
+  }
+
+  if (!input.growthPlan && !input.campaign) {
+    if (input.readiness.length !== 0 || input.candidates.length !== 0) {
+      fail("a no-plan input must not carry readiness or recommendation candidates");
+    }
+  }
+
+  if (input.candidates.length > 200) fail("input.candidates exceeds 200");
+  const candidateKeys = new Set<string>();
+  const focusPairs = new Set<string>();
+  const reviewItemIds: string[] = [];
+  let overdueReviewCandidateCount = 0;
+  let dueTodayReviewCandidateCount = 0;
+  for (const candidate of input.candidates) {
+    validateCandidate(
+      candidate,
+      trackById,
+      input as unknown as CalculatePlanInput,
+      asOfMs,
+      validUntilMs,
+    );
+    const readiness = readinessByGoal.get(candidate.readinessGoalKey);
+    if (!readiness || readiness.targetProfileVersionKey !== candidate.targetProfileVersionKey) {
+      fail("candidate must reference one exact readiness goal/profile input");
+    }
+    if (candidateKeys.has(candidate.candidateKey)) {
+      fail(`duplicate candidateKey ${candidate.candidateKey}`);
+    }
+    candidateKeys.add(candidate.candidateKey);
+    const pair = `${candidate.readinessGoalKey}${candidate.activityKey}`;
+    if (focusPairs.has(pair)) fail(`duplicate Focus candidate pair ${pair}`);
+    focusPairs.add(pair);
+    if (candidate.review) {
+      reviewItemIds.push(candidate.review.reviewItemId);
+      if (candidate.review.bucket === "OVERDUE") overdueReviewCandidateCount += 1;
+      else dueTodayReviewCandidateCount += 1;
+    }
+  }
+  if (reviewItemIds.length > 100) fail("input Review candidates exceed 100");
+  requireUnique(reviewItemIds, "candidate Review item references");
+  if (
+    overdueReviewCandidateCount > input.reviewSummary.overdueCount ||
+    dueTodayReviewCandidateCount > input.reviewSummary.dueTodayCount
+  ) {
+    fail("Review candidate buckets cannot exceed the current Review summary");
+  }
+
+  return { asOfMs, validUntilMs, weekStartMs, weekEndMs, trackById, rationed };
+}
+
+/** ADR-0010 §6: capacity gate reusing the released V1/V2 deficit/flexible split, substituting the
+ * effective weekly pool and each active Track's rationed reserved minutes for its raw minimum. */
+function protectedCapacityLimitV3(
+  candidate: PlanningCandidateInput,
+  sources: readonly PlanningSourceSignal[],
+  growthPlan: GrowthPlanInputV3,
+  trackById: ReadonlyMap<string, PlanningTrackInputV2>,
+  rationed: ReadonlyMap<string, ProtectedMinuteRation>,
+): number | null {
+  const remaining = Math.max(
+    0,
+    growthPlan.effectiveWeeklyCapacityMinutes - growthPlan.consumedMinutesThisWeek,
+  );
+  if (growthPlan.lifecycle !== "ACTIVE") return remaining;
+  const deficits = growthPlan.tracks
+    .filter(({ lifecycle }) => lifecycle === "ACTIVE")
+    .map((track) => {
+      const reservedMinutes = rationed.get(track.trackId)?.reservedMinutes ?? 0;
+      return { track, minutes: Math.max(0, reservedMinutes - track.meaningfulMinutesThisWeek) };
+    });
+  const totalProtected = Math.min(
+    remaining,
+    deficits.reduce((total, { minutes }) => total + minutes, 0),
+  );
+  const flexible = remaining - totalProtected;
+  if (!sources.includes("GROWTH_PLAN") || candidate.trackId === null) return flexible;
+  const track = trackById.get(candidate.trackId);
+  const candidateReserved =
+    track?.lifecycle === "ACTIVE" ? (rationed.get(track.trackId)?.reservedMinutes ?? 0) : 0;
+  const candidateProtected =
+    track?.lifecycle === "ACTIVE"
+      ? Math.max(0, candidateReserved - track.meaningfulMinutesThisWeek)
+      : 0;
+  return Math.min(remaining, flexible + candidateProtected);
+}
+
+interface ScoredCandidateV3 {
+  readonly candidate: PlanningCandidateInput;
+  readonly factors: readonly PlanScoreFactorV2[];
+  readonly strongestGap: ReadinessGapInput | null;
+  readonly effectiveTrack: PlanningTrackInput | null;
+  readonly score: number;
+}
+
+function scoreCandidateV3(
+  candidate: PlanningCandidateInput,
+  input: CalculatePlanInputV3,
+  trackById: ReadonlyMap<string, PlanningTrackInputV2>,
+  policy: PlanningPolicyV3,
+  rationed: ReadonlyMap<string, ProtectedMinuteRation>,
+): ScoredCandidateV3 | null {
+  const sources = effectiveSources(candidate, input as unknown as CalculatePlanInput, trackById);
+  if (sources.length === 0 || candidate.prerequisiteState === "BLOCKED") return null;
+
+  const capacityLimit = input.growthPlan
+    ? protectedCapacityLimitV3(candidate, sources, input.growthPlan, trackById, rationed)
+    : null;
+  if (capacityLimit !== null && candidate.estimatedMinutes > capacityLimit) return null;
+  if (
+    input.sessionLimitMinutes !== null &&
+    candidate.estimatedMinutes > input.sessionLimitMinutes
+  ) {
+    return null;
+  }
+
+  const factors: (PlanScoreFactorV2 | null)[] = [];
+  const matchedGap = strongestGap(
+    candidate,
+    input.readiness.find(({ readinessGoalKey }) => readinessGoalKey === candidate.readinessGoalKey),
+    policy,
+  );
+  factors.push(matchedGap?.factor ?? null);
+
+  if (sources.includes("REVIEW") && candidate.review) {
+    factors.push(
+      factor(
+        candidate.review.bucket === "OVERDUE" ? "REVIEW_OVERDUE" : "REVIEW_DUE_TODAY",
+        candidate.review.bucket === "OVERDUE"
+          ? policy.overdueReviewPoints
+          : policy.dueTodayReviewPoints,
+      ),
+    );
+  }
+
+  const activeTrack =
+    candidate.trackId === null ? null : (trackById.get(candidate.trackId) ?? null);
+  if (sources.includes("GROWTH_PLAN") && activeTrack?.lifecycle === "ACTIVE") {
+    factors.push(factor("TRACK_PRIORITY", activeTrack.priority));
+    if (activeTrack.meaningfulMinutesThisWeek < activeTrack.protectedMinimumMinutes) {
+      factors.push(factor("TRACK_PROTECTED_MINIMUM", policy.protectedMinimumDeficitPoints));
+    }
+    const deficit = Math.max(
+      activeTrack.cadencePerWeek - activeTrack.completedCadenceSessionsThisWeek,
+      0,
+    );
+    if (deficit > 0) {
+      factors.push(
+        factor(
+          "TRACK_CADENCE_DEFICIT",
+          deficit === 1 ? policy.cadenceDeficitOnePoints : policy.cadenceDeficitMultiplePoints,
+        ),
+      );
+    }
+  }
+
+  if (sources.includes("CAMPAIGN") && input.campaign) {
+    factors.push(factor("CAMPAIGN_SOURCE", policy.campaignSourcePoints));
+    factors.push(
+      factor(
+        "CAMPAIGN_DEADLINE",
+        campaignDeadlinePoints(
+          campaignDaysUntilDeadline(input as unknown as CalculatePlanInput),
+          policy,
+        ),
+      ),
+    );
+  }
+
+  factors.push(
+    factor(
+      "PREREQUISITE_UNLOCK",
+      Math.min(
+        candidate.unlockCount * policy.unlockPointsPerCompetency,
+        policy.maximumUnlockPoints,
+      ),
+    ),
+  );
+  if (candidate.prerequisiteState === "UNKNOWN") {
+    factors.push(factor("PREREQUISITE_UNKNOWN", -policy.unknownPrerequisitePenalty));
+  }
+
+  if (input.energyPreference !== null && candidate.energy !== null) {
+    const difference = energyRank(candidate.energy) - energyRank(input.energyPreference);
+    factors.push(
+      difference === 0
+        ? factor("ENERGY_EXACT_FIT", policy.exactEnergyFitPoints)
+        : difference < 0
+          ? factor("ENERGY_LOWER_FIT", policy.lowerEnergyFitPoints)
+          : factor("ENERGY_HIGHER_MISMATCH", -policy.higherEnergyPenalty),
+    );
+  }
+
+  factors.push(
+    factor(
+      "RECENT_REPETITION",
+      -Math.min(
+        candidate.repetitionsInLast7Days * policy.repetitionPenaltyEach,
+        policy.maximumRepetitionPenalty,
+      ),
+    ),
+  );
+
+  const presentFactors = factors
+    .filter((value): value is PlanScoreFactorV2 => value !== null)
+    .sort((left, right) => compareCodePoints(left.code, right.code));
+  return {
+    candidate: {
+      ...candidate,
+      sourceSignals: sources,
+      trackId: sources.includes("GROWTH_PLAN") ? candidate.trackId : null,
+    },
+    factors: presentFactors,
+    strongestGap: matchedGap?.gap ?? null,
+    effectiveTrack:
+      sources.includes("GROWTH_PLAN") && activeTrack?.lifecycle === "ACTIVE" ? activeTrack : null,
+    score: presentFactors.reduce((total, current) => total + current.points, 0),
+  };
+}
+
+function capacityV3(input: CalculatePlanInputV3): PlanSnapshotV3["capacity"] {
+  if (!input.growthPlan) {
+    return {
+      defaultWeeklyCapacityMinutes: null,
+      effectiveWeeklyCapacityMinutes: null,
+      consumedMinutesThisWeek: 0,
+      remainingMinutesThisWeek: null,
+      sessionLimitMinutes: input.sessionLimitMinutes,
+    } as const;
+  }
+  return {
+    defaultWeeklyCapacityMinutes: input.growthPlan.defaultWeeklyCapacityMinutes,
+    effectiveWeeklyCapacityMinutes: input.growthPlan.effectiveWeeklyCapacityMinutes,
+    consumedMinutesThisWeek: input.growthPlan.consumedMinutesThisWeek,
+    remainingMinutesThisWeek: Math.max(
+      0,
+      input.growthPlan.effectiveWeeklyCapacityMinutes - input.growthPlan.consumedMinutesThisWeek,
+    ),
+    sessionLimitMinutes: input.sessionLimitMinutes,
+  } as const;
+}
+
+/** Adds ADR-0010 §6's rationing warning to the released, version-agnostic warning codes. */
+function warningCodesV3(
+  input: CalculatePlanInputV3,
+  rationed: ReadonlyMap<string, ProtectedMinuteRation>,
+): readonly string[] {
+  const base = warningCodes(input as unknown as CalculatePlanInput);
+  const limited = [...rationed.values()].some((ration) => ration.limited);
+  const warnings = limited ? [...base, "PROTECTED_MINIMUM_LIMITED_BY_AVAILABILITY"] : base;
+  return [...new Set(warnings)].sort(compareCodePoints);
+}
+
+export function calculateVerifiedPlanV3(
+  input: VerifiedCalculatePlanInputV3,
+  policy: PlanningPolicyV3,
+): PlanSnapshotV3 {
+  if (input.completedWorkPolicyVersion !== "planning-completed-work/0.2") {
+    fail("V3 capacity calculation requires planning-completed-work/0.2");
+  }
+  const { asOfMs, validUntilMs, weekStartMs, weekEndMs, trackById, rationed } = validateInputV3(
+    input,
+    policy,
+  );
+  const common = {
+    engineVersion: PLANNER_ENGINE_VERSION_V3,
+    policyVersion: policy.version,
+    inputFingerprint: input.inputFingerprint,
+    calculatedAsOf: toLosslessPlanningInstant(input.evaluationHorizon.asOf, asOfMs),
+    validUntil: toCanonicalInstant(validUntilMs),
+    timeZone: input.evaluationHorizon.timeZone,
+    weekStart: toCanonicalInstant(weekStartMs),
+    weekEnd: toCanonicalInstant(weekEndMs),
+    warningCodes: warningCodesV3(input, rationed),
+    capacity: capacityV3(input),
+    reviewSummary: {
+      ...input.reviewSummary,
+      validUntil:
+        input.reviewSummary.validUntil === null
+          ? null
+          : toCanonicalInstant(
+              parsePlanningInstant(input.reviewSummary.validUntil, "reviewSummary.validUntil"),
+            ),
+    },
+    nearestDeadline: nearestDeadline(input as unknown as CalculatePlanInput),
+    readiness: readinessSummary(input as unknown as CalculatePlanInput, policy),
+  } as const;
+
+  if (input.activeFocus) {
+    const benefit = "RESUME_ACTIVE_FOCUS" as const;
+    const resumeFactor = factor("ACTIVE_FOCUS_RESUME", policy.activeFocusResumePoints);
+    const actions: readonly PlannedActionV2[] = [
+      {
+        rank: 1,
+        actionKind: "RESUME",
+        candidateKey: `active-focus:${input.activeFocus.focusSessionId}`,
+        focusSessionId: input.activeFocus.focusSessionId,
+        readinessGoalKey: input.activeFocus.readinessGoalKey,
+        activityKey: input.activeFocus.activityKey,
+        trackId: input.activeFocus.planAttribution?.trackId ?? null,
+        planAttribution: input.activeFocus.planAttribution,
+        title: input.activeFocus.title,
+        durationMinutes: input.activeFocus.plannedMinutes,
+        durationSource: "ACTIVE_FOCUS",
+        energy: null,
+        sourceSignals: ["ACTIVE_FOCUS"],
+        score: policy.activeFocusResumePoints,
+        scoreFactors: resumeFactor ? [resumeFactor] : [],
+        reasonRefs: resumeFactor
+          ? [
+              {
+                factorCode: "ACTIVE_FOCUS_RESUME" as const,
+                kind: "ACTIVE_FOCUS" as const,
+                focusSessionId: input.activeFocus.focusSessionId,
+              },
+            ]
+          : [],
+        expectedBenefit: benefit,
+        reason: explanation(benefit, input.activeFocus.plannedMinutes),
+      },
+    ];
+    return { ...common, recommendationState: "CURRENT", actions };
+  }
+
+  if (input.growthPlan === null && input.campaign === null) {
+    return { ...common, recommendationState: "NO_PLAN", actions: [] };
+  }
+  if (input.growthPlan?.lifecycle === "PAUSED" && input.campaign === null) {
+    const hasIndependentReview = input.candidates.some(
+      (candidate) =>
+        candidate.prerequisiteState !== "BLOCKED" &&
+        effectiveSources(candidate, input as unknown as CalculatePlanInput, trackById).includes(
+          "REVIEW",
+        ),
+    );
+    if (!hasIndependentReview) {
+      return { ...common, recommendationState: "PLAN_PAUSED", actions: [] };
+    }
+  }
+
+  const remaining = common.capacity.remainingMinutesThisWeek;
+  if (input.sessionLimitMinutes === 0 || (remaining !== null && remaining === 0)) {
+    return { ...common, recommendationState: "NO_CAPACITY", actions: [] };
+  }
+
+  const scored = input.candidates
+    .map((candidate) => scoreCandidateV3(candidate, input, trackById, policy, rationed))
+    .filter((candidate): candidate is ScoredCandidateV3 => candidate !== null)
+    .sort(
+      (left, right) =>
+        right.score - left.score ||
+        left.candidate.estimatedMinutes - right.candidate.estimatedMinutes ||
+        compareCodePoints(left.candidate.candidateKey, right.candidate.candidateKey),
+    )
+    .slice(0, policy.maximumActions);
+
+  const actions: readonly PlannedActionV2[] = scored.map((scoredCandidate, index) => {
+    const { candidate, factors, score, strongestGap: matchedGap, effectiveTrack } = scoredCandidate;
+    const benefit = expectedBenefit(factors);
+    return {
+      rank: index + 1,
+      actionKind: "START",
+      candidateKey: candidate.candidateKey,
+      focusSessionId: null,
+      readinessGoalKey: candidate.readinessGoalKey,
+      activityKey: candidate.activityKey,
+      trackId: candidate.trackId,
+      planAttribution: null,
+      title: candidate.title,
+      durationMinutes: candidate.estimatedMinutes,
+      durationSource: candidate.durationSource,
+      energy: candidate.energy,
+      sourceSignals: candidate.sourceSignals,
+      score,
+      scoreFactors: factors,
+      reasonRefs: candidateReasonRefs(
+        candidate,
+        factors,
+        matchedGap,
+        effectiveTrack,
+        input as unknown as CalculatePlanInput,
+      ),
+      expectedBenefit: benefit,
+      reason: explanation(benefit, candidate.estimatedMinutes, factors, true),
+    };
+  });
+
+  const recommendationState: PlanSnapshotV3["recommendationState"] =
+    actions.length > 0
+      ? "CURRENT"
+      : input.growthPlan?.lifecycle === "PAUSED" && input.campaign === null
+        ? "PLAN_PAUSED"
+        : "NO_CANDIDATES";
+
+  return { ...common, recommendationState, actions };
 }
