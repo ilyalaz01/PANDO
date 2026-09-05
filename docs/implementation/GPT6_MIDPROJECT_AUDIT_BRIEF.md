@@ -77,7 +77,18 @@ Read files completely unless a section is explicitly described as a targeted sou
    - `docs/implementation/PHASE_4B_D4_CAMPAIGNS_STATUS.md`
    - `docs/implementation/PHASE_4B_D5_ALLOCATIONS_STATUS.md`
    - `docs/implementation/CLAUDE_CODE_HANDOFF_REPORT.md`
-6. Owner boundaries:
+6. Earlier delivery and handoff evidence, so the audit does not mistake D3-D5 for the whole
+   project:
+   - `docs/implementation/PHASE_0_GATE_9_STATUS.md`
+   - `docs/implementation/PHASE_3A_REVIEW_CORE_STATUS.md`
+   - `docs/implementation/PHASE_3B_TARGET_READINESS_STATUS.md`
+   - `docs/implementation/PHASE_4A_PLANNING_TODAY_STATUS.md`
+   - `docs/implementation/CODEX_C5_HANDOFF_REPORT.md`
+   - `docs/implementation/CODEX_C6_HANDOFF_REPORT.md`
+   - `docs/implementation/CODEX_C7_HANDOFF_REPORT.md`
+   - `docs/implementation/CODEX_D2C_TO_CLAUDE_HANDOFF.md`
+   - the remaining `PHASE_4B_*_STATUS.md` files, using Git and tests to resolve stale claims.
+7. Owner boundaries:
    - `src/modules/planning/README.md`
    - `src/modules/targets/README.md`
    - `src/modules/agent-control/README.md`
@@ -92,6 +103,13 @@ Use the project `graphify` skill and a bounded query when `graphify-out/graph.js
 tool are available. Graphify was not executable in the preparing Windows session, so do not install
 or upgrade it merely for this audit. It is only a repository index; verify every decisive claim in
 authoritative files and never treat it as product state or authorization.
+
+Known handoff/environment friction must be separated from product defects: previous Windows work
+encountered `.git` ownership/ACL trouble and Docker Desktop/WSL instability; the latest Claude run
+left a Linux-shaped `node_modules`, so the Windows pnpm wrapper may request a clean dependency
+install. A fresh worktree should install the frozen lockfile for its own OS. Never report an
+environmental skip as a passing product gate, but do not redesign the product because a local Docker
+or browser dependency failed to launch.
 
 ## Efficient source and history review
 
