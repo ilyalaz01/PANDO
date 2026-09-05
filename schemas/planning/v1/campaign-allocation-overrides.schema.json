@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/planning/v1/campaign-allocation-overrides.schema.json",
+  "title": "CampaignAllocationOverridesV1",
+  "description": "A workspace's full campaign allocation override history across every campaign and lifecycle.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "overrides"],
+  "properties": {
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "CampaignAllocationOverridesV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "overrides": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/override" }
+    }
+  },
+  "$defs": {
+    "positiveBigint": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7])$"
+    },
+    "campaignKey": {
+      "type": "string",
+      "pattern": "^campaign:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trackKey": {
+      "type": "string",
+      "pattern": "^track:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "trackTitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,158}\\S)$"
+    },
+    "overrideKey": {
+      "type": "string",
+      "pattern": "^override:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "lifecycle": { "enum": ["ACTIVE", "SUPERSEDED", "REMOVED"] },
+    "capability": {
+      "enum": ["change_campaign_allocation_override", "remove_campaign_allocation_override"]
+    },
+    "nullablePriority": {
+      "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 100 }, { "type": "null" }]
+    },
+    "nullableProtectedMinimum": {
+      "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 10080 }, { "type": "null" }]
+    },
+    "nullableCadence": {
+      "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 100 }, { "type": "null" }]
+    },
+    "learningTrack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trackKey", "title"],
+      "properties": {
+        "trackKey": { "$ref": "#/$defs/trackKey" },
+        "title": { "$ref": "#/$defs/trackTitle" }
+      }
+    },
+    "override": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overrideKey",
+        "campaignKey",
+        "learningTrack",
+        "lifecycle",
+        "priorityOverride",
+        "protectedMinimumMinutesOverride",
+        "cadencePerWeekOverride",
+        "aggregateVersion",
+        "capabilities"
+      ],
+      "properties": {
+        "overrideKey": { "$ref": "#/$defs/overrideKey" },
+        "campaignKey": { "$ref": "#/$defs/campaignKey" },
+        "learningTrack": { "$ref": "#/$defs/learningTrack" },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" },
+        "priorityOverride": { "$ref": "#/$defs/nullablePriority" },
+        "protectedMinimumMinutesOverride": { "$ref": "#/$defs/nullableProtectedMinimum" },
+        "cadencePerWeekOverride": { "$ref": "#/$defs/nullableCadence" },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/capability" }
+        }
+      }
+    }
+  }
+}

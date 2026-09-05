@@ -92,6 +92,7 @@ function actionViolations(
   index: number,
   calculatedAsOfMs: number,
   validUntilMs: number,
+  allowsPassedCampaignDeadline: boolean,
 ): readonly string[] {
   const violations: string[] = [];
   const prefix = `PLAN_SNAPSHOT_ACTION_${index}`;
@@ -206,12 +207,17 @@ function actionViolations(
       if (kind === "CAMPAIGN") {
         const deadlineMs =
           typeof reference.deadlineAt === "string" ? Date.parse(reference.deadlineAt) : Number.NaN;
-        const expectedDays = Math.ceil((deadlineMs - calculatedAsOfMs) / 86_400_000);
+        const rawExpectedDays = Math.ceil((deadlineMs - calculatedAsOfMs) / 86_400_000);
+        // ADR-0010 §3 (D5/planner-engine/0.4.0 only): a passed deadline clamps to zero days
+        // rather than reporting a negative count, and PANDO never refuses the deadline itself.
+        const expectedDays = allowsPassedCampaignDeadline
+          ? Math.max(0, rawExpectedDays)
+          : rawExpectedDays;
         return (
           !sources.includes("CAMPAIGN") ||
           reference.readinessGoalKey !== action.readinessGoalKey ||
           !Number.isFinite(deadlineMs) ||
-          deadlineMs < calculatedAsOfMs ||
+          (!allowsPassedCampaignDeadline && deadlineMs < calculatedAsOfMs) ||
           integer(reference.daysUntilDeadline) !== expectedDays
         );
       }
@@ -263,6 +269,10 @@ export function planSnapshotSemanticViolations(value: unknown): readonly string[
   const weekStartMs =
     typeof value.weekStart === "string" ? Date.parse(value.weekStart) : Number.NaN;
   const weekEndMs = typeof value.weekEnd === "string" ? Date.parse(value.weekEnd) : Number.NaN;
+  // ADR-0010 §3: only planner-engine/0.4.0 (D5) ever admits a Campaign deadline that has already
+  // passed; every earlier engine version keeps refusing one at the pure calculation boundary, so
+  // this cross-version validator must not relax those versions' deadline checks.
+  const allowsPassedCampaignDeadline = asString(value.engineVersion) === "planner-engine/0.4.0";
 
   if (actions.length !== asArray(value.actions).length)
     violations.push("PLAN_SNAPSHOT_ACTION_SHAPE");
@@ -286,21 +296,23 @@ export function planSnapshotSemanticViolations(value: unknown): readonly string[
     nearestDeadline &&
     (typeof nearestDeadline.deadlineAt !== "string" ||
       typeof value.calculatedAsOf !== "string" ||
-      Date.parse(nearestDeadline.deadlineAt) < Date.parse(value.calculatedAsOf))
+      (!allowsPassedCampaignDeadline &&
+        Date.parse(nearestDeadline.deadlineAt) < Date.parse(value.calculatedAsOf)))
   ) {
     violations.push("PLAN_SNAPSHOT_DEADLINE_EXPIRED");
   }
   if (nearestDeadline && typeof nearestDeadline.deadlineAt === "string") {
     const deadlineMs = Date.parse(nearestDeadline.deadlineAt);
+    const campaignHasPassed = allowsPassedCampaignDeadline && deadlineMs <= calculatedAsOfMs;
     const daysUntilDeadline = Math.ceil((deadlineMs - calculatedAsOfMs) / 86_400_000);
     const nextDayCountChangeAt = deadlineMs - Math.max(0, daysUntilDeadline - 1) * 86_400_000;
     const campaignValidUntilMs =
       deadlineMs === calculatedAsOfMs ? deadlineMs : Math.min(deadlineMs, nextDayCountChangeAt - 1);
     if (
       !Number.isFinite(deadlineMs) ||
-      daysUntilDeadline < 0 ||
+      (!campaignHasPassed && daysUntilDeadline < 0) ||
       daysUntilDeadline > 36_500 ||
-      validUntilMs > campaignValidUntilMs
+      (!campaignHasPassed && validUntilMs > campaignValidUntilMs)
     ) {
       violations.push("PLAN_SNAPSHOT_CAMPAIGN_VALIDITY");
     }
@@ -377,7 +389,15 @@ export function planSnapshotSemanticViolations(value: unknown): readonly string[
   if (duplicate(candidateKeys) || duplicate(focusPairs))
     violations.push("PLAN_SNAPSHOT_ACTION_DUPLICATE");
   actions.forEach((action, index) =>
-    violations.push(...actionViolations(action, index, calculatedAsOfMs, validUntilMs)),
+    violations.push(
+      ...actionViolations(
+        action,
+        index,
+        calculatedAsOfMs,
+        validUntilMs,
+        allowsPassedCampaignDeadline,
+      ),
+    ),
   );
   for (const action of actions) {
     for (const reference of asArray(action.reasonRefs).filter(isJsonObject)) {

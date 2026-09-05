@@ -1,0 +1,25 @@
+{
+  "contract": {
+    "name": "CampaignLifecycleCoordinationApplyResultV1",
+    "version": "1.0.0"
+  },
+  "commandId": "85000000-0000-4000-8000-000000000001",
+  "campaign": {
+    "campaignId": "70000000-0000-8000-8000-000000000001",
+    "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+    "title": "Acme loop",
+    "lifecycle": "ENDED",
+    "aggregateVersion": "3"
+  },
+  "overrides": [
+    {
+      "overrideKey": "override:81000000-0000-8000-8000-000000000001",
+      "lifecycle": "SUPERSEDED",
+      "aggregateVersion": "2"
+    }
+  ],
+  "emittedEventIds": [
+    "86000000-0000-4000-8000-000000000001",
+    "86000000-0000-4000-8000-000000000002"
+  ]
+}

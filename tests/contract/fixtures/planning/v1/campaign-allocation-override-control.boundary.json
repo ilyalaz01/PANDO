@@ -1,0 +1,40 @@
+{
+  "contract": {
+    "name": "CampaignAllocationOverrideChangePreviewV1",
+    "version": "1.0.0"
+  },
+  "operation": "change_campaign_allocation_override",
+  "commandType": "planning.change_campaign_allocation_override_v1",
+  "reason": "Trying to reserve more minutes than the plan has left this week.",
+  "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+  "learningTrack": {
+    "trackKey": "track:backend",
+    "title": "Backend"
+  },
+  "before": {
+    "overrideId": "81000000-0000-8000-8000-000000000002",
+    "overrideKey": "override:81000000-0000-8000-8000-000000000002",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "1",
+    "priorityOverride": null,
+    "protectedMinimumMinutesOverride": null,
+    "cadencePerWeekOverride": null
+  },
+  "after": {
+    "overrideId": "81000000-0000-8000-8000-000000000002",
+    "overrideKey": "override:81000000-0000-8000-8000-000000000002",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "2",
+    "priorityOverride": null,
+    "protectedMinimumMinutesOverride": 5000,
+    "cadencePerWeekOverride": null
+  },
+  "canApply": false,
+  "blockingReasons": [
+    {
+      "code": "ALLOCATION_OVERRIDE_EXCEEDS_CAPACITY"
+    }
+  ],
+  "warnings": [],
+  "previewDigest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+}

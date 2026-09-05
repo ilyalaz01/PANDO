@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   loadCampaigns: vi.fn(),
+  loadOverrides: vi.fn(),
   loadTargetSelection: vi.fn(),
+  loadCurrentLearningTracks: vi.fn(),
   redirect: vi.fn(() => {
     throw new Error("NEXT_REDIRECT");
   }),
@@ -27,9 +29,13 @@ vi.mock("../../shared/supabase/session", () => ({
 }));
 vi.mock("../../ui/campaigns/server/database-campaigns", () => ({
   loadInterviewCampaignsV1: mocks.loadCampaigns,
+  loadCampaignAllocationOverridesV1: mocks.loadOverrides,
 }));
 vi.mock("../../ui/start/server/database-target-selection", () => ({
   loadTargetSelectionSourceV1: mocks.loadTargetSelection,
+}));
+vi.mock("../../ui/plan/server/database-plan", () => ({
+  loadCurrentLearningTracksV1: mocks.loadCurrentLearningTracks,
 }));
 
 import CampaignsPage from "./page";
@@ -84,11 +90,24 @@ const targetSelectionSource = {
   ],
 } as const;
 
+const emptyOverrides = {
+  contract: { name: "CampaignAllocationOverridesV1", version: "1.0.0" },
+  overrides: [],
+} as const;
+
+const emptyLearningTracks = {
+  contract: { name: "CurrentLearningTracksV1", version: "1.0.0" },
+  growthPlan: null,
+  learningTracks: [],
+} as const;
+
 describe("CampaignsPage", () => {
   it("renders the campaign list and only currently active Readiness Goals", async () => {
     mocks.verify.mockResolvedValue({ client: { requestScoped: true } });
     mocks.loadCampaigns.mockResolvedValue(campaignsWorkspace);
     mocks.loadTargetSelection.mockResolvedValue(targetSelectionSource);
+    mocks.loadOverrides.mockResolvedValue(emptyOverrides);
+    mocks.loadCurrentLearningTracks.mockResolvedValue(emptyLearningTracks);
     render(await CampaignsPage());
     expect(screen.getByText("Acme backend loop")).toBeVisible();
     expect(screen.getByLabelText("Readiness Goal")).toHaveTextContent("Backend readiness");

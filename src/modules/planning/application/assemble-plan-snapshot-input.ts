@@ -18,12 +18,15 @@ import type {
   CalculatePlanInput,
   CalculatePlanInputV2,
   CalculatePlanInputV3,
+  CalculatePlanInputV4,
+  CampaignAllocationOverrideInput,
   DailyCapacityCapInput,
   PlanningCandidateInput,
   PlanningReadinessInput,
   PlanningSourceRevision,
   PlanningTrackInput,
   PlanningTrackInputV2,
+  PlanningTrackInputV4,
   ReviewSignalInput,
 } from "../domain/planning-types";
 
@@ -389,10 +392,52 @@ function uniqueBy<T>(items: readonly T[], key: (item: T) => string, label: strin
   return [...result.values()];
 }
 
+/** Shared by V3 and V4: re-derives the seven-day cap composition from `bundle.availability`. */
+function resolveDailyCaps(bundle: JsonObject): readonly DailyCapacityCapInput[] {
+  const availability = asJsonObject(bundle.availability, "availability");
+  const dailyCaps: DailyCapacityCapInput[] = objectArray(
+    availability.dailyCaps,
+    "availability.dailyCaps",
+  ).map((cap) => ({
+    date: requiredString(cap, "date"),
+    capMinutes: integer(cap, "capMinutes"),
+    sourceWindowKey: cap.sourceWindowKey === null ? null : requiredString(cap, "sourceWindowKey"),
+  }));
+  if (dailyCaps.length !== 7) {
+    fail("INVALID_OWNER_SOURCE", "availability.dailyCaps must contain exactly seven days");
+  }
+  return dailyCaps;
+}
+
+/**
+ * D5-app's dispatcher "expand" half (ADR-0010 §8/§9's expand-then-activate sequence), exactly
+ * mirroring D3b2-rollout's own precedent for `assemblePlanSnapshotInputV3`: reads a per-track
+ * `allocationOverride` sub-object (`null` when the Track carries none) from the same raw track
+ * object `plan.tracks[]` already supplies every other field from.
+ */
+function allocationOverrideInput(
+  value: JsonValue | undefined,
+): CampaignAllocationOverrideInput | null {
+  if (value === null || value === undefined) return null;
+  const override = asJsonObject(value, "plan.tracks[].allocationOverride");
+  return {
+    overrideId: requiredString(override, "overrideId"),
+    version: requiredString(override, "version"),
+    priorityOverride:
+      override.priorityOverride === null ? null : integer(override, "priorityOverride"),
+    protectedMinimumMinutesOverride:
+      override.protectedMinimumMinutesOverride === null
+        ? null
+        : integer(override, "protectedMinimumMinutesOverride"),
+    cadencePerWeekOverride:
+      override.cadencePerWeekOverride === null ? null : integer(override, "cadencePerWeekOverride"),
+  };
+}
+
 function assemblePlanSnapshotInputInternal(
   source: unknown,
-  calculationContract: "V1" | "V2" | "V3",
-): CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3 {
+  calculationContract: "V1" | "V2" | "V3" | "V4",
+): CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3 | CalculatePlanInputV4 {
   const bundle = asJsonObject(source, "Planning source bundle");
   const claimAsOf = provenanceInstant(bundle.claimAsOf, "claimAsOf");
   const calendar = asJsonObject(bundle.calendar, "calendar");
@@ -505,7 +550,8 @@ function assemblePlanSnapshotInputInternal(
   let growthPlan:
     | CalculatePlanInput["growthPlan"]
     | CalculatePlanInputV2["growthPlan"]
-    | CalculatePlanInputV3["growthPlan"] = null;
+    | CalculatePlanInputV3["growthPlan"]
+    | CalculatePlanInputV4["growthPlan"] = null;
   let candidates: PlanningCandidateInput[] = [];
   if (rawPlan !== null) {
     const rawTracks = objectArray(rawPlan.tracks, "plan.tracks");
@@ -548,31 +594,42 @@ function assemblePlanSnapshotInputInternal(
         "track cadence credit cannot exceed consumed capacity",
       );
     }
-    const tracks: (PlanningTrackInput | PlanningTrackInputV2)[] = rawTracks.map((track) => {
-      const target = targetByGoalId.get(requiredString(track, "readinessGoalId"));
-      if (target === undefined) fail("MISSING_TARGET_SOURCE", "Track readiness source is missing");
-      const trackId = requiredString(track, "trackId");
-      const base: PlanningTrackInput = {
-        trackId,
-        trackKey: requiredString(track, "trackKey"),
-        title: requiredString(track, "title"),
-        version: requiredString(track, "version"),
-        readinessGoalKey: requiredString(target, "readinessGoalKey"),
-        targetProfileVersionKey: requiredString(target, "profileVersionKey"),
-        lifecycle: requiredString(track, "lifecycle") as PlanningTrackInput["lifecycle"],
-        priority: integer(track, "priority"),
-        protectedMinimumMinutes: integer(track, "protectedMinimumMinutes"),
-        meaningfulMinutesThisWeek: meaningfulMinutesByTrack.get(trackId) ?? 0,
-        defaultSessionMinutes: integer(track, "defaultSessionMinutes"),
-      };
-      return calculationContract === "V2" || calculationContract === "V3"
-        ? {
+    const tracks: (PlanningTrackInput | PlanningTrackInputV2 | PlanningTrackInputV4)[] =
+      rawTracks.map((track) => {
+        const target = targetByGoalId.get(requiredString(track, "readinessGoalId"));
+        if (target === undefined) {
+          fail("MISSING_TARGET_SOURCE", "Track readiness source is missing");
+        }
+        const trackId = requiredString(track, "trackId");
+        const base: PlanningTrackInput = {
+          trackId,
+          trackKey: requiredString(track, "trackKey"),
+          title: requiredString(track, "title"),
+          version: requiredString(track, "version"),
+          readinessGoalKey: requiredString(target, "readinessGoalKey"),
+          targetProfileVersionKey: requiredString(target, "profileVersionKey"),
+          lifecycle: requiredString(track, "lifecycle") as PlanningTrackInput["lifecycle"],
+          priority: integer(track, "priority"),
+          protectedMinimumMinutes: integer(track, "protectedMinimumMinutes"),
+          meaningfulMinutesThisWeek: meaningfulMinutesByTrack.get(trackId) ?? 0,
+          defaultSessionMinutes: integer(track, "defaultSessionMinutes"),
+        };
+        if (calculationContract === "V4") {
+          return {
             ...base,
             cadencePerWeek: integer(track, "cadencePerWeek"),
             completedCadenceSessionsThisWeek: completedCadenceSessionsByTrack.get(trackId) ?? 0,
-          }
-        : base;
-    });
+            allocationOverride: allocationOverrideInput(track.allocationOverride),
+          } satisfies PlanningTrackInputV4;
+        }
+        return calculationContract === "V2" || calculationContract === "V3"
+          ? {
+              ...base,
+              cadencePerWeek: integer(track, "cadencePerWeek"),
+              completedCadenceSessionsThisWeek: completedCadenceSessionsByTrack.get(trackId) ?? 0,
+            }
+          : base;
+      });
     const trackById = new Map(tracks.map((track) => [track.trackId, track]));
     const rawTrackById = new Map(
       rawTracks.map((track) => [requiredString(track, "trackId"), track]),
@@ -743,24 +800,9 @@ function assemblePlanSnapshotInputInternal(
       consumedMinutesThisWeek,
     };
     growthPlan =
-      calculationContract === "V3"
+      calculationContract === "V4"
         ? (() => {
-            const availability = asJsonObject(bundle.availability, "availability");
-            const dailyCaps: DailyCapacityCapInput[] = objectArray(
-              availability.dailyCaps,
-              "availability.dailyCaps",
-            ).map((cap) => ({
-              date: requiredString(cap, "date"),
-              capMinutes: integer(cap, "capMinutes"),
-              sourceWindowKey:
-                cap.sourceWindowKey === null ? null : requiredString(cap, "sourceWindowKey"),
-            }));
-            if (dailyCaps.length !== 7) {
-              fail(
-                "INVALID_OWNER_SOURCE",
-                "availability.dailyCaps must contain exactly seven days",
-              );
-            }
+            const dailyCaps = resolveDailyCaps(bundle);
             return {
               growthPlanId: growthPlanBase.growthPlanId,
               version: growthPlanBase.version,
@@ -772,12 +814,51 @@ function assemblePlanSnapshotInputInternal(
                 dailyCaps.map((cap) => cap.capMinutes),
               ),
               dailyCaps,
-              tracks: tracks as readonly PlanningTrackInputV2[],
+              tracks: tracks as readonly PlanningTrackInputV4[],
             };
           })()
-        : calculationContract === "V2"
-          ? { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInputV2[] }
-          : { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInput[] };
+        : calculationContract === "V3"
+          ? (() => {
+              const dailyCaps = resolveDailyCaps(bundle);
+              return {
+                growthPlanId: growthPlanBase.growthPlanId,
+                version: growthPlanBase.version,
+                lifecycle: growthPlanBase.lifecycle,
+                consumedMinutesThisWeek: growthPlanBase.consumedMinutesThisWeek,
+                defaultWeeklyCapacityMinutes: growthPlanBase.weeklyCapacityMinutes,
+                effectiveWeeklyCapacityMinutes: effectiveWeeklyCapacityMinutes(
+                  growthPlanBase.weeklyCapacityMinutes,
+                  dailyCaps.map((cap) => cap.capMinutes),
+                ),
+                dailyCaps,
+                tracks: tracks as readonly PlanningTrackInputV2[],
+              };
+            })()
+          : calculationContract === "V2"
+            ? { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInputV2[] }
+            : { ...growthPlanBase, tracks: tracks as readonly PlanningTrackInput[] };
+  }
+
+  let campaign: CalculatePlanInputV4["campaign"] = null;
+  if (calculationContract === "V4") {
+    const rawCampaign =
+      bundle.campaign === undefined || bundle.campaign === null
+        ? null
+        : asJsonObject(bundle.campaign, "campaign");
+    if (rawCampaign !== null) {
+      const target = targetByGoalId.get(requiredString(rawCampaign, "readinessGoalId"));
+      if (target === undefined) {
+        fail("MISSING_TARGET_SOURCE", "Campaign readiness source is missing");
+      }
+      campaign = {
+        campaignId: requiredString(rawCampaign, "campaignId"),
+        version: requiredString(rawCampaign, "version"),
+        title: requiredString(rawCampaign, "title"),
+        readinessGoalKey: requiredString(target, "readinessGoalKey"),
+        targetProfileVersionKey: requiredString(target, "profileVersionKey"),
+        deadlineAt: instant(rawCampaign.deadlineAt, "campaign.deadlineAt"),
+      };
+    }
   }
 
   if (
@@ -817,7 +898,7 @@ function assemblePlanSnapshotInputInternal(
   const unsigned = {
     inputFingerprint: "planning-input:" + "0".repeat(64),
     completedWorkPolicyVersion:
-      calculationContract === "V2" || calculationContract === "V3"
+      calculationContract === "V2" || calculationContract === "V3" || calculationContract === "V4"
         ? COMPLETED_WORK_POLICY_VERSION_V2
         : COMPLETED_WORK_POLICY_VERSION,
     prerequisiteEngineVersion: MASTERY_PREREQUISITE_ENGINE_VERSION,
@@ -831,7 +912,7 @@ function assemblePlanSnapshotInputInternal(
     },
     sourceRevisions,
     growthPlan,
-    campaign: null,
+    campaign,
     sessionLimitMinutes: null,
     energyPreference: null,
     activeFocus:
@@ -860,7 +941,7 @@ function assemblePlanSnapshotInputInternal(
       validUntil: reviewValidUntil,
     },
     candidates,
-  } as CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3;
+  } as CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3 | CalculatePlanInputV4;
   return { ...unsigned, inputFingerprint: planningInputFingerprint(unsigned) };
 }
 
@@ -883,4 +964,20 @@ export function assemblePlanSnapshotInputV2(source: unknown): CalculatePlanInput
  */
 export function assemblePlanSnapshotInputV3(source: unknown): CalculatePlanInputV3 {
   return assemblePlanSnapshotInputInternal(source, "V3") as CalculatePlanInputV3;
+}
+
+/**
+ * D5-app's dispatcher "expand" half (ADR-0010 §8/§9), exactly mirroring D3b2-rollout's own
+ * precedent for `assemblePlanSnapshotInputV3`: ready to assemble a real `CalculatePlanInputV4`
+ * from a source bundle additionally carrying `bundle.campaign` (a raw `{campaignId, version,
+ * title, readinessGoalId, deadlineAt}`, or `null`) and each `plan.tracks[]` entry's own
+ * `allocationOverride` (`null`, or `{overrideId, version, priorityOverride,
+ * protectedMinimumMinutesOverride, cadencePerWeekOverride}`). No SQL migration this session
+ * extends `planning.load_plan_snapshot_source_bundle_v1/v2`-equivalent SQL to actually produce
+ * either shape, so this function is exercised only by synthetic fixtures in this session's tests —
+ * dispatcher plumbing ready for a future SQL-permitted "activate" session, never yet reachable from
+ * a real delivery. See the D5-app status report.
+ */
+export function assemblePlanSnapshotInputV4(source: unknown): CalculatePlanInputV4 {
+  return assemblePlanSnapshotInputInternal(source, "V4") as CalculatePlanInputV4;
 }

@@ -1,0 +1,36 @@
+{
+  "contract": {
+    "name": "CampaignAllocationOverridesV1",
+    "version": "1.0.0"
+  },
+  "overrides": [
+    {
+      "overrideKey": "override:81000000-0000-8000-8000-000000000001",
+      "campaignKey": "campaign:70000000-0000-8000-8000-000000000001",
+      "learningTrack": {
+        "trackKey": "track:backend",
+        "title": "Backend"
+      },
+      "lifecycle": "ACTIVE",
+      "priorityOverride": 95,
+      "protectedMinimumMinutesOverride": null,
+      "cadencePerWeekOverride": null,
+      "aggregateVersion": "2",
+      "capabilities": ["change_campaign_allocation_override", "remove_campaign_allocation_override"]
+    },
+    {
+      "overrideKey": "override:81000000-0000-8000-8000-000000000002",
+      "campaignKey": "campaign:70000000-0000-8000-8000-000000000005",
+      "learningTrack": {
+        "trackKey": "track:algorithms",
+        "title": "Algorithms"
+      },
+      "lifecycle": "SUPERSEDED",
+      "priorityOverride": null,
+      "protectedMinimumMinutesOverride": 180,
+      "cadencePerWeekOverride": null,
+      "aggregateVersion": "3",
+      "capabilities": ["change_campaign_allocation_override", "remove_campaign_allocation_override"]
+    }
+  ]
+}

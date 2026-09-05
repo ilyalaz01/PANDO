@@ -1,16 +1,18 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 
-import { calculatePlan, calculatePlanV2, calculatePlanV3 } from "./calculate-plan";
+import { calculatePlan, calculatePlanV2, calculatePlanV3, calculatePlanV4 } from "./calculate-plan";
 import {
   assemblePlanSnapshotInput,
   assemblePlanSnapshotInputV2,
   assemblePlanSnapshotInputV3,
+  assemblePlanSnapshotInputV4,
   PlanningProjectionSourceError,
 } from "./assemble-plan-snapshot-input";
 import { PLANNING_POLICY_V0_1 } from "../domain/planning-policy-v0.1";
 import { PLANNING_POLICY_V0_2 } from "../domain/planning-policy-v0.2";
 import { PLANNING_POLICY_V0_3 } from "../domain/planning-policy-v0.3";
+import { PLANNING_POLICY_V0_4 } from "../domain/planning-policy-v0.4";
 
 const trackedActivityId = "26000000-0000-4000-8000-000000000105";
 
@@ -1018,6 +1020,128 @@ describe("assemblePlanSnapshotInput", () => {
           code: "INVALID_OWNER_SOURCE",
         }),
       );
+    });
+  });
+
+  describe("assemblePlanSnapshotInputV4", () => {
+    function v4Source() {
+      return { ...sourceBundle(), availability: { dailyCaps: dailyCaps(1_440) } };
+    }
+
+    it("matches V3's shape and output when no campaign or override is present", () => {
+      const source = v4Source();
+
+      const v3 = assemblePlanSnapshotInputV3(source);
+      const v4 = assemblePlanSnapshotInputV4(source);
+
+      expect(v4.campaign).toBeNull();
+      expect(v4.growthPlan?.tracks[0]).toMatchObject({ allocationOverride: null });
+      const v3Result = calculatePlanV3(v3, PLANNING_POLICY_V0_3);
+      const v4Result = calculatePlanV4(v4, PLANNING_POLICY_V0_4);
+      expect(v4Result).toMatchObject({
+        engineVersion: "planner-engine/0.4.0",
+        policyVersion: "planning-policy/0.4",
+        recommendationState: v3Result.recommendationState,
+        capacity: v3Result.capacity,
+      });
+    });
+
+    it("resolves bundle.campaign through the Targets readiness source, like a Track does", () => {
+      const source = {
+        ...v4Source(),
+        campaign: {
+          campaignId: "26000000-0000-4000-8000-000000000120",
+          version: "1",
+          title: "Backend loop",
+          readinessGoalId: "26000000-0000-4000-8000-000000000103",
+          deadlineAt: "2026-09-15T00:00:00Z",
+        },
+      };
+
+      const v4 = assemblePlanSnapshotInputV4(source);
+
+      expect(v4.campaign).toMatchObject({
+        campaignId: "26000000-0000-4000-8000-000000000120",
+        version: "1",
+        title: "Backend loop",
+        readinessGoalKey: "goal:backend",
+        targetProfileVersionKey: "target:backend-v1",
+        deadlineAt: "2026-09-15T00:00:00.000Z",
+      });
+    });
+
+    it("fails closed when the campaign references an unknown readiness goal", () => {
+      const source = {
+        ...v4Source(),
+        campaign: {
+          campaignId: "26000000-0000-4000-8000-000000000120",
+          version: "1",
+          title: "Backend loop",
+          readinessGoalId: "26000000-0000-4000-8000-000000000199",
+          deadlineAt: "2026-09-15T00:00:00Z",
+        },
+      };
+
+      expect(() => assemblePlanSnapshotInputV4(source)).toThrowError(
+        expect.objectContaining<Partial<PlanningProjectionSourceError>>({
+          code: "MISSING_TARGET_SOURCE",
+        }),
+      );
+    });
+
+    it("assembles a Track's allocationOverride from the same raw track object", () => {
+      const source = v4Source();
+      const withOverride = {
+        ...source,
+        plan: {
+          ...source.plan,
+          tracks: [
+            {
+              ...source.plan.tracks[0],
+              allocationOverride: {
+                overrideId: "26000000-0000-4000-8000-000000000121",
+                version: "1",
+                priorityOverride: 95,
+                protectedMinimumMinutesOverride: null,
+                cadencePerWeekOverride: null,
+              },
+            },
+          ],
+        },
+      };
+
+      const v4 = assemblePlanSnapshotInputV4(withOverride);
+
+      expect(v4.growthPlan?.tracks[0]?.allocationOverride).toEqual({
+        overrideId: "26000000-0000-4000-8000-000000000121",
+        version: "1",
+        priorityOverride: 95,
+        protectedMinimumMinutesOverride: null,
+        cadencePerWeekOverride: null,
+      });
+      expect(() => calculatePlanV4(v4, PLANNING_POLICY_V0_4)).not.toThrow();
+    });
+
+    it("treats an absent allocationOverride identically to an explicit null", () => {
+      const source = v4Source();
+      const withoutKey = {
+        ...source,
+        plan: { ...source.plan, tracks: [{ ...source.plan.tracks[0] }] },
+      };
+      const withNull = {
+        ...source,
+        plan: {
+          ...source.plan,
+          tracks: [{ ...source.plan.tracks[0], allocationOverride: null }],
+        },
+      };
+
+      expect(assemblePlanSnapshotInputV4(withoutKey).growthPlan?.tracks[0]).toMatchObject({
+        allocationOverride: null,
+      });
+      expect(assemblePlanSnapshotInputV4(withNull).growthPlan?.tracks[0]).toMatchObject({
+        allocationOverride: null,
+      });
     });
   });
 });

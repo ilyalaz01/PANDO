@@ -1,0 +1,7 @@
+{
+  "contract": {
+    "name": "CampaignAllocationOverridesV1",
+    "version": "1.0.0"
+  },
+  "overrides": []
+}

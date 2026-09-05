@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pando.local/schemas/agent-control/v1/campaign-lifecycle-coordination-control.schema.json",
+  "title": "PANDO Campaign Lifecycle Coordination Control V1",
+  "oneOf": [
+    { "$ref": "#/$defs/preview" },
+    { "$ref": "#/$defs/applyResult" }
+  ],
+  "$defs": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "positiveBigint": {
+      "type": "string",
+      "pattern": "^(?:[1-9][0-9]{0,17}|[1-8][0-9]{18}|9[0-1][0-9]{17}|92[0-1][0-9]{16}|922[0-2][0-9]{15}|9223[0-2][0-9]{14}|92233[0-6][0-9]{13}|922337[0-1][0-9]{12}|92233720[0-2][0-9]{10}|922337203[0-5][0-9]{9}|9223372036[0-7][0-9]{8}|92233720368[0-4][0-9]{7}|922337203685[0-3][0-9]{6}|9223372036854[0-6][0-9]{5}|92233720368547[0-6][0-9]{4}|922337203685477[0-4][0-9]{3}|9223372036854775[0-7][0-9]{2}|922337203685477580[0-7])$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,198}\\S)$"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,498}\\S)$"
+    },
+    "campaignKey": {
+      "type": "string",
+      "pattern": "^campaign:[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "trackKey": {
+      "type": "string",
+      "pattern": "^track:[a-z0-9][a-z0-9-]{1,100}$"
+    },
+    "trackTitle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^(?:\\S|\\S[\\s\\S]{0,158}\\S)$"
+    },
+    "overrideKey": {
+      "type": "string",
+      "pattern": "^override:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "operation": { "enum": ["start_campaign", "end_campaign", "cancel_campaign"] },
+    "lifecycleBefore": { "enum": ["DRAFT", "ACTIVE"] },
+    "lifecycleAfter": { "enum": ["ACTIVE", "ENDED", "CANCELLED"] },
+    "nullablePriority": {
+      "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 100 }, { "type": "null" }]
+    },
+    "nullableProtectedMinimum": {
+      "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 10080 }, { "type": "null" }]
+    },
+    "nullableCadence": {
+      "oneOf": [{ "type": "integer", "minimum": 0, "maximum": 100 }, { "type": "null" }]
+    },
+    "campaignBefore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["campaignId", "campaignKey", "title", "lifecycle", "aggregateVersion"],
+      "properties": {
+        "campaignId": { "$ref": "#/$defs/uuid" },
+        "campaignKey": { "$ref": "#/$defs/campaignKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "$ref": "#/$defs/lifecycleBefore" },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "campaignAfter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["campaignId", "campaignKey", "title", "lifecycle", "aggregateVersion"],
+      "properties": {
+        "campaignId": { "$ref": "#/$defs/uuid" },
+        "campaignKey": { "$ref": "#/$defs/campaignKey" },
+        "title": { "$ref": "#/$defs/title" },
+        "lifecycle": { "$ref": "#/$defs/lifecycleAfter" },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "installedOverridePreviewItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overrideKey",
+        "learningTrack",
+        "lifecycle",
+        "priorityOverride",
+        "protectedMinimumMinutesOverride",
+        "cadencePerWeekOverride",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "overrideKey": { "$ref": "#/$defs/overrideKey" },
+        "learningTrack": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trackKey", "expectedVersion"],
+          "properties": {
+            "trackKey": { "$ref": "#/$defs/trackKey" },
+            "expectedVersion": { "$ref": "#/$defs/positiveBigint" }
+          }
+        },
+        "lifecycle": { "const": "ACTIVE" },
+        "priorityOverride": { "$ref": "#/$defs/nullablePriority" },
+        "protectedMinimumMinutesOverride": { "$ref": "#/$defs/nullableProtectedMinimum" },
+        "cadencePerWeekOverride": { "$ref": "#/$defs/nullableCadence" },
+        "aggregateVersion": { "const": "1" }
+      }
+    },
+    "closedOverridePreviewItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overrideKey", "lifecycle"],
+      "properties": {
+        "overrideKey": { "$ref": "#/$defs/overrideKey" },
+        "lifecycle": { "const": "SUPERSEDED" }
+      }
+    },
+    "installedOverrideResultItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overrideKey",
+        "learningTrack",
+        "lifecycle",
+        "priorityOverride",
+        "protectedMinimumMinutesOverride",
+        "cadencePerWeekOverride",
+        "aggregateVersion"
+      ],
+      "properties": {
+        "overrideKey": { "$ref": "#/$defs/overrideKey" },
+        "learningTrack": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["trackKey", "title"],
+          "properties": {
+            "trackKey": { "$ref": "#/$defs/trackKey" },
+            "title": { "$ref": "#/$defs/trackTitle" }
+          }
+        },
+        "lifecycle": { "const": "ACTIVE" },
+        "priorityOverride": { "$ref": "#/$defs/nullablePriority" },
+        "protectedMinimumMinutesOverride": { "$ref": "#/$defs/nullableProtectedMinimum" },
+        "cadencePerWeekOverride": { "$ref": "#/$defs/nullableCadence" },
+        "aggregateVersion": { "const": "1" }
+      }
+    },
+    "closedOverrideResultItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["overrideKey", "lifecycle", "aggregateVersion"],
+      "properties": {
+        "overrideKey": { "$ref": "#/$defs/overrideKey" },
+        "lifecycle": { "const": "SUPERSEDED" },
+        "aggregateVersion": { "$ref": "#/$defs/positiveBigint" }
+      }
+    },
+    "blockingReason": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code"],
+          "properties": {
+            "code": {
+              "enum": ["ALLOCATION_OVERRIDE_NO_CURRENT_PLAN", "ALLOCATION_OVERRIDE_EXCEEDS_CAPACITY"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "trackKey"],
+          "properties": {
+            "code": {
+              "enum": [
+                "ALLOCATION_OVERRIDE_TRACK_VERSION_STALE",
+                "ALLOCATION_OVERRIDE_TRACK_NOT_ACTIVE",
+                "ALLOCATION_OVERRIDE_TRACK_ALREADY_OVERRIDDEN"
+              ]
+            },
+            "trackKey": { "$ref": "#/$defs/trackKey" }
+          }
+        }
+      ]
+    },
+    "contractPreview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "CampaignLifecycleCoordinationPreviewV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "contractApply": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "CampaignLifecycleCoordinationApplyResultV1" },
+        "version": { "const": "1.0.0" }
+      }
+    },
+    "preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract",
+        "operation",
+        "commandType",
+        "reason",
+        "idempotencyKey",
+        "campaign",
+        "overrides",
+        "canApply",
+        "blockingReasons",
+        "warnings",
+        "previewDigest"
+      ],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractPreview" },
+        "operation": { "$ref": "#/$defs/operation" },
+        "commandType": { "const": "agent_control.coordinate_campaign_lifecycle_v1" },
+        "reason": { "$ref": "#/$defs/reason" },
+        "idempotencyKey": { "$ref": "#/$defs/uuid" },
+        "campaign": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["before", "after"],
+          "properties": {
+            "before": { "$ref": "#/$defs/campaignBefore" },
+            "after": { "$ref": "#/$defs/campaignAfter" }
+          }
+        },
+        "overrides": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["installed", "closed"],
+          "properties": {
+            "installed": {
+              "type": "array",
+              "maxItems": 20,
+              "items": { "$ref": "#/$defs/installedOverridePreviewItem" }
+            },
+            "closed": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/closedOverridePreviewItem" }
+            }
+          }
+        },
+        "canApply": { "type": "boolean" },
+        "blockingReasons": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/blockingReason" }
+        },
+        "warnings": { "type": "array", "maxItems": 0 },
+        "previewDigest": { "$ref": "#/$defs/digest" }
+      }
+    },
+    "applyResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "commandId", "campaign", "overrides", "emittedEventIds"],
+      "properties": {
+        "contract": { "$ref": "#/$defs/contractApply" },
+        "commandId": { "$ref": "#/$defs/uuid" },
+        "campaign": { "$ref": "#/$defs/campaignAfter" },
+        "overrides": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "oneOf": [
+              { "$ref": "#/$defs/installedOverrideResultItem" },
+              { "$ref": "#/$defs/closedOverrideResultItem" }
+            ]
+          }
+        },
+        "emittedEventIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 21,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/uuid" }
+        }
+      }
+    }
+  }
+}

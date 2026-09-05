@@ -5,6 +5,8 @@ import { initialCampaignActionState } from "../../../ui/campaigns/campaign-actio
 import type { CampaignActionState } from "../../../ui/campaigns/campaign-action-state";
 import type {
   ActiveReadinessGoalV1,
+  AvailableLearningTrackV1,
+  CampaignAllocationOverrideSummaryV1,
   InterviewCampaignCreationPreviewV1,
   InterviewCampaignSummaryV1,
 } from "../../../ui/campaigns/campaign-types";
@@ -234,30 +236,58 @@ const lifecyclePreviewState: CampaignActionState = {
   status: "previewed",
   message: "Lifecycle change preview ready.",
   preview: {
-    contract: { name: "InterviewCampaignLifecyclePreviewV1", version: "1.0.0" },
+    contract: { name: "CampaignLifecycleCoordinationPreviewV1", version: "1.0.0" },
     operation: "end_campaign",
-    commandType: "targets.change_interview_campaign_lifecycle_v1",
+    commandType: "agent_control.coordinate_campaign_lifecycle_v1",
     reason: "The onsite is complete.",
-    before: {
-      campaignId: "70000000-0000-8000-8000-000000000001",
-      campaignKey: activeCampaign.campaignKey,
-      title: activeCampaign.title,
-      lifecycle: "ACTIVE",
-      aggregateVersion: "2",
+    idempotencyKey: "10000000-0000-4000-8000-000000000005",
+    campaign: {
+      before: {
+        campaignId: "70000000-0000-8000-8000-000000000001",
+        campaignKey: activeCampaign.campaignKey,
+        title: activeCampaign.title,
+        lifecycle: "ACTIVE",
+        aggregateVersion: "2",
+      },
+      after: {
+        campaignId: "70000000-0000-8000-8000-000000000001",
+        campaignKey: activeCampaign.campaignKey,
+        title: activeCampaign.title,
+        lifecycle: "ENDED",
+        aggregateVersion: "3",
+      },
     },
-    after: {
-      campaignId: "70000000-0000-8000-8000-000000000001",
-      campaignKey: activeCampaign.campaignKey,
-      title: activeCampaign.title,
-      lifecycle: "ENDED",
-      aggregateVersion: "3",
-    },
+    overrides: { installed: [], closed: [] },
     canApply: true,
     blockingReasons: [],
     warnings: [],
     previewDigest: "f".repeat(64),
   },
 };
+
+const availableTracks: readonly AvailableLearningTrackV1[] = [
+  {
+    learningTrackId: "26000000-0000-4000-8000-000000000102",
+    trackKey: "track:backend",
+    title: "Backend",
+    lifecycle: "ACTIVE",
+    aggregateVersion: "2",
+  },
+];
+
+const allocationOverrides: readonly CampaignAllocationOverrideSummaryV1[] = [
+  {
+    overrideKey: "override:81000000-0000-8000-8000-000000000001",
+    campaignKey: activeCampaign.campaignKey,
+    learningTrack: { trackKey: "track:backend", title: "Backend" },
+    lifecycle: "ACTIVE",
+    priorityOverride: 95,
+    protectedMinimumMinutesOverride: null,
+    cadencePerWeekOverride: null,
+    aggregateVersion: "1",
+    capabilities: ["change_campaign_allocation_override", "remove_campaign_allocation_override"],
+  },
+];
 
 export default async function CampaignsFixturePage({
   searchParams,
@@ -290,6 +320,7 @@ export default async function CampaignsFixturePage({
         </div>
         <CampaignWorkspace
           activeGoals={previewKind === "no-goals" ? [] : activeGoals}
+          availableTracks={previewKind === "lifecycle" ? availableTracks : []}
           campaigns={campaigns}
           initialCreationPreviewState={
             previewKind === "creation"
@@ -298,6 +329,7 @@ export default async function CampaignsFixturePage({
                 ? creationBlockedPreviewState
                 : initialCampaignActionState
           }
+          overrides={previewKind === "override" ? allocationOverrides : []}
           {...(previewKind === "deadline" ||
           previewKind === "retarget" ||
           previewKind === "lifecycle"

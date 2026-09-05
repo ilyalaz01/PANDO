@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 import { InterviewCampaignList } from "./campaign-list";
-import type { ActiveReadinessGoalV1, InterviewCampaignSummaryV1 } from "./campaign-types";
+import type {
+  ActiveReadinessGoalV1,
+  CampaignAllocationOverrideSummaryV1,
+  InterviewCampaignSummaryV1,
+} from "./campaign-types";
 
 const activeGoals: readonly ActiveReadinessGoalV1[] = [
   {
@@ -107,5 +111,51 @@ describe("InterviewCampaignList", () => {
     expect(screen.queryByText("Lifecycle")).not.toBeInTheDocument();
     const history = screen.getByText("Retargeting history").closest("section")!;
     expect(within(history).getByText(/does not yet expose a read/u)).toBeVisible();
+  });
+
+  it("renders only the active override belonging to the shown campaign", () => {
+    const shown = campaign({});
+    const other = campaign({ campaignKey: "campaign:70000000-0000-8000-8000-000000000009" });
+    const overrides: readonly CampaignAllocationOverrideSummaryV1[] = [
+      {
+        overrideKey: "override:81000000-0000-8000-8000-000000000001",
+        campaignKey: shown.campaignKey,
+        learningTrack: { trackKey: "track:backend", title: "Backend" },
+        lifecycle: "ACTIVE",
+        priorityOverride: 95,
+        protectedMinimumMinutesOverride: null,
+        cadencePerWeekOverride: null,
+        aggregateVersion: "2",
+        capabilities: [
+          "change_campaign_allocation_override",
+          "remove_campaign_allocation_override",
+        ],
+      },
+      {
+        overrideKey: "override:81000000-0000-8000-8000-000000000002",
+        campaignKey: other.campaignKey,
+        learningTrack: { trackKey: "track:algorithms", title: "Algorithms" },
+        lifecycle: "ACTIVE",
+        priorityOverride: null,
+        protectedMinimumMinutesOverride: 180,
+        cadencePerWeekOverride: null,
+        aggregateVersion: "1",
+        capabilities: [
+          "change_campaign_allocation_override",
+          "remove_campaign_allocation_override",
+        ],
+      },
+    ];
+    render(
+      <InterviewCampaignList
+        activeGoals={activeGoals}
+        campaigns={[shown]}
+        dismissalVersion={0}
+        onIntentStart={vi.fn()}
+        overrides={overrides}
+      />,
+    );
+    expect(screen.getByText("Backend")).toBeVisible();
+    expect(screen.queryByText("Algorithms")).not.toBeInTheDocument();
   });
 });

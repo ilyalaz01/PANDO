@@ -9,10 +9,16 @@ import {
 import { SkipLink } from "../../ui/primitives/skip-link";
 import { CampaignWorkspace } from "../../ui/campaigns/campaign-workspace";
 import styles from "../../ui/campaigns/campaigns.module.css";
-import { loadInterviewCampaignsV1 } from "../../ui/campaigns/server/database-campaigns";
+import {
+  loadCampaignAllocationOverridesV1,
+  loadInterviewCampaignsV1,
+} from "../../ui/campaigns/server/database-campaigns";
 import { loadTargetSelectionSourceV1 } from "../../ui/start/server/database-target-selection";
+import { loadCurrentLearningTracksV1 } from "../../ui/plan/server/database-plan";
 import type {
   ActiveReadinessGoalV1,
+  AvailableLearningTrackV1,
+  CampaignAllocationOverrideSummaryV1,
   InterviewCampaignSummaryV1,
 } from "../../ui/campaigns/campaign-types";
 
@@ -26,17 +32,24 @@ export const metadata: Metadata = {
 export default async function CampaignsPage() {
   let campaigns: readonly InterviewCampaignSummaryV1[] = [];
   let activeGoals: readonly ActiveReadinessGoalV1[] = [];
+  let availableTracks: readonly AvailableLearningTrackV1[] = [];
+  let overrides: readonly CampaignAllocationOverrideSummaryV1[] = [];
   try {
     const client = await createPandoServerComponentClient();
     const authorizedClient = (await verifyPandoSession(client)).client;
-    const [campaignsWorkspace, targetSelectionSource] = await Promise.all([
-      loadInterviewCampaignsV1(authorizedClient),
-      loadTargetSelectionSourceV1(authorizedClient),
-    ]);
+    const [campaignsWorkspace, targetSelectionSource, learningTracks, overridesWorkspace] =
+      await Promise.all([
+        loadInterviewCampaignsV1(authorizedClient),
+        loadTargetSelectionSourceV1(authorizedClient),
+        loadCurrentLearningTracksV1(authorizedClient),
+        loadCampaignAllocationOverridesV1(authorizedClient),
+      ]);
     campaigns = campaignsWorkspace.campaigns;
     activeGoals = targetSelectionSource.readinessGoals.filter(
       (goal) => goal.lifecycle === "active",
     );
+    availableTracks = learningTracks.learningTracks;
+    overrides = overridesWorkspace.overrides;
   } catch (error) {
     if (error instanceof AuthenticatedSessionRequiredError) redirect("/sign-in");
     return (
@@ -76,7 +89,12 @@ export default async function CampaignsPage() {
             start it, and change its deadline or target as the loop moves.
           </p>
         </div>
-        <CampaignWorkspace activeGoals={activeGoals} campaigns={campaigns} />
+        <CampaignWorkspace
+          activeGoals={activeGoals}
+          availableTracks={availableTracks}
+          campaigns={campaigns}
+          overrides={overrides}
+        />
       </main>
     </div>
   );

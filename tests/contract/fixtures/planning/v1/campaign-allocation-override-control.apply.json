@@ -1,0 +1,17 @@
+{
+  "contract": {
+    "name": "CampaignAllocationOverrideChangeApplyResultV1",
+    "version": "1.0.0"
+  },
+  "commandId": "82000000-0000-4000-8000-000000000001",
+  "override": {
+    "overrideId": "81000000-0000-8000-8000-000000000001",
+    "overrideKey": "override:81000000-0000-8000-8000-000000000001",
+    "lifecycle": "ACTIVE",
+    "aggregateVersion": "2",
+    "priorityOverride": 95,
+    "protectedMinimumMinutesOverride": null,
+    "cadencePerWeekOverride": null
+  },
+  "emittedEventIds": ["83000000-0000-4000-8000-000000000001"]
+}

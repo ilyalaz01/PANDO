@@ -1,6 +1,7 @@
 export const PLANNER_ENGINE_VERSION = "planner-engine/0.1.0" as const;
 export const PLANNER_ENGINE_VERSION_V2 = "planner-engine/0.2.0" as const;
 export const PLANNER_ENGINE_VERSION_V3 = "planner-engine/0.3.0" as const;
+export const PLANNER_ENGINE_VERSION_V4 = "planner-engine/0.4.0" as const;
 
 export type EnergyMode = "LOW" | "MEDIUM" | "HIGH";
 export type EstimateConfidence = "LOW" | "MEDIUM" | "HIGH";
@@ -52,6 +53,15 @@ export interface PlanningPolicyV2 extends PlanningPolicy {
  */
 export interface PlanningPolicyV3 extends Omit<PlanningPolicyV2, "version"> {
   readonly version: "planning-policy/0.3";
+}
+
+/**
+ * ADR-0010 §8: D5 changes campaign eligibility, paused-plan behavior, post-deadline clamping, and
+ * effective Track parameters via allocation overrides, not scoring, so V4 adds no coefficient
+ * beyond V3's.
+ */
+export interface PlanningPolicyV4 extends Omit<PlanningPolicyV3, "version"> {
+  readonly version: "planning-policy/0.4";
 }
 
 export interface PlanningTrackInput {
@@ -110,6 +120,29 @@ export interface GrowthPlanInputV3 extends Omit<
   readonly effectiveWeeklyCapacityMinutes: number;
   readonly dailyCaps: readonly DailyCapacityCapInput[];
   readonly tracks: readonly PlanningTrackInputV2[];
+}
+
+/**
+ * ADR-0010 §5: a bounded temporary replacement of a Track's own `priority` /
+ * `protectedMinimumMinutes` / `cadencePerWeek` for the lifetime of one active Campaign. Each field
+ * independently defaults to the Track's own base value when null. The engine independently
+ * verifies the floor invariant (never lower than the Track's own protected minimum) instead of
+ * trusting the adapter, matching how V3 independently re-derives effective capacity.
+ */
+export interface CampaignAllocationOverrideInput {
+  readonly overrideId: string;
+  readonly version: string;
+  readonly priorityOverride: number | null;
+  readonly protectedMinimumMinutesOverride: number | null;
+  readonly cadencePerWeekOverride: number | null;
+}
+
+export interface PlanningTrackInputV4 extends PlanningTrackInputV2 {
+  readonly allocationOverride: CampaignAllocationOverrideInput | null;
+}
+
+export interface GrowthPlanInputV4 extends Omit<GrowthPlanInputV3, "tracks"> {
+  readonly tracks: readonly PlanningTrackInputV4[];
 }
 
 export interface CampaignInput {
@@ -275,6 +308,15 @@ export interface CalculatePlanInputV3 extends Omit<CalculatePlanInputV2, "growth
   readonly growthPlan: GrowthPlanInputV3 | null;
 }
 
+/**
+ * ADR-0010 §2/§5/§8: D5 changes no completed-work policy either. `campaign` keeps `CampaignInput`'s
+ * shape unchanged — only its engine-side eligibility and clamping rules change — while `growthPlan`
+ * carries each Track's active allocation override, if any.
+ */
+export interface CalculatePlanInputV4 extends Omit<CalculatePlanInputV3, "growthPlan"> {
+  readonly growthPlan: GrowthPlanInputV4 | null;
+}
+
 declare const verifiedPlanningInput: unique symbol;
 export type VerifiedCalculatePlanInput = CalculatePlanInput & {
   readonly [verifiedPlanningInput]: true;
@@ -283,6 +325,9 @@ export type VerifiedCalculatePlanInputV2 = CalculatePlanInputV2 & {
   readonly [verifiedPlanningInput]: true;
 };
 export type VerifiedCalculatePlanInputV3 = CalculatePlanInputV3 & {
+  readonly [verifiedPlanningInput]: true;
+};
+export type VerifiedCalculatePlanInputV4 = CalculatePlanInputV4 & {
   readonly [verifiedPlanningInput]: true;
 };
 
@@ -476,6 +521,17 @@ export interface PlanSnapshotV3 extends Omit<
     readonly remainingMinutesThisWeek: number | null;
     readonly sessionLimitMinutes: number | null;
   };
+}
+
+/**
+ * ADR-0010 §2/§3/§8: V4 changes campaign eligibility, paused-plan behavior, post-deadline
+ * clamping, and effective Track parameters, not the snapshot shape itself — `capacity`, `actions`,
+ * and every other field keep V3's exact structure. New warning codes `BASE_PLAN_PAUSED` and
+ * `CAMPAIGN_DEADLINE_PASSED` are ordinary members of the existing `warningCodes` string array.
+ */
+export interface PlanSnapshotV4 extends Omit<PlanSnapshotV3, "engineVersion" | "policyVersion"> {
+  readonly engineVersion: typeof PLANNER_ENGINE_VERSION_V4;
+  readonly policyVersion: "planning-policy/0.4";
 }
 
 export class PlanningInputError extends Error {

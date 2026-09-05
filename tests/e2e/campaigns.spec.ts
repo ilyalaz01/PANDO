@@ -94,6 +94,28 @@ test("shows the exact before/after lifecycle comparison and available operations
   await expect(page.getByRole("button", { name: "Confirm: End this campaign" })).toBeEnabled();
 });
 
+test("offers a Learning Track override picker only when starting a campaign", async ({ page }) => {
+  await openFixture(page, "?preview=lifecycle");
+  await page.getByRole("button", { name: "Start this campaign" }).click();
+  await expect(
+    page.getByLabel("Boost one Learning Track for this campaign (optional)"),
+  ).toBeVisible();
+  await expect(page.getByLabel(/Priority override/u)).toHaveCount(0);
+  await page
+    .getByLabel("Boost one Learning Track for this campaign (optional)")
+    .selectOption("track:backend");
+  await expect(page.getByLabel(/Priority override/u)).toBeVisible();
+});
+
+test("lists an active allocation override and pre-fills its change form", async ({ page }) => {
+  await openFixture(page, "?preview=override");
+  const overrides = page.getByRole("region", { name: "Allocation overrides" });
+  await expect(overrides).toContainText("Backend");
+  await overrides.getByRole("button", { name: "Change this override" }).click();
+  await expect(page.getByLabel(/Priority \(0-100/u)).toHaveValue("95");
+  await expect(page.getByRole("button", { name: "Preview: Change this override" })).toBeEnabled();
+});
+
 test("prompts explicitly once a running campaign's deadline has passed", async ({ page }) => {
   await openFixture(page, "?preview=deadline-passed");
   await expect(
@@ -162,6 +184,7 @@ test("has no automatically detectable WCAG A/AA violations", async ({ page }) =>
     "?preview=deadline",
     "?preview=retarget",
     "?preview=lifecycle",
+    "?preview=override",
   ]) {
     await openFixture(page, suffix);
     const results = await new AxeBuilder({ page })

@@ -1,10 +1,16 @@
 "use client";
 
+import { CampaignAllocationOverrides } from "./campaign-allocation-overrides";
 import { InterviewCampaignDeadline } from "./campaign-deadline";
 import { InterviewCampaignLifecycle } from "./campaign-lifecycle";
 import { InterviewCampaignRetarget } from "./campaign-retarget";
 import type { CampaignActionState } from "./campaign-action-state";
-import type { ActiveReadinessGoalV1, InterviewCampaignSummaryV1 } from "./campaign-types";
+import type {
+  ActiveReadinessGoalV1,
+  AvailableLearningTrackV1,
+  CampaignAllocationOverrideSummaryV1,
+  InterviewCampaignSummaryV1,
+} from "./campaign-types";
 import styles from "./campaigns.module.css";
 
 function deadlineText(campaign: InterviewCampaignSummaryV1): string {
@@ -17,6 +23,8 @@ function deadlineText(campaign: InterviewCampaignSummaryV1): string {
 export function InterviewCampaignList({
   campaigns,
   activeGoals,
+  availableTracks = [],
+  overrides = [],
   dismissalVersion,
   onIntentStart,
   focusedCampaignKey,
@@ -26,6 +34,8 @@ export function InterviewCampaignList({
 }: {
   readonly campaigns: readonly InterviewCampaignSummaryV1[];
   readonly activeGoals: readonly ActiveReadinessGoalV1[];
+  readonly availableTracks?: readonly AvailableLearningTrackV1[];
+  readonly overrides?: readonly CampaignAllocationOverrideSummaryV1[];
   readonly dismissalVersion: number;
   readonly onIntentStart: () => void;
   readonly focusedCampaignKey?: string;
@@ -79,6 +89,7 @@ export function InterviewCampaignList({
                 : {})}
             />
             <InterviewCampaignLifecycle
+              availableTracks={availableTracks}
               campaign={campaign}
               dismissalVersion={dismissalVersion}
               onIntentStart={onIntentStart}
@@ -86,6 +97,12 @@ export function InterviewCampaignList({
               focusedLifecyclePreviewState !== undefined
                 ? { initialPreviewState: focusedLifecyclePreviewState }
                 : {})}
+            />
+            <CampaignAllocationOverrides
+              campaignKey={campaign.campaignKey}
+              dismissalVersion={dismissalVersion}
+              onIntentStart={onIntentStart}
+              overrides={overrides}
             />
             <section
               aria-labelledby={`campaign-history-heading-${campaign.campaignKey}`}

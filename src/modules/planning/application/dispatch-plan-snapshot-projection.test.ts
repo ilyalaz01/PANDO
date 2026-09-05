@@ -475,6 +475,52 @@ describe("Planning snapshot dispatcher", () => {
     );
   });
 
+  it("routes a V4-stamped attempt through V4 assembly and calculation (expand-half plumbing)", async () => {
+    // D5-app's own dispatcher "expand" half, exactly mirroring D3b2-rollout's V3 precedent above:
+    // no real delivery can carry this contract yet, so this proves the dispatcher's own routing
+    // logic is ready, using a synthetic claim rather than a real one.
+    const rpc = vi.fn(async (name: string) => {
+      if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };
+      if (name === "load_plan_snapshot_projection_v1") {
+        return {
+          data: {
+            attemptId,
+            calculationContractVersion: "planning-calculation/4",
+            sourceFence: `planning-source:${"a".repeat(64)}`,
+            sourceBundle: sourceBundle(),
+            storedInput: null,
+          },
+          error: null,
+        };
+      }
+      if (name === "record_plan_snapshot_input_v1") return { data: true, error: null };
+      if (name === "complete_plan_snapshot_projection_v1") return { data: "APPLIED", error: null };
+      throw new Error(`unexpected ${name}`);
+    });
+
+    await expect(dispatchPlanSnapshotProjection(client(rpc))).resolves.toMatchObject({
+      completed: 1,
+    });
+    expect(rpc).toHaveBeenCalledWith(
+      "record_plan_snapshot_input_v1",
+      expect.objectContaining({
+        p_input: expect.objectContaining({
+          completedWorkPolicyVersion: "planning-completed-work/0.2",
+          campaign: null,
+        }),
+      }),
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "complete_plan_snapshot_projection_v1",
+      expect.objectContaining({
+        p_result: expect.objectContaining({
+          engineVersion: "planner-engine/0.4.0",
+          policyVersion: "planning-policy/0.4",
+        }),
+      }),
+    );
+  });
+
   it("fails closed when the attempt calculation contract is unknown", async () => {
     const rpc = vi.fn(async (name: string) => {
       if (name === "claim_plan_snapshot_projection_v1") return { data: [claim()], error: null };

@@ -15,6 +15,7 @@ import graphProjectionSchema from "../../../schemas/graph-projection/v1/graph-pr
 import planSnapshotSchema from "../../../schemas/planning/v1/plan-snapshot.schema.json";
 import planSnapshotV2Schema from "../../../schemas/planning/v2/plan-snapshot.schema.json";
 import planSnapshotV3Schema from "../../../schemas/planning/v3/plan-snapshot.schema.json";
+import planSnapshotV4Schema from "../../../schemas/planning/v4/plan-snapshot.schema.json";
 import growthPlanControlSchema from "../../../schemas/planning/v1/growth-plan-control.schema.json";
 import growthPlanCapacityControlSchema from "../../../schemas/planning/v1/growth-plan-capacity-control.schema.json";
 import growthPlanInitializationControlSchema from "../../../schemas/planning/v1/growth-plan-initialization-control.schema.json";
@@ -29,6 +30,7 @@ import learningTrackTerminalLifecycleControlSchema from "../../../schemas/planni
 import planningInputSchema from "../../../schemas/planning/v1/planning-input.schema.json";
 import planningInputV2Schema from "../../../schemas/planning/v2/planning-input.schema.json";
 import planningInputV3Schema from "../../../schemas/planning/v3/planning-input.schema.json";
+import planningInputV4Schema from "../../../schemas/planning/v4/planning-input.schema.json";
 import todayWorkspaceSchema from "../../../schemas/planning/v1/today-workspace.schema.json";
 import preparationCommonSchema from "../../../schemas/preparation-pack/v1/common.schema.json";
 import preparationContextSchema from "../../../schemas/preparation-pack/v1/preparation-context.schema.json";
@@ -43,6 +45,9 @@ import interviewCampaignDeadlineControlSchema from "../../../schemas/interview-c
 import interviewCampaignRetargetControlSchema from "../../../schemas/interview-campaign/v1/interview-campaign-retarget-control.schema.json";
 import interviewCampaignLifecycleControlSchema from "../../../schemas/interview-campaign/v1/interview-campaign-lifecycle-control.schema.json";
 import interviewCampaignsSchema from "../../../schemas/interview-campaign/v1/interview-campaigns.schema.json";
+import campaignAllocationOverrideControlSchema from "../../../schemas/planning/v1/campaign-allocation-override-control.schema.json";
+import campaignAllocationOverridesSchema from "../../../schemas/planning/v1/campaign-allocation-overrides.schema.json";
+import campaignLifecycleCoordinationControlSchema from "../../../schemas/agent-control/v1/campaign-lifecycle-coordination-control.schema.json";
 
 import { type ContractViolation, type ValidationResult, validationResult } from "./result";
 
@@ -60,6 +65,7 @@ export const schemaNames = [
   "planning-input-v1",
   "planning-input-v2",
   "planning-input-v3",
+  "planning-input-v4",
   "growth-plan-control-v1",
   "growth-plan-capacity-control-v1",
   "growth-plan-initialization-control-v1",
@@ -74,6 +80,7 @@ export const schemaNames = [
   "plan-snapshot-v1",
   "plan-snapshot-v2",
   "plan-snapshot-v3",
+  "plan-snapshot-v4",
   "today-workspace-v1",
   "preparation-context",
   "preparation-manifest",
@@ -88,6 +95,9 @@ export const schemaNames = [
   "interview-campaign-retarget-control-v1",
   "interview-campaign-lifecycle-control-v1",
   "interview-campaigns-v1",
+  "campaign-allocation-override-control-v1",
+  "campaign-allocation-overrides-v1",
+  "campaign-lifecycle-coordination-control-v1",
 ] as const;
 
 export type SchemaName = (typeof schemaNames)[number];
@@ -108,6 +118,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "planning-input-v1": planningInputSchema,
   "planning-input-v2": planningInputV2Schema,
   "planning-input-v3": planningInputV3Schema,
+  "planning-input-v4": planningInputV4Schema,
   "growth-plan-control-v1": growthPlanControlSchema,
   "growth-plan-capacity-control-v1": growthPlanCapacityControlSchema,
   "growth-plan-initialization-control-v1": growthPlanInitializationControlSchema,
@@ -122,6 +133,7 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "plan-snapshot-v1": planSnapshotSchema,
   "plan-snapshot-v2": planSnapshotV2Schema,
   "plan-snapshot-v3": planSnapshotV3Schema,
+  "plan-snapshot-v4": planSnapshotV4Schema,
   "today-workspace-v1": todayWorkspaceSchema,
   "preparation-context": preparationContextSchema,
   "preparation-manifest": preparationManifestSchema,
@@ -136,6 +148,9 @@ const schemasByName: Readonly<Record<SchemaName, JsonSchema>> = {
   "interview-campaign-retarget-control-v1": interviewCampaignRetargetControlSchema,
   "interview-campaign-lifecycle-control-v1": interviewCampaignLifecycleControlSchema,
   "interview-campaigns-v1": interviewCampaignsSchema,
+  "campaign-allocation-override-control-v1": campaignAllocationOverrideControlSchema,
+  "campaign-allocation-overrides-v1": campaignAllocationOverridesSchema,
+  "campaign-lifecycle-coordination-control-v1": campaignLifecycleCoordinationControlSchema,
 };
 
 function createRegistry(): Readonly<Record<SchemaName, ValidateFunction>> {

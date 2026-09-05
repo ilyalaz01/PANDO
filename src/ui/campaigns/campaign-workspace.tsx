@@ -4,12 +4,19 @@ import { useState } from "react";
 import { InterviewCampaignCreation } from "./campaign-creation";
 import { InterviewCampaignList } from "./campaign-list";
 import type { CampaignActionState } from "./campaign-action-state";
-import type { ActiveReadinessGoalV1, InterviewCampaignSummaryV1 } from "./campaign-types";
+import type {
+  ActiveReadinessGoalV1,
+  AvailableLearningTrackV1,
+  CampaignAllocationOverrideSummaryV1,
+  InterviewCampaignSummaryV1,
+} from "./campaign-types";
 import styles from "./campaigns.module.css";
 
 export function CampaignWorkspace({
   campaigns,
   activeGoals,
+  availableTracks = [],
+  overrides = [],
   initialCreationPreviewState,
   initialCreationApplyState,
   focusedCampaignKey,
@@ -19,6 +26,8 @@ export function CampaignWorkspace({
 }: {
   readonly campaigns: readonly InterviewCampaignSummaryV1[];
   readonly activeGoals: readonly ActiveReadinessGoalV1[];
+  readonly availableTracks?: readonly AvailableLearningTrackV1[];
+  readonly overrides?: readonly CampaignAllocationOverrideSummaryV1[];
   readonly initialCreationPreviewState?: CampaignActionState;
   readonly initialCreationApplyState?: CampaignActionState;
   readonly focusedCampaignKey?: string;
@@ -33,9 +42,11 @@ export function CampaignWorkspace({
     <div className={styles.workspace}>
       <InterviewCampaignList
         activeGoals={activeGoals}
+        availableTracks={availableTracks}
         campaigns={campaigns}
         dismissalVersion={dismissalVersion}
         onIntentStart={bumpDismissal}
+        overrides={overrides}
         {...(focusedCampaignKey === undefined ? {} : { focusedCampaignKey })}
         {...(focusedDeadlinePreviewState === undefined ? {} : { focusedDeadlinePreviewState })}
         {...(focusedRetargetPreviewState === undefined ? {} : { focusedRetargetPreviewState })}

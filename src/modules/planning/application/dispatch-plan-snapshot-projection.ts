@@ -4,24 +4,28 @@ import { asJsonObject, asNumber, asString } from "../../../shared/contracts/json
 import type { Json, PandoSupabaseClient } from "../../../shared/supabase/database";
 import { SupabaseInternalConfigurationError } from "../../../shared/supabase/internal-config";
 import { createPandoInternalProjectionClient } from "../../../shared/supabase/internal-server";
-import { calculatePlan, calculatePlanV2, calculatePlanV3 } from "./calculate-plan";
+import { calculatePlan, calculatePlanV2, calculatePlanV3, calculatePlanV4 } from "./calculate-plan";
 import {
   assemblePlanSnapshotInput,
   assemblePlanSnapshotInputV2,
   assemblePlanSnapshotInputV3,
+  assemblePlanSnapshotInputV4,
   PlanningProjectionSourceError,
 } from "./assemble-plan-snapshot-input";
 import { PLANNING_POLICY_V0_1 } from "../domain/planning-policy-v0.1";
 import { PLANNING_POLICY_V0_2 } from "../domain/planning-policy-v0.2";
 import { PLANNING_POLICY_V0_3 } from "../domain/planning-policy-v0.3";
+import { PLANNING_POLICY_V0_4 } from "../domain/planning-policy-v0.4";
 import {
   PlanningInputError,
   type CalculatePlanInput,
   type CalculatePlanInputV2,
   type CalculatePlanInputV3,
+  type CalculatePlanInputV4,
   type PlanSnapshot,
   type PlanSnapshotV2,
   type PlanSnapshotV3,
+  type PlanSnapshotV4,
 } from "../domain/planning-types";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
@@ -37,8 +41,20 @@ const PLANNING_CALCULATION_V2 = "planning-calculation/2";
  * gated behind a SQL migration this session cannot make. See the D3b2-rollout status report.
  */
 const PLANNING_CALCULATION_V3 = "planning-calculation/3";
+/**
+ * D5-app's own dispatcher "expand" half, exactly mirroring D3b2-rollout's precedent above: this
+ * session is likewise forbidden from creating or changing any SQL migration (its own instructions),
+ * so `planning-calculation/4` is recognized and correctly routed here but remains just as
+ * unreachable from a real delivery as `.../3` — the same CHECK constraint would need widening, and
+ * the source-bundle SQL would need to start emitting `bundle.campaign` and each Track's
+ * `allocationOverride`. See the D5-app status report.
+ */
+const PLANNING_CALCULATION_V4 = "planning-calculation/4";
 type PlanningCalculationContract =
-  typeof PLANNING_CALCULATION_V1 | typeof PLANNING_CALCULATION_V2 | typeof PLANNING_CALCULATION_V3;
+  | typeof PLANNING_CALCULATION_V1
+  | typeof PLANNING_CALCULATION_V2
+  | typeof PLANNING_CALCULATION_V3
+  | typeof PLANNING_CALCULATION_V4;
 export const PLAN_SNAPSHOT_HANDLER_TIMEOUT_MS = 20_000;
 export const PLAN_SNAPSHOT_COMPLETION_MAX_UTF8_BYTES = 768 * 1_024;
 
@@ -91,7 +107,8 @@ function calculationContract(value: unknown): PlanningCalculationContract {
   if (
     value === PLANNING_CALCULATION_V1 ||
     value === PLANNING_CALCULATION_V2 ||
-    value === PLANNING_CALCULATION_V3
+    value === PLANNING_CALCULATION_V3 ||
+    value === PLANNING_CALCULATION_V4
   ) {
     return value;
   }
@@ -248,14 +265,17 @@ async function processClaim(
     );
     claim = { ...claim, attemptId: uuid(loaded.attemptId, "loaded attempt ID") };
     const contract = calculationContract(loaded.calculationContractVersion);
-    let input: CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3;
+    let input:
+      CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3 | CalculatePlanInputV4;
     if (loaded.storedInput === null) {
       input =
         contract === PLANNING_CALCULATION_V1
           ? assemblePlanSnapshotInput(loaded.sourceBundle)
           : contract === PLANNING_CALCULATION_V2
             ? assemblePlanSnapshotInputV2(loaded.sourceBundle)
-            : assemblePlanSnapshotInputV3(loaded.sourceBundle);
+            : contract === PLANNING_CALCULATION_V3
+              ? assemblePlanSnapshotInputV3(loaded.sourceBundle)
+              : assemblePlanSnapshotInputV4(loaded.sourceBundle);
       const recorded = await checkedRpc(
         client,
         "record_plan_snapshot_input_v1",
@@ -271,14 +291,16 @@ async function processClaim(
       if (recorded !== true) throw new TypeError("Planning input was not recorded");
     } else {
       input = loaded.storedInput as unknown as
-        CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3;
+        CalculatePlanInput | CalculatePlanInputV2 | CalculatePlanInputV3 | CalculatePlanInputV4;
     }
-    const result: PlanSnapshot | PlanSnapshotV2 | PlanSnapshotV3 =
+    const result: PlanSnapshot | PlanSnapshotV2 | PlanSnapshotV3 | PlanSnapshotV4 =
       contract === PLANNING_CALCULATION_V1
         ? calculatePlan(input as CalculatePlanInput, PLANNING_POLICY_V0_1)
         : contract === PLANNING_CALCULATION_V2
           ? calculatePlanV2(input as CalculatePlanInputV2, PLANNING_POLICY_V0_2)
-          : calculatePlanV3(input as CalculatePlanInputV3, PLANNING_POLICY_V0_3);
+          : contract === PLANNING_CALCULATION_V3
+            ? calculatePlanV3(input as CalculatePlanInputV3, PLANNING_POLICY_V0_3)
+            : calculatePlanV4(input as CalculatePlanInputV4, PLANNING_POLICY_V0_4);
     assertCompletionPayloadWithinBudget(result);
     const outcome = await checkedRpc(
       client,
