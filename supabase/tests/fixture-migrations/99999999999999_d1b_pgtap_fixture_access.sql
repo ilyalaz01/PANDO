@@ -112,3 +112,28 @@ begin
   );
 end
 $fixture_role_membership$;
+
+-- D5 allocation-override pgTAP proofs call these private Planning helpers directly, exactly as
+-- the accepted D3a/D4 fixtures above do for their own identity and event-payload helpers.
+do $fixture_role_membership$
+begin
+  execute pg_catalog.format(
+    'grant pando_planning_api to %I with set true', current_user
+  );
+end
+$fixture_role_membership$;
+
+set role pando_planning_api;
+grant execute on function
+  planning.derive_campaign_allocation_override_identity_v1(uuid, text, text, text),
+  planning.campaign_allocation_override_changed_event_payload_v1_is_valid(jsonb)
+  to postgres;
+reset role;
+
+do $fixture_role_membership$
+begin
+  execute pg_catalog.format(
+    'revoke pando_planning_api from %I', current_user
+  );
+end
+$fixture_role_membership$;

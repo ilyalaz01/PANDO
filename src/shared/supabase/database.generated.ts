@@ -55,6 +55,32 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_campaign_allocation_override_v1: {
+        Args: {
+          p_cadence_per_week_override: number
+          p_expected_override_version: string
+          p_idempotency_key: string
+          p_operation: string
+          p_override_key: string
+          p_preview_digest: string
+          p_priority_override: number
+          p_protected_minimum_minutes_override: number
+          p_reason: string
+        }
+        Returns: Json
+      }
+      apply_campaign_lifecycle_coordination_v1: {
+        Args: {
+          p_campaign_key: string
+          p_expected_campaign_version: string
+          p_idempotency_key: string
+          p_operation: string
+          p_overrides: Json
+          p_preview_digest: string
+          p_reason: string
+        }
+        Returns: Json
+      }
       apply_growth_plan_capacity_v1: {
         Args: {
           p_expected_growth_plan_version: string
@@ -445,6 +471,7 @@ export type Database = {
         Args: { p_workspace_id: string }
         Returns: Json
       }
+      get_campaign_allocation_overrides_v1: { Args: never; Returns: Json }
       get_current_competency_overlay_v1: {
         Args: { p_competency_ref: string; p_readiness_goal_key: string }
         Returns: Json
@@ -560,6 +587,29 @@ export type Database = {
           p_reason: string
           p_starts_on: string
           p_window_key: string
+        }
+        Returns: Json
+      }
+      preview_campaign_allocation_override_v1: {
+        Args: {
+          p_cadence_per_week_override: number
+          p_expected_override_version: string
+          p_operation: string
+          p_override_key: string
+          p_priority_override: number
+          p_protected_minimum_minutes_override: number
+          p_reason: string
+        }
+        Returns: Json
+      }
+      preview_campaign_lifecycle_coordination_v1: {
+        Args: {
+          p_campaign_key: string
+          p_expected_campaign_version: string
+          p_idempotency_key: string
+          p_operation: string
+          p_overrides: Json
+          p_reason: string
         }
         Returns: Json
       }

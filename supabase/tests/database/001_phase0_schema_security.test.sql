@@ -18,7 +18,8 @@ from unnest(array[
   'review',
   'planning',
   'integrations',
-  'outbox'
+  'outbox',
+  'agent_control'
 ]) as schemas(schema_name);
 
 select has_table(
@@ -270,6 +271,11 @@ join pg_catalog.pg_namespace as namespace
   on namespace.oid = procedure.pronamespace
 where namespace.nspname = 'api'
   and procedure.proname not in (
+    'preview_campaign_allocation_override_v1',
+    'apply_campaign_allocation_override_v1',
+    'get_campaign_allocation_overrides_v1',
+    'preview_campaign_lifecycle_coordination_v1',
+    'apply_campaign_lifecycle_coordination_v1',
     'get_current_competency_overlay_v1',
     'save_current_overlay_note_v1',
     'add_current_custom_activity_v1',
@@ -459,8 +465,35 @@ where namespace.nspname = 'api'
     'apply_learning_track_activity_admission_v1',
     'get_learning_track_activity_admission_source_v2',
     'preview_learning_track_activity_admission_v2',
-    'apply_learning_track_activity_admission_v2'
+    'apply_learning_track_activity_admission_v2',
+    'preview_campaign_allocation_override_v1',
+    'apply_campaign_allocation_override_v1',
+    'get_campaign_allocation_overrides_v1'
   );
+
+select ok(
+  procedure.prosecdef
+  and 'search_path=""' = any(coalesce(procedure.proconfig, '{}'::text[]))
+  and owner.rolname = 'pando_agent_control_api'
+  and not owner.rolcanlogin
+  and not owner.rolinherit
+  and not owner.rolbypassrls,
+  format(
+    'scoped api definer %s is pinned and owned by the Agent Control NOLOGIN role',
+    procedure.proname
+  )
+)
+from pg_catalog.pg_proc as procedure
+join pg_catalog.pg_namespace as namespace
+  on namespace.oid = procedure.pronamespace
+join pg_catalog.pg_roles as owner
+  on owner.oid = procedure.proowner
+where namespace.nspname = 'api'
+  and procedure.proname in (
+    'preview_campaign_lifecycle_coordination_v1',
+    'apply_campaign_lifecycle_coordination_v1'
+  )
+order by procedure.proname;
 
 select ok(
   procedure.prosecdef
@@ -509,7 +542,8 @@ where role.rolname in (
   'pando_identity_planning_source', 'pando_phase1_planning_source',
   'pando_phase2_planning_source', 'pando_evidence_planning_source',
   'pando_review_planning_source', 'pando_mastery_planning_source',
-  'pando_today_reader', 'pando_identity_phase1_source'
+  'pando_today_reader', 'pando_identity_phase1_source', 'pando_agent_control_api',
+  'pando_phase1_agent_control_source', 'pando_planning_agent_control_source'
 )
 order by role.rolname;
 
@@ -527,7 +561,9 @@ cross join (values
   ('pando_review_planning_source'),
   ('pando_planning_router'),
   ('pando_today_reader'),
-  ('pando_identity_phase1_source')
+  ('pando_identity_phase1_source'),
+  ('pando_phase1_agent_control_source'),
+  ('pando_planning_agent_control_source')
 ) as source_role(role_name)
 order by runtime_role.role_name, source_role.role_name;
 
@@ -552,7 +588,15 @@ from (values
   ('evidence', 'read_planning_completed_work_source_v2', 'pando_evidence_planning_source'),
   ('mastery', 'read_planning_mastery_source_v1', 'pando_mastery_worker'),
   ('mastery', 'read_planning_prerequisite_source_v1', 'pando_mastery_planning_source'),
-  ('review', 'read_planning_review_source_v1', 'pando_review_planning_source')
+  ('review', 'read_planning_review_source_v1', 'pando_review_planning_source'),
+  (
+    'targets', 'read_interview_campaign_coordination_source_v1',
+    'pando_phase1_agent_control_source'
+  ),
+  (
+    'planning', 'read_campaign_lifecycle_coordination_source_v1',
+    'pando_planning_agent_control_source'
+  )
 ) as expected(schema_name, function_name, owner_name)
 join pg_catalog.pg_namespace as namespace on namespace.nspname = expected.schema_name
 join pg_catalog.pg_proc as procedure
